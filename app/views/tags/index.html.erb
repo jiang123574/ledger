@@ -1,0 +1,29 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-900">Tags</h1>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="font-medium mb-4">Add New Tag</h3>
+    <%= form_with model: Tag.new, url: tags_path, local: true, class: "flex gap-4" do |f| %>
+      <%= f.text_field :name, placeholder: "Tag name", class: "border rounded px-3 py-2" %>
+      <%= f.color_field :color, value: "#3498db", class: "w-12 h-10 border rounded" %>
+      <%= f.submit "Add", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+    <% end %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <div class="p-4 flex flex-wrap gap-2">
+      <% @tags.each do |tag| %>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-sm" style="background-color: <%= tag.color %>; color: white;">
+          <%= tag.name %>
+          <%= button_to "×", tag, method: :delete, class: "ml-2 hover:opacity-75 font-bold" %>
+        </span>
+      <% end %>
+    </div>
+
+    <% if @tags.empty? %>
+      <div class="p-8 text-center text-gray-500">
+        No tags yet
+      </div>
+    <% end %>
+  </div>
+</div>

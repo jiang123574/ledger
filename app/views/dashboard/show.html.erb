@@ -1,0 +1,103 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900">Dashboard</h1>
+    <div class="flex items-center space-x-2">
+      <%= link_to "<", dashboard_path(month: @month.to_date.prev_month.strftime("%Y-%m")), class: "px-2 py-1 bg-white border rounded hover:bg-gray-50" %>
+      <span class="px-4 py-1 bg-white border rounded font-medium"><%= @month %></span>
+      <%= link_to ">", dashboard_path(month: @month.to_date.next_month.strftime("%Y-%m")), class: "px-2 py-1 bg-white border rounded hover:bg-gray-50" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Income</h3>
+      <p class="text-2xl font-bold text-green-600 mt-1">¥<%= @total_income.to_s("%.2f") %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Expense</h3>
+      <p class="text-2xl font-bold text-red-600 mt-1">¥<%= @total_expense.to_s("%.2f") %></p>
+    </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <h3 class="text-sm font-medium text-gray-500">Balance</h3>
+      <p class="text-2xl font-bold text-blue-600 mt-1">¥<%= (@total_income - @total_expense).to_s("%.2f") %></p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Recent Transactions</h2>
+      <div class="space-y-3">
+        <% @transactions.limit(10).each do |t| %>
+          <div class="flex justify-between items-center py-2 border-b">
+            <div>
+              <p class="font-medium"><%= t.category || "Uncategorized" %></p>
+              <p class="text-sm text-gray-500"><%= t.date.strftime("%Y-%m-%d") %> • <%= t.account_name %></p>
+            </div>
+              <span class="<%= t.transaction_type == "INCOME" ? "text-green-600" : "text-red-600" %> font-medium">
+                <%= t.transaction_type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
+            </span>
+          </div>
+        <% end %>
+        <% if @transactions.empty? %>
+          <p class="text-gray-500 text-center py-4">No transactions yet</p>
+        <% end %>
+      </div>
+      <%= link_to "View All", transactions_path, class: "mt-4 block text-center text-blue-600 hover:text-blue-800" %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Account Balances</h2>
+      <div class="space-y-3">
+        <% @accounts.each do |account| %>
+          <div class="flex justify-between items-center py-2 border-b">
+            <span class="font-medium"><%= account.name %></span>
+            <span class="font-medium">¥<%= account.current_balance.to_s("%.2f") %></span>
+          </div>
+        <% end %>
+        <% if @accounts.empty? %>
+          <p class="text-gray-500 text-center py-4">No accounts yet</p>
+        <% end %>
+      </div>
+      <%= link_to "Manage Accounts", accounts_path, class: "mt-4 block text-center text-blue-600 hover:text-blue-800" %>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Expenses by Category</h2>
+      <% if @expenses_by_category.any? %>
+        <div class="space-y-2">
+          <% @expenses_by_category.sort_by { |_, v| -v }.each do |category, amount| %>
+            <div class="flex justify-between items-center">
+              <span><%= category || "Uncategorized" %></span>
+              <span class="font-medium text-red-600">¥<%= amount.to_s("%.2f") %></span>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-4">No expenses this month</p>
+      <% end %>
+    </div>
+
+    <div class="bg-white rounded-lg shadow p-6">
+      <h2 class="text-lg font-medium text-gray-900 mb-4">Budget Status</h2>
+      <% if @budgets.any? %>
+        <div class="space-y-3">
+          <% @budgets.each do |budget| %>
+            <div>
+              <div class="flex justify-between text-sm mb-1">
+                <span><%= budget.category&.name || "Total Budget" %></span>
+                <span>¥<%= budget.amount.to_s("%.2f") %></span>
+              </div>
+              <div class="w-full bg-gray-200 rounded-full h-2">
+                <div class="bg-blue-600 h-2 rounded-full" style="width: 100%"></div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <p class="text-gray-500 text-center py-4">No budgets set for this month</p>
+      <% end %>
+    </div>
+  </div>
+</div>

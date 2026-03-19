@@ -1,0 +1,32 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+
+  <div class="bg-white rounded-lg shadow p-6 space-y-6">
+    <div>
+      <h3 class="font-medium text-lg mb-4">Currency</h3>
+      <table class="min-w-full">
+        <thead>
+          <tr>
+            <th class="text-left">Code</th>
+            <th class="text-left">Name</th>
+            <th class="text-left">Symbol</th>
+            <th class="text-left">Rate</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% @currencies.each do |currency| %>
+            <tr class="border-t">
+              <td class="py-2"><%= currency.code %></td>
+              <td class="py-2"><%= currency.name %></td>
+              <td class="py-2"><%= currency.symbol %></td>
+              <td class="py-2"><%= currency.exchange_rate %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <% if @currencies.empty? %>
+        <p class="text-gray-500">No currencies configured</p>
+      <% end %>
+    </div>
+  </div>
+</div>

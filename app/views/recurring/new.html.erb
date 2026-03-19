@@ -1,0 +1,49 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-900">New Recurring Transaction</h1>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <%= form_with model: @recurring, url: recurring_index_path, local: true, class: "space-y-4" do |f| %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :transaction_type, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.select :transaction_type, options_for_select(["INCOME", "EXPENSE"]), {}, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :amount, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.number_field :amount, step: "0.01", class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :frequency, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.select :frequency, options_for_select(["daily", "weekly", "monthly", "yearly"]), {}, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :next_date, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.date_field :next_date, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :account_id, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: true }, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :category_id, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: true }, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :note, class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_area :note, rows: 2, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+      </div>
+
+      <div class="flex justify-end space-x-4">
+        <%= link_to "Cancel", recurring_index_path, class: "px-4 py-2 border rounded-md hover:bg-gray-50" %>
+        <%= f.submit "Create", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+      </div>
+    <% end %>
+  </div>
+</div>

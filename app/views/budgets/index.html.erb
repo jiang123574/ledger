@@ -1,0 +1,63 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900">Budgets</h1>
+    <div class="flex items-center space-x-2">
+      <%= form_tag budgets_path, method: :get do %>
+        <%= month_field_tag :month, @month, class: "border rounded px-2 py-1" %>
+        <%= submit_tag "Go", class: "bg-gray-200 px-3 py-1 rounded hover:bg-gray-300" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <h3 class="font-medium mb-4">Add Budget for <%= @month %></h3>
+    <%= form_with model: Budget.new, url: budgets_path, local: true, class: "flex gap-4" do |f| %>
+      <%= f.hidden_field :month, value: @month %>
+      <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "Total Budget" }, class: "border rounded px-3 py-2" %>
+      <%= f.number_field :amount, step: "0.01", placeholder: "Amount", class: "border rounded px-3 py-2" %>
+      <%= f.submit "Add", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+    <% end %>
+  </div>
+
+  <div class="bg-white rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Budget</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Spent</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">Remaining</th>
+          <th class="px-6 py-3 actions"></th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <tr class="bg-gray-50">
+          <td class="px-6 py-4 font-medium">Total</td>
+          <td class="px-6 py-4 text-right">¥<%= @total_budget.to_s("%.2f") %></td>
+          <td class="px-6 py-4 text-right">¥<%= @total_spent.to_s("%.2f") %></td>
+          <td class="px-6 py-4 text-right font-medium <%= (@total_budget - @total_spent) < 0 ? "text-red-600" : "text-green-600" %>">
+            ¥<%= (@total_budget - @total_spent).to_s("%.2f") %>
+          </td>
+          <td></td>
+        </tr>
+        <% @budgets.each do |budget| %>
+          <tr>
+            <td class="px-6 py-4 whitespace-nowrap"><%= budget.category&.name || "Total" %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-right">¥<%= budget.amount.to_s("%.2f") %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-right">-</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-gray-500">-</td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+              <%= link_to "Delete", budget, method: :delete, data: { confirm: "Are you sure?" }, class: "text-red-600 hover:text-red-900" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <% if @budgets.empty? && @total_budget == 0 %>
+      <div class="p-8 text-center text-gray-500">
+        No budgets set for this month
+      </div>
+    <% end %>
+  </div>
+</div>

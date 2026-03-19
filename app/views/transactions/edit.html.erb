@@ -1,0 +1,49 @@
+<div class="space-y-6">
+  <h1 class="text-2xl font-bold text-gray-900">Edit Transaction</h1>
+
+  <div class="bg-white rounded-lg shadow p-6">
+    <%= form_with model: @transaction, local: true, class: "space-y-4" do |f| %>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <%= f.label :date, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.date_field :date, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :type, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.select :type, options_for_select(["INCOME", "EXPENSE"]), {}, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :amount, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.number_field :amount, step: "0.01", class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :account_id, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: true }, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :category_id, class: "block text-sm font-medium text-gray-700" %>
+          <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: true }, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+
+        <div>
+          <%= f.label :target_account_id, "Target Account (for transfers)", class: "block text-sm font-medium text-gray-700" %>
+          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: true }, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+        </div>
+      </div>
+
+      <div>
+        <%= f.label :note, class: "block text-sm font-medium text-gray-700" %>
+        <%= f.text_area :note, rows: 3, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
+      </div>
+
+      <div class="flex justify-end space-x-4">
+        <%= link_to "Cancel", transactions_path, class: "px-4 py-2 border rounded-md hover:bg-gray-50" %>
+        <%= f.submit "Update", class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+      </div>
+    <% end %>
+  </div>
+</div>
