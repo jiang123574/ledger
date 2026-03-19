@@ -48,8 +48,8 @@ module.exports = {
           DEFAULT: '#ffc107',
           hover: '#e0a800'
         },
-        income: '#22c55e',
-        expense: '#ef4444',
+        income: '#ef4444',
+        expense: '#22c55e',
         transfer: '#3b82f6'
       },
       fontFamily: {

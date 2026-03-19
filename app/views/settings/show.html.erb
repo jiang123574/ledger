@@ -1,190 +1,237 @@
-<div class="space-y-6">
-  <h1 class="text-2xl font-semibold text-primary">设置</h1>
-
-  <!-- Import Results -->
-  <% if flash[:warning] %>
-    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4">
-      <p class="font-medium"><%= flash[:warning] %></p>
-      <% if flash[:import_errors].present? %>
-        <ul class="mt-2 text-sm list-disc list-inside">
-          <% flash[:import_errors].first(10).each do |error| %>
-            <li><%= error %></li>
-          <% end %>
-          <% if flash[:import_errors].size > 10 %>
-            <li>... 还有 <%= flash[:import_errors].size - 10 %> 个错误</li>
-          <% end %>
-        </ul>
-      <% end %>
+<div class="flex flex-col lg:flex-row gap-6">
+  <!-- Left Sidebar - Navigation -->
+  <aside class="lg:w-56 shrink-0">
+    <div class="bg-container rounded-lg shadow-border-xs sticky top-24">
+      <nav class="p-2 space-y-1">
+        <a href="#general" class="settings-nav-item active">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+          <span>通用设置</span>
+        </a>
+        <a href="#currencies" class="settings-nav-item">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span>货币设置</span>
+        </a>
+        <a href="#data" class="settings-nav-item">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+          <span>数据管理</span>
+        </a>
+        <a href="#danger" class="settings-nav-item">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <span>危险区域</span>
+        </a>
+      </nav>
     </div>
-  <% end %>
+  </aside>
 
-  <!-- Currency Settings -->
-  <div class="bg-container rounded-lg shadow-border-xs">
-    <div class="p-4 border-b border-border">
-      <h2 class="text-base font-semibold text-primary">货币设置</h2>
-      <p class="text-sm text-secondary mt-1">管理货币和汇率</p>
-    </div>
-    <div class="p-4">
-      <table class="min-w-full">
-        <thead>
-          <tr>
-            <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">代码</th>
-            <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">名称</th>
-            <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">符号</th>
-            <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">汇率</th>
-            <th class="text-right"></th>
-          </tr>
-        </thead>
-        <tbody>
-          <% @currencies.each do |currency| %>
-            <tr class="border-t border-border">
-              <td class="py-3 font-medium text-primary"><%= currency.code %></td>
-              <td class="py-3 text-secondary"><%= currency.name %></td>
-              <td class="py-3"><%= currency.symbol %></td>
-              <td class="py-3 text-secondary"><%= currency.exchange_rate %></td>
-              <td class="py-3 text-right">
-                <button class="text-sm text-blue-600 hover:text-blue-700">编辑</button>
-              </td>
-            </tr>
-          <% end %>
-        </tbody>
-      </table>
-      <% if @currencies.empty? %>
-        <p class="text-center text-secondary py-4">暂无货币配置</p>
-      <% end %>
-      <button class="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium">+ 添加货币</button>
-    </div>
-  </div>
-
-  <!-- Data Management -->
-  <div class="bg-container rounded-lg shadow-border-xs">
-    <div class="p-4 border-b border-border">
-      <h2 class="text-base font-semibold text-primary">数据管理</h2>
-      <p class="text-sm text-secondary mt-1">导入、导出和备份您的数据</p>
-    </div>
-    <div class="p-4 space-y-4">
-      <!-- Export -->
-      <div class="flex items-center justify-between py-3 border-b border-border">
-        <div>
-          <h3 class="font-medium text-primary">导出数据</h3>
-          <p class="text-sm text-secondary">下载所有交易记录为 CSV 文件</p>
-        </div>
-        <%= button_to "导出 CSV", export_transactions_path, method: :post, class: "px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" %>
-      </div>
-
-      <!-- Import -->
-      <div class="py-3 border-b border-border">
-        <div class="flex items-start justify-between">
-          <div class="flex-1">
-            <h3 class="font-medium text-primary">导入数据</h3>
-            <p class="text-sm text-secondary">从 CSV 文件导入交易记录</p>
-          </div>
-        </div>
-        <%= form_with url: import_transactions_path, method: :post, local: true, class: "mt-3", multipart: true do |f| %>
-          <div class="flex items-center gap-3">
-            <%= f.file_field :file, accept: ".csv", class: "text-sm text-primary border border-border rounded-lg p-2", required: true %>
-            <%= f.submit "导入", class: "px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" %>
-          </div>
-          <p class="text-xs text-secondary mt-2">
-            CSV 格式：日期, 类型(收入/支出), 金额, 账户, 分类, 目标账户, 备注
-          </p>
+  <!-- Main Content -->
+  <main class="flex-1 space-y-6">
+    <!-- Import Results -->
+    <% if flash[:warning] %>
+      <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 rounded-lg p-4">
+        <p class="font-medium"><%= flash[:warning] %></p>
+        <% if flash[:import_errors].present? %>
+          <ul class="mt-2 text-sm list-disc list-inside">
+            <% flash[:import_errors].first(10).each do |error| %>
+              <li><%= error %></li>
+            <% end %>
+            <% if flash[:import_errors].size > 10 %>
+              <li>... 还有 <%= flash[:import_errors].size - 10 %> 个错误</li>
+            <% end %>
+          </ul>
         <% end %>
       </div>
+    <% end %>
 
-      <!-- Backup -->
-      <div class="py-3">
-        <div class="flex items-center justify-between mb-3">
+    <!-- General Settings -->
+    <section id="general" class="bg-container rounded-lg shadow-border-xs">
+      <div class="p-4 border-b border-border">
+        <h2 class="text-lg font-semibold text-primary">通用设置</h2>
+        <p class="text-sm text-secondary mt-1">自定义应用偏好</p>
+      </div>
+      <div class="p-4 space-y-4">
+        <div class="flex items-center justify-between py-3 border-b border-border">
           <div>
-            <h3 class="font-medium text-primary">数据库备份</h3>
-            <p class="text-sm text-secondary">创建完整的数据库备份</p>
+            <h3 class="font-medium text-primary">默认货币</h3>
+            <p class="text-sm text-secondary">新账户的默认货币</p>
           </div>
-          <%= button_to "创建备份", create_backup_path, method: :post, class: "px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" %>
+          <select class="px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
+            <option>CNY (¥)</option>
+            <option>USD ($)</option>
+            <option>EUR (€)</option>
+          </select>
         </div>
-        <% if @backups.any? %>
-          <div class="bg-surface-inset rounded-lg p-3">
-            <p class="text-xs font-medium text-secondary mb-2">最近的备份：</p>
-            <ul class="space-y-1">
-              <% @backups.each do |backup| %>
-                <li class="flex items-center justify-between text-sm">
-                  <span class="text-secondary">
-                    <%= backup[:name] %> (<%= number_to_human_size(backup[:size]) %>)
-                  </span>
-                  <%= link_to "下载", download_backup_path(backup[:name]), class: "text-blue-600 hover:text-blue-700" %>
-                </li>
-              <% end %>
-            </ul>
+        <div class="flex items-center justify-between py-3 border-b border-border">
+          <div>
+            <h3 class="font-medium text-primary">日期格式</h3>
+            <p class="text-sm text-secondary">选择日期显示格式</p>
           </div>
+          <select class="px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
+            <option>2024-01-15</option>
+            <option>2024/01/15</option>
+            <option>01-15-2024</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-between py-3">
+          <div>
+            <h3 class="font-medium text-primary">起始月份</h3>
+            <p class="text-sm text-secondary">仪表盘默认显示的月份</p>
+          </div>
+          <select class="px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
+            <option>当前月份</option>
+            <option>上个月</option>
+            <option>年初</option>
+          </select>
+        </div>
+      </div>
+    </section>
+
+    <!-- Currency Settings -->
+    <section id="currencies" class="bg-container rounded-lg shadow-border-xs">
+      <div class="p-4 border-b border-border">
+        <h2 class="text-lg font-semibold text-primary">货币设置</h2>
+        <p class="text-sm text-secondary mt-1">管理货币和汇率</p>
+      </div>
+      <div class="p-4">
+        <table class="min-w-full">
+          <thead>
+            <tr>
+              <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">代码</th>
+              <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">名称</th>
+              <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">符号</th>
+              <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">汇率</th>
+              <th class="text-right"></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @currencies.each do |currency| %>
+              <tr class="border-t border-border">
+                <td class="py-3 font-medium text-primary"><%= currency.code %></td>
+                <td class="py-3 text-secondary"><%= currency.name %></td>
+                <td class="py-3"><%= currency.symbol %></td>
+                <td class="py-3 text-secondary"><%= currency.exchange_rate %></td>
+                <td class="py-3 text-right">
+                  <button class="text-sm text-blue-600 hover:text-blue-700">编辑</button>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+        <% if @currencies.empty? %>
+          <p class="text-center text-secondary py-4">暂无货币配置</p>
         <% end %>
+        <button class="mt-4 text-sm text-blue-600 hover:text-blue-700 font-medium">+ 添加货币</button>
       </div>
-    </div>
-  </div>
+    </section>
 
-  <!-- Display Settings -->
-  <div class="bg-container rounded-lg shadow-border-xs">
-    <div class="p-4 border-b border-border">
-      <h2 class="text-base font-semibold text-primary">显示设置</h2>
-      <p class="text-sm text-secondary mt-1">自定义应用显示偏好</p>
-    </div>
-    <div class="p-4 space-y-4">
-      <div class="flex items-center justify-between py-3 border-b border-border">
-        <div>
-          <h3 class="font-medium text-primary">默认货币</h3>
-          <p class="text-sm text-secondary">新账户的默认货币</p>
-        </div>
-        <select class="px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
-          <option>CNY (¥)</option>
-          <option>USD ($)</option>
-          <option>EUR (€)</option>
-        </select>
+    <!-- Data Management -->
+    <section id="data" class="bg-container rounded-lg shadow-border-xs">
+      <div class="p-4 border-b border-border">
+        <h2 class="text-lg font-semibold text-primary">数据管理</h2>
+        <p class="text-sm text-secondary mt-1">导入、导出和备份您的数据</p>
       </div>
-      <div class="flex items-center justify-between py-3 border-b border-border">
-        <div>
-          <h3 class="font-medium text-primary">日期格式</h3>
-          <p class="text-sm text-secondary">选择日期显示格式</p>
+      <div class="p-4 space-y-4">
+        <!-- Export -->
+        <div class="flex items-center justify-between py-3 border-b border-border">
+          <div>
+            <h3 class="font-medium text-primary">导出数据</h3>
+            <p class="text-sm text-secondary">下载所有交易记录为 CSV 文件</p>
+          </div>
+          <%= button_to "导出 CSV", export_transactions_path, method: :post, class: "px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" %>
         </div>
-        <select class="px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
-          <option>2024-01-15</option>
-          <option>2024/01/15</option>
-          <option>01-15-2024</option>
-        </select>
-      </div>
-      <div class="flex items-center justify-between py-3">
-        <div>
-          <h3 class="font-medium text-primary">起始日期</h3>
-          <p class="text-sm text-secondary">仪表盘默认显示的月份</p>
-        </div>
-        <select class="px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
-          <option>当前月份</option>
-          <option>上个月</option>
-          <option>年初</option>
-        </select>
-      </div>
-    </div>
-  </div>
 
-  <!-- Danger Zone -->
-  <div class="bg-container rounded-lg shadow-border-xs border border-red-200">
-    <div class="p-4 border-b border-red-200">
-      <h2 class="text-base font-semibold text-red-600">危险区域</h2>
-      <p class="text-sm text-secondary mt-1">以下操作不可逆，请谨慎操作</p>
-    </div>
-    <div class="p-4 space-y-4">
-      <div class="flex items-center justify-between py-3 border-b border-red-100">
-        <div>
-          <h3 class="font-medium text-primary">清除所有数据</h3>
-          <p class="text-sm text-secondary">删除所有交易、账户和分类数据</p>
+        <!-- Import -->
+        <div class="py-3 border-b border-border">
+          <div class="flex items-start justify-between mb-3">
+            <div>
+              <h3 class="font-medium text-primary">导入数据</h3>
+              <p class="text-sm text-secondary">从 CSV 文件导入交易记录</p>
+            </div>
+          </div>
+          <%= form_with url: import_transactions_path, method: :post, local: true, multipart: true do |f| %>
+            <div class="flex items-center gap-3">
+              <%= f.file_field :file, accept: ".csv", class: "text-sm text-primary border border-border rounded-lg p-2", required: true %>
+              <%= f.submit "导入", class: "px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" %>
+            </div>
+            <p class="text-xs text-secondary mt-2">
+              CSV 格式：日期, 类型(收入/支出), 金额, 账户, 分类, 目标账户, 备注
+            </p>
+          <% end %>
         </div>
-        <%= button_to "清除数据", clear_all_data_path, method: :post, 
-            data: { confirm: "确定要清除所有数据吗？此操作不可恢复！", turbo_confirm: "确定要清除所有数据吗？此操作不可恢复！" },
-            class: "px-4 py-2 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth" %>
-      </div>
-      <div class="flex items-center justify-between py-3">
-        <div>
-          <h3 class="font-medium text-primary">重置应用</h3>
-          <p class="text-sm text-secondary">恢复所有设置为默认值</p>
+
+        <!-- Backup -->
+        <div class="py-3">
+          <div class="flex items-center justify-between mb-3">
+            <div>
+              <h3 class="font-medium text-primary">数据库备份</h3>
+              <p class="text-sm text-secondary">创建完整的数据库备份</p>
+            </div>
+            <%= button_to "创建备份", create_backup_path, method: :post, class: "px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" %>
+          </div>
+          <% if @backups.any? %>
+            <div class="bg-surface-inset rounded-lg p-3">
+              <p class="text-xs font-medium text-secondary mb-2">最近的备份：</p>
+              <ul class="space-y-1">
+                <% @backups.each do |backup| %>
+                  <li class="flex items-center justify-between text-sm">
+                    <span class="text-secondary">
+                      <%= backup[:name] %> (<%= number_to_human_size(backup[:size]) %>)
+                    </span>
+                    <%= link_to "下载", download_backup_path(backup[:name]), class: "text-blue-600 hover:text-blue-700" %>
+                  </li>
+                <% end %>
+              </ul>
+            </div>
+          <% end %>
         </div>
-        <button class="px-4 py-2 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth">重置</button>
       </div>
-    </div>
-  </div>
+    </section>
+
+    <!-- Danger Zone -->
+    <section id="danger" class="bg-container rounded-lg shadow-border-xs border border-red-200">
+      <div class="p-4 border-b border-red-200">
+        <h2 class="text-lg font-semibold text-red-600">危险区域</h2>
+        <p class="text-sm text-secondary mt-1">以下操作不可逆，请谨慎操作</p>
+      </div>
+      <div class="p-4 space-y-4">
+        <div class="flex items-center justify-between py-3 border-b border-red-100">
+          <div>
+            <h3 class="font-medium text-primary">清除所有数据</h3>
+            <p class="text-sm text-secondary">删除所有交易、账户和分类数据</p>
+          </div>
+          <%= button_to "清除数据", clear_all_data_path, method: :post, 
+              data: { confirm: "确定要清除所有数据吗？此操作不可恢复！" },
+              class: "px-4 py-2 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth" %>
+        </div>
+        <div class="flex items-center justify-between py-3">
+          <div>
+            <h3 class="font-medium text-primary">重置应用</h3>
+            <p class="text-sm text-secondary">恢复所有设置为默认值</p>
+          </div>
+          <button class="px-4 py-2 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth">重置</button>
+        </div>
+      </div>
+    </section>
+  </main>
 </div>
+
+<style>
+  .settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.625rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6c757d;
+    transition: all 150ms;
+  }
+  .settings-nav-item:hover {
+    background-color: #f8f9fa;
+    color: #1a1a1a;
+  }
+  .settings-nav-item.active {
+    background-color: #e9ecef;
+    color: #1a1a1a;
+  }
+</style>

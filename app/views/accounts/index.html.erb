@@ -21,7 +21,7 @@
                 <div>
                   <h3 class="font-semibold text-primary"><%= account.name %></h3>
                   <%= render(Ds::BadgeComponent.new(variant: :default, size: :xs)) do %>
-                    <%= account.type || "账户" %>
+                    <%= account.type_name %>
                   <% end %>
                 </div>
               </div>

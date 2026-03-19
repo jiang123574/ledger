@@ -2,6 +2,7 @@ class SettingsController < ApplicationController
   before_action :load_currencies, only: [:show]
 
   def show
+    @currencies = Currency.order(:code)
     @backups = BackupService.list_backups.take(10)
   end
 

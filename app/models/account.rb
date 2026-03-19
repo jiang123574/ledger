@@ -1,6 +1,15 @@
 class Account < ApplicationRecord
   self.inheritance_column = nil
 
+  ACCOUNT_TYPES = {
+    "CASH" => "现金",
+    "BANK" => "银行账户",
+    "CREDIT" => "信用卡",
+    "INVESTMENT" => "投资账户",
+    "LOAN" => "贷款",
+    "DEBT" => "欠款"
+  }.freeze
+
   has_many :sent_transactions, class_name: "Transaction", foreign_key: "account_id", dependent: :destroy
   has_many :received_transactions, class_name: "Transaction", foreign_key: "target_account_id", dependent: :destroy
   has_many :plans, dependent: :destroy
@@ -41,8 +50,8 @@ class Account < ApplicationRecord
     Money.symbol(currency)
   end
 
-  def format_balance
-    "#{currency_symbol}#{current_balance.to_s("%.2f")}"
+  def type_name
+    ACCOUNT_TYPES[type] || type.presence || "账户"
   end
 
   def cash_flow(from_date, to_date)

@@ -58,16 +58,16 @@
                 <div class="md:grid md:grid-cols-12 md:gap-4 md:items-center">
                   <!-- Date & Type -->
                   <div class="col-span-3 flex items-center gap-3 mb-2 md:mb-0">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 <%= t.type == "INCOME" ? "bg-green-100" : "bg-red-100" %>">
+                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 <%= t.type == "INCOME" ? "bg-red-100" : "bg-green-100" %>">
                       <% if t.type == "INCOME" %>
-                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
                       <% else %>
-                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
                       <% end %>
                     </div>
                     <div>
                       <p class="font-medium text-primary"><%= t.date&.strftime("%Y-%m-%d") %></p>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= t.type == "INCOME" ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700" %>">
+                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= t.type == "INCOME" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700" %>">
                         <%= t.type == "INCOME" ? "收入" : "支出" %>
                       </span>
                     </div>
