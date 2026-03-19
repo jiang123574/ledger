@@ -1,0 +1,8 @@
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-container border-t border-border safe-area-bottom">
+  <div class="flex items-center justify-around h-16">
+    <%= mobile_nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
+    <%= mobile_nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
+    <%= mobile_nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
+    <%= mobile_nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
+  </div>
+</nav>

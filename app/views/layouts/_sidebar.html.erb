@@ -1,0 +1,65 @@
+<aside class="hidden lg:flex flex-col w-64 shrink-0 bg-container border-r border-border min-h-screen sticky top-0">
+  <!-- Logo -->
+  <div class="h-16 flex items-center px-6 border-b border-border">
+    <%= link_to dashboard_path, class: "flex items-center gap-3" do %>
+      <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+        <span class="text-white font-bold text-sm">账</span>
+      </div>
+      <span class="font-semibold text-primary"><%= t("app_name") %></span>
+    <% end %>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="flex-1 p-4 space-y-1">
+    <%= nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
+    <%= nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
+    <%= nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
+    <%= nav_item(:categories, t("nav.categories"), categories_path, "tag") %>
+    <%= nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
+    <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
+  </nav>
+
+  <!-- Footer -->
+  <div class="p-4 border-t border-border">
+    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-smooth" do %>
+      <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
+      <span class="text-sm font-medium"><%= t("nav.settings") %></span>
+    <% end %>
+  </div>
+</aside>
+
+<!-- Mobile Sidebar -->
+<div id="sidebar-overlay" class="lg:hidden fixed inset-0 z-40 bg-black/50 hidden"></div>
+
+<aside id="mobile-sidebar" class="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-container shadow-border-lg transform transition-transform duration-200 ease-out translate-x-[-100%]">
+  <!-- Logo -->
+  <div class="h-16 flex items-center justify-between px-6 border-b border-border">
+    <%= link_to dashboard_path, class: "flex items-center gap-3" do %>
+      <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+        <span class="text-white font-bold text-sm">账</span>
+      </div>
+      <span class="font-semibold text-primary"><%= t("app_name") %></span>
+    <% end %>
+    <button type="button" id="sidebar-close" class="p-2 text-secondary hover:text-primary">
+      <%= render(Ds::IconComponent.new(name: "x", size: :md)) %>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="p-4 space-y-1">
+    <%= nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
+    <%= nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
+    <%= nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
+    <%= nav_item(:categories, t("nav.categories"), categories_path, "tag") %>
+    <%= nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
+    <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
+  </nav>
+
+  <!-- Footer -->
+  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
+    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-smooth" do %>
+      <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
+      <span class="text-sm font-medium"><%= t("nav.settings") %></span>
+    <% end %>
+  </div>
+</aside>

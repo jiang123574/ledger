@@ -11,7 +11,7 @@ class TransactionsController < ApplicationController
     end
 
     if params[:type].present?
-      @transactions = @transactions.where(transaction_type: params[:type])
+      @transactions = @transactions.where(type: params[:type])
     end
 
     if params[:account_id].present?
