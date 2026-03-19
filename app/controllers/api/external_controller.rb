@@ -11,12 +11,10 @@ module Api
     def context
       accounts = Account.visible.pluck(:id, :name)
       categories = Category.pluck(:id, :name)
-      tags = Tag.pluck(:id, :name)
 
       render json: {
         accounts: accounts.map { |id, name| { id: id, name: name } },
-        categories: categories.map { |id, name| { id: id, name: name } },
-        tags: tags.map { |id, name| { id: id, name: name } }
+        categories: categories.map { |id, name| { id: id, name: name } }
       }
     end
 
@@ -44,7 +42,7 @@ module Api
     end
 
     def transaction_params
-      params.permit(:date, :type, :amount, :category, :category_id, :tag, :note, :account_id, :transaction_type)
+      params.permit(:date, :type, :amount, :category, :category_id, :note, :account_id, :transaction_type)
     end
   end
 end

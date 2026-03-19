@@ -6,7 +6,6 @@ Rails.application.routes.draw do
   resources :transactions
   resources :accounts
   resources :categories
-  resources :tags, only: [:index, :create, :update, :destroy]
   resources :budgets, only: [:index, :create, :update, :destroy]
   resources :plans
   resources :recurring, controller: "recurring", only: [:index, :new, :create, :edit, :update, :destroy] do
@@ -15,6 +14,7 @@ Rails.application.routes.draw do
     end
   end
   resources :settings, only: [:show, :update]
+  get "/settings", to: "settings#show", as: :settings
 
   get "/reports", to: "reports#show", as: :reports
   get "/dashboard", to: "dashboard#show", as: :dashboard

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2024_01_01_000016) do
+ActiveRecord::Schema[8.1].define(version: 2024_01_01_000017) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -25,6 +25,7 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000016) do
     t.string "name", null: false
     t.integer "sort_order", default: 0
     t.string "type"
+    t.index ["hidden", "include_in_total"], name: "index_accounts_visibility"
     t.index ["name"], name: "index_accounts_on_name", unique: true
   end
 
@@ -60,6 +61,7 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000016) do
     t.string "month", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_budgets_on_category_id"
+    t.index ["month", "category_id"], name: "index_budgets_month_category"
     t.index ["month"], name: "index_budgets_on_month"
   end
 
@@ -70,6 +72,7 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000016) do
     t.string "type"
     t.index ["name"], name: "index_categories_on_name", unique: true
     t.index ["parent_id"], name: "index_categories_on_parent_id"
+    t.index ["type", "sort_order"], name: "index_categories_type_order"
   end
 
   create_table "counterparties", force: :cascade do |t|
@@ -205,6 +208,7 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000016) do
     t.integer "target_account_id"
     t.string "type"
     t.datetime "updated_at", null: false
+    t.index ["account_id", "date"], name: "index_transactions_account_date"
     t.index ["account_id"], name: "index_transactions_on_account_id"
     t.index ["category"], name: "index_transactions_on_category"
     t.index ["category_id"], name: "index_transactions_on_category_id"
@@ -213,6 +217,7 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000016) do
     t.index ["link_id"], name: "index_transactions_on_link_id"
     t.index ["receivable_id"], name: "index_transactions_on_receivable_id"
     t.index ["target_account_id"], name: "index_transactions_on_target_account_id"
+    t.index ["type", "date"], name: "index_transactions_type_date"
     t.index ["type"], name: "index_transactions_on_type"
   end
 

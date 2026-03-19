@@ -6,17 +6,27 @@ class Transaction < ApplicationRecord
   belongs_to :category, class_name: "Category", optional: true
   belongs_to :receivable, optional: true
   belongs_to :link, class_name: "Transaction", optional: true
-  has_and_belongs_to_many :tags, join_table: "transaction_tags"
   has_many :attachments, dependent: :destroy
 
-  validates :transaction_type, presence: true
+  validates :type, presence: true
   validates :amount, presence: true, numericality: true
 
   scope :by_date, ->(start_date, end_date) {
     where(date: start_date..end_date)
   }
-  scope :by_type, ->(type) { where(transaction_type: type) if type.present? }
+  scope :by_type, ->(type) { where(type: type) if type.present? }
   scope :by_account, ->(account_id) { where(account_id: account_id) if account_id.present? }
+  scope :income, -> { where(type: "INCOME") }
+  scope :expense, -> { where(type: "EXPENSE") }
+  scope :for_month, ->(month) {
+    start_date = Date.parse("#{month}-01")
+    end_date = start_date.end_of_month
+    where(date: start_date..end_date)
+  }
+
+  def currency_symbol
+    account&.currency_symbol || "¥"
+  end
 
   def account_name
     account&.name || "未知账户"
@@ -26,32 +36,39 @@ class Transaction < ApplicationRecord
     target_account&.name
   end
 
-  def tag_list
-    tags.pluck(:id)
-  end
-
-  CURRENCY_SYMBOLS = {
-    "CNY" => "¥", "USD" => "$", "EUR" => "€", "GBP" => "£",
-    "JPY" => "¥", "KRW" => "₩", "HKD" => "HK$", "TWD" => "NT$"
-  }
-
-  def currency_symbol
-    CURRENCY_SYMBOLS[currency] || currency
-  end
-
   def expense?
-    transaction_type == "EXPENSE"
+    type == "EXPENSE"
   end
 
   def income?
-    transaction_type == "INCOME"
+    type == "INCOME"
   end
 
-  def type
-    transaction_type
+  def display_amount
+    prefix = income? ? "+" : "-"
+    "#{prefix}#{currency_symbol}#{amount.to_s("%.2f")}"
   end
 
-  def type=(value)
-    self.transaction_type = value
+  def self.monthly_stats(month)
+    start_date = Date.parse("#{month}-01")
+    end_date = start_date.end_of_month
+
+    transactions = where(date: start_date..end_date)
+    {
+      income: transactions.income.sum(:amount),
+      expense: transactions.expense.sum(:amount),
+      balance: transactions.income.sum(:amount) - transactions.expense.sum(:amount),
+      count: transactions.count
+    }
+  end
+
+  def self.by_category(month, transaction_type = "EXPENSE")
+    start_date = Date.parse("#{month}-01")
+    end_date = start_date.end_of_month
+
+    where(type: transaction_type, date: start_date..end_date)
+      .group("COALESCE(category, 'Uncategorized')")
+      .order(Arel.sql("SUM(amount) DESC"))
+      .sum(:amount)
   end
 end

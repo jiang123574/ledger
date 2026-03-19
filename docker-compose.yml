@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ledger_production
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      RAILS_ENV: production
+      DATABASE_URL: postgres://postgres:postgres@db:5432/ledger_production
+      RAILS_MASTER_KEY: ${RAILS_MASTER_KEY}
+      DB_HOST: db
+      DB_USERNAME: postgres
+      DB_PASSWORD: postgres
+      RAILS_SERVE_STATIC_FILES: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - app_storage:/rails/storage
+
+volumes:
+  postgres_data:
+  app_storage:

@@ -1,6 +1,6 @@
 class ImportBatch < ApplicationRecord
-  serialize :summary, JSON
-  serialize :records, JSON
+  attribute :summary, :json, default: {}
+  attribute :records, :json, default: []
 
   has_many :transactions, dependent: :nullify
 

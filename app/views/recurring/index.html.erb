@@ -1,21 +1,21 @@
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold text-gray-900">Recurring Transactions</h1>
+  <h1 class="text-2xl font-bold text-gray-900"><%= t("recurring.title") %></h1>
 
   <div class="flex justify-end">
-    <%= link_to "New Recurring", new_recurring_path, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+    <%= link_to t("recurring.new_recurring"), new_recurring_path, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
   </div>
 
   <div class="bg-white rounded-lg shadow overflow-hidden">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Type</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Amount</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Category</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Account</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Frequency</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Next Date</th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Status</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("transactions.type") %></th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("transactions.amount") %></th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("transactions.category") %></th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("transactions.account") %></th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("recurring.frequency") %></th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("recurring.next_date") %></th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("recurring.status") %></th>
           <th class="px-6 py-3 actions"></th>
         </tr>
       </thead>
@@ -24,22 +24,22 @@
           <tr>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="px-2 py-1 rounded text-xs <%= r.transaction_type == "INCOME" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800" %>">
-                <%= r.transaction_type %>
+                <%= r.transaction_type == "INCOME" ? t("transactions.income") : t("transactions.expense") %>
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap font-medium">¥<%= r.amount.to_s("%.2f") %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.category&.name || "-" %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.account&.name || "-" %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm capitalize"><%= r.frequency %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm capitalize"><%= t("recurring.#{r.frequency}") %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.next_date.strftime("%Y-%m-%d") if r.next_date %></td>
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="px-2 py-1 rounded text-xs <%= r.active? ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800" %>">
-                <%= r.active? ? "Active" : "Paused" %>
+                <%= r.active? ? t("recurring.active") : t("recurring.paused") %>
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-              <%= button_to "Execute", execute_recurring_path(r), method: :post, class: "text-green-600 hover:text-green-900" %>
-              <%= link_to "Edit", edit_recurring_path(r), class: "text-blue-600 hover:text-blue-900" %>
+              <%= button_to t("recurring.execute"), execute_recurring_path(r), method: :post, class: "text-green-600 hover:text-green-900" %>
+              <%= link_to t("common.edit"), edit_recurring_path(r), class: "text-blue-600 hover:text-blue-900" %>
             </td>
           </tr>
         <% end %>
@@ -48,7 +48,7 @@
 
     <% if @recurring.empty? %>
       <div class="p-8 text-center text-gray-500">
-        No recurring transactions
+        <%= t("recurring.no_recurring_transactions") %>
       </div>
     <% end %>
   </div>

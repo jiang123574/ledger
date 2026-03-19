@@ -3,7 +3,7 @@ class TransactionsController < ApplicationController
   before_action :load_lookups, only: [:new, :edit, :create, :update]
 
   def index
-    @transactions = Transaction.includes(:account, :category, :tags)
+    @transactions = Transaction.includes(:account, :category)
       .order(date: :desc)
 
     if params[:start_date].present? && params[:end_date].present?
@@ -60,13 +60,12 @@ class TransactionsController < ApplicationController
   def load_lookups
     @accounts = Account.order(:name)
     @categories = Category.order(:name)
-    @tags = Tag.order(:name)
   end
 
   def transaction_params
     params.require(:transaction).permit(
       :date, :type, :amount, :currency, :category, :category_id,
-      :account_id, :target_account_id, :note, :transaction_type, :tag_ids => []
+      :account_id, :target_account_id, :note, :transaction_type
     )
   end
 end

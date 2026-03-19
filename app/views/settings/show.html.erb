@@ -1,16 +1,16 @@
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold text-gray-900">Settings</h1>
+  <h1 class="text-2xl font-bold text-gray-900"><%= t("settings.title") %></h1>
 
   <div class="bg-white rounded-lg shadow p-6 space-y-6">
     <div>
-      <h3 class="font-medium text-lg mb-4">Currency</h3>
+      <h3 class="font-medium text-lg mb-4"><%= t("settings.currency") %></h3>
       <table class="min-w-full">
         <thead>
           <tr>
-            <th class="text-left">Code</th>
-            <th class="text-left">Name</th>
-            <th class="text-left">Symbol</th>
-            <th class="text-left">Rate</th>
+            <th class="text-left"><%= t("settings.code") %></th>
+            <th class="text-left"><%= t("settings.name") %></th>
+            <th class="text-left"><%= t("settings.symbol") %></th>
+            <th class="text-left"><%= t("settings.rate") %></th>
           </tr>
         </thead>
         <tbody>
@@ -25,7 +25,7 @@
         </tbody>
       </table>
       <% if @currencies.empty? %>
-        <p class="text-gray-500">No currencies configured</p>
+        <p class="text-gray-500"><%= t("settings.no_currencies_configured") %></p>
       <% end %>
     </div>
   </div>

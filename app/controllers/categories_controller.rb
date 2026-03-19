@@ -6,6 +6,10 @@ class CategoriesController < ApplicationController
     @category = Category.new
   end
 
+  def edit
+    @categories = Category.includes(:parent).order(:sort_order, :name)
+  end
+
   def create
     @category = Category.new(category_params)
     if @category.save

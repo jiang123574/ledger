@@ -1,5 +1,5 @@
 class Attachment < ApplicationRecord
-  belongs_to :transaction
+  belongs_to :ledger_transaction, class_name: "Transaction", foreign_key: :transaction_id
 
   validates :file_path, :file_name, :file_type, presence: true
 
