@@ -37,82 +37,171 @@
     </div>
   </div>
 
-  <!-- Transaction List -->
-  <div class="bg-container rounded-lg shadow-border-xs">
-    <% if @transactions.any? %>
-      <!-- Header -->
-      <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-surface-inset text-xs font-medium text-secondary uppercase tracking-wider rounded-t-lg">
-        <div class="col-span-3">日期</div>
-        <div class="col-span-2">分类</div>
-        <div class="col-span-3">账户</div>
-        <div class="col-span-2">备注</div>
-        <div class="col-span-2 text-right">金额</div>
+  <!-- Three Column Layout: Account List | Transactions | Account Details -->
+  <div class="grid grid-cols-12 gap-4">
+    <!-- Left Column: Account List -->
+    <div class="col-span-12 md:col-span-3 bg-container rounded-lg shadow-border-xs">
+      <div class="p-3 border-b border-border">
+        <h2 class="text-sm font-semibold text-primary">账户</h2>
       </div>
-
-      <!-- Transactions -->
-      <div class="divide-y divide-border">
-        <% @transactions.each do |t| %>
-          <div class="group">
-            <%= link_to edit_transaction_path(t), class: "block" do %>
-              <div class="p-4 hover:bg-surface transition-smooth">
-                <div class="md:grid md:grid-cols-12 md:gap-4 md:items-center">
-                  <!-- Date & Type -->
-                  <div class="col-span-3 flex items-center gap-3 mb-2 md:mb-0">
-                    <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 <%= t.type == "INCOME" ? "bg-red-100" : "bg-green-100" %>">
-                      <% if t.type == "INCOME" %>
-                        <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
-                      <% else %>
-                        <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-                      <% end %>
-                    </div>
-                    <div>
-                      <p class="font-medium text-primary"><%= t.date&.strftime("%Y-%m-%d") %></p>
-                      <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= t.type == "INCOME" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700" %>">
-                        <%= t.type == "INCOME" ? "收入" : "支出" %>
-                      </span>
-                    </div>
-                  </div>
-
-                  <!-- Category -->
-                  <div class="col-span-2 mb-2 md:mb-0">
-                    <p class="font-medium text-primary"><%= t.category&.name || "-" %></p>
-                  </div>
-
-                  <!-- Account -->
-                  <div class="col-span-3 mb-2 md:mb-0">
-                    <p class="text-sm text-secondary"><%= t.account_name %></p>
-                    <% if t.target_account_name.present? %>
-                      <p class="text-xs text-secondary">→ <%= t.target_account_name %></p>
-                    <% end %>
-                  </div>
-
-                  <!-- Note -->
-                  <div class="col-span-2 mb-2 md:mb-0">
-                    <p class="text-sm text-secondary truncate"><%= t.note || "-" %></p>
-                  </div>
-
-                  <!-- Amount -->
-                  <div class="col-span-2 flex items-center justify-between md:justify-end">
-                    <span class="font-semibold <%= t.type == "INCOME" ? "text-income" : "text-expense" %>">
-                      <%= t.type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
-                    </span>
-                    <div class="md:hidden opacity-0 group-hover:opacity-100 transition-opacity">
-                      <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
-                    </div>
-                  </div>
+      <div class="divide-y divide-border max-h-[600px] overflow-y-auto">
+        <!-- All Transactions -->
+        <%= link_to transactions_path(merge_filter_params), 
+            class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].blank? ? 'bg-surface-inset' : ''}" do %>
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
+                </svg>
+              </div>
+              <span class="font-medium text-primary text-sm">所有交易</span>
+            </div>
+            <span class="text-xs text-secondary"><%= @transactions.count %></span>
+          </div>
+        <% end %>
+        
+        <% @accounts.each do |account| %>
+          <%= link_to transactions_path(merge_filter_params.merge(account_id: account.id)), 
+              class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].to_i == account.id ? 'bg-surface-inset' : ''}" do %>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <span class="text-sm font-bold text-blue-600"><%= account.name[0] %></span>
+                </div>
+                <div>
+                  <span class="font-medium text-primary text-sm"><%= account.name %></span>
+                  <p class="text-xs text-secondary"><%= account.type_name %></p>
                 </div>
               </div>
+              <span class="text-xs text-secondary"><%= account.sent_transactions.count %></span>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <!-- Middle Column: Selected Account Info -->
+    <div class="col-span-12 md:col-span-3 bg-container rounded-lg shadow-border-xs">
+      <div class="p-3 border-b border-border">
+        <h2 class="text-sm font-semibold text-primary">账户详情</h2>
+      </div>
+      <div class="p-4">
+        <% if params[:account_id].present? && (selected_account = @accounts.find { |a| a.id == params[:account_id].to_i }) %>
+          <div class="text-center mb-4">
+            <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
+              <span class="text-2xl font-bold text-blue-600"><%= selected_account.name[0] %></span>
+            </div>
+            <h3 class="font-semibold text-primary"><%= selected_account.name %></h3>
+            <p class="text-sm text-secondary"><%= selected_account.type_name %></p>
+          </div>
+          <div class="space-y-3">
+            <div class="flex justify-between items-center p-3 bg-surface rounded-lg">
+              <span class="text-sm text-secondary">当前余额</span>
+              <span class="font-semibold text-primary">¥<%= selected_account.current_balance.to_s("%.2f") %></span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-surface rounded-lg">
+              <span class="text-sm text-secondary">货币</span>
+              <span class="font-medium text-primary"><%= selected_account.currency.presence || "CNY" %></span>
+            </div>
+            <div class="flex justify-between items-center p-3 bg-surface rounded-lg">
+              <span class="text-sm text-secondary">交易数量</span>
+              <span class="font-medium text-primary"><%= selected_account.sent_transactions.count %></span>
+            </div>
+          </div>
+          <div class="mt-4">
+            <%= link_to edit_account_path(selected_account), class: "block w-full text-center px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" do %>
+              编辑账户
             <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-8">
+            <svg class="w-12 h-12 mx-auto text-secondary mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+            </svg>
+            <p class="text-sm text-secondary">选择左侧账户查看详情</p>
           </div>
         <% end %>
       </div>
-    <% else %>
-      <div class="p-12 text-center">
-        <svg class="w-12 h-12 mx-auto text-secondary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-        <p class="text-primary font-medium mb-1"><%= t("transactions.no_transactions_found") %></p>
-        <p class="text-secondary text-sm mb-4">开始添加您的第一笔交易吧</p>
-        <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-smooth" %>
-      </div>
-    <% end %>
+    </div>
+
+    <!-- Right Column: Transaction List -->
+    <div class="col-span-12 md:col-span-6 bg-container rounded-lg shadow-border-xs">
+      <% if @transactions.any? %>
+        <!-- Header -->
+        <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-surface-inset text-xs font-medium text-secondary uppercase tracking-wider rounded-t-lg">
+          <div class="col-span-3">日期</div>
+          <div class="col-span-2">分类</div>
+          <div class="col-span-3">账户</div>
+          <div class="col-span-2">备注</div>
+          <div class="col-span-2 text-right">金额</div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="divide-y divide-border max-h-[600px] overflow-y-auto">
+          <% @transactions.each do |t| %>
+            <div class="group">
+              <%= link_to edit_transaction_path(t), class: "block" do %>
+                <div class="p-4 hover:bg-surface transition-smooth">
+                  <div class="md:grid md:grid-cols-12 md:gap-4 md:items-center">
+                    <!-- Date & Type -->
+                    <div class="col-span-3 flex items-center gap-3 mb-2 md:mb-0">
+                      <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 <%= t.type == "INCOME" ? "bg-red-100" : "bg-green-100" %>">
+                        <% if t.type == "INCOME" %>
+                          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                        <% else %>
+                          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                        <% end %>
+                      </div>
+                      <div>
+                        <p class="font-medium text-primary"><%= t.date&.strftime("%Y-%m-%d") %></p>
+                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= t.type == "INCOME" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700" %>">
+                          <%= t.type == "INCOME" ? "收入" : "支出" %>
+                        </span>
+                      </div>
+                    </div>
+
+                    <!-- Category -->
+                    <div class="col-span-2 mb-2 md:mb-0">
+                      <p class="font-medium text-primary"><%= t.category&.name || "-" %></p>
+                    </div>
+
+                    <!-- Account -->
+                    <div class="col-span-3 mb-2 md:mb-0">
+                      <p class="text-sm text-secondary"><%= t.account_name %></p>
+                      <% if t.target_account_name.present? %>
+                        <p class="text-xs text-secondary">→ <%= t.target_account_name %></p>
+                      <% end %>
+                    </div>
+
+                    <!-- Note -->
+                    <div class="col-span-2 mb-2 md:mb-0">
+                      <p class="text-sm text-secondary truncate"><%= t.note || "-" %></p>
+                    </div>
+
+                    <!-- Amount -->
+                    <div class="col-span-2 flex items-center justify-between md:justify-end">
+                      <span class="font-semibold <%= t.type == "INCOME" ? "text-income" : "text-expense" %>">
+                        <%= t.type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
+                      </span>
+                      <div class="md:hidden opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          <% end %>
+        </div>
+      <% else %>
+        <div class="p-12 text-center">
+          <svg class="w-12 h-12 mx-auto text-secondary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+          <p class="text-primary font-medium mb-1"><%= t("transactions.no_transactions_found") %></p>
+          <p class="text-secondary text-sm mb-4">开始添加您的第一笔交易吧</p>
+          <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-smooth" %>
+        </div>
+      <% end %>
+    </div>
   </div>
 </div>

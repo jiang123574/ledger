@@ -3,6 +3,7 @@ class TransactionsController < ApplicationController
   before_action :load_lookups, only: [:new, :edit, :create, :update]
 
   def index
+    @accounts = Account.visible.order(:name).select(:id, :name, :type, :currency, :initial_balance)
     @transactions = Transaction.includes(:account, :category)
       .order(date: :desc)
 

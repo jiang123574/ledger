@@ -71,4 +71,8 @@ module ApplicationHelper
       is_active ? "text-blue-600" : "text-secondary"
     ].join(" ")
   end
+
+  def merge_filter_params
+    { start_date: params[:start_date], end_date: params[:end_date], type: params[:type] }.compact
+  end
 end
