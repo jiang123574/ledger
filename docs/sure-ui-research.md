@@ -827,7 +827,252 @@ export default class extends Controller {
 
 ---
 
-## 14. 参考资源
+---
+
+## 14. DS 组件库详细 API
+
+### 14.1 Button 组件
+
+```ruby
+DS::Button.new(
+  variant: :primary,        # 按钮样式
+  size: :md,               # 按钮大小
+  href: nil,               # 链接地址
+  text: "Click",           # 按钮文本
+  icon: "plus",            # 图标名称
+  icon_position: :left,    # 图标位置
+  full_width: false,       # 是否全宽
+  frame: nil,              # Turbo Frame ID
+  confirm: nil              # 确认对话框文本
+)
+```
+
+### 14.2 Dialog 组件
+
+```ruby
+DS::Dialog.new(
+  variant: "modal",           # "modal" | "drawer"
+  auto_open: true,            # 是否自动打开
+  reload_on_close: false,     # 关闭后是否刷新
+  width: "md",               # "sm" | "md" | "lg" | "full"
+  frame: nil
+)
+```
+
+### 14.3 Menu 组件
+
+```ruby
+DS::Menu.new(
+  variant: "icon",           # "icon" | "button" | "avatar"
+  placement: "bottom-end",   # 弹出位置
+  offset: 12                # 偏移量
+)
+```
+
+### 14.4 Tabs 组件
+
+```ruby
+DS::Tabs.new(
+  active_tab: "tab1",       # 当前激活的标签
+  url_param_key: "tab",     # URL 参数持久化
+  session_key: nil,          # Session 持久化
+  variant: :default         # :default | :unstyled
+)
+```
+
+---
+
+## 15. 搜索过滤系统详细流程
+
+### 15.1 搜索参数结构
+
+```ruby
+# 支持的搜索参数
+{
+  search: "coffee",                    # 文本搜索
+  start_date: "2024-01-01",          # 开始日期
+  end_date: "2024-12-31",            # 结束日期
+  amount: "100",                      # 金额
+  amount_operator: "greater",          # 操作符
+  accounts: ["Checking", "Savings"],  # 账户列表
+  categories: ["Food", "Transport"],   # 分类列表
+  merchants: ["Starbucks"],           # 商户列表
+  types: ["income", "expense"],       # 类型列表
+  tags: ["work"]                      # 标签列表
+}
+```
+
+### 15.2 过滤器 UI 结构
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  Filter Menu                                                 │
+├────────────────┬─────────────────────────────────────────────┤
+│   Account      │                                             │
+│   Date         │   ┌─────────────────────────────────────┐ │
+│   Type         │   │  Account Filter Content             │ │
+│   Amount  ◀──  │   │                                     │ │
+│   Category     │   │  [Search input]                     │ │
+│   Tag          │   │  ☑ Checking Account                │ │
+│   Merchant     │   │  ☑ Savings Account                 │ │
+│                │   │  ☐ Credit Card                    │ │
+│                │   └─────────────────────────────────────┘ │
+└────────────────┴─────────────────────────────────────────────┘
+```
+
+---
+
+## 16. 图表实现详细技术
+
+### 16.1 D3.js 使用模式
+
+```javascript
+import * as d3 from "d3";
+import { sankey, sankeyLinkHorizontal } from "d3-sankey";
+
+// 比例尺
+const xScale = d3.scaleTime().rangeRound([0, width]);
+const yScale = d3.scaleLinear().rangeRound([height, 0]);
+
+// 弧形生成器
+const pie = d3.pie().sortValues(null).value(d => d.amount);
+const arc = d3.arc().innerRadius(r).outerRadius(r + 10);
+
+// 线条生成器
+const line = d3.line().x(d => xScale(d.date)).y(d => yScale(d.value));
+```
+
+### 16.2 响应式处理
+
+```javascript
+connect() {
+  this.resizeObserver = new ResizeObserver(() => this.#draw());
+  this.resizeObserver.observe(this.element);
+}
+
+disconnect() {
+  this.resizeObserver?.disconnect();
+}
+```
+
+### 16.3 交互效果
+
+```javascript
+// 悬浮高亮
+.on("mouseenter", function(event, d) {
+  d3.select(this).style("opacity", 1);
+  showTooltip(d);
+}).on("mouseleave", function() {
+  d3.select(this).style("opacity", 0.6);
+  hideTooltip();
+});
+```
+
+---
+
+## 17. 模型设计模式
+
+### 17.1 Delegated Type 模式
+
+```ruby
+# 账户类型多态
+class Account < ApplicationRecord
+  delegated_type :accountable, types: Accountable::TYPES, dependent: :destroy
+end
+
+# 账目类型多态
+class Entry < ApplicationRecord
+  delegated_type :entryable, types: Entryable::TYPES, dependent: :destroy
+end
+```
+
+### 17.2 Concern 组合模式
+
+```ruby
+class Account < ApplicationRecord
+  include AASM, Syncable, Monetizable, Chartable, Linkable, Enrichable
+end
+```
+
+### 17.3 Query Object 模式
+
+```ruby
+class EntrySearch
+  include ActiveModel::Model
+  include ActiveModel::Attributes
+
+  attribute :search, :string
+  attribute :amount, :string
+
+  def build_query(scope)
+    query = scope.joins(:account)
+    query = apply_search_filter(query, search)
+    query = apply_date_filters(query, start_date, end_date)
+    query
+  end
+end
+```
+
+---
+
+## 18. 关键文件清单
+
+### 18.1 控制器
+
+| 文件 | 功能 |
+|------|------|
+| `app/controllers/transactions_controller.rb` | 交易列表主控制器 |
+| `app/controllers/transactions/bulk_updates_controller.rb` | 批量更新控制器 |
+| `app/controllers/transactions/bulk_deletions_controller.rb` | 批量删除控制器 |
+
+### 18.2 模型
+
+| 文件 | 功能 |
+|------|------|
+| `app/models/account.rb` | 账户模型 |
+| `app/models/entry.rb` | 账目模型 |
+| `app/models/transaction.rb` | 交易模型 |
+| `app/models/entry_search.rb` | 搜索查询对象 |
+| `app/models/balance_sheet.rb` | 资产负债表 |
+
+### 18.3 JavaScript 控制器
+
+| 文件 | 功能 |
+|------|------|
+| `app/javascript/controllers/auto_submit_form_controller.js` | 自动提交表单 |
+| `app/javascript/controllers/bulk_select_controller.js` | 批量选择 |
+| `app/javascript/controllers/dashboard_sortable_controller.js` | 拖拽排序 |
+| `app/javascript/controllers/theme_controller.js` | 主题切换 |
+| `app/javascript/controllers/sankey_chart_controller.js` | 桑基图 |
+| `app/javascript/controllers/donut_chart_controller.js` | 环形图 |
+| `app/javascript/controllers/time_series_chart_controller.js` | 时间序列图 |
+
+### 18.4 DS 组件
+
+| 文件 | 功能 |
+|------|------|
+| `app/components/DS/button.rb` | 按钮组件 |
+| `app/components/DS/dialog.rb` | 对话框组件 |
+| `app/components/DS/menu.rb` | 菜单组件 |
+| `app/components/DS/tabs.rb` | 标签页组件 |
+| `app/components/DS/toggle.rb` | 开关组件 |
+| `app/components/DS/disclosure.rb` | 折叠组件 |
+| `app/components/DS/tooltip.rb` | 提示组件 |
+
+### 18.5 视图
+
+| 文件 | 功能 |
+|------|------|
+| `app/views/transactions/index.html.erb` | 交易列表页 |
+| `app/views/transactions/searches/_form.html.erb` | 搜索表单 |
+| `app/views/transactions/searches/_menu.html.erb` | 过滤器菜单 |
+| `app/views/transactions/bulk_updates/new.html.erb` | 批量更新表单 |
+| `app/views/accounts/_account_sidebar_tabs.html.erb` | 账户侧边栏 |
+| `app/views/pages/dashboard.html.erb` | 仪表盘 |
+
+---
+
+## 19. 参考资源
 
 | 资源 | 链接 |
 |------|------|
@@ -838,3 +1083,4 @@ export default class extends Controller {
 | Stimulus | https://stimulus.hotwired.dev/ |
 | ViewComponent | https://viewcomponent.org/ |
 | Tailwind CSS | https://tailwindcss.com/ |
+| D3.js | https://d3js.org/ |
