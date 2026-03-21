@@ -3,7 +3,11 @@ Rails.application.routes.draw do
 
   root "dashboard#show"
 
-  resources :transactions
+  resources :transactions do
+    collection do
+      post :bulk_destroy
+    end
+  end
   resources :accounts
   resources :categories
   resources :budgets, only: [ :index, :create, :update, :destroy ]
