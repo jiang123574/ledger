@@ -116,6 +116,11 @@ GEM
     erubi (1.13.1)
     et-orbi (1.4.0)
       tzinfo
+    factory_bot (6.5.6)
+      activesupport (>= 6.1.0)
+    factory_bot_rails (6.5.1)
+      factory_bot (~> 6.5)
+      railties (>= 6.1.0)
     ffi (1.17.3-aarch64-linux-gnu)
     ffi (1.17.3-aarch64-linux-musl)
     ffi (1.17.3-arm-linux-gnu)
@@ -339,6 +344,8 @@ GEM
       ffi (~> 1.12)
       logger
     securerandom (0.4.1)
+    shoulda-matchers (7.0.1)
+      activesupport (>= 7.1)
     solid_cable (3.0.12)
       actioncable (>= 7.2)
       activejob (>= 7.2)
@@ -412,6 +419,7 @@ DEPENDENCIES
   bundler-audit
   capybara
   debug
+  factory_bot_rails
   image_processing (~> 1.2)
   importmap-rails
   kamal
@@ -421,6 +429,7 @@ DEPENDENCIES
   rails (~> 8.1.2)
   rspec-rails
   rubocop-rails-omakase
+  shoulda-matchers
   solid_cable
   solid_cache
   solid_queue

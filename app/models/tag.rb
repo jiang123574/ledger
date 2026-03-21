@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 class Tag < ApplicationRecord
   has_many :transaction_tags, dependent: :destroy
   has_many :transactions, through: :transaction_tags
 
   validates :name, presence: true, uniqueness: true, length: { maximum: 50 }
-  validates :color, format: { with: /\A#[0-9A-Fa-f]{6}\z }, allow_nil: true
+  validates :color, format: { with: /\A#[0-9A-Fa-f]{6}\z/ }, allow_nil: true
 
   before_validation :set_default_color
 
@@ -29,7 +31,6 @@ class Tag < ApplicationRecord
   end
 
   def generate_random_color
-    # 生成柔和的颜色
     hue = SecureRandom.rand(360)
     "##{ColorUtils.hsl_to_hex(hue, 65, 55)}"
   end
@@ -38,8 +39,8 @@ end
 # 颜色工具类
 class ColorUtils
   def self.hsl_to_hex(h, s, l)
-    s /= 100.0
-    l /= 100.0
+    s = s / 100.0
+    l = l / 100.0
 
     c = (1 - (2 * l - 1).abs) * s
     x = c * (1 - ((h / 60.0) % 2 - 1).abs)

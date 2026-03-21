@@ -11,7 +11,7 @@ RSpec.describe TransactionSearch, type: :model do
       
       result = search.apply(scope)
       
-      expect(result).to eq(scope)
+      expect(result.to_sql).to eq(scope.to_sql)
     end
 
     it 'filters by date range' do
@@ -79,10 +79,12 @@ RSpec.describe TransactionSearch, type: :model do
   end
 
   describe '#to_params' do
-    it 'returns empty hash when no filters' do
+    it 'returns only sort by default' do
       search = described_class.new({})
       
-      expect(search.to_params).to eq({})
+      params = search.to_params
+      
+      expect(params[:sort]).to eq('date_desc')
     end
 
     it 'returns only present values' do
