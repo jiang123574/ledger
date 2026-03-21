@@ -1,6 +1,6 @@
 /*
  * Ledger Design System - Custom Styles
- * Based on Sure project patterns
+ * Mobile-first responsive design inspired by Sure project
  */
 
 /* CSS Variables for Design System */
@@ -18,6 +18,12 @@
   --color-expense: #ef4444;
   --color-transfer: #3b82f6;
   --color-nav-indicator: #3b82f6;
+
+  /* Safe area insets */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
 }
 
 /* Custom scrollbar */
@@ -39,25 +45,131 @@
   background: var(--color-secondary);
 }
 
-/* Safe area for mobile */
-@supports (padding-bottom: env(safe-area-inset-bottom)) {
-  .safe-area-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .safe-area-top {
-    padding-top: env(safe-area-inset-top);
-  }
+/* ========================================
+   Mobile Responsive Utilities
+   ======================================== */
+
+/* Touch-friendly tap targets (min 44px) */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* Animation utilities */
+/* Safe area utilities */
+.safe-area-top {
+  padding-top: var(--safe-area-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.safe-area-inset {
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+  padding-left: var(--safe-area-left);
+  padding-right: var(--safe-area-right);
+}
+
+/* Header with safe area */
+.header-safe {
+  padding-top: calc(var(--safe-area-top) + 0.5rem);
+}
+
+/* Bottom nav with safe area */
+.bottom-nav-safe {
+  padding-bottom: calc(var(--safe-area-bottom) + 0.5rem);
+}
+
+/* ========================================
+   Mobile Sidebar Animations
+   ======================================== */
+
+/* Sidebar slide in/out */
+.sidebar-transform {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-open {
+  transform: translateX(0);
+}
+
+.sidebar-closed {
+  transform: translateX(-100%);
+}
+
+/* Overlay fade */
+.overlay-transform {
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.overlay-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlay-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ========================================
+   Mobile Navigation Styling
+   ======================================== */
+
+/* Mobile bottom nav item */
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0.5rem;
+  color: var(--color-secondary);
+  transition: color 150ms ease;
+  text-decoration: none;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item:active {
+  color: var(--color-primary);
+}
+
+.mobile-nav-item.active {
+  color: #3b82f6;
+}
+
+.mobile-nav-item-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 0.25rem;
+}
+
+.mobile-nav-item-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ========================================
+   Animation Utilities
+   ======================================== */
+
 .transition-smooth {
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.transition-fast {
+  transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 /* Focus ring */
 .focus-ring {
-  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
 }
 
 /* Text truncation */
@@ -66,4 +178,131 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+/* ========================================
+   Mobile-specific Styles
+   ======================================== */
+
+/* Prevent body scroll when sidebar is open */
+body.sidebar-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Mobile card styling */
+.mobile-card {
+  background: var(--color-container);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+/* Mobile list item */
+.mobile-list-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  min-height: 60px;
+  border-bottom: 1px solid var(--color-border-secondary);
+  transition: background-color 150ms ease;
+}
+
+.mobile-list-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-list-item:active {
+  background-color: var(--color-surface-hover);
+}
+
+/* ========================================
+   Responsive Breakpoint Helpers
+   ======================================== */
+
+/* Hide on mobile */
+@media (max-width: 1023px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   Form Elements for Mobile
+   ======================================== */
+
+/* Mobile-friendly input */
+.mobile-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background-color: var(--color-container);
+  color: var(--color-primary);
+  min-height: 44px;
+}
+
+.mobile-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile-friendly button */
+.mobile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  min-height: 44px;
+  transition: all 150ms ease;
+}
+
+.mobile-button:active {
+  transform: scale(0.98);
+}
+
+.mobile-button-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.mobile-button-primary:active {
+  background-color: #2563eb;
+}
+
+/* ========================================
+   Pull-to-refresh indicator (optional)
+   ======================================== */
+
+.pull-indicator {
+  position: fixed;
+  top: calc(var(--safe-area-top) + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  background: var(--color-container);
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  color: var(--color-secondary);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.pull-indicator.visible {
+  opacity: 1;
 }

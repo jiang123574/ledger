@@ -21,11 +21,14 @@ module ApplicationHelper
 
     link_to(
       path,
-      class: mobile_nav_item_classes(is_active)
+      class: mobile_nav_item_classes(is_active),
+      "aria-current": is_active ? "page" : nil
     ) do
       safe_join([
-        render(Ds::IconComponent.new(name: icon, size: :md, color: is_active ? :primary : :secondary)),
-        content_tag(:span, label, class: "text-xs mt-1")
+        content_tag(:div, class: "mb-0.5") do
+          render(Ds::IconComponent.new(name: icon, size: :md, color: is_active ? :primary : :secondary))
+        end,
+        content_tag(:span, label, class: "text-xs font-medium")
       ])
     end
   end
@@ -34,7 +37,8 @@ module ApplicationHelper
 
   def nav_item_link_classes(is_active)
     [
-      "flex items-center gap-3 px-3 py-2 rounded-lg transition-smooth",
+      "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-150",
+      "min-h-[44px]",  # Touch-friendly tap target
       is_active ? "bg-surface text-primary" : "text-secondary hover:bg-surface-hover hover:text-primary"
     ].join(" ")
   end
@@ -67,8 +71,11 @@ module ApplicationHelper
 
   def mobile_nav_item_classes(is_active)
     [
-      "flex flex-col items-center justify-center flex-1 h-full py-2",
-      is_active ? "text-blue-600" : "text-secondary"
+      "flex flex-col items-center justify-center",
+      "min-w-[44px] min-h-[44px]",  # Touch-friendly tap target
+      "px-2 py-1.5 rounded-lg",
+      "transition-colors duration-150",
+      is_active ? "text-blue-600 bg-blue-50" : "text-secondary hover:text-primary hover:bg-surface-hover"
     ].join(" ")
   end
 

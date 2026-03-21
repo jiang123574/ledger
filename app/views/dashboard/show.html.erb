@@ -5,7 +5,10 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <h1 class="text-2xl font-semibold text-primary"><%= t("dashboard.title") %></h1>
+    <div>
+      <h1 class="text-2xl font-semibold text-primary"><%= t("dashboard.title") %></h1>
+      <p class="text-sm text-secondary mt-1"><%= t("dashboard.subtitle") %></p>
+    </div>
     <div class="flex items-center gap-2">
       <%= link_to dashboard_path(month: current_date.prev_month.strftime("%Y-%m")), 
           class: "p-2 rounded-lg hover:bg-surface-inset text-secondary hover:text-primary transition-smooth" do %>
@@ -21,7 +24,7 @@
     </div>
   </div>
 
-  <!-- Stats Cards -->
+  <!-- Stats Cards (Always visible, not draggable) -->
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
@@ -63,18 +66,63 @@
     <% end %>
   </div>
 
-  <!-- Main Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Recent Transactions -->
-    <%= render(Ds::CardComponent.new, padding: false) do %>
-      <div class="p-4 border-b border-border">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-semibold text-primary"><%= t("dashboard.recent_transactions") %></h2>
+  <!-- Draggable Sections Container -->
+  <div 
+    class="grid grid-cols-1 lg:grid-cols-2 gap-6" 
+    data-controller="dashboard-sortable" 
+    data-action="dragover->dashboard-sortable#dragOver drop->dashboard-sortable#drop" 
+    role="list" 
+    aria-label="Dashboard sections">
+    
+    <!-- Recent Transactions Section -->
+    <section
+      class="bg-container rounded-xl shadow-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      data-dashboard-sortable-target="section"
+      data-section-key="recent_transactions"
+      data-controller="dashboard-section"
+      data-dashboard-section-section-key-value="recent_transactions"
+      draggable="true"
+      tabindex="0"
+      role="listitem"
+      aria-grabbed="false"
+      data-action="
+        dragstart->dashboard-sortable#dragStart
+        dragend->dashboard-sortable#dragEnd
+        touchstart->dashboard-sortable#touchStart
+        touchmove->dashboard-sortable#touchMove
+        touchend->dashboard-sortable#touchEnd
+        keydown->dashboard-sortable#handleKeyDown">
+      
+      <!-- Section Header -->
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-secondary hover:text-primary transition-colors p-0.5"
+            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
+            data-dashboard-section-target="button"
+            aria-label="<%= t('dashboard.toggle_section') %>"
+            aria-expanded="true">
+            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
+          </button>
+          <h2 class="text-base font-semibold text-primary">
+            <%= t("dashboard.recent_transactions") %>
+          </h2>
+        </div>
+        <div class="flex items-center gap-2">
           <%= link_to t("dashboard.view_all"), transactions_path, 
               class: "text-sm text-blue-600 hover:text-blue-700 font-medium" %>
+          <button
+            type="button"
+            class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+            aria-label="<%= t('dashboard.drag_to_reorder') %>">
+            <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
+          </button>
         </div>
       </div>
-      <div class="divide-y divide-border">
+      
+      <!-- Section Content -->
+      <div class="divide-y divide-border" data-dashboard-section-target="content">
         <% @transactions.limit(8).each do |t| %>
           <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
             <div class="flex items-center gap-3 min-w-0">
@@ -92,23 +140,65 @@
           <% end %>
         <% end %>
         <% if @transactions.empty? %>
-          <div class="p-8 text-center">
+          <div class="p-8 text-center" data-dashboard-section-target="content">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset flex items-center justify-center">
+              <%= render(Ds::IconComponent.new(name: "receipt", size: :lg, color: :secondary)) %>
+            </div>
             <p class="text-secondary"><%= t("dashboard.no_transactions_yet") %></p>
           </div>
         <% end %>
       </div>
-    <% end %>
+    </section>
 
-    <!-- Account Balances -->
-    <%= render(Ds::CardComponent.new, padding: false) do %>
-      <div class="p-4 border-b border-border">
-        <div class="flex items-center justify-between">
-          <h2 class="text-base font-semibold text-primary"><%= t("dashboard.account_balances") %></h2>
+    <!-- Account Balances Section -->
+    <section
+      class="bg-container rounded-xl shadow-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      data-dashboard-sortable-target="section"
+      data-section-key="account_balances"
+      data-controller="dashboard-section"
+      data-dashboard-section-section-key-value="account_balances"
+      draggable="true"
+      tabindex="0"
+      role="listitem"
+      aria-grabbed="false"
+      data-action="
+        dragstart->dashboard-sortable#dragStart
+        dragend->dashboard-sortable#dragEnd
+        touchstart->dashboard-sortable#touchStart
+        touchmove->dashboard-sortable#touchMove
+        touchend->dashboard-sortable#touchEnd
+        keydown->dashboard-sortable#handleKeyDown">
+      
+      <!-- Section Header -->
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-secondary hover:text-primary transition-colors p-0.5"
+            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
+            data-dashboard-section-target="button"
+            aria-label="<%= t('dashboard.toggle_section') %>"
+            aria-expanded="true">
+            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
+          </button>
+          <h2 class="text-base font-semibold text-primary">
+            <%= t("dashboard.account_balances") %>
+          </h2>
+        </div>
+        <div class="flex items-center gap-2">
           <%= link_to t("dashboard.manage_accounts"), accounts_path, 
               class: "text-sm text-blue-600 hover:text-blue-700 font-medium" %>
+          <button
+            type="button"
+            class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+            aria-label="<%= t('dashboard.drag_to_reorder') %>">
+            <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
+          </button>
         </div>
       </div>
-      <div class="divide-y divide-border">
+      
+      <!-- Section Content -->
+      <div class="divide-y divide-border" data-dashboard-section-target="content">
         <% @accounts.each do |account| %>
           <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
             <div class="flex items-center gap-3">
@@ -125,73 +215,165 @@
         <% end %>
         <% if @accounts.empty? %>
           <div class="p-8 text-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset flex items-center justify-center">
+              <%= render(Ds::IconComponent.new(name: "wallet", size: :lg, color: :secondary)) %>
+            </div>
             <p class="text-secondary"><%= t("dashboard.no_accounts_yet") %></p>
           </div>
         <% end %>
       </div>
-    <% end %>
-  </div>
+    </section>
 
-  <!-- Bottom Grid -->
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <!-- Expenses by Category -->
-    <%= render(Ds::CardComponent.new) do %>
-      <h2 class="text-base font-semibold text-primary mb-4"><%= t("dashboard.expenses_by_category") %></h2>
-      <% if @expenses_by_category.any? %>
-        <div class="space-y-4">
-          <% @expenses_by_category.sort_by { |_, v| -v }.first(8).each do |category, amount| %>
-            <% percentage = @total_expense > 0 ? (amount / @total_expense * 100).round : 0 %>
-            <div>
-              <div class="flex justify-between text-sm mb-1.5">
-                <span class="font-medium text-primary"><%= category || t("dashboard.uncategorized") %></span>
-                <span class="text-expense font-medium">¥<%= amount.to_s("%.2f") %></span>
-              </div>
-              <div class="w-full bg-surface rounded-full h-2">
-                <div class="bg-expense h-2 rounded-full transition-all" style="width: <%= percentage %>%"></div>
-              </div>
-            </div>
-          <% end %>
+    <!-- Expenses by Category Section -->
+    <section
+      class="bg-container rounded-xl shadow-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      data-dashboard-sortable-target="section"
+      data-section-key="expenses_by_category"
+      data-controller="dashboard-section"
+      data-dashboard-section-section-key-value="expenses_by_category"
+      draggable="true"
+      tabindex="0"
+      role="listitem"
+      aria-grabbed="false"
+      data-action="
+        dragstart->dashboard-sortable#dragStart
+        dragend->dashboard-sortable#dragEnd
+        touchstart->dashboard-sortable#touchStart
+        touchmove->dashboard-sortable#touchMove
+        touchend->dashboard-sortable#touchEnd
+        keydown->dashboard-sortable#handleKeyDown">
+      
+      <!-- Section Header -->
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-secondary hover:text-primary transition-colors p-0.5"
+            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
+            data-dashboard-section-target="button"
+            aria-label="<%= t('dashboard.toggle_section') %>"
+            aria-expanded="true">
+            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
+          </button>
+          <h2 class="text-base font-semibold text-primary">
+            <%= t("dashboard.expenses_by_category") %>
+          </h2>
         </div>
-      <% else %>
-        <div class="text-center py-8">
-          <p class="text-secondary"><%= t("dashboard.no_expenses_this_month") %></p>
-        </div>
-      <% end %>
-    <% end %>
-
-    <!-- Budget Status -->
-    <%= render(Ds::CardComponent.new) do %>
-      <h2 class="text-base font-semibold text-primary mb-4"><%= t("dashboard.budget_status") %></h2>
-      <% if @budgets.any? || @total_budget > 0 %>
-        <div class="space-y-4">
-          <div class="flex justify-between items-center pb-4 border-b border-border">
-            <span class="font-medium text-primary"><%= t("dashboard.total_budget") %></span>
-            <span class="font-semibold text-primary">¥<%= @total_budget.to_s("%.2f") %></span>
+        <button
+          type="button"
+          class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          aria-label="<%= t('dashboard.drag_to_reorder') %>">
+          <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
+        </button>
+      </div>
+      
+      <!-- Section Content -->
+      <div class="p-4" data-dashboard-section-target="content">
+        <% if @expenses_by_category.any? %>
+          <div class="space-y-4">
+            <% @expenses_by_category.sort_by { |_, v| -v }.first(8).each do |category, amount| %>
+              <% percentage = @total_expense > 0 ? (amount / @total_expense * 100).round : 0 %>
+              <div>
+                <div class="flex justify-between text-sm mb-1.5">
+                  <span class="font-medium text-primary"><%= category || t("dashboard.uncategorized") %></span>
+                  <span class="text-expense font-medium">¥<%= amount.to_s("%.2f") %></span>
+                </div>
+                <div class="w-full bg-surface rounded-full h-2">
+                  <div class="bg-expense h-2 rounded-full transition-all" style="width: <%= percentage %>%"></div>
+                </div>
+              </div>
+            <% end %>
           </div>
-          <% if @total_budget > 0 %>
-            <% budget_percentage = (@total_spent / @total_budget * 100).round %>
-            <% budget_color = budget_percentage > 100 ? "expense" : (budget_percentage > 80 ? "yellow-500" : "blue-500") %>
-            <div>
-              <div class="flex justify-between text-sm mb-1.5">
-                <span class="text-secondary">已花费</span>
-                <span class="<%= budget_percentage > 100 ? 'text-expense' : 'text-primary' %> font-medium">
-                  ¥<%= @total_spent.to_s("%.2f") %> (<%= budget_percentage %>%)
-                </span>
-              </div>
-              <div class="w-full bg-surface rounded-full h-3">
-                <div class="<%= budget_color %> h-3 rounded-full transition-all" style="width: <%= [budget_percentage, 100].min %>%"></div>
-              </div>
-              <p class="text-sm text-secondary mt-2">
-                剩余: ¥<%= (@total_budget - @total_spent).to_s("%.2f") %>
-              </p>
+        <% else %>
+          <div class="text-center py-6">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset flex items-center justify-center">
+              <%= render(Ds::IconComponent.new(name: "pie-chart", size: :lg, color: :secondary)) %>
             </div>
-          <% end %>
+            <p class="text-secondary"><%= t("dashboard.no_expenses_this_month") %></p>
+          </div>
+        <% end %>
+      </div>
+    </section>
+
+    <!-- Budget Status Section -->
+    <section
+      class="bg-container rounded-xl shadow-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      data-dashboard-sortable-target="section"
+      data-section-key="budget_status"
+      data-controller="dashboard-section"
+      data-dashboard-section-section-key-value="budget_status"
+      draggable="true"
+      tabindex="0"
+      role="listitem"
+      aria-grabbed="false"
+      data-action="
+        dragstart->dashboard-sortable#dragStart
+        dragend->dashboard-sortable#dragEnd
+        touchstart->dashboard-sortable#touchStart
+        touchmove->dashboard-sortable#touchMove
+        touchend->dashboard-sortable#touchEnd
+        keydown->dashboard-sortable#handleKeyDown">
+      
+      <!-- Section Header -->
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-secondary hover:text-primary transition-colors p-0.5"
+            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
+            data-dashboard-section-target="button"
+            aria-label="<%= t('dashboard.toggle_section') %>"
+            aria-expanded="true">
+            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
+          </button>
+          <h2 class="text-base font-semibold text-primary">
+            <%= t("dashboard.budget_status") %>
+          </h2>
         </div>
-      <% else %>
-        <div class="text-center py-8">
-          <p class="text-secondary"><%= t("dashboard.no_budgets_set") %></p>
-        </div>
-      <% end %>
-    <% end %>
+        <button
+          type="button"
+          class="cursor-grab active:cursor-grabbing text-secondary hover:text-primary transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          aria-label="<%= t('dashboard.drag_to_reorder') %>">
+          <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
+        </button>
+      </div>
+      
+      <!-- Section Content -->
+      <div class="p-4" data-dashboard-section-target="content">
+        <% if @budgets.any? || @total_budget > 0 %>
+          <div class="space-y-4">
+            <div class="flex justify-between items-center pb-4 border-b border-border">
+              <span class="font-medium text-primary"><%= t("dashboard.total_budget") %></span>
+              <span class="font-semibold text-primary">¥<%= @total_budget.to_s("%.2f") %></span>
+            </div>
+            <% if @total_budget > 0 %>
+              <% budget_percentage = (@total_spent / @total_budget * 100).round %>
+              <% budget_color = budget_percentage > 100 ? "bg-red-500" : (budget_percentage > 80 ? "bg-yellow-500" : "bg-blue-500") %>
+              <div>
+                <div class="flex justify-between text-sm mb-1.5">
+                  <span class="text-secondary"><%= t("dashboard.spent") %></span>
+                  <span class="<%= budget_percentage > 100 ? 'text-expense' : 'text-primary' %> font-medium">
+                    ¥<%= @total_spent.to_s("%.2f") %> (<%= budget_percentage %>%)
+                  </span>
+                </div>
+                <div class="w-full bg-surface rounded-full h-3">
+                  <div class="<%= budget_color %> h-3 rounded-full transition-all" style="width: <%= [budget_percentage, 100].min %>%"></div>
+                </div>
+                <p class="text-sm text-secondary mt-2">
+                  <%= t("dashboard.remaining") %>: ¥<%= (@total_budget - @total_spent).to_s("%.2f") %>
+                </p>
+              </div>
+            <% end %>
+          </div>
+        <% else %>
+          <div class="text-center py-6">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset flex items-center justify-center">
+              <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
+            </div>
+            <p class="text-secondary"><%= t("dashboard.no_budgets_set") %></p>
+          </div>
+        <% end %>
+      </div>
+    </section>
   </div>
 </div>
