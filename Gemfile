@@ -43,7 +43,7 @@ group :development, :test do
 
   # Testing framework
   gem "rspec-rails"
-  gem "view_component-rspec", require: false
+  gem "capybara"
 
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
   gem "bundler-audit", require: false

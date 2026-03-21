@@ -54,9 +54,9 @@
       <div class="flex items-start justify-between">
         <div>
           <p class="text-sm font-medium text-secondary"><%= t("dashboard.balance") %></p>
-          <% balance = @total_income - @total_expense %>
-          <p class="text-2xl font-semibold mt-1 <%= balance >= 0 ? 'text-income' : 'text-expense' %>">
-            <%= format_currency(balance.abs, unit: balance >= 0 ? '+¥' : '-¥') %>
+          <% balance_info = format_balance(@total_income - @total_expense) %>
+          <p class="text-2xl font-semibold mt-1 <%= balance_info[:css_class] %>">
+            <%= balance_info[:amount] %>
           </p>
         </div>
         <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">

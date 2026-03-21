@@ -8,9 +8,21 @@ module ApplicationHelper
 
   # Format currency with sign (for income/expense display)
   def format_currency_with_sign(amount, type:, unit: "¥", precision: 2)
-    return format_currency(0, unit: unit, precision: precision) if amount.nil?
+    amount = 0 if amount.nil?
     sign = type == "INCOME" ? "+" : "-"
     "#{sign}#{format_currency(amount.abs, unit: unit, precision: precision)}"
+  end
+
+  # Format balance with appropriate sign and CSS class
+  # Returns a hash with :amount and :css_class for easy use in views
+  def format_balance(amount, unit: "¥", precision: 2)
+    amount = 0 if amount.nil?
+    is_positive = amount >= 0
+
+    {
+      amount: "#{is_positive ? '+' : '-'}#{format_currency(amount.abs, unit: unit, precision: precision)}",
+      css_class: is_positive ? "text-income" : "text-expense"
+    }
   end
 
   def nav_item(key, label, path, icon)
