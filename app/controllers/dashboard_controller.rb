@@ -2,7 +2,7 @@ class DashboardController < ApplicationController
   def show
     @today = Date.today
     @month = params[:month].to_s.presence || @today.strftime("%Y-%m")
-    
+
     begin
       start_date = Date.parse("#{@month}-01")
     rescue Date::Error
@@ -16,11 +16,11 @@ class DashboardController < ApplicationController
       .where(date: start_date..end_date)
       .order(date: :desc)
       .limit(50)
-    
+
     @monthly_stats = Transaction.monthly_stats(@month)
     @total_income = @monthly_stats[:income]
     @total_expense = @monthly_stats[:expense]
-    
+
     @expenses_by_category = Transaction.by_category(@month)
 
     @budgets = Budget.for_month(@month)

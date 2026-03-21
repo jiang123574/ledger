@@ -28,7 +28,7 @@ module Ds
 
     def call
       content_tag(:div, class: "space-y-1.5") do
-        safe_join([render_label, render_input, render_error, render_hint].compact)
+        safe_join([ render_label, render_input, render_error, render_hint ].compact)
       end
     end
 
@@ -74,7 +74,7 @@ module Ds
     end
 
     def input_classes
-      classes = ["w-full px-3 py-2 text-sm rounded-lg border transition-smooth"]
+      classes = [ "w-full px-3 py-2 text-sm rounded-lg border transition-smooth" ]
 
       classes << if @error
         "border-red-500 focus:ring-red-500 focus:border-red-500"

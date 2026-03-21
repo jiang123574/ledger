@@ -24,30 +24,30 @@ module Ds
 
     def options
       {
-        class: [base_classes, @options[:class]].compact.join(" ")
+        class: [ base_classes, @options[:class] ].compact.join(" ")
       }
     end
 
     def base_classes
-      classes = ["bg-container"]
+      classes = [ "bg-container" ]
 
       classes << case @rounded
-                 when :sm then "rounded-sm"
-                 when :md then "rounded"
-                 when :lg then "rounded-lg"
-                 when :xl then "rounded-xl"
-                 when :none then ""
-                 else "rounded-lg"
-                 end
+      when :sm then "rounded-sm"
+      when :md then "rounded"
+      when :lg then "rounded-lg"
+      when :xl then "rounded-xl"
+      when :none then ""
+      else "rounded-lg"
+      end
 
       classes << case @shadow
-                 when :none then ""
-                 when :border_xs then "shadow-border-xs"
-                 when :border_sm then "shadow-border-sm"
-                 when :border_md then "shadow-border-md"
-                 when :border_lg then "shadow-border-lg"
-                 else "shadow-border-xs"
-                 end
+      when :none then ""
+      when :border_xs then "shadow-border-xs"
+      when :border_sm then "shadow-border-sm"
+      when :border_md then "shadow-border-md"
+      when :border_lg then "shadow-border-lg"
+      else "shadow-border-xs"
+      end
 
       classes << (@padding ? "p-4 lg:p-6" : "")
 

@@ -1,5 +1,5 @@
 class AccountsController < ApplicationController
-  before_action :set_account, only: [:show, :edit, :update, :destroy]
+  before_action :set_account, only: [ :show, :edit, :update, :destroy ]
 
   def index
     @accounts = Account.order(:sort_order, :name)

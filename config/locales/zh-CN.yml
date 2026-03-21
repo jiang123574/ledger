@@ -28,6 +28,11 @@ zh-CN:
     no_budgets_set: "本月未设置预算"
     uncategorized: "未分类"
     total_budget: "总预算"
+    subtitle: "概览您的财务状况"
+    toggle_section: "折叠/展开此区块"
+    drag_to_reorder: "拖拽以重新排序"
+    spent: "已花费"
+    remaining: "剩余"
 
   transactions:
     title: "交易记录"

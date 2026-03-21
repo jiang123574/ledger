@@ -20,14 +20,14 @@ module Ds
 
     def call
       content_tag(:div, **options) do
-        safe_join([render_icon, render_title, render_description, render_action].compact)
+        safe_join([ render_icon, render_title, render_description, render_action ].compact)
       end
     end
 
     private
 
     def options
-      { class: ["flex flex-col items-center justify-center py-12 px-4 text-center", @options[:class]].compact.join(" ") }
+      { class: [ "flex flex-col items-center justify-center py-12 px-4 text-center", @options[:class] ].compact.join(" ") }
     end
 
     def render_icon

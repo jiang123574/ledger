@@ -85,12 +85,12 @@ module Ds
     end
 
     def container_classes
-      [base_classes, size_classes, variant_classes[:container]].join(" ")
+      [ base_classes, size_classes, variant_classes[:container] ].join(" ")
     end
 
     def link_options
       opts = {
-        class: [container_classes, @options[:class]].compact.join(" ")
+        class: [ container_classes, @options[:class] ].compact.join(" ")
       }
       opts[:data] = @options[:data] if @options[:data]
       opts
@@ -100,7 +100,7 @@ module Ds
       opts = {
         type: @type,
         disabled: @disabled || @loading,
-        class: [container_classes, @options[:class]].compact.join(" ")
+        class: [ container_classes, @options[:class] ].compact.join(" ")
       }
       opts[:data] = { disable_with: "..." }.merge(@options[:data] || {}) if @loading
       opts

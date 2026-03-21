@@ -2,8 +2,9 @@
 <html class="h-full">
   <head>
     <title><%= content_for(:title) || t("app_name") %></title>
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="application-name" content="<%= t("app_name") %>">
     <meta name="mobile-web-app-capable" content="yes">
     <%= csrf_meta_tags %>
@@ -35,9 +36,17 @@
                 DEFAULT: '#6c757d',
                 hover: '#495057'
               },
-              income: '#ef4444',
-              expense: '#22c55e',
-              transfer: '#3b82f6'
+              income: '#22c55e',
+              expense: '#ef4444',
+              transfer: '#3b82f6',
+              border: '#dee2e6',
+              'border-secondary': '#e9ecef'
+            },
+            spacing: {
+              'safe-top': 'env(safe-area-inset-top)',
+              'safe-bottom': 'env(safe-area-inset-bottom)',
+              'safe-left': 'env(safe-area-inset-left)',
+              'safe-right': 'env(safe-area-inset-right)'
             }
           }
         }
@@ -48,33 +57,96 @@
     <%= javascript_importmap_tags %>
   </head>
 
-  <body class="h-full bg-surface text-primary antialiased">
+  <body class="h-full bg-surface text-primary antialiased" data-controller="mobile-layout">
     <div class="flex flex-col lg:flex-row min-h-full">
+      <%# Desktop Sidebar %>
       <%= render "layouts/sidebar" %>
 
-      <!-- Mobile Header -->
-      <header class="lg:hidden fixed top-0 left-0 right-0 z-40 bg-container border-b border-border safe-area-top">
-        <div class="flex items-center justify-between h-14 px-4">
-          <button type="button" class="p-2 -ml-2 text-secondary hover:text-primary" id="sidebar-toggle">
-            <%= render(Ds::IconComponent.new(name: "menu", size: :md)) %>
-          </button>
-          <span class="font-semibold text-primary"><%= content_for(:title) || t("app_name") %></span>
-          <%= link_to new_transaction_path, class: "p-2 -mr-2 text-secondary hover:text-primary" do %>
-            <%= render(Ds::IconComponent.new(name: "plus", size: :md)) %>
+      <%# Mobile Sidebar Overlay %>
+      <div
+        id="sidebar-overlay"
+        class="lg:hidden fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300"
+        data-mobile-layout-target="overlay"
+        data-action="click->mobile-layout#closeSidebar">
+      </div>
+
+      <%# Mobile Sidebar %>
+      <aside
+        id="mobile-sidebar"
+        class="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-container shadow-xl transform -translate-x-full transition-transform duration-300 ease-out"
+        data-mobile-layout-target="sidebar">
+        <%# Mobile Sidebar Header with Safe Area %>
+        <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
+          <div class="h-14 flex items-center justify-between px-4 border-b border-border">
+            <%= link_to dashboard_path, class: "flex items-center gap-3 min-h-[44px]" do %>
+              <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                <span class="text-white font-bold text-sm">账</span>
+              </div>
+              <span class="font-semibold text-primary"><%= t("app_name") %></span>
+            <% end %>
+            <button
+              type="button"
+              data-action="click->mobile-layout#closeSidebar"
+              class="p-2 -mr-2 text-secondary hover:text-primary min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover transition-colors"
+              aria-label="关闭菜单">
+              <%= render(Ds::IconComponent.new(name: "x", size: :md)) %>
+            </button>
+          </div>
+        </div>
+
+        <%# Mobile Sidebar Navigation %>
+        <nav class="p-4 space-y-1">
+          <%= nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
+          <%= nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
+          <%= nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
+          <%= nav_item(:categories, t("nav.categories"), categories_path, "tag") %>
+          <%= nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
+          <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
+        </nav>
+
+        <%# Mobile Sidebar Footer %>
+        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border pb-[calc(env(safe-area-inset-bottom)+1rem)]">
+          <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
+            <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
+            <span class="text-sm font-medium"><%= t("nav.settings") %></span>
           <% end %>
+        </div>
+      </aside>
+
+      <%# Mobile Top Header %>
+      <header class="lg:hidden fixed top-0 left-0 right-0 z-30 bg-container border-b border-border">
+        <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
+          <div class="flex items-center justify-between h-14 px-4">
+            <%# Menu Button %>
+            <button
+              type="button"
+              data-action="click->mobile-layout#openSidebar"
+              class="p-2 -ml-2 text-secondary hover:text-primary min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover transition-colors"
+              aria-label="打开菜单">
+              <%= render(Ds::IconComponent.new(name: "menu", size: :md)) %>
+            </button>
+
+            <%# Page Title %>
+            <span class="font-semibold text-primary truncate"><%= content_for(:title) || t("app_name") %></span>
+
+            <%# Quick Action Button %>
+            <%= link_to new_transaction_path, class: "p-2 -mr-2 text-secondary hover:text-primary min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover transition-colors" do %>
+              <%= render(Ds::IconComponent.new(name: "plus", size: :md)) %>
+            <% end %>
+          </div>
         </div>
       </header>
 
-      <!-- Main Content -->
-      <main class="flex-1 lg:pt-0 pt-14 pb-20 lg:pb-0">
+      <%# Main Content %>
+      <main class="flex-1 lg:pt-0 pt-[calc(3.5rem+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 lg:py-8">
           <% if notice %>
-            <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
+            <div class="mb-4 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg" role="alert">
               <%= notice %>
             </div>
           <% end %>
           <% if alert %>
-            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
+            <div class="mb-4 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg" role="alert">
               <%= alert %>
             </div>
           <% end %>
@@ -82,41 +154,8 @@
         </div>
       </main>
 
-      <!-- Mobile Bottom Navigation -->
+      <%# Mobile Bottom Navigation %>
       <%= render "layouts/mobile_nav" %>
     </div>
-
-    <script>
-      document.addEventListener('DOMContentLoaded', function() {
-        var sidebar = document.getElementById('mobile-sidebar');
-        var overlay = document.getElementById('sidebar-overlay');
-        var toggleBtn = document.getElementById('sidebar-toggle');
-        var closeBtn = document.getElementById('sidebar-close');
-
-        if (toggleBtn && sidebar) {
-          toggleBtn.addEventListener('click', function() {
-            sidebar.classList.remove('translate-x-[-100%]');
-            overlay.classList.remove('hidden');
-            document.body.classList.add('overflow-hidden');
-          });
-        }
-
-        if (overlay && sidebar) {
-          overlay.addEventListener('click', function() {
-            sidebar.classList.add('translate-x-[-100%]');
-            overlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-          });
-        }
-
-        if (closeBtn && sidebar) {
-          closeBtn.addEventListener('click', function() {
-            sidebar.classList.add('translate-x-[-100%]');
-            overlay.classList.add('hidden');
-            document.body.classList.remove('overflow-hidden');
-          });
-        }
-      });
-    </script>
   </body>
 </html>

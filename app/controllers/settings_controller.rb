@@ -1,5 +1,5 @@
 class SettingsController < ApplicationController
-  before_action :load_currencies, only: [:show]
+  before_action :load_currencies, only: [ :show ]
 
   def show
     @currencies = Currency.order(:code)
@@ -42,7 +42,7 @@ class SettingsController < ApplicationController
 
   def validate_import
     if params[:file].blank?
-      render json: { valid: false, errors: ["请选择文件"] }
+      render json: { valid: false, errors: [ "请选择文件" ] }
       return
     end
 
@@ -54,7 +54,7 @@ class SettingsController < ApplicationController
       total_rows: CSV.read(params[:file].path).length - 1
     }
   rescue => e
-    render json: { valid: false, errors: [e.message] }
+    render json: { valid: false, errors: [ e.message ] }
   end
 
   def create_backup
