@@ -1,83 +1,83 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <div class="flex items-center gap-4">
-      <%= link_to t("common.back"), single_budgets_path, class: "text-primary hover:text-inverse" %>
-      <h1 class="text-2xl font-bold text-gray-900"><%= @single_budget.name %></h1>
+      <%= link_to t("common.back"), single_budgets_path, class: "text-primary dark:text-primary dark:text-primary-dark-dark hover:text-inverse" %>
+      <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @single_budget.name %></h1>
       <span class="text-xs px-2 py-0.5 rounded <%= 
         case @single_budget.status_color
         when 'red' then 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
         when 'yellow' then 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
         when 'green' then 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-        else 'bg-surface dark:bg-gray-600 text-primary dark:text-gray-300'
+        else 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark'
         end
       %>"><%= @single_budget.status_text %></span>
     </div>
     <div class="flex gap-2">
-      <%= link_to t("single_budgets.edit"), edit_single_budget_path(@single_budget), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+      <%= link_to t("single_budgets.edit"), edit_single_budget_path(@single_budget), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
       <% if @single_budget.planning? %>
         <%= button_to t("single_budgets.start"), start_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-smooth btn-modern dark:bg-blue-900 dark:text-blue-300" %>
       <% end %>
       <% if @single_budget.active? %>
         <%= button_to t("single_budgets.complete"), complete_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-smooth btn-modern dark:bg-green-900 dark:text-green-300" %>
-        <%= button_to t("single_budgets.cancel"), cancel_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-smooth btn-modern dark:bg-gray-700 dark:text-gray-300" %>
+        <%= button_to t("single_budgets.cancel"), cancel_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:bg-surface dark:bg-surface-dark transition-smooth btn-modern dark:bg-surface-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
       <% end %>
     </div>
   </div>
 
-  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-6">
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
       <div>
-        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("single_budgets.budget") %></h3>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1"><%= t("single_budgets.budget") %></h3>
         <p class="text-2xl font-bold"><%= format_currency(@single_budget.total_amount) %></p>
       </div>
       <div>
-        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("single_budgets.spent") %></h3>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1"><%= t("single_budgets.spent") %></h3>
         <p class="text-2xl font-bold <%= @single_budget.overspent? ? 'text-red-600' : '' %>"><%= format_currency(@single_budget.spent_amount) %></p>
       </div>
       <div>
-        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("single_budgets.remaining") %></h3>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1"><%= t("single_budgets.remaining") %></h3>
         <p class="text-2xl font-bold <%= @single_budget.remaining_amount < 0 ? 'text-red-600' : 'text-green-600' %>">
           <%= @single_budget.overspent? ? t("single_budgets.overspent", amount: format_currency(@single_budget.remaining_amount.abs)) : format_currency(@single_budget.remaining_amount) %>
         </p>
       </div>
       <div>
-        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("single_budgets.progress") %></h3>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1"><%= t("single_budgets.progress") %></h3>
         <p class="text-2xl font-bold"><%= @single_budget.progress_percentage %>%</p>
       </div>
     </div>
 
-    <div class="w-full bg-gray-200 rounded-full h-4 mt-4 dark:bg-gray-700">
+    <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-4 mt-4 dark:bg-surface-dark">
       <div class="<%= @single_budget.status_color == 'red' ? 'bg-red-500' : (@single_budget.status_color == 'yellow' ? 'bg-yellow-500' : 'bg-inverse') %> h-4 rounded-full transition-all" style="width: <%= [@single_budget.progress_percentage, 100].min %>%"></div>
     </div>
 
     <% if @single_budget.description.present? %>
-      <div class="mt-4 pt-4 border-t border-border">
-        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("single_budgets.description") %></h3>
-        <p class="text-primary"><%= @single_budget.description %></p>
+      <div class="mt-4 pt-4 border-t border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1"><%= t("single_budgets.description") %></h3>
+        <p class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @single_budget.description %></p>
       </div>
     <% end %>
 
-    <div class="mt-4 pt-4 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-4">
+    <div class="mt-4 pt-4 border-t border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark grid grid-cols-2 md:grid-cols-4 gap-4">
       <div>
-        <h3 class="text-sm font-medium text-gray-500"><%= t("single_budgets.start_date") %></h3>
-        <p class="text-primary"><%= @single_budget.start_date.strftime("%Y-%m-%d") %></p>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.start_date") %></h3>
+        <p class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @single_budget.start_date.strftime("%Y-%m-%d") %></p>
       </div>
       <div>
-        <h3 class="text-sm font-medium text-gray-500"><%= t("single_budgets.end_date") %></h3>
-        <p class="text-primary"><%= @single_budget.end_date.present? ? @single_budget.end_date.strftime("%Y-%m-%d") : "-" %></p>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.end_date") %></h3>
+        <p class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @single_budget.end_date.present? ? @single_budget.end_date.strftime("%Y-%m-%d") : "-" %></p>
       </div>
       <div>
-        <h3 class="text-sm font-medium text-gray-500"><%= t("single_budgets.currency") %></h3>
-        <p class="text-primary"><%= @single_budget.currency %></p>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.currency") %></h3>
+        <p class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @single_budget.currency %></p>
       </div>
       <div>
-        <h3 class="text-sm font-medium text-gray-500"><%= t("single_budgets.items_count") %></h3>
-        <p class="text-primary"><%= @single_budget.budget_items.count %></p>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.items_count") %></h3>
+        <p class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @single_budget.budget_items.count %></p>
       </div>
     </div>
   </div>
 
-  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-6">
     <div class="flex justify-between items-center mb-4">
       <h3 class="font-medium"><%= t("single_budgets.budget_items") %> (<%= @budget_items.count %>)</h3>
       <%= link_to t("single_budgets.add_item"), new_single_budget_budget_item_path(@single_budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
@@ -86,32 +86,32 @@
       <div class="overflow-x-auto">
         <table class="w-full">
           <thead>
-            <tr class="border-b border-border">
-              <th class="text-left py-2 px-3 text-sm font-medium text-gray-500"><%= t("single_budgets.item_name") %></th>
-              <th class="text-left py-2 px-3 text-sm font-medium text-gray-500"><%= t("single_budgets.category") %></th>
-              <th class="text-right py-2 px-3 text-sm font-medium text-gray-500"><%= t("single_budgets.amount") %></th>
-              <th class="text-right py-2 px-3 text-sm font-medium text-gray-500"><%= t("single_budgets.spent") %></th>
-              <th class="text-right py-2 px-3 text-sm font-medium text-gray-500"><%= t("single_budgets.progress") %></th>
-              <th class="text-right py-2 px-3 text-sm font-medium text-gray-500"><%= t("common.edit") %></th>
+            <tr class="border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+              <th class="text-left py-2 px-3 text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.item_name") %></th>
+              <th class="text-left py-2 px-3 text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.category") %></th>
+              <th class="text-right py-2 px-3 text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.amount") %></th>
+              <th class="text-right py-2 px-3 text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.spent") %></th>
+              <th class="text-right py-2 px-3 text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("single_budgets.progress") %></th>
+              <th class="text-right py-2 px-3 text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("common.edit") %></th>
             </tr>
           </thead>
           <tbody>
             <% @budget_items.each do |item| %>
               <% percentage = item.progress_percentage %>
-              <tr class="border-b border-border hover:bg-surface-hover">
+              <tr class="border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
                 <td class="py-2 px-3 text-sm"><%= item.name %></td>
                 <td class="py-2 px-3 text-sm"><%= item.category || "-" %></td>
                 <td class="py-2 px-3 text-sm text-right"><%= format_currency(item.amount) %></td>
                 <td class="py-2 px-3 text-sm text-right <%= item.overspent? ? 'text-red-600' : '' %>"><%= format_currency(item.spent_amount) %></td>
                 <td class="py-2 px-3 text-sm text-right">
-                  <div class="w-20 bg-gray-200 rounded-full h-2 ml-auto dark:bg-gray-700">
+                  <div class="w-20 bg-surface dark:bg-surface-dark rounded-full h-2 ml-auto dark:bg-surface-dark">
                     <div class="<%= item.overspent? ? 'bg-red-500' : 'bg-inverse' %> h-2 rounded-full" style="width: <%= [percentage, 100].min %>%"></div>
                   </div>
-                  <span class="text-xs text-gray-500"><%= percentage %>%</span>
+                  <span class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= percentage %>%</span>
                 </td>
                 <td class="py-2 px-3 text-sm text-right">
                   <div class="flex justify-end gap-1">
-                    <%= link_to t("common.edit"), edit_single_budget_budget_item_path(@single_budget, item), class: "px-2 py-1 text-xs font-medium rounded bg-surface dark:bg-gray-600 text-primary hover:bg-surface-hover transition-smooth" %>
+                    <%= link_to t("common.edit"), edit_single_budget_budget_item_path(@single_budget, item), class: "px-2 py-1 text-xs font-medium rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
                     <%= link_to t("common.delete"), [@single_budget, item], method: :delete, data: { turbo_confirm: t("single_budgets.are_you_sure") }, class: "px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-600 hover:bg-red-200 transition-smooth dark:bg-red-900 dark:text-red-300" %>
                   </div>
                 </td>
@@ -121,7 +121,7 @@
         </table>
       </div>
     <% else %>
-      <p class="text-gray-500 text-center py-4"><%= t("single_budgets.no_items") %></p>
+      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark text-center py-4"><%= t("single_budgets.no_items") %></p>
     <% end %>
   </div>
 </div>

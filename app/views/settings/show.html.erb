@@ -5,7 +5,7 @@
 <div class="flex gap-6 h-[calc(100vh-8rem)]">
   <!-- Left Sidebar -->
   <aside class="w-56 shrink-0">
-    <div class="bg-container rounded-lg shadow-border-xs card-hover sticky top-20">
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs card-hover sticky top-20">
       <nav class="p-2 space-y-1">
         <a href="<%= settings_path(section: 'general') %>" class="settings-nav-item <%= current_section == 'general' ? 'active' : '' %>">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
@@ -90,10 +90,23 @@
     background-color: #fef2f2;
     color: #dc2626;
   }
-  @media (prefers-color-scheme: dark) {
-    .settings-nav-item.danger:hover,
-    .settings-nav-item.danger.active {
-      background-color: rgba(220, 38, 38, 0.1);
-    }
+  html.dark .settings-nav-item {
+    color: var(--color-secondary-dark, #9ca3af);
+  }
+  html.dark .settings-nav-item:hover {
+    background-color: var(--color-surface-dark-hover, #262626);
+    color: var(--color-primary-dark, #f8f9fa);
+  }
+  html.dark .settings-nav-item.active {
+    background-color: var(--color-surface-dark-inset, #262626);
+    color: var(--color-primary-dark, #f8f9fa);
+  }
+  html.dark .settings-nav-item.danger {
+    color: #ef4444;
+  }
+  html.dark .settings-nav-item.danger:hover,
+  html.dark .settings-nav-item.danger.active {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
   }
 </style>
