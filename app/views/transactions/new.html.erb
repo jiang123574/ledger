@@ -9,28 +9,32 @@
   <%= render(Ds::CardComponent.new) do %>
     <%= form_with model: @transaction, local: true, class: "space-y-6" do |f| %>
       <!-- Transaction Type Tabs -->
-      <div class="bg-surface-inset rounded-lg p-1 flex">
-        <button type="button" class="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-smooth type-tab active" data-type="EXPENSE">
-          <span class="flex items-center justify-center gap-2">
-            <%= render(Ds::IconComponent.new(name: "minus-circle", size: :sm, color: :expense)) %>
-            支出
-          </span>
-        </button>
-        <button type="button" class="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-smooth type-tab" data-type="INCOME">
-          <span class="flex items-center justify-center gap-2">
-            <%= render(Ds::IconComponent.new(name: "plus-circle", size: :sm, color: :income)) %>
-            收入
-          </span>
-        </button>
+      <div class="bg-surface-inset rounded-lg p-1 flex flex-wrap gap-1">
+        <% [
+          { type: "EXPENSE", icon: "minus-circle", label: "支出", color: :expense },
+          { type: "INCOME", icon: "plus-circle", label: "收入", color: :income },
+          { type: "TRANSFER", icon: "arrow-right-left", label: "转账", color: :primary },
+          { type: "ADVANCE", icon: "wallet", label: "预支", color: :warning },
+          { type: "REIMBURSE", icon: "receipt", label: "报销", color: :info }
+        ].each do |t| %>
+          <button type="button" class="flex-1 px-3 py-2 text-sm font-medium rounded-md transition-smooth type-tab <%= 'bg-container shadow-sm' if @transaction.type == t[:type] %>" data-type="<%= t[:type] %>">
+            <span class="flex items-center justify-center gap-1.5">
+              <%= render(Ds::IconComponent.new(name: t[:icon], size: :sm, color: t[:color])) %>
+              <span class="hidden sm:inline"><%= t[:label] %></span>
+            </span>
+          </button>
+        <% end %>
       </div>
-      <%= f.hidden_field :type, id: "transaction_type", value: "EXPENSE" %>
+      <%= f.hidden_field :type, id: "transaction_type", value: @transaction.type || "EXPENSE" %>
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <!-- 日期 -->
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.date") %></label>
           <%= f.date_field :date, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
+        <!-- 金额 -->
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.amount") %></label>
           <div class="relative">
@@ -39,22 +43,44 @@
           </div>
         </div>
 
-        <div>
+        <!-- 账户 -->
+        <div id="account_field">
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.account") %></label>
           <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.category") %></label>
-          <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+        <!-- 转入账户 (转账时显示) -->
+        <div id="target_account_field" class="<%= 'hidden' unless @transaction.transfer? %>">
+          <label class="block text-sm font-medium text-primary mb-1.5">转入账户</label>
+          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "选择目标账户" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
-        <div>
-          <label class="block text-sm font-medium text-primary mb-1.5">转入账户</label>
-          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "无" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+        <!-- 分类 -->
+        <div id="category_field" class="<%= 'hidden' if @transaction.transfer? %>">
+          <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.category") %></label>
+          <%= f.collection_select :category_id, @categories, :id, :full_name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+        </div>
+
+        <!-- 标签 -->
+        <div id="tags_field" class="<%= 'hidden' if @transaction.transfer? %>">
+          <label class="block text-sm font-medium text-primary mb-1.5">标签</label>
+          <div class="flex flex-wrap gap-2 p-2 bg-surface-inset rounded-lg min-h-[42px]">
+            <% @tags.each do |tag| %>
+              <label class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium cursor-pointer transition-all <%= @transaction.tag_ids.include?(tag.id) ? 'text-white' : 'bg-container text-secondary hover:bg-surface' %>" 
+                     style="<%= @transaction.tag_ids.include?(tag.id) ? "background-color: #{tag.color}" : '' %>">
+                <%= check_box_tag "transaction[tag_ids][]", tag.id, @transaction.tag_ids.include?(tag.id), class: "sr-only" %>
+                <span class="w-2 h-2 rounded-full" style="background-color: <%= tag.color %>"></span>
+                <%= tag.name %>
+              </label>
+            <% end %>
+            <% if @tags.empty? %>
+              <span class="text-sm text-secondary">暂无标签，<%= link_to "创建标签", tags_path, class: "text-blue-600 hover:text-blue-700" %></span>
+            <% end %>
+          </div>
         </div>
       </div>
 
+      <!-- 备注 -->
       <div>
         <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.note") %></label>
         <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
@@ -71,14 +97,79 @@
 </div>
 
 <script>
-  document.querySelectorAll('.type-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.type-tab').forEach(function(t) {
-        t.classList.remove('bg-container', 'shadow-sm');
+  document.addEventListener('DOMContentLoaded', () => {
+    const typeTabs = document.querySelectorAll('.type-tab');
+    const typeInput = document.getElementById('transaction_type');
+    const targetAccountField = document.getElementById('target_account_field');
+    const categoryField = document.getElementById('category_field');
+    const tagsField = document.getElementById('tags_field');
+    const accountLabel = document.querySelector('#account_field label');
+
+    const typeLabels = {
+      'EXPENSE': '支出账户',
+      'INCOME': '收入账户',
+      'TRANSFER': '转出账户',
+      'ADVANCE': '预支账户',
+      'REIMBURSE': '报销账户'
+    };
+
+    function updateFormForType(type) {
+      // 更新标签选中状态的样式
+      typeTabs.forEach(tab => {
+        tab.classList.remove('bg-container', 'shadow-sm');
+        if (tab.dataset.type === type) {
+          tab.classList.add('bg-container', 'shadow-sm');
+        }
       });
-      tab.classList.add('bg-container', 'shadow-sm');
-      document.getElementById('transaction_type').value = tab.dataset.type;
+
+      // 更新账户标签
+      if (accountLabel) {
+        accountLabel.textContent = typeLabels[type] || '账户';
+      }
+
+      // 转账类型特殊处理
+      const isTransfer = type === 'TRANSFER';
+      
+      if (targetAccountField) {
+        targetAccountField.classList.toggle('hidden', !isTransfer);
+      }
+      if (categoryField) {
+        categoryField.classList.toggle('hidden', isTransfer);
+      }
+      if (tagsField) {
+        tagsField.classList.toggle('hidden', isTransfer);
+      }
+    }
+
+    typeTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        const type = tab.dataset.type;
+        typeInput.value = type;
+        updateFormForType(type);
+      });
+    });
+
+    // 初始化
+    updateFormForType(typeInput.value || 'EXPENSE');
+
+    // 标签选择交互
+    document.querySelectorAll('#tags_field input[type="checkbox"]').forEach(checkbox => {
+      checkbox.addEventListener('change', (e) => {
+        const label = e.target.closest('label');
+        const tagId = e.target.value;
+        const tag = <%= raw @tags.to_json %>;
+        const tagData = tag.find(t => t.id == tagId);
+        
+        if (e.target.checked) {
+          label.style.backgroundColor = tagData.color;
+          label.classList.remove('bg-container', 'text-secondary');
+          label.classList.add('text-white');
+        } else {
+          label.style.backgroundColor = '';
+          label.classList.add('bg-container', 'text-secondary');
+          label.classList.remove('text-white');
+        }
+      });
     });
   });
-  document.querySelector('.type-tab[data-type="EXPENSE"]').classList.add('bg-container', 'shadow-sm');
 </script>
