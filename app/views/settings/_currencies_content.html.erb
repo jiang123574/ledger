@@ -1,35 +1,35 @@
-<section class="bg-container rounded-lg shadow-border-xs card-hover">
-  <div class="p-4 border-b border-border flex items-center justify-between">
-    <h2 class="text-lg font-semibold text-primary">货币列表</h2>
-    <button class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern">+ 添加货币</button>
+<section class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs card-hover">
+  <div class="p-4 border-b border-border dark:border-border-dark flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">货币列表</h2>
+    <button class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">+ 添加货币</button>
   </div>
   <div class="p-4">
     <table class="min-w-full">
       <thead>
         <tr>
-          <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">代码</th>
-          <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">名称</th>
-          <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">符号</th>
-          <th class="text-left text-xs font-medium text-secondary uppercase tracking-wider">汇率</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">代码</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">名称</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">符号</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">汇率</th>
           <th class="text-right"></th>
         </tr>
       </thead>
       <tbody>
         <% @currencies.each do |currency| %>
-          <tr class="border-t border-border">
-            <td class="py-3 font-medium text-primary"><%= currency.code %></td>
-            <td class="py-3 text-secondary"><%= currency.name %></td>
-            <td class="py-3"><%= currency.symbol %></td>
-            <td class="py-3 text-secondary"><%= currency.exchange_rate %></td>
+          <tr class="border-t border-border dark:border-border-dark">
+            <td class="py-3 font-medium text-primary dark:text-primary-dark"><%= currency.code %></td>
+            <td class="py-3 text-secondary dark:text-secondary-dark"><%= currency.name %></td>
+            <td class="py-3 text-primary dark:text-primary-dark"><%= currency.symbol %></td>
+            <td class="py-3 text-secondary dark:text-secondary-dark"><%= currency.exchange_rate %></td>
             <td class="py-3 text-right">
-              <button class="px-2 py-1 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern">编辑</button>
+              <button class="px-2 py-1 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">编辑</button>
             </td>
           </tr>
         <% end %>
       </tbody>
     </table>
     <% if @currencies.empty? %>
-      <p class="text-center text-secondary py-4">暂无货币配置</p>
+      <p class="text-center text-secondary dark:text-secondary-dark py-4">暂无货币配置</p>
     <% end %>
   </div>
 </section>

@@ -1,5 +1,5 @@
 <%# Mobile Bottom Navigation with Safe Area support %>
-<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-container border-t border-border">
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-container dark:bg-container-dark border-t border-border dark:border-border-dark">
   <div class="flex items-center justify-around min-h-[60px] pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
     <%= mobile_nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
     <%= mobile_nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
