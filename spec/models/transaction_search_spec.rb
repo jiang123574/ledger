@@ -6,12 +6,12 @@ RSpec.describe TransactionSearch, type: :model do
   describe '#apply' do
     let(:scope) { Transaction.all }
 
-    it 'returns unmodified scope when no filters' do
+    it 'returns scope with default sort when no filters' do
       search = described_class.new({})
 
       result = search.apply(scope)
 
-      expect(result.to_sql).to eq(scope.to_sql)
+      expect(result.to_sql).to include('ORDER BY')
     end
 
     it 'filters by date range' do
