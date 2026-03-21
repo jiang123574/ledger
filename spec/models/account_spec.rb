@@ -7,6 +7,8 @@ RSpec.describe Account, type: :model do
   end
 
   describe "validations" do
+    subject { build(:account) }
+
     it { should validate_presence_of(:name) }
     it { should validate_uniqueness_of(:name) }
     it { should validate_presence_of(:currency) }

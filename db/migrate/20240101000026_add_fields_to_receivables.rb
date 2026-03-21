@@ -1,4 +1,4 @@
-class AddFieldsToReceivables < ActiveRecord::Migration[7.2]
+class AddFieldsToReceivables < ActiveRecord::Migration[8.0]
   def change
     add_column :receivables, :description, :string
     add_column :receivables, :category, :string

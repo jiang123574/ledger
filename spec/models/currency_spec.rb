@@ -2,6 +2,8 @@ require 'rails_helper'
 
 RSpec.describe Currency, type: :model do
   describe "validations" do
+    subject { build(:currency) }
+
     it { should validate_presence_of(:code) }
     it { should validate_uniqueness_of(:code) }
     it { should validate_length_of(:code).is_equal_to(3) }
