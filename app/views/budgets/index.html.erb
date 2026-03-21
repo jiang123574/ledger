@@ -5,7 +5,7 @@
       <%= form_tag budgets_path, method: :get do %>
         <%= month_field_tag :month, @month, class: "border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-gray-600 dark:text-white" %>
         <%= hidden_field_tag :tab, params[:tab] || "monthly" %>
-        <%= submit_tag "Go", class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:border-gray-600 dark:text-secondary dark:text-secondary-dark-dark dark:hover:bg-gray-700" %>
+        <%= submit_tag "Go", class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:border-gray-600 dark:text-secondary dark:text-secondary-dark-dark dark:hover:bg-gray-700" %>
       <% end %>
     </div>
   </div>
@@ -28,19 +28,19 @@
     </div>
 
     <div class="flex items-center space-x-2 mb-4">
-      <%= link_to budgets_path(tab: "single"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status].blank? ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status].blank? ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status].blank? ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status].blank? ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.all") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "planning"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'planning' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'planning' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "planning"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'planning' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'planning' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.planning") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "active"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'active' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'active' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "active"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'active' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'active' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.active") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "completed"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'completed' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'completed' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "completed"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'completed' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'completed' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.completed") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "cancelled"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'cancelled' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'cancelled' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "cancelled"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'cancelled' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'cancelled' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.cancelled") %>
       <% end %>
     </div>
@@ -119,8 +119,8 @@
             </span>
           </div>
           <div class="flex justify-end gap-2 mt-2">
-            <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:text-secondary dark:text-secondary-dark-dark" %>
-            <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:text-secondary dark:text-secondary-dark-dark" %>
+            <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary dark:text-secondary-dark-dark" %>
+            <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary dark:text-secondary-dark-dark" %>
             <%= button_to t("single_budgets.delete"), budget, method: :delete, data: { turbo_confirm: t("single_budgets.are_you_sure") }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
           </div>
         </div>

@@ -4,7 +4,7 @@
     <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark"><%= t("transactions.title") %></h1>
     <div class="flex items-center gap-3">
       <% if @search.active_filters? %>
-        <%= link_to transactions_path, class: "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern" do %>
+        <%= link_to transactions_path, class: "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" do %>
           <%= render Ds::IconComponent.new(name: "x-mark", size: :sm) %>
           清除筛选
         <% end %>
@@ -155,7 +155,7 @@
     <div class="col-span-12 md:col-span-3 bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs">
       <div class="p-3 border-b border-border dark:border-border dark:border-border-dark-dark flex items-center justify-between">
         <h2 class="text-sm font-semibold text-primary dark:text-primary dark:text-primary-dark-dark">账户</h2>
-        <%= link_to new_account_path, class: "p-1 hover:bg-surface-hover rounded" do %>
+        <%= link_to new_account_path, class: "p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded" do %>
           <%= render Ds::IconComponent.new(name: "plus", size: :sm) %>
         <% end %>
       </div>
@@ -223,7 +223,7 @@
             </div>
           </div>
           <div class="mt-4">
-            <%= link_to edit_account_path(selected_account), class: "block w-full text-center px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern" do %>
+            <%= link_to edit_account_path(selected_account), class: "block w-full text-center px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" do %>
               编辑账户
             <% end %>
           </div>

@@ -14,7 +14,7 @@
       </div>
       <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= t('plans.no_plans_yet') %></p>
       <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark text-sm mt-2"><%= t('plans.create_first_hint', default: '创建计划来管理分期还款、定期支出等') %></p>
-      <%= link_to t('plans.new_plan'), new_plan_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover" %>
+      <%= link_to t('plans.new_plan'), new_plan_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover" %>
     </div>
   <% else %>
     <!-- Active Plans -->
@@ -65,7 +65,7 @@
                   <% elsif plan.type != Plan::INSTALLMENT %>
                     <%= button_to t('plans.execute', default: '执行'), execute_plan_path(plan), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
                   <% end %>
-                  <%= link_to t('common.edit'), edit_plan_path(plan), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern" %>
+                  <%= link_to t('common.edit'), edit_plan_path(plan), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
                   <%= button_to t('common.delete'), plan_path(plan), method: :delete, data: { turbo_confirm: t('common.are_you_sure') }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
                 </div>
               </div>
