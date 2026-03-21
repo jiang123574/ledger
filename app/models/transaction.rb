@@ -3,7 +3,7 @@ class Transaction < ApplicationRecord
 
   # ============ 交易类型常量 ============
   TYPES = %w[INCOME EXPENSE TRANSFER ADVANCE REIMBURSE].freeze
-  
+
   # 类型枚举说明:
   # INCOME: 收入
   # EXPENSE: 支出
@@ -35,7 +35,7 @@ class Transaction < ApplicationRecord
   scope :by_category, ->(category_id) { where(category_id: category_id) if category_id.present? }
   scope :by_tag, ->(tag_id) { joins(:transaction_tags).where(transaction_tags: { tag_id: tag_id }) if tag_id.present? }
   scope :by_amount_range, ->(min, max) { where(amount: min..max) if min.present? && max.present? }
-  
+
   scope :income, -> { where(type: "INCOME") }
   scope :expense, -> { where(type: "EXPENSE") }
   scope :transfers, -> { where(type: "TRANSFER") }

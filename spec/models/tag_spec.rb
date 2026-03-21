@@ -20,8 +20,8 @@ RSpec.describe Tag, type: :model do
         tag_b = create(:tag, name: 'Banana')
         tag_a = create(:tag, name: 'Apple')
         tag_c = create(:tag, name: 'Cherry')
-        
-        expect(Tag.alphabetically).to eq([tag_a, tag_b, tag_c])
+
+        expect(Tag.alphabetically).to eq([ tag_a, tag_b, tag_c ])
       end
     end
   end
@@ -30,7 +30,7 @@ RSpec.describe Tag, type: :model do
     it 'sets a random color if not provided' do
       tag = build(:tag, name: 'Test', color: nil)
       tag.valid?
-      
+
       expect(tag.color).to match(/\A#[0-9A-Fa-f]{6}\z/)
     end
   end

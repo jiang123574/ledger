@@ -59,17 +59,17 @@ class Category < ApplicationRecord
 
   # 所有祖先
   def ancestors
-    parent ? [parent] + parent.ancestors : []
+    parent ? [ parent ] + parent.ancestors : []
   end
 
   # 所有后代
   def descendants
-    children.flat_map { |child| [child] + child.descendants }
+    children.flat_map { |child| [ child ] + child.descendants }
   end
 
   # 自己和所有后代
   def self_and_descendants
-    [self] + descendants
+    [ self ] + descendants
   end
 
   # 交易统计

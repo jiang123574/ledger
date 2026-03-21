@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: [:show, :edit, :update, :destroy]
-  before_action :load_lookups, only: [:new, :edit, :create, :update, :index]
+  before_action :set_transaction, only: [ :show, :edit, :update, :destroy ]
+  before_action :load_lookups, only: [ :new, :edit, :create, :update, :index ]
 
   def index
     @search = TransactionSearch.new(params)
@@ -68,7 +68,7 @@ class TransactionsController < ApplicationController
     @accounts = Account.visible.order(:name)
     @categories = Category.active.by_sort_order
     @tags = Tag.alphabetically
-    @transaction_types = Transaction::TYPES.map { |t| [t_display(t), t] }
+    @transaction_types = Transaction::TYPES.map { |t| [ t_display(t), t ] }
   end
 
   def t_display(type)

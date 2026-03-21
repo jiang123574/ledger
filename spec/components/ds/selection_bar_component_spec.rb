@@ -5,9 +5,9 @@ require 'rails_helper'
 RSpec.describe Ds::SelectionBarComponent, type: :component do
   it 'renders nothing when count is zero' do
     component = described_class.new(count: 0)
-    
+
     rendered = render_inline(component).to_html
-    
+
     expect(rendered).to be_empty
   end
 
@@ -16,9 +16,9 @@ RSpec.describe Ds::SelectionBarComponent, type: :component do
       count: 5,
       delete_url: '/transactions/bulk_destroy'
     )
-    
+
     rendered = render_inline(component).to_html
-    
+
     expect(rendered).to include('已选择')
     expect(rendered).to include('5')
     expect(rendered).to include('删除')
@@ -30,9 +30,9 @@ RSpec.describe Ds::SelectionBarComponent, type: :component do
       count: 3,
       delete_url: '/transactions/bulk_destroy'
     )
-    
+
     rendered = render_inline(component).to_html
-    
+
     expect(rendered).to include('取消选择')
   end
 
@@ -42,9 +42,9 @@ RSpec.describe Ds::SelectionBarComponent, type: :component do
       delete_url: '/transactions/bulk_destroy',
       edit_url: '/transactions/bulk_edit'
     )
-    
+
     rendered = render_inline(component).to_html
-    
+
     expect(rendered).to include('批量编辑')
     expect(rendered).to include('/transactions/bulk_edit')
   end
@@ -54,9 +54,9 @@ RSpec.describe Ds::SelectionBarComponent, type: :component do
       count: 3,
       delete_url: '/transactions/bulk_destroy'
     )
-    
+
     rendered = render_inline(component).to_html
-    
+
     expect(rendered).not_to include('批量编辑')
   end
 end

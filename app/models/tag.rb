@@ -47,17 +47,17 @@ class ColorUtils
     m = l - c / 2
 
     r, g, b = if h < 60
-      [c, x, 0]
+      [ c, x, 0 ]
     elsif h < 120
-      [x, c, 0]
+      [ x, c, 0 ]
     elsif h < 180
-      [0, c, x]
+      [ 0, c, x ]
     elsif h < 240
-      [0, x, c]
+      [ 0, x, c ]
     elsif h < 300
-      [x, 0, c]
+      [ x, 0, c ]
     else
-      [c, 0, x]
+      [ c, 0, x ]
     end
 
     "##{((r + m) * 255).round.to_s(16).rjust(2, '0')}" \

@@ -12,15 +12,15 @@ FactoryBot.define do
     color { '#6b7280' }
     active { true }
     level { 0 }
-    
+
     trait :income do
       type { 'INCOME' }
     end
-    
+
     trait :expense do
       type { 'EXPENSE' }
     end
-    
+
     trait :with_parent do
       association :parent, factory: :category
       level { parent.level + 1 }
