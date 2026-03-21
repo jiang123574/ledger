@@ -53,9 +53,9 @@ FactoryBot.define do
   end
 
   factory :currency do
-    sequence(:code) { |n| ['CNY', 'USD', 'EUR', 'GBP', 'JPY'][n % 5] }
-    name { ['人民币', '美元', '欧元', '英镑', '日元'][code[0].ord % 5] }
-    symbol { ['¥', '$', '€', '£', '¥'][code[0].ord % 5] }
+    sequence(:code) { |n| [ 'CNY', 'USD', 'EUR', 'GBP', 'JPY' ][n % 5] }
+    name { [ '人民币', '美元', '欧元', '英镑', '日元' ][code[0].ord % 5] }
+    symbol { [ '¥', '$', '€', '£', '¥' ][code[0].ord % 5] }
     rate { 1.0 }
     is_default { code == 'CNY' }
     is_active { true }

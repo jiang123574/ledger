@@ -13,8 +13,8 @@ class UpdateCurrenciesStructure < ActiveRecord::Migration[8.0]
         execute "ALTER TABLE currencies ALTER COLUMN is_default DROP DEFAULT"
         # 修改类型
         execute <<-SQL
-          ALTER TABLE currencies 
-          ALTER COLUMN is_default TYPE boolean 
+          ALTER TABLE currencies#{' '}
+          ALTER COLUMN is_default TYPE boolean#{' '}
           USING CASE WHEN is_default = 1 THEN true ELSE false END
         SQL
         # 设置新的默认值
@@ -24,8 +24,8 @@ class UpdateCurrenciesStructure < ActiveRecord::Migration[8.0]
       dir.down do
         execute "ALTER TABLE currencies ALTER COLUMN is_default DROP DEFAULT"
         execute <<-SQL
-          ALTER TABLE currencies 
-          ALTER COLUMN is_default TYPE integer 
+          ALTER TABLE currencies#{' '}
+          ALTER COLUMN is_default TYPE integer#{' '}
           USING CASE WHEN is_default THEN 1 ELSE 0 END
         SQL
         execute "ALTER TABLE currencies ALTER COLUMN is_default SET DEFAULT 0"
