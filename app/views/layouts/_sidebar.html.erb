@@ -6,25 +6,49 @@
       <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
         <span class="text-white font-bold text-sm">账</span>
       </div>
-      <span class="font-semibold text-primary"><%= t("app_name") %></span>
+      <span class="font-semibold text-primary">记账本</span>
     <% end %>
   </div>
 
   <%# Navigation %>
-  <nav class="flex-1 p-4 space-y-1">
-    <%= nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
-    <%= nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
-    <%= nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
-    <%= nav_item(:categories, t("nav.categories"), categories_path, "tag") %>
-    <%= nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
-    <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
+  <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
+    <div class="mb-2">
+      <span class="text-xs font-medium text-gray-400 uppercase tracking-wider px-3">主要功能</span>
+    </div>
+    <%= nav_item(:dashboard, "仪表盘", dashboard_path, "home") %>
+    <%= nav_item(:transactions, "交易记录", transactions_path, "credit-card") %>
+    <%= nav_item(:accounts, "账户管理", accounts_path, "folder") %>
+    <%= nav_item(:categories, "分类标签", categories_path, "tag") %>
+    
+    <div class="mt-4 mb-2">
+      <span class="text-xs font-medium text-gray-400 uppercase tracking-wider px-3">财务规划</span>
+    </div>
+    <%= nav_item(:budgets, "预算管理", budgets_path, "map") %>
+    <%= nav_item(:plans, "计划管理", plans_path, "calendar") %>
+    <%= nav_item(:receivables, "应收款", receivables_path, "inbox") %>
+    
+    <div class="mt-4 mb-2">
+      <span class="text-xs font-medium text-gray-400 uppercase tracking-wider px-3">数据管理</span>
+    </div>
+    <%= nav_item(:reports, "报表统计", reports_path, "bar-chart-2") %>
+    <%= nav_item(:imports, "导入数据", new_import_path, "upload") %>
+    <%= nav_item(:backups, "备份管理", backups_path, "cloud") %>
+    
+    <div class="mt-4 mb-2">
+      <span class="text-xs font-medium text-gray-400 uppercase tracking-wider px-3">联系人</span>
+    </div>
+    <%= nav_item(:counterparties, "交易对方", counterparties_path, "users") %>
   </nav>
 
   <%# Footer %>
-  <div class="p-4 border-t border-border">
+  <div class="p-4 border-t border-border space-y-1">
+    <%= link_to shortcuts_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
+      <%= render(Ds::IconComponent.new(name: "command", size: :md)) %>
+      <span class="text-sm font-medium">快捷键</span>
+    <% end %>
     <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
       <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
-      <span class="text-sm font-medium"><%= t("nav.settings") %></span>
+      <span class="text-sm font-medium">设置</span>
     <% end %>
   </div>
 </aside>

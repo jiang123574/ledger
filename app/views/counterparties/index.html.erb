@@ -1,0 +1,85 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <div>
+      <h1 class="text-2xl font-bold text-gray-900">交易对方</h1>
+      <p class="text-gray-500 text-sm mt-1">管理与你有资金往来的人或机构</p>
+    </div>
+    <%= link_to "新建交易对方", new_counterparty_path, class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" %>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-sm text-gray-500">交易对方总数</div>
+      <div class="text-2xl font-bold text-gray-900"><%= @total_counterparties %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-sm text-gray-500">关联应收款</div>
+      <div class="text-2xl font-bold text-blue-600"><%= @total_receivables %></div>
+    </div>
+    <div class="bg-white rounded-lg shadow p-4">
+      <div class="text-sm text-gray-500">有往来的对象</div>
+      <div class="text-2xl font-bold text-green-600"><%= @counterparties.select { |c| c.receivables_count > 0 }.size %></div>
+    </div>
+  </div>
+
+  <% if @counterparties.empty? %>
+    <div class="bg-white rounded-lg shadow p-8 text-center">
+      <div class="text-gray-400 text-6xl mb-4">👥</div>
+      <p class="text-gray-500">暂无交易对方</p>
+      <p class="text-gray-400 text-sm mt-2">添加常往来的人或机构，方便统计和管理</p>
+      <%= link_to "添加第一个交易对方", new_counterparty_path, class: "inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" %>
+    </div>
+  <% else %>
+    <div class="bg-white rounded-lg shadow overflow-hidden">
+      <table class="min-w-full divide-y divide-gray-200">
+        <thead class="bg-gray-50">
+          <tr>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">名称</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">联系方式</th>
+            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">应收款数</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">待收金额</th>
+            <th class="px-6 py-3 actions"></th>
+          </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+          <% @counterparties.each do |counterparty| %>
+            <tr class="hover:bg-gray-50">
+              <td class="px-6 py-4 whitespace-nowrap">
+                <div class="font-medium text-gray-900"><%= counterparty.name %></div>
+                <% if counterparty.note.present? %>
+                  <div class="text-sm text-gray-500"><%= truncate(counterparty.note, length: 50) %></div>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= counterparty.contact || '-' %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-center">
+                <% if counterparty.receivables_count > 0 %>
+                  <span class="bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-sm">
+                    <%= counterparty.receivables_count %> 笔
+                  </span>
+                <% else %>
+                  <span class="text-gray-400">-</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right">
+                <% pending = counterparty.pending_receivable_amount %>
+                <% if pending > 0 %>
+                  <span class="text-green-600 font-medium"><%= format_currency(pending, 'CNY') %></span>
+                <% else %>
+                  <span class="text-gray-400">-</span>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+                <%= link_to "查看", counterparty_path(counterparty), class: "text-blue-600 hover:text-blue-900" %>
+                <%= link_to "编辑", edit_counterparty_path(counterparty), class: "text-blue-600 hover:text-blue-900 ml-3" %>
+                <%= button_to "删除", counterparty_path(counterparty), method: :delete, data: { turbo_confirm: "确定删除该交易对方？" }, class: "text-red-600 hover:text-red-900 ml-3" %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  <% end %>
+</div>

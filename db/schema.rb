@@ -111,7 +111,9 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000027) do
   end
 
   create_table "counterparties", force: :cascade do |t|
+    t.string "contact"
     t.string "name", null: false
+    t.text "note"
     t.index ["name"], name: "index_counterparties_on_name", unique: true
   end
 

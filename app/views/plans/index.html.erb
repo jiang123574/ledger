@@ -1,45 +1,106 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-gray-900"><%= t("plans.title") %></h1>
-    <%= link_to t("plans.new_plan"), new_plan_path, class: "bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700" %>
+    <h1 class="text-2xl font-bold text-gray-900">计划管理</h1>
+    <%= link_to "新建计划", new_plan_path, class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition" %>
   </div>
 
-  <div class="bg-white rounded-lg shadow overflow-hidden">
-    <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-gray-50">
-        <tr>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("accounts.name") %></th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("transactions.type") %></th>
-          <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase"><%= t("transactions.amount") %></th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("transactions.account") %></th>
-          <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase"><%= t("plans.status") %></th>
-          <th class="px-6 py-3 actions"></th>
-        </tr>
-      </thead>
-      <tbody class="bg-white divide-y divide-gray-200">
-        <% @plans.each do |plan| %>
-          <tr>
-            <td class="px-6 py-4 whitespace-nowrap font-medium"><%= plan.name %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm"><%= plan.account_type %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-right font-medium">¥<%= plan.amount.to_s("%.2f") %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm"><%= plan.account&.name || "-" %></td>
-            <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 rounded text-xs <%= plan.active? ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800" %>">
-                <%= plan.active? ? t("plans.active") : t("plans.inactive") %>
-              </span>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-              <%= link_to t("common.edit"), edit_plan_path(plan), class: "text-blue-600 hover:text-blue-900" %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-
-    <% if @plans.empty? %>
-      <div class="p-8 text-center text-gray-500">
-        <%= t("plans.no_plans_yet") %>
+  <% if @plans.empty? %>
+    <div class="bg-white rounded-lg shadow p-8 text-center">
+      <div class="text-gray-400 text-6xl mb-4">📋</div>
+      <p class="text-gray-500">暂无计划</p>
+      <p class="text-gray-400 text-sm mt-2">创建计划来管理分期还款、定期支出等</p>
+      <%= link_to "创建第一个计划", new_plan_path, class: "inline-block mt-4 bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" %>
+    </div>
+  <% else %>
+    <!-- Active Plans -->
+    <% if @active_plans.any? %>
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold text-gray-700">进行中的计划</h2>
+        <div class="grid gap-4">
+          <% @active_plans.each do |plan| %>
+            <div class="bg-white rounded-lg shadow p-4 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-blue-500' : 'border-green-500' %>">
+              <div class="flex justify-between items-start">
+                <div class="flex-1">
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-semibold text-gray-900"><%= plan.name %></h3>
+                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-blue-100 text-blue-700' : 'bg-green-100 text-green-700' %>">
+                      <%= plan.type == Plan::INSTALLMENT ? '分期还款' : (plan.type == Plan::RECURRING ? '周期支出' : '一次性') %>
+                    </span>
+                  </div>
+                  
+                  <div class="mt-2 text-sm text-gray-600">
+                    <span class="font-medium">金额:</span>
+                    <%= format_currency(plan.amount, plan.currency || 'CNY') %>
+                    <% if plan.type == Plan::INSTALLMENT %>
+                      <span class="text-gray-400">/期 (总: <%= format_currency(plan.total_amount, plan.currency || 'CNY') %>)</span>
+                    <% end %>
+                    <span class="ml-4"><span class="font-medium">账户:</span> <%= plan.account&.name || '-' %></span>
+                    <span class="ml-4"><span class="font-medium">每月:</span> <%= plan.day_of_month %>日</span>
+                  </div>
+                  
+                  <% if plan.type == Plan::INSTALLMENT %>
+                    <div class="mt-3">
+                      <div class="flex justify-between text-sm text-gray-600 mb-1">
+                        <span>进度: <%= plan.installments_completed %> / <%= plan.installments_total %> 期</span>
+                        <span><%= plan.progress_percentage %>%</span>
+                      </div>
+                      <div class="w-full bg-gray-200 rounded-full h-2">
+                        <div class="bg-blue-500 h-2 rounded-full transition-all" style="width: <%= plan.progress_percentage %>%"></div>
+                      </div>
+                      <div class="text-xs text-gray-400 mt-1">
+                        剩余 <%= plan.installments_remaining %> 期，约 <%= format_currency(plan.amount * plan.installments_remaining, plan.currency || 'CNY') %>
+                      </div>
+                    </div>
+                  <% end %>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                  <% if plan.type == Plan::INSTALLMENT && !plan.completed? %>
+                    <%= button_to "执行", execute_plan_path(plan), method: :post, class: "bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm" %>
+                  <% elsif plan.type != Plan::INSTALLMENT %>
+                    <%= button_to "执行", execute_plan_path(plan), method: :post, class: "bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm" %>
+                  <% end %>
+                  <%= link_to "编辑", edit_plan_path(plan), class: "text-blue-600 hover:text-blue-800 text-sm" %>
+                  <%= button_to "删除", plan_path(plan), method: :delete, data: { turbo_confirm: "确定删除该计划？" }, class: "text-red-600 hover:text-red-800 text-sm" %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
       </div>
     <% end %>
-  </div>
+
+    <!-- Completed Plans -->
+    <% if @completed_plans.any? %>
+      <div class="space-y-4">
+        <h2 class="text-lg font-semibold text-gray-400">已完成/已停用</h2>
+        <div class="grid gap-4">
+          <% @completed_plans.each do |plan| %>
+            <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300 opacity-75">
+              <div class="flex justify-between items-center">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <h3 class="font-semibold text-gray-600"><%= plan.name %></h3>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-gray-200 text-gray-500">
+                      <%= plan.type == Plan::INSTALLMENT ? '分期还款' : (plan.type == Plan::RECURRING ? '周期支出' : '一次性') %>
+                    </span>
+                    <% if plan.type == Plan::INSTALLMENT && plan.completed? %>
+                      <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">✓ 已完成</span>
+                    <% end %>
+                  </div>
+                  <div class="mt-1 text-sm text-gray-500">
+                    <%= format_currency(plan.amount, plan.currency || 'CNY') %> - <%= plan.account&.name || '-' %>
+                  </div>
+                </div>
+                <div class="flex items-center gap-2">
+                  <%= button_to "启用", plan_path(plan, plan: { active: true }), method: :patch, class: "text-blue-600 hover:text-blue-800 text-sm" %>
+                  <%= button_to "删除", plan_path(plan), method: :delete, class: "text-red-600 hover:text-red-800 text-sm" %>
+                </div>
+              </div>
+            </div>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  <% end %>
 </div>
