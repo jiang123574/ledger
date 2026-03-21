@@ -38,11 +38,11 @@ module Ds
       case @variant
       when :link
         link_to(@href, class: container_classes, **link_options) do
-          safe_join([icon_element, text_element].compact)
+          safe_join([ icon_element, text_element ].compact)
         end
       when :button
         button_to(@href, method: @method, class: container_classes, **button_options) do
-          safe_join([icon_element, text_element].compact)
+          safe_join([ icon_element, text_element ].compact)
         end
       end
     end

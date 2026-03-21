@@ -34,7 +34,7 @@ module Ds
 
     def call
       content_tag(:span, **options) do
-        safe_join([render_dot, content].compact)
+        safe_join([ render_dot, content ].compact)
       end
     end
 
@@ -42,7 +42,7 @@ module Ds
 
     def options
       {
-        class: [base_classes, variant_classes, size_classes, @options[:class]].compact.join(" ")
+        class: [ base_classes, variant_classes, size_classes, @options[:class] ].compact.join(" ")
       }
     end
 

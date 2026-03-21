@@ -41,7 +41,7 @@ module Ds
           menu_mobile_fullwidth_value: @mobile_fullwidth
         }
       ) do
-        safe_join([trigger_button, menu_content])
+        safe_join([ trigger_button, menu_content ])
       end
     end
 

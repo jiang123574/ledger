@@ -48,7 +48,7 @@ module Ds
         "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
       end
 
-      [base, variant_classes, @options[:class]].compact.join(" ")
+      [ base, variant_classes, @options[:class] ].compact.join(" ")
     end
 
     def icon_name

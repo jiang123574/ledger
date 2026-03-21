@@ -1,6 +1,6 @@
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: [:show, :edit, :update, :destroy]
-  before_action :load_lookups, only: [:new, :edit, :create, :update]
+  before_action :set_transaction, only: [ :show, :edit, :update, :destroy ]
+  before_action :load_lookups, only: [ :new, :edit, :create, :update ]
 
   def index
     @accounts = Account.visible.order(:name).select(:id, :name, :type, :currency, :initial_balance)

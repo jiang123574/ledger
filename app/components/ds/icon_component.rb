@@ -25,7 +25,7 @@ module Ds
 
     def call
       tag.svg(
-        class: ["inline-block shrink-0", size_class, color_class, @options[:class]],
+        class: [ "inline-block shrink-0", size_class, color_class, @options[:class] ],
         fill: @variant == :solid ? "currentColor" : "none",
         stroke: "currentColor",
         viewBox: "0 0 24 24",

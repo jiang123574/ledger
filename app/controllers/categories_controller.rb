@@ -1,5 +1,5 @@
 class CategoriesController < ApplicationController
-  before_action :set_category, only: [:edit, :update, :destroy]
+  before_action :set_category, only: [ :edit, :update, :destroy ]
 
   def index
     @categories = Category.includes(:parent).order(:sort_order, :name)
