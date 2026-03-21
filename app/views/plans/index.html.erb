@@ -1,7 +1,10 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-bold text-gray-900"><%= t('plans.title') %></h1>
-    <%= link_to t('plans.new_plan'), new_plan_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+    <%= link_to new_plan_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover" do %>
+      <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
+      <%= t('plans.new_plan') %>
+    <% end %>
   </div>
 
   <% if @plans.empty? %>
@@ -11,7 +14,7 @@
       </div>
       <p class="text-gray-500"><%= t('plans.no_plans_yet') %></p>
       <p class="text-gray-400 text-sm mt-2"><%= t('plans.create_first_hint', default: '创建计划来管理分期还款、定期支出等') %></p>
-      <%= link_to t('plans.new_plan'), new_plan_path, class: "inline-block mt-4 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+      <%= link_to t('plans.new_plan'), new_plan_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg border border-border text-primary hover:bg-surface-hover" %>
     </div>
   <% else %>
     <!-- Active Plans -->

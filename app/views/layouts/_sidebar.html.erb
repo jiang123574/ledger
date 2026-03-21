@@ -3,8 +3,10 @@
   <%# Logo %>
   <div class="h-16 flex items-center px-6 border-b border-border">
     <%= link_to dashboard_path, class: "flex items-center gap-3 min-h-[44px]" do %>
-      <div class="w-8 h-8 bg-surface dark:bg-gray-900 rounded-lg flex items-center justify-center">
-        <span class="text-white font-bold text-sm">账</span>
+      <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-sm">
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+        </svg>
       </div>
       <span class="font-semibold text-primary">记账本</span>
     <% end %>
@@ -23,7 +25,6 @@
       <span class="text-xs font-medium text-gray-400 uppercase tracking-wider px-3">财务规划</span>
     </div>
     <%= nav_item(:budgets, "预算管理", budgets_path, "map") %>
-    <%= nav_item(:event_budgets, "活动预算", event_budgets_path, "calendar") %>
     <%= nav_item(:plans, "计划管理", plans_path, "calendar") %>
     <%= nav_item(:receivables, "应收款", receivables_path, "inbox") %>
     
