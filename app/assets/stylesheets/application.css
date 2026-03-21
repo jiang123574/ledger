@@ -3,8 +3,34 @@
  * Mobile-first responsive design inspired by Sure project
  */
 
+/* Geist fonts are loaded from app/assets/fonts/ via assets pipeline */
+/* Font definitions moved to inline for Propshaft compatibility */
+
 /* CSS Variables for Design System */
 :root {
+  --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-white: #ffffff;
+  --color-black: #0b0b0b;
+  --color-shadow: rgba(11, 11, 11, 0.06);
+
+  --color-gray-25: #fafafa;
+  --color-gray-50: #f7f7f7;
+  --color-gray-100: #f0f0f0;
+  --color-gray-200: #e7e7e7;
+  --color-gray-300: #cfcfcf;
+  --color-gray-400: #9e9e9e;
+  --color-gray-500: #737373;
+  --color-gray-600: #5c5c5c;
+  --color-gray-700: #363636;
+  --color-gray-800: #242424;
+  --color-gray-900: #171717;
+
+  --color-success: #10a861;
+  --color-warning: #dc6803;
+  --color-destructive: #ec2222;
+
   --color-surface: #f8f9fa;
   --color-surface-hover: #f1f3f5;
   --color-surface-inset: #e9ecef;
@@ -24,6 +50,56 @@
   --safe-area-bottom: env(safe-area-inset-bottom, 0px);
   --safe-area-left: env(safe-area-inset-left, 0px);
   --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+/* Dark mode overrides */
+.dark,
+[data-theme="dark"] {
+  --color-white: #0b0b0b;
+  --color-black: #ffffff;
+  --color-shadow: rgba(0, 0, 0, 0.35);
+
+  --color-gray-25: #0f0f0f;
+  --color-gray-50: #141414;
+  --color-gray-100: #1a1a1a;
+  --color-gray-200: #242424;
+  --color-gray-300: #2f2f2f;
+  --color-gray-400: #525252;
+  --color-gray-500: #737373;
+  --color-gray-600: #9e9e9e;
+  --color-gray-700: #cfcfcf;
+  --color-gray-800: #e7e7e7;
+  --color-gray-900: #f7f7f7;
+
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-destructive: #ef4444;
+
+  --color-surface: #121212;
+  --color-surface-hover: #1c1c1c;
+  --color-surface-inset: #1a1a1a;
+  --color-container: #1a1a1a;
+  --color-container-inset: #141414;
+  --color-primary: #f8f9fa;
+  --color-secondary: #9ca3af;
+  --color-border: #2f2f2f;
+  --color-border-secondary: #262626;
+  --color-income: #22c55e;
+  --color-expense: #ef4444;
+  --color-transfer: #60a5fa;
+  --color-nav-indicator: #60a5fa;
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono);
 }
 
 /* Custom scrollbar */
@@ -158,12 +234,167 @@
    Animation Utilities
    ======================================== */
 
+@keyframes stroke-fill {
+  0% {
+    stroke-dashoffset: 43.9822971503;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-stroke-fill {
+  animation: stroke-fill 3s 300ms forwards;
+}
+
 .transition-smooth {
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .transition-fast {
   transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Button, card, and page animations */
+.btn-modern {
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(11, 11, 11, 0.08), 0 6px 12px rgba(11, 11, 11, 0.06);
+  transform: translateZ(0);
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.btn-modern:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(11, 11, 11, 0.12), 0 10px 20px rgba(11, 11, 11, 0.12);
+}
+
+.dark .btn-modern,
+[data-theme="dark"] .btn-modern {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 18px rgba(0, 0, 0, 0.45);
+}
+
+.dark .btn-modern:hover:not(:disabled),
+[data-theme="dark"] .btn-modern:hover:not(:disabled) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 14px 24px rgba(0, 0, 0, 0.55);
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.mobile-card,
+section,
+.card-hover {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.mobile-card:hover,
+section:hover,
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px rgba(11, 11, 11, 0.12);
+}
+
+.dark .mobile-card:hover,
+.dark section:hover,
+.dark .card-hover:hover,
+[data-theme="dark"] .mobile-card:hover,
+[data-theme="dark"] section:hover,
+[data-theme="dark"] .card-hover:hover {
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.45);
+}
+
+.page-fade-enter {
+  animation: page-fade-in 180ms ease-out;
+}
+
+.page-fade-leave {
+  animation: page-fade-out 150ms ease-in forwards;
+}
+
+.stagger-item {
+  animation: stagger-fade-up 220ms ease both;
+  animation-delay: calc(var(--stagger-index, 0) * 70ms);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes stagger-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skeleton loading */
+.page-skeleton {
+  position: fixed;
+  inset: 0;
+  background: var(--color-surface);
+  z-index: 60;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 200ms ease;
+}
+
+.page-skeleton-hidden {
+  opacity: 0;
+}
+
+.skeleton-block {
+  height: 12px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.12) 50%, rgba(0, 0, 0, 0.06) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+.dark .skeleton-block,
+[data-theme="dark"] .skeleton-block {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
 /* Focus ring */
@@ -215,6 +446,28 @@ body.sidebar-open {
 
 .mobile-list-item:active {
   background-color: var(--color-surface-hover);
+}
+
+tr,
+li,
+.settings-nav-item {
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+tr:hover,
+li:hover,
+.settings-nav-item:hover {
+  background-color: var(--color-surface-hover);
+  box-shadow: 0 4px 10px rgba(11, 11, 11, 0.08);
+}
+
+.dark tr:hover,
+.dark li:hover,
+.dark .settings-nav-item:hover,
+[data-theme="dark"] tr:hover,
+[data-theme="dark"] li:hover,
+[data-theme="dark"] .settings-nav-item:hover {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
 }
 
 /* ========================================
@@ -305,4 +558,83 @@ body.sidebar-open {
 
 .pull-indicator.visible {
   opacity: 1;
+}
+
+/* ========================================
+   Global Button Styles
+   ======================================== */
+
+/* Primary buttons (blue) */
+button[class*="bg-blue-600"],
+input[type="submit"][class*="bg-blue-600"],
+a[class*="bg-blue-600"]:not([class*="btn-modern"]),
+.button-primary {
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3), 0 4px 8px rgba(59, 130, 246, 0.2);
+  transition: all 150ms ease;
+}
+
+button[class*="bg-blue-600"]:hover:not(:disabled),
+input[type="submit"][class*="bg-blue-600"]:hover:not(:disabled),
+a[class*="bg-blue-600"]:not([class*="btn-modern"]):hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4), 0 8px 16px rgba(59, 130, 246, 0.3);
+}
+
+/* Secondary buttons (gray) */
+button[class*="bg-gray-200"],
+input[type="submit"][class*="bg-gray-200"],
+button_to input[class*="bg-gray-200"] {
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 150ms ease;
+}
+
+button[class*="bg-gray-200"]:hover:not(:disabled),
+input[type="submit"][class*="bg-gray-200"]:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Danger buttons (red) */
+button[class*="bg-red-"],
+button[class*="text-red-600"]:hover,
+input[type="submit"][class*="bg-red-"] {
+  border-radius: 0.75rem;
+  transition: all 150ms ease;
+}
+
+button[class*="bg-red-"]:hover:not(:disabled),
+input[type="submit"][class*="bg-red-"]:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+/* Success buttons (green) */
+button[class*="bg-green-"],
+input[type="submit"][class*="bg-green-"] {
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
+  transition: all 150ms ease;
+}
+
+button[class*="bg-green-"]:hover:not(:disabled),
+input[type="submit"][class*="bg-green-"]:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+/* All submit buttons */
+input[type="submit"],
+button[type="submit"] {
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+/* Link buttons */
+a[class*="rounded-lg"][class*="bg-"]:not(.nav-link):not(.settings-nav-item) {
+  transition: all 150ms ease;
+}
+
+a[class*="rounded-lg"][class*="bg-"]:hover:not(.nav-link):not(.settings-nav-item) {
+  transform: scale(1.01);
 }

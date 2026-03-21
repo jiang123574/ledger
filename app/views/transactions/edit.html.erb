@@ -10,13 +10,13 @@
     <%= form_with model: @transaction, local: true, class: "space-y-6" do |f| %>
       <!-- Transaction Type Tabs -->
       <div class="bg-surface-inset rounded-lg p-1 flex">
-        <button type="button" class="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-smooth type-tab" data-type="EXPENSE">
+        <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="EXPENSE">
           <span class="flex items-center justify-center gap-2">
             <%= render(Ds::IconComponent.new(name: "minus-circle", size: :sm, color: :expense)) %>
             支出
           </span>
         </button>
-        <button type="button" class="flex-1 px-4 py-2 text-sm font-medium rounded-md transition-smooth type-tab" data-type="INCOME">
+        <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="INCOME">
           <span class="flex items-center justify-center gap-2">
             <%= render(Ds::IconComponent.new(name: "plus-circle", size: :sm, color: :income)) %>
             收入
@@ -28,7 +28,7 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.date") %></label>
-          <%= f.date_field :date, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.date_field :date, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <div>
@@ -41,27 +41,27 @@
 
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.account") %></label>
-          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.category") %></label>
-          <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5">转入账户</label>
-          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "无" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "无" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.note") %></label>
-        <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+        <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <div class="flex justify-end gap-3 pt-4 border-t border-border">
-        <%= link_to t("transactions.cancel"), transactions_path, class: "px-4 py-2 text-sm font-medium text-secondary hover:bg-surface-inset rounded-lg transition-smooth" %>
+        <%= link_to t("transactions.cancel"), transactions_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
         <%= render(Ds::ButtonComponent.new(type: :submit, variant: :primary)) do %>
           <%= t("transactions.update") %>
         <% end %>

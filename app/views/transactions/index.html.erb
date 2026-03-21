@@ -4,12 +4,12 @@
     <h1 class="text-2xl font-semibold text-primary"><%= t("transactions.title") %></h1>
     <div class="flex items-center gap-3">
       <% if @search.active_filters? %>
-        <%= link_to transactions_path, class: "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border text-secondary hover:bg-surface-hover transition-smooth" do %>
+        <%= link_to transactions_path, class: "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" do %>
           <%= render Ds::IconComponent.new(name: "x-mark", size: :sm) %>
           清除筛选
         <% end %>
       <% end %>
-      <%= link_to new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" do %>
+      <%= link_to new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" do %>
         <%= render Ds::IconComponent.new(name: "plus", size: :sm) %>
         <%= t("transactions.new_transaction") %>
       <% end %>
@@ -25,10 +25,10 @@
           <div class="flex-1">
             <%= text_field_tag :search, @search.search,
                 placeholder: "搜索备注、分类...",
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <button type="button" data-action="click->auto-submit-form#submit" 
-                  class="px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+                  class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern">
             搜索
           </button>
         </div>
@@ -38,12 +38,12 @@
           <div class="flex-1 min-w-[140px]">
             <label class="block text-xs font-medium text-secondary mb-1">开始日期</label>
             <%= date_field_tag :start_date, @search.start_date,
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
             <label class="block text-xs font-medium text-secondary mb-1">结束日期</label>
             <%= date_field_tag :end_date, @search.end_date,
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
             <label class="block text-xs font-medium text-secondary mb-1">类型</label>
@@ -55,7 +55,7 @@
               ["预支", "ADVANCE"],
               ["报销", "REIMBURSE"]
             ], @search.type),
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
             <label class="block text-xs font-medium text-secondary mb-1">分类</label>
@@ -63,7 +63,7 @@
               [["全部分类", ""]] + @categories.map { |c| [c.full_name, c.id] },
               @search.category_id
             ),
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <% if @tags.any? %>
             <div class="flex-1 min-w-[120px]">
@@ -72,7 +72,7 @@
                 [["全部标签", ""]] + @tags.pluck(:name, :id),
                 @search.tag_id
               ),
-                  class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                  class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
             </div>
           <% end %>
         </div>
@@ -83,13 +83,13 @@
             <label class="block text-xs font-medium text-secondary mb-1">最小金额</label>
             <%= number_field_tag :min_amount, @search.min_amount, step: "0.01",
                 placeholder: "0.00",
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
             <label class="block text-xs font-medium text-secondary mb-1">最大金额</label>
             <%= number_field_tag :max_amount, @search.max_amount, step: "0.01",
                 placeholder: "不限",
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
             <label class="block text-xs font-medium text-secondary mb-1">排序</label>
@@ -99,7 +99,7 @@
               ["金额 ↓", "amount_desc"],
               ["金额 ↑", "amount_asc"]
             ], @search.sort),
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
 
@@ -110,11 +110,11 @@
       <% if @search.active_filters? %>
         <div class="flex flex-wrap gap-2 pt-3 border-t border-border">
           <% @search.active_filters_list.each do |filter| %>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-blue-50 text-blue-700">
-              <span class="text-blue-500"><%= filter[:label] %>:</span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700">
+              <span class="text-gray-500"><%= filter[:label] %>:</span>
               <%= filter[:value] %>
               <%= link_to transactions_path(@search.clear_filter(filter[:key]).merge(account_id: params[:account_id])), 
-                  class: "ml-1 hover:text-blue-900" do %>
+                  class: "ml-1 hover:text-gray-900" do %>
                 <%= render Ds::IconComponent.new(name: "x-mark", size: :sm) %>
               <% end %>
             </span>
@@ -165,8 +165,8 @@
             class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].blank? ? 'bg-surface-inset' : ''}" do %>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <%= render Ds::IconComponent.new(name: "bars-3", size: :sm, class: "text-blue-600") %>
+              <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <%= render Ds::IconComponent.new(name: "bars-3", size: :sm, class: "text-primary") %>
               </div>
               <span class="font-medium text-primary text-sm">所有交易</span>
             </div>
@@ -179,8 +179,8 @@
               class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].to_i == account.id ? 'bg-surface-inset' : ''}" do %>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <span class="text-sm font-bold text-blue-600"><%= account.name[0] %></span>
+                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                  <span class="text-sm font-bold text-primary"><%= account.name[0] %></span>
                 </div>
                 <div>
                   <span class="font-medium text-primary text-sm"><%= account.name %></span>
@@ -202,8 +202,8 @@
       <div class="p-4">
         <% if params[:account_id].present? && (selected_account = @accounts.find { |a| a.id == params[:account_id].to_i }) %>
           <div class="text-center mb-4">
-            <div class="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-2">
-              <span class="text-2xl font-bold text-blue-600"><%= selected_account.name[0] %></span>
+            <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
+              <span class="text-2xl font-bold text-primary"><%= selected_account.name[0] %></span>
             </div>
             <h3 class="font-semibold text-primary"><%= selected_account.name %></h3>
             <p class="text-sm text-secondary"><%= selected_account.type_name %></p>
@@ -223,7 +223,7 @@
             </div>
           </div>
           <div class="mt-4">
-            <%= link_to edit_account_path(selected_account), class: "block w-full text-center px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" do %>
+            <%= link_to edit_account_path(selected_account), class: "block w-full text-center px-4 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" do %>
               编辑账户
             <% end %>
           </div>
@@ -269,7 +269,7 @@
                              value="<%= t.id %>"
                              data-bulk-select-target="checkbox"
                              data-action="change->bulk-select#toggleRowSelection"
-                             class="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500">
+                             class="w-4 h-4 rounded border-border text-primary focus:ring-blue-500">
                     </div>
 
                     <!-- Date & Type -->
@@ -278,7 +278,7 @@
                         <% if t.type == "INCOME" %>
                           <%= render Ds::IconComponent.new(name: "arrow-up-right", size: :sm, class: "text-green-600") %>
                         <% elsif t.type == "TRANSFER" %>
-                          <%= render Ds::IconComponent.new(name: "arrow-right-left", size: :sm, class: "text-blue-600") %>
+                          <%= render Ds::IconComponent.new(name: "arrow-right-left", size: :sm, class: "text-primary") %>
                         <% else %>
                           <%= render Ds::IconComponent.new(name: "arrow-down-right", size: :sm, class: "text-red-600") %>
                         <% end %>
@@ -288,7 +288,7 @@
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%= 
                           case t.type
                           when 'INCOME' then 'bg-green-100 text-green-700'
-                          when 'TRANSFER' then 'bg-blue-100 text-blue-700'
+                          when 'TRANSFER' then 'bg-gray-100 text-gray-700'
                           when 'ADVANCE' then 'bg-yellow-100 text-yellow-700'
                           when 'REIMBURSE' then 'bg-purple-100 text-purple-700'
                           else 'bg-red-100 text-red-700'
@@ -308,7 +308,7 @@
                     <div class="col-span-2 mb-2 md:mb-0">
                       <p class="text-sm text-secondary"><%= t.account_name %></p>
                       <% if t.target_account_name.present? %>
-                        <p class="text-xs text-blue-600">→ <%= t.target_account_name %></p>
+                        <p class="text-xs text-primary">→ <%= t.target_account_name %></p>
                       <% end %>
                     </div>
 
@@ -351,7 +351,7 @@
           </div>
           <p class="text-primary font-medium mb-1"><%= t("transactions.no_transactions_found") %></p>
           <p class="text-secondary text-sm mb-4">开始添加您的第一笔交易吧</p>
-          <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
+          <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
         </div>
       <% end %>
     </div>

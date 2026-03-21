@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-bold text-gray-900">备份管理</h1>
     <div class="flex gap-2">
-      <%= button_to "创建备份", backups_path, method: :post, class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" %>
+      <%= button_to "创建备份", backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
     </div>
   </div>
 
@@ -57,7 +57,7 @@
               <div class="text-sm text-green-600"><%= @webdav_config[:url] %></div>
             </div>
           </div>
-          <%= link_to "测试连接", webdav_test_backups_path, remote: true, class: "text-blue-600 hover:text-blue-800" %>
+          <%= link_to "测试连接", webdav_test_backups_path, remote: true, class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
         </div>
 
         <% if @webdav_backups&.any? %>
@@ -67,7 +67,7 @@
               <% @webdav_backups.each do |backup| %>
                 <div class="flex justify-between items-center text-sm">
                   <span><%= backup[:name] %></span>
-                  <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "text-blue-600" %>
+                  <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
                 </div>
               <% end %>
             </div>
@@ -78,7 +78,7 @@
       <div class="text-gray-500 text-center py-8">
         <div class="text-4xl mb-2">☁️</div>
         <p>配置 WebDAV 以启用云备份</p>
-        <button onclick="document.getElementById('webdav-form').classList.toggle('hidden')" class="mt-4 text-blue-600 hover:text-blue-800">
+        <button onclick="document.getElementById('webdav-form').classList.toggle('hidden')" class="mt-4 px-4 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern">
           配置 WebDAV
         </button>
       </div>
@@ -103,7 +103,7 @@
               <%= f.password_field :password, class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
             </div>
           </div>
-          <%= f.submit "连接", class: "bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700" %>
+          <%= f.submit "连接", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
         <% end %>
       </div>
     <% end %>
@@ -122,12 +122,12 @@
             <div class="text-sm text-gray-500">每日自动备份，保留最近 10 个</div>
           </div>
         </div>
-        <%= button_to "禁用", disable_auto_backup_backups_path, method: :post, class: "text-red-600 hover:text-red-800" %>
+        <%= button_to "禁用", disable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
       </div>
     <% else %>
       <div class="text-center py-4">
         <p class="text-gray-500 mb-4">启用自动备份，每日自动创建数据备份</p>
-        <%= button_to "启用自动备份", enable_auto_backup_backups_path, method: :post, class: "bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700" %>
+        <%= button_to "启用自动备份", enable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
       </div>
     <% end %>
   </div>
@@ -162,7 +162,7 @@
                 <%= backup[:name] %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 py-1 rounded text-xs <%= backup[:type] == 'auto' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-700' %>">
+                <span class="px-2 py-1 rounded text-xs <%= backup[:type] == 'auto' ? 'bg-gray-100 text-gray-700' : 'bg-gray-100 text-gray-700' %>">
                   <%= backup[:type] == 'auto' ? '自动' : '手动' %>
                 </span>
               </td>
@@ -180,12 +180,12 @@
                 <% end %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <%= link_to "下载", download_backup_path(backup[:id]), class: "text-blue-600 hover:text-blue-800" %>
+                <%= link_to "下载", download_backup_path(backup[:id]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
                 <% if @webdav_configured && backup[:webdav_url].blank? %>
-                  <%= link_to "上传", webdav_upload_backup_path(backup[:id]), method: :post, class: "text-green-600 hover:text-green-800 ml-2" %>
+                  <%= link_to "上传", webdav_upload_backup_path(backup[:id]), method: :post, class: "px-2 py-1 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern ml-2" %>
                 <% end %>
-                <%= button_to "恢复", restore_backup_path(backup[:id]), method: :post, data: { turbo_confirm: "确定要恢复该备份？当前数据将被覆盖。" }, class: "text-orange-600 hover:text-orange-800 ml-2 inline" %>
-                <%= button_to "删除", backup_path(backup[:id]), method: :delete, data: { turbo_confirm: "确定删除该备份？" }, class: "text-red-600 hover:text-red-800 ml-2 inline" %>
+                <%= button_to "恢复", restore_backup_path(backup[:id]), method: :post, data: { turbo_confirm: "确定要恢复该备份？当前数据将被覆盖。" }, class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern ml-2 inline" %>
+                <%= button_to "删除", backup_path(backup[:id]), method: :delete, data: { turbo_confirm: "确定删除该备份？" }, class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern ml-2 inline" %>
               </td>
             </tr>
           <% end %>
