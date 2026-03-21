@@ -25,7 +25,7 @@
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <h3 class="font-semibold text-gray-900"><%= plan.name %></h3>
-                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 dark:text-gray-300' : 'bg-green-100 text-green-700' %>">
+                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300' : 'bg-green-100 text-green-700' %>">
                       <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::RECURRING ? t('plans.recurring') : t('plans.one_time')) %>
                     </span>
                   </div>
