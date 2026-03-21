@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2024_01_01_000027) do
+ActiveRecord::Schema[8.1].define(version: 2024_01_01_000028) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -111,7 +111,9 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000027) do
   end
 
   create_table "counterparties", force: :cascade do |t|
+    t.string "contact"
     t.string "name", null: false
+    t.text "note"
     t.index ["name"], name: "index_counterparties_on_name", unique: true
   end
 

@@ -11,9 +11,13 @@ Rails.application.routes.draw do
 
   resources :accounts
   resources :categories
-  resources :tags, except: [ :show ]
+  resources :counterparties
   resources :budgets, only: [ :index, :create, :update, :destroy ]
-  resources :plans
+  resources :plans do
+    member do
+      post :execute
+    end
+  end
   resources :receivables do
     member do
       get :settle
@@ -26,7 +30,34 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :settings, only: [ :show, :update ]
+  resources :imports, only: [ :new, :create ] do
+    collection do
+      post :preview
+      get :templates
+    end
+  end
+
+  resources :backups, only: [ :index, :create, :destroy ] do
+    collection do
+      post :webdav_connect
+      get :webdav_test
+      post :enable_auto_backup
+      post :disable_auto_backup
+    end
+    member do
+      get :download
+      post :restore
+      post :webdav_upload
+    end
+  end
+  get "/webdav/download", to: "backups#webdav_download", as: :webdav_download_backups
+
+  resources :shortcuts, only: [ :index, :update ] do
+    collection do
+      post :reset
+    end
+  end
+
   get "/settings", to: "settings#show", as: :settings
   post "/settings/export", to: "settings#export_transactions", as: :export_transactions
   post "/settings/import", to: "settings#import_transactions", as: :import_transactions
