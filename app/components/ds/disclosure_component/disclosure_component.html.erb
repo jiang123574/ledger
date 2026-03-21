@@ -1,0 +1,25 @@
+<details class="group" <%= "open" if @open %>>
+  <%= tag.summary class: summary_classes do %>
+    <% if summary_content? %>
+      <%= summary_content %>
+    <% else %>
+      <div class="flex items-center gap-3">
+        <% if @align == :left %>
+          <%= render Ds::IconComponent.new("chevron-right", class: arrow_class) %>
+        <% end %>
+
+        <%= tag.span class: "font-medium #{@align == :left ? 'text-sm text-primary' : 'text-xs uppercase text-secondary'}" do %>
+          <%= @title %>
+        <% end %>
+      </div>
+
+      <% if @align == :right %>
+        <%= render Ds::IconComponent.new(name: "chevron-down", class: chevron_class) %>
+      <% end %>
+    <% end %>
+  <% end %>
+
+  <div class="<%= content_classes %>">
+    <%= content %>
+  </div>
+</details>
