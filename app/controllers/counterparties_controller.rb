@@ -33,7 +33,7 @@ class CounterpartiesController < ApplicationController
     @counterparty = Counterparty.new(counterparty_params)
 
     if @counterparty.save
-      redirect_to counterparties_path, notice: "交易对方已创建"
+      redirect_back_or_to settings_path(anchor: "contacts"), notice: "联系人已创建"
     else
       render :new, status: :unprocessable_content
     end

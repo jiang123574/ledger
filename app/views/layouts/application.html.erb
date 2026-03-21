@@ -19,6 +19,7 @@
     
     <%# Initialize dark mode before page renders to prevent flash %>
     <script>
+      // Dark mode initialization
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
         document.documentElement.setAttribute('data-theme', 'dark');
@@ -26,6 +27,24 @@
         document.documentElement.classList.remove('dark');
         document.documentElement.setAttribute('data-theme', 'light');
       }
+      
+      // Color theme initialization
+      (function() {
+        const savedTheme = localStorage.getItem('colorTheme') || 'default';
+        const themes = {
+          default: { income: '#22c55e', expense: '#ef4444' },
+          reversed: { income: '#ef4444', expense: '#22c55e' },
+          blue_orange: { income: '#3b82f6', expense: '#f97316' },
+          purple_yellow: { income: '#8b5cf6', expense: '#eab308' },
+          cyan_pink: { income: '#06b6d4', expense: '#ec4899' },
+          teal_rose: { income: '#14b8a6', expense: '#f43f5e' },
+          indigo_amber: { income: '#6366f1', expense: '#f59e0b' }
+        };
+        const theme = themes[savedTheme] || themes.default;
+        document.documentElement.style.setProperty('--color-income', theme.income);
+        document.documentElement.style.setProperty('--color-expense', theme.expense);
+        document.documentElement.setAttribute('data-color-theme', savedTheme);
+      })();
     </script>
     
     <script src="https://cdn.tailwindcss.com"></script>
@@ -281,7 +300,7 @@
         <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
           <div class="h-14 flex items-center justify-between px-4 border-b border-border">
             <%= link_to dashboard_path, class: "flex items-center gap-3 min-h-[44px]" do %>
-              <div class="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center">
+              <div class="w-8 h-8 bg-surface dark:bg-gray-900 rounded-lg flex items-center justify-center">
                 <span class="text-white font-bold text-sm">账</span>
               </div>
               <span class="font-semibold text-primary"><%= t("app_name") %></span>
@@ -301,7 +320,6 @@
           <%= nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
           <%= nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
           <%= nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
-          <%= nav_item(:categories, t("nav.categories"), categories_path, "tag") %>
           <%= nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
           <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
         </nav>

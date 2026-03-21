@@ -56,7 +56,7 @@
             </div>
             <div class="flex items-center gap-1">
               <%= link_to edit_tag_path(tag), 
-                  class: "p-2 rounded-lg border border-border bg-white text-primary hover:bg-gray-300 transition-smooth btn-modern",
+                  class: "p-2 rounded-lg border border-border bg-container dark:bg-gray-800 text-primary hover:bg-gray-300 transition-smooth btn-modern",
                   title: "编辑" do %>
                 <%= render(Ds::IconComponent.new(name: "pencil", size: :sm)) %>
               <% end %>

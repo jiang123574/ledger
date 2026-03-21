@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
     <h3 class="font-medium mb-4"><%= t("budgets.add_budget", month: @month) %></h3>
     <%= form_with model: Budget.new, url: budgets_path, local: true, class: "flex gap-4" do |f| %>
       <%= f.hidden_field :month, value: @month %>
@@ -21,7 +21,7 @@
 
   <!-- 总预算进度卡片 -->
   <% if @total_budget > 0 %>
-    <div class="bg-white rounded-lg shadow p-6">
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
       <div class="flex justify-between items-center mb-4">
         <h3 class="font-medium"><%= t("budgets.total") %></h3>
         <span class="text-sm <%= (@total_budget - @total_spent) < 0 ? 'text-red-600' : 'text-green-600' %>">
@@ -53,7 +53,7 @@
     <% @budgets.each do |budget| %>
       <% spent = budget.spent_amount %>
       <% percentage = budget.progress_percentage %>
-      <div class="bg-white rounded-lg shadow p-4">
+      <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
         <div class="flex justify-between items-center mb-2">
           <div class="flex items-center gap-2">
             <span class="font-medium"><%= budget.category&.name || t("budgets.total") %></span>
@@ -61,7 +61,7 @@
               case budget.status_color
               when 'red' then 'bg-red-100 text-red-700'
               when 'yellow' then 'bg-yellow-100 text-yellow-700'
-              else 'bg-gray-100 text-gray-700'
+              else 'bg-surface dark:bg-gray-600 text-primary dark:text-gray-300'
               end
             %>"><%= budget.status_text %></span>
           </div>
@@ -87,7 +87,7 @@
   </div>
 
   <% if @budgets.empty? && @total_budget == 0 %>
-    <div class="bg-white rounded-lg shadow p-8 text-center text-gray-500">
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-8 text-center text-gray-500">
       <%= t("budgets.no_budgets_set") %>
     </div>
   <% end %>

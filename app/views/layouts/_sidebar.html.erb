@@ -3,7 +3,7 @@
   <%# Logo %>
   <div class="h-16 flex items-center px-6 border-b border-border">
     <%= link_to dashboard_path, class: "flex items-center gap-3 min-h-[44px]" do %>
-      <div class="w-8 h-8 bg-gray-500 rounded-lg flex items-center justify-center">
+      <div class="w-8 h-8 bg-surface dark:bg-gray-900 rounded-lg flex items-center justify-center">
         <span class="text-white font-bold text-sm">账</span>
       </div>
       <span class="font-semibold text-primary">记账本</span>
@@ -18,7 +18,6 @@
     <%= nav_item(:dashboard, "仪表盘", dashboard_path, "home") %>
     <%= nav_item(:transactions, "交易记录", transactions_path, "credit-card") %>
     <%= nav_item(:accounts, "账户管理", accounts_path, "folder") %>
-    <%= nav_item(:categories, "分类标签", categories_path, "tag") %>
     
     <div class="mt-4 mb-2">
       <span class="text-xs font-medium text-gray-400 uppercase tracking-wider px-3">财务规划</span>

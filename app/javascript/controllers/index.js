@@ -5,6 +5,7 @@ import { application } from "controllers/application"
 import AlertController from "controllers/alert_controller"
 import AutoSubmitFormController from "controllers/auto_submit_form_controller"
 import BulkSelectController from "controllers/bulk_select_controller"
+import ColorThemeController from "controllers/color_theme_controller"
 import DashboardSectionController from "controllers/dashboard_section_controller"
 import DashboardSortableController from "controllers/dashboard_sortable_controller"
 import DonutChartController from "controllers/donut_chart_controller"
@@ -27,6 +28,7 @@ import TooltipController from "controllers/tooltip_controller"
 application.register("alert--dismissible", AlertController)
 application.register("auto-submit-form", AutoSubmitFormController)
 application.register("bulk-select", BulkSelectController)
+application.register("color-theme", ColorThemeController)
 application.register("dashboard-section", DashboardSectionController)
 application.register("dashboard-sortable", DashboardSortableController)
 application.register("donut-chart", DonutChartController)

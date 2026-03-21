@@ -19,7 +19,7 @@
       <% pagy.series.each do |item| %>
         <% if item.is_a?(Integer) %>
           <%= link_to item, pagy_url_for(pagy, item), 
-              class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary transition-smooth #{pagy.page == item ? 'bg-gray-100 text-gray-600' : ''}" %>
+              class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary transition-smooth #{pagy.page == item ? 'bg-surface dark:bg-gray-700 text-primary dark:text-gray-400' : ''}" %>
         <% elsif item == :gap %>
           <span class="px-2 text-secondary">...</span>
         <% end %>

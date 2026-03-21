@@ -68,8 +68,8 @@ module.exports = {
           dark: '#eab308',
           'dark-hover': '#ca8a04'
         },
-        income: '#ef4444',
-        expense: '#22c55e',
+        income: '#22c55e',
+        expense: '#ef4444',
         transfer: '#3b82f6',
         gray: {
           25: '#fafafa',

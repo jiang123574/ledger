@@ -92,7 +92,7 @@ module ApplicationHelper
   def active_indicator(is_active)
     return "" unless is_active
 
-    content_tag(:div, "", class: "absolute left-0 w-1 h-6 bg-blue-500 rounded-r")
+    content_tag(:div, "", class: "absolute left-0 w-1 h-6 bg-inverse rounded-r")
   end
 
   def mobile_nav_item_classes(is_active)

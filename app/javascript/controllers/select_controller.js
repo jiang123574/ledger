@@ -78,11 +78,11 @@ export default class extends Controller {
     const previousSelected = this.menuTarget.querySelector("[aria-selected='true']")
     if (previousSelected) {
       previousSelected.setAttribute("aria-selected", "false")
-      previousSelected.classList.remove("bg-gray-100", "dark:bg-gray-700")
+      previousSelected.classList.remove("bg-gray-100")
     }
 
     selectedElement.setAttribute("aria-selected", "true")
-    selectedElement.classList.add("bg-gray-100", "dark:bg-gray-700")
+    selectedElement.classList.add("bg-gray-100")
 
     // Dispatch custom event
     this.element.dispatchEvent(new CustomEvent("dropdown:select", {
