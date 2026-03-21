@@ -159,11 +159,16 @@ zh-CN:
     standard: "标准格式"
     alipay: "支付宝格式"
     wechat: "微信支付格式"
+    success: "成功导入 %{count} 条交易记录"
+    partial_success: "导入完成: 成功 %{success} 条, 失败 %{failed} 条"
     errors:
       unsupported_format: "不支持的文件格式"
       file_too_large: "文件大小超过限制 (最大 %{max})"
       content_mismatch: "文件内容与扩展名不匹配"
       parse_failed: "文件解析失败"
+      no_file: "请选择文件"
+      preview_failed: "预览失败: %{message}"
+      import_failed: "导入失败: %{message}"
 
   backup:
     title: "备份管理"

@@ -6,7 +6,7 @@ class ImportsController < ApplicationController
 
   def preview
     if params[:file].blank?
-      render json: { error: "请选择文件" }, status: :bad_request
+      render json: { error: t("import.errors.no_file", default: "请选择文件") }, status: :bad_request
       return
     end
 
@@ -25,13 +25,13 @@ class ImportsController < ApplicationController
         format.json { render json: @preview_data }
       end
     rescue => e
-      render json: { error: "预览失败: #{e.message}" }, status: :unprocessable_entity
+      render json: { error: t("import.errors.preview_failed", default: "预览失败: %{message}", message: e.message) }, status: :unprocessable_entity
     end
   end
 
   def create
     if params[:file].blank?
-      redirect_to new_import_path, alert: "请选择要导入的文件"
+      redirect_to new_import_path, alert: t("import.errors.no_file", default: "请选择要导入的文件")
       return
     end
 
@@ -45,17 +45,17 @@ class ImportsController < ApplicationController
       @results = ImportService.import(params[:file], field_mapping_params.merge(account_name: params[:account_name]))
 
       if @results[:failed] > 0
-        flash[:warning] = "导入完成: 成功 #{@results[:success]} 条, 失败 #{@results[:failed]} 条"
+        flash[:warning] = t("import.partial_success", success: @results[:success], failed: @results[:failed])
         flash[:import_errors] = @results[:errors].first(10) if @results[:errors].any?
       else
-        flash[:notice] = "成功导入 #{@results[:success]} 条交易记录"
+        flash[:notice] = t("import.success", count: @results[:success])
       end
 
       redirect_to transactions_path
     rescue ImportService::ImportError => e
-      redirect_to new_import_path, alert: "导入失败: #{e.message}"
+      redirect_to new_import_path, alert: t("import.errors.import_failed", message: e.message)
     rescue => e
-      redirect_to new_import_path, alert: "导入失败: #{e.message}"
+      redirect_to new_import_path, alert: t("import.errors.import_failed", message: e.message)
     end
   end
 
@@ -66,6 +66,10 @@ class ImportsController < ApplicationController
   private
 
   def field_mapping_params
-    params[:field_mapping]&.permit!&.to_h || {}
+    return {} unless params[:field_mapping].present?
+
+    # Only permit known field names
+    allowed_fields = %w[date type amount account category note tag]
+    params[:field_mapping].select { |_, v| allowed_fields.include?(v) }
   end
 end
