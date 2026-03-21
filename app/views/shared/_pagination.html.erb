@@ -19,7 +19,7 @@
       <% pagy.series.each do |item| %>
         <% if item.is_a?(Integer) %>
           <%= link_to item, pagy_url_for(pagy, item), 
-              class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth #{pagy.page == item ? 'bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark' : ''}" %>
+              class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth #{pagy.page == item ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark' : ''}" %>
         <% elsif item == :gap %>
           <span class="px-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">...</span>
         <% end %>

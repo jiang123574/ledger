@@ -26,7 +26,7 @@
             <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= t("single_budgets.spent") %></span>
             <span class="font-medium"><%= format_currency(@total_spent) %> / <%= format_currency(@total_budget) %></span>
           </div>
-          <div class="w-full bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-full h-4 dark:bg-surface-dark">
+          <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-4 dark:bg-surface-dark">
             <% percentage = @total_budget > 0 ? (@total_spent.to_f / @total_budget * 100).round : 0 %>
             <div class="<%= percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-inverse') %> h-4 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
           </div>
@@ -52,7 +52,7 @@
               when 'red' then 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
               when 'yellow' then 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
               when 'green' then 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-              else 'bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark'
+              else 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark'
               end
             %>"><%= budget.status_text %></span>
           </div>
@@ -76,7 +76,7 @@
           <% end %>
         </div>
         
-        <div class="w-full bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-full h-3 dark:bg-surface-dark">
+        <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-3 dark:bg-surface-dark">
           <div class="<%= budget.status_color == 'red' ? 'bg-red-500' : (budget.status_color == 'yellow' ? 'bg-yellow-500' : 'bg-inverse') %> h-3 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
         </div>
         <div class="flex justify-between text-sm mt-2">
@@ -86,8 +86,8 @@
           </span>
         </div>
         <div class="flex justify-end gap-2 mt-2">
-          <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
-          <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+          <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+          <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
           <%= link_to t("single_budgets.delete"), budget, method: :delete, data: { confirm: t("single_budgets.are_you_sure") }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
         </div>
       </div>

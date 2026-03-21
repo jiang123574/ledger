@@ -8,18 +8,18 @@
         when 'red' then 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
         when 'yellow' then 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
         when 'green' then 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-        else 'bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark'
+        else 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark'
         end
       %>"><%= @single_budget.status_text %></span>
     </div>
     <div class="flex gap-2">
-      <%= link_to t("single_budgets.edit"), edit_single_budget_path(@single_budget), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+      <%= link_to t("single_budgets.edit"), edit_single_budget_path(@single_budget), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
       <% if @single_budget.planning? %>
         <%= button_to t("single_budgets.start"), start_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-blue-100 text-blue-600 hover:bg-blue-200 transition-smooth btn-modern dark:bg-blue-900 dark:text-blue-300" %>
       <% end %>
       <% if @single_budget.active? %>
         <%= button_to t("single_budgets.complete"), complete_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-smooth btn-modern dark:bg-green-900 dark:text-green-300" %>
-        <%= button_to t("single_budgets.cancel"), cancel_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-surface-dark dark:bg-surface-dark text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:bg-surface dark:bg-surface-dark dark:bg-surface-dark transition-smooth btn-modern dark:bg-surface-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
+        <%= button_to t("single_budgets.cancel"), cancel_single_budget_path(@single_budget), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:bg-surface dark:bg-surface-dark transition-smooth btn-modern dark:bg-surface-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
       <% end %>
     </div>
   </div>
@@ -46,7 +46,7 @@
       </div>
     </div>
 
-    <div class="w-full bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-full h-4 mt-4 dark:bg-surface-dark">
+    <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-4 mt-4 dark:bg-surface-dark">
       <div class="<%= @single_budget.status_color == 'red' ? 'bg-red-500' : (@single_budget.status_color == 'yellow' ? 'bg-yellow-500' : 'bg-inverse') %> h-4 rounded-full transition-all" style="width: <%= [@single_budget.progress_percentage, 100].min %>%"></div>
     </div>
 
@@ -104,14 +104,14 @@
                 <td class="py-2 px-3 text-sm text-right"><%= format_currency(item.amount) %></td>
                 <td class="py-2 px-3 text-sm text-right <%= item.overspent? ? 'text-red-600' : '' %>"><%= format_currency(item.spent_amount) %></td>
                 <td class="py-2 px-3 text-sm text-right">
-                  <div class="w-20 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-full h-2 ml-auto dark:bg-surface-dark">
+                  <div class="w-20 bg-surface dark:bg-surface-dark rounded-full h-2 ml-auto dark:bg-surface-dark">
                     <div class="<%= item.overspent? ? 'bg-red-500' : 'bg-inverse' %> h-2 rounded-full" style="width: <%= [percentage, 100].min %>%"></div>
                   </div>
                   <span class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= percentage %>%</span>
                 </td>
                 <td class="py-2 px-3 text-sm text-right">
                   <div class="flex justify-end gap-1">
-                    <%= link_to t("common.edit"), edit_single_budget_budget_item_path(@single_budget, item), class: "px-2 py-1 text-xs font-medium rounded bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
+                    <%= link_to t("common.edit"), edit_single_budget_budget_item_path(@single_budget, item), class: "px-2 py-1 text-xs font-medium rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
                     <%= link_to t("common.delete"), [@single_budget, item], method: :delete, data: { turbo_confirm: t("single_budgets.are_you_sure") }, class: "px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-600 hover:bg-red-200 transition-smooth dark:bg-red-900 dark:text-red-300" %>
                   </div>
                 </td>
