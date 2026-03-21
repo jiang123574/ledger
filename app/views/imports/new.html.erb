@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", transactions_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark">导入交易</h1>
+    <%= link_to "← 返回", transactions_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">导入交易</h1>
   </div>
 
   <!-- Info Cards -->
@@ -10,7 +10,7 @@
       <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">支持的格式</div>
       <div class="mt-1 flex flex-wrap gap-2">
         <% @supported_formats.each do |format| %>
-          <span class="px-2 py-1 bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark-dark rounded text-sm uppercase"><%= format %></span>
+          <span class="px-2 py-1 bg-surface dark:bg-gray-600 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark rounded text-sm uppercase"><%= format %></span>
         <% end %>
       </div>
     </div>
@@ -46,7 +46,7 @@
             <div class="flex items-center gap-3">
               <div class="text-secondary dark:text-secondary dark:text-secondary-dark-dark">📄</div>
               <div>
-                <div id="file-name" class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark"></div>
+                <div id="file-name" class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"></div>
                 <div id="file-size" class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark"></div>
               </div>
             </div>
@@ -56,13 +56,13 @@
 
         <!-- Account Selection -->
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark mb-1">导入到账户（可选）</label>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark-dark mb-1">导入到账户（可选）</label>
           <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- Template Selection -->
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark mb-1">字段映射模板</label>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark-dark mb-1">字段映射模板</label>
           <select id="template-select" class="border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
             <option value="">自动检测</option>
             <% @templates.each do |template| %>
@@ -84,7 +84,7 @@
     <div class="grid gap-4 md:grid-cols-2">
       <% @templates.each do |template| %>
         <div class="border rounded-lg p-4">
-          <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark"><%= template[:name] %></h3>
+          <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= template[:name] %></h3>
           <div class="mt-2 text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">
             字段: <%= template[:mapping].keys.join(", ") %>
           </div>

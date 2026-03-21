@@ -1,8 +1,8 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark"><%= @counterparty.name %></h1>
-    <%= link_to "编辑", edit_counterparty_path(@counterparty), class: "text-primary hover:text-gray-800" %>
+    <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= @counterparty.name %></h1>
+    <%= link_to "编辑", edit_counterparty_path(@counterparty), class: "text-primary dark:text-primary-dark hover:text-gray-800" %>
   </div>
 
   <!-- Info Card -->
@@ -24,7 +24,7 @@
     <% if @counterparty.note.present? %>
       <div class="mt-4 pt-4 border-t">
         <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">备注</div>
-        <div class="mt-1 text-primary dark:text-primary dark:text-primary-dark-dark"><%= @counterparty.note %></div>
+        <div class="mt-1 text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= @counterparty.note %></div>
       </div>
     <% end %>
   </div>
@@ -33,11 +33,11 @@
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
     <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
       <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">总应收金额</div>
-      <div class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark"><%= format_currency(@total_amount, 'CNY') %></div>
+      <div class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= format_currency(@total_amount, 'CNY') %></div>
     </div>
     <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
       <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">已收金额</div>
-      <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= format_currency(@settled_amount, 'CNY') %></div>
+      <div class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark"><%= format_currency(@settled_amount, 'CNY') %></div>
     </div>
     <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
       <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">待收金额</div>
@@ -49,7 +49,7 @@
   <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow overflow-hidden">
     <div class="px-6 py-4 border-b flex justify-between items-center">
       <h2 class="text-lg font-semibold">相关应收款</h2>
-      <%= link_to "新建应收款", new_receivable_path(counterparty: @counterparty.name), class: "text-primary hover:text-gray-800" %>
+      <%= link_to "新建应收款", new_receivable_path(counterparty: @counterparty.name), class: "text-primary dark:text-primary-dark hover:text-gray-800" %>
     </div>
 
     <% if @receivables.empty? %>
@@ -78,7 +78,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
                 <% if r.settled_at %>
-                  <span class="px-2 py-1 rounded text-xs bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">已结算</span>
+                  <span class="px-2 py-1 rounded text-xs bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">已结算</span>
                 <% else %>
                   <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">待收</span>
                 <% end %>

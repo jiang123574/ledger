@@ -3,7 +3,7 @@
 <div class="max-w-xl mx-auto space-y-6">
   <!-- Header -->
   <div>
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark">编辑标签</h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">编辑标签</h1>
     <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-1">修改标签信息</p>
   </div>
 
@@ -14,7 +14,7 @@
         <div>
           <%= f.label :name, "标签名称", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
           <%= f.text_field :name, 
-              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
+              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
         </div>
 
         <div>
@@ -30,7 +30,7 @@
           <%= f.label :description, "描述", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
           <%= f.text_area :description, 
               rows: 3,
-              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent",
+              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent",
               placeholder: "可选：添加标签描述" %>
         </div>
 
@@ -38,7 +38,7 @@
           <%= f.submit "保存", 
               class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern" %>
           <%= link_to "取消", tags_path, 
-              class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+              class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
         </div>
       <% end %>
     </div>

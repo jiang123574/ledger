@@ -1,7 +1,7 @@
 <section class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs card-hover">
   <div class="p-4 border-b border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark flex items-center justify-between">
     <div>
-      <h2 class="text-lg font-semibold text-primary dark:text-primary dark:text-primary-dark-dark">联系人管理</h2>
+      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">联系人管理</h2>
       <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-1">管理与你有资金往来的人或机构</p>
     </div>
     <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">+ 新建联系人</button>
@@ -11,7 +11,7 @@
   <div class="p-4 border-b border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark">
     <div class="grid grid-cols-3 gap-4">
       <div class="text-center">
-        <div class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark"><%= @counterparties.size %></div>
+        <div class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= @counterparties.size %></div>
         <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark">联系人总数</div>
       </div>
       <div class="text-center">
@@ -49,7 +49,7 @@
           <% @counterparties.each do |counterparty| %>
             <tr class="hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
               <td class="px-4 py-3">
-                <div class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark"><%= counterparty.name %></div>
+                <div class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= counterparty.name %></div>
                 <% if counterparty.note.present? %>
                   <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= truncate(counterparty.note, length: 40) %></div>
                 <% end %>
@@ -59,7 +59,7 @@
               </td>
               <td class="px-4 py-3 text-center">
                 <% if counterparty.respond_to?(:receivables_count) && counterparty.receivables_count > 0 %>
-                  <span class="px-2 py-1 rounded-full text-xs bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark">
+                  <span class="px-2 py-1 rounded-full text-xs bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark-dark">
                     <%= counterparty.receivables_count %> 笔
                   </span>
                 <% else %>
@@ -67,7 +67,7 @@
                 <% end %>
               </td>
               <td class="px-4 py-3 text-right text-sm">
-                <%= link_to "编辑", edit_counterparty_path(counterparty), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+                <%= link_to "编辑", edit_counterparty_path(counterparty), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
                 <%= button_to "删除", counterparty_path(counterparty), method: :delete, 
                     data: { turbo_confirm: "确定删除该联系人？" }, 
                     form: { class: "inline" },
@@ -86,24 +86,24 @@
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-counterparty-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow-xl w-full max-w-md p-6">
-      <h3 class="text-lg font-semibold text-primary dark:text-primary dark:text-primary-dark-dark mb-4">新建联系人</h3>
+      <h3 class="text-lg font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark mb-4">新建联系人</h3>
       <%= form_with model: Counterparty.new, url: counterparties_path, method: :post, local: true do |f| %>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1">名称 *</label>
-            <%= f.text_field :name, placeholder: "输入联系人名称", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400", required: true %>
+            <%= f.text_field :name, placeholder: "输入联系人名称", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400", required: true %>
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1">联系方式</label>
-            <%= f.text_field :contact, placeholder: "电话或邮箱", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            <%= f.text_field :contact, placeholder: "电话或邮箱", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1">备注</label>
-            <%= f.text_area :note, placeholder: "备注信息", rows: 3, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            <%= f.text_area :note, placeholder: "备注信息", rows: 3, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
           <%= f.submit "创建", class: "px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth" %>
         </div>
       <% end %>

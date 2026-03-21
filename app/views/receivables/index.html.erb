@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark">应收款</h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">应收款</h1>
     <%= render(Ds::ButtonComponent.new(href: new_receivable_path, icon: "plus", variant: :primary)) do %>
       新建应收款
     <% end %>
@@ -10,7 +10,7 @@
   <!-- Unsettled Section -->
   <% if @unsettled.any? %>
     <div class="space-y-4">
-      <h2 class="text-lg font-medium text-primary dark:text-primary dark:text-primary-dark-dark">待报销</h2>
+      <h2 class="text-lg font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">待报销</h2>
       <div class="grid gap-4">
         <% @unsettled.each do |receivable| %>
           <%= render(Ds::CardComponent.new, padding: false) do %>
@@ -21,7 +21,7 @@
                     <span class="text-lg font-bold text-orange-600 dark:text-orange-400">¥</span>
                   </div>
                   <div>
-                    <h3 class="font-semibold text-primary dark:text-primary dark:text-primary-dark-dark"><%= receivable.description %></h3>
+                    <h3 class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= receivable.description %></h3>
                     <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= receivable.date&.strftime("%Y-%m-%d") %></p>
                     <% if receivable.category.present? %>
                       <%= render(Ds::BadgeComponent.new(variant: :default, size: :xs)) do %>
@@ -47,7 +47,7 @@
               <!-- Actions -->
               <div class="mt-4 flex justify-end gap-2">
                 <%= link_to "报销", settle_receivable_path(receivable), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600 transition-smooth btn-modern" %>
-                <%= link_to "编辑", edit_receivable_path(receivable), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+                <%= link_to "编辑", edit_receivable_path(receivable), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
               </div>
             </div>
           <% end %>
@@ -59,7 +59,7 @@
   <!-- Settled Section -->
   <% if @settled.any? %>
     <div class="space-y-4">
-      <h2 class="text-lg font-medium text-primary dark:text-primary dark:text-primary-dark-dark">已完成</h2>
+      <h2 class="text-lg font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">已完成</h2>
       <div class="grid gap-4">
         <% @settled.each do |receivable| %>
           <%= render(Ds::CardComponent.new, padding: false) do %>
@@ -70,7 +70,7 @@
                     <%= render(Ds::IconComponent.new(name: "check", size: :md, color: :success)) %>
                   </div>
                   <div>
-                    <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark"><%= receivable.description %></h3>
+                    <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= receivable.description %></h3>
                     <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></p>
                   </div>
                 </div>

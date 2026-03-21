@@ -1,15 +1,15 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark"><%= t("single_budgets.title") %></h1>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= t("single_budgets.title") %></h1>
     <%= link_to t("single_budgets.new"), new_single_budget_path, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
   </div>
 
   <div class="flex items-center space-x-2 mb-4">
-    <%= link_to t("single_budgets.all"), single_budgets_path, class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status].blank? ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary hover:bg-surface-hover'}" %>
-    <%= link_to t("single_budgets.planning"), single_budgets_path(status: "planning"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'planning' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary hover:bg-surface-hover'}" %>
-    <%= link_to t("single_budgets.active"), single_budgets_path(status: "active"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'active' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary hover:bg-surface-hover'}" %>
-    <%= link_to t("single_budgets.completed"), single_budgets_path(status: "completed"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'completed' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary hover:bg-surface-hover'}" %>
-    <%= link_to t("single_budgets.cancelled"), single_budgets_path(status: "cancelled"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'cancelled' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary hover:bg-surface-hover'}" %>
+    <%= link_to t("single_budgets.all"), single_budgets_path, class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status].blank? ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover'}" %>
+    <%= link_to t("single_budgets.planning"), single_budgets_path(status: "planning"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'planning' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover'}" %>
+    <%= link_to t("single_budgets.active"), single_budgets_path(status: "active"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'active' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover'}" %>
+    <%= link_to t("single_budgets.completed"), single_budgets_path(status: "completed"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'completed' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover'}" %>
+    <%= link_to t("single_budgets.cancelled"), single_budgets_path(status: "cancelled"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'cancelled' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover'}" %>
   </div>
 
   <% if @total_budget > 0 %>
@@ -52,7 +52,7 @@
               when 'red' then 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
               when 'yellow' then 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
               when 'green' then 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-              else 'bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark-dark'
+              else 'bg-surface dark:bg-gray-600 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark'
               end
             %>"><%= budget.status_text %></span>
           </div>
@@ -86,8 +86,8 @@
           </span>
         </div>
         <div class="flex justify-end gap-2 mt-2">
-          <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
-          <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+          <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern" %>
+          <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern" %>
           <%= link_to t("single_budgets.delete"), budget, method: :delete, data: { confirm: t("single_budgets.are_you_sure") }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
         </div>
       </div>

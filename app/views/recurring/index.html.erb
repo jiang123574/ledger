@@ -1,5 +1,5 @@
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark"><%= t("recurring.title") %></h1>
+  <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= t("recurring.title") %></h1>
 
   <div class="flex justify-end">
     <%= link_to t("recurring.new_recurring"), new_recurring_path, class: "bg-inverse text-white px-4 py-2 rounded hover:bg-inverse-hover" %>
@@ -33,13 +33,13 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm capitalize"><%= t("recurring.#{r.frequency}") %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.next_date.strftime("%Y-%m-%d") if r.next_date %></td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 rounded text-xs <%= r.active? ? "bg-green-100 text-green-800" : "bg-surface dark:bg-gray-600 text-primary dark:text-secondary-dark" %>">
+              <span class="px-2 py-1 rounded text-xs <%= r.active? ? "bg-green-100 text-green-800" : "bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark dark:text-secondary-dark" %>">
                 <%= r.active? ? t("recurring.active") : t("recurring.paused") %>
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
               <%= button_to t("recurring.execute"), execute_recurring_path(r), method: :post, class: "text-green-600 hover:text-green-900" %>
-              <%= link_to t("common.edit"), edit_recurring_path(r), class: "text-primary hover:text-primary dark:text-primary-dark" %>
+              <%= link_to t("common.edit"), edit_recurring_path(r), class: "text-primary dark:text-primary-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark" %>
             </td>
           </tr>
         <% end %>

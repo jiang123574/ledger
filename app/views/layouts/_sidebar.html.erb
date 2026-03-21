@@ -8,7 +8,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
         </svg>
       </div>
-      <span class="font-semibold text-primary dark:text-primary-dark">记账本</span>
+      <span class="font-semibold text-primary dark:text-primary dark:text-primary-dark-dark">记账本</span>
     <% end %>
   </div>
 
@@ -36,7 +36,7 @@
 
   <%# Footer - Fixed at bottom %>
   <div class="p-4 border-t border-border dark:border-border dark:border-border-dark-dark bg-container dark:bg-container-dark shrink-0">
-    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-primary dark:hover:text-primary-dark transition-colors" do %>
+    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark-dark transition-colors" do %>
       <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
       <span class="text-sm font-medium">设置</span>
     <% end %>

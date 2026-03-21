@@ -11,7 +11,7 @@
     <div class="flex items-center gap-1">
       <% if pagy.prev %>
         <%= link_to "上一页", pagy_url_for(pagy, pagy.prev), 
-            class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary transition-smooth" %>
+            class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary dark:text-primary-dark transition-smooth" %>
       <% else %>
         <span class="px-3 py-1.5 text-sm rounded-lg text-gray-300 cursor-not-allowed">上一页</span>
       <% end %>
@@ -19,7 +19,7 @@
       <% pagy.series.each do |item| %>
         <% if item.is_a?(Integer) %>
           <%= link_to item, pagy_url_for(pagy, item), 
-              class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary transition-smooth #{pagy.page == item ? 'bg-surface dark:bg-surface-dark text-primary dark:text-secondary dark:text-secondary-dark' : ''}" %>
+              class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary dark:text-primary-dark transition-smooth #{pagy.page == item ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark' : ''}" %>
         <% elsif item == :gap %>
           <span class="px-2 text-secondary dark:text-secondary-dark">...</span>
         <% end %>
@@ -27,7 +27,7 @@
 
       <% if pagy.next %>
         <%= link_to "下一页", pagy_url_for(pagy, pagy.next), 
-            class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary transition-smooth" %>
+            class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary hover:text-primary dark:text-primary-dark transition-smooth" %>
       <% else %>
         <span class="px-3 py-1.5 text-sm rounded-lg text-gray-300 cursor-not-allowed">下一页</span>
       <% end %>
