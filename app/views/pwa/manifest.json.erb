@@ -1,5 +1,6 @@
 {
   "name": "Ledger",
+  "short_name": "Ledger",
   "icons": [
     {
       "src": "/icon.png",
@@ -11,12 +12,36 @@
       "type": "image/png",
       "sizes": "512x512",
       "purpose": "maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any"
     }
   ],
   "start_url": "/",
   "display": "standalone",
+  "orientation": "portrait-primary",
   "scope": "/",
-  "description": "Ledger.",
-  "theme_color": "red",
-  "background_color": "red"
+  "description": "个人记账应用 - 管理您的财务",
+  "theme_color": "#1a1a1a",
+  "background_color": "#f8f9fa",
+  "categories": ["finance", "productivity"],
+  "shortcuts": [
+    {
+      "name": "新建交易",
+      "short_name": "新交易",
+      "description": "快速记录一笔交易",
+      "url": "/transactions/new",
+      "icons": [{ "src": "/icon.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "查看财务概览",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon.png", "sizes": "512x512" }]
+    }
+  ],
+  "prefer_related_applications": false
 }

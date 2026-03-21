@@ -6,7 +6,7 @@
     <h1 class="text-2xl font-semibold text-primary"><%= year_label %>财务报表</h1>
     <div class="flex items-center gap-2">
       <% if @report_type == :monthly %>
-        <%= link_to "年度报表", report_path(year: @year), class: "btn btn-ghost btn-sm" %>
+        <%= link_to "年度报表", reports_path(year: @year), class: "btn btn-ghost btn-sm" %>
       <% end %>
       <%= link_to dashboard_path, class: "btn btn-ghost btn-sm" do %>
         ← 返回
@@ -17,19 +17,19 @@
   <!-- Year/Month Navigation -->
   <div class="flex items-center gap-2">
     <% if @report_type == :yearly %>
-      <%= link_to report_path(year: @year - 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
+      <%= link_to report_year_path(@year - 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
         ← <%= @year - 1 %>年
       <% end %>
       <span class="px-4 py-2 bg-container rounded-lg font-medium"><%= @year %>年</span>
-      <%= link_to report_path(year: @year + 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
+      <%= link_to report_year_path(@year + 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
         <%= @year + 1 %>年 →
       <% end %>
     <% else %>
-      <%= link_to report_path(year: @year, month: @month - 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
+      <%= link_to report_month_path(@year, @month - 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
         ← 上月
       <% end %>
       <span class="px-4 py-2 bg-container rounded-lg font-medium"><%= @year %>年<%= @month %>月</span>
-      <%= link_to report_path(year: @year, month: @month + 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
+      <%= link_to report_month_path(@year, @month + 1), class: "p-2 rounded-lg hover:bg-surface-inset" do %>
         下月 →
       <% end %>
     <% end %>

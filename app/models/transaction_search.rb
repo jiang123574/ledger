@@ -27,7 +27,12 @@ class TransactionSearch
   attr_reader :params
 
   def initialize(params = {})
-    @params = params.to_h.with_indifferent_access
+    # Handle ActionController::Parameters safely
+    @params = if params.respond_to?(:to_unsafe_h)
+      params.to_unsafe_h.with_indifferent_access
+    else
+      params.to_h.with_indifferent_access
+    end
     super(
       start_date: parse_date(@params[:start_date]),
       end_date: parse_date(@params[:end_date]),

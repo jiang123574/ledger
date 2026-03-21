@@ -2,15 +2,19 @@ class CounterpartiesController < ApplicationController
   before_action :set_counterparty, only: [ :edit, :update, :destroy ]
 
   def index
-    @counterparties = Counterparty.includes(:receivables)
-                                  .left_joins(:receivables)
-                                  .group(:id)
-                                  .order(Arel.sql("COUNT(receivables.id) DESC, counterparties.name ASC"))
-                                  .select("counterparties.*, COUNT(receivables.id) as receivables_count")
+    # Counterparties are referenced by name in receivables.counterparty string field
+    # Cannot use joins with string field, so we use subquery
+    @counterparties = Counterparty.all
+                                  .order(:name)
+                                  .map do |cp|
+                                    cp.define_singleton_method(:receivables_count) { Receivable.where(counterparty: cp.name).count }
+                                    cp
+                                  end
+                                  .sort_by { |cp| [-cp.receivables_count, cp.name] }
 
     # Stats
     @total_counterparties = Counterparty.count
-    @total_receivables = Receivable.where.not(counterparty: nil).count
+    @total_receivables = Receivable.where.not(counterparty: [nil, ""]).count
   end
 
   def show
@@ -47,7 +51,7 @@ class CounterpartiesController < ApplicationController
   end
 
   def destroy
-    if @counterparty.receivables.exists?
+    if @counterparty.receivables.any?
       redirect_to counterparties_path, alert: "该交易对方关联了应收款，无法删除"
       return
     end

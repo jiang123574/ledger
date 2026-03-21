@@ -3,7 +3,7 @@
   <aside class="lg:w-56 shrink-0">
     <div class="bg-container rounded-lg shadow-border-xs sticky top-24">
       <nav class="p-2 space-y-1">
-        <a href="#general" class="settings-nav-item active">
+        <a href="#general" class="settings-nav-item">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
           <span>通用设置</span>
         </a>
@@ -14,6 +14,14 @@
         <a href="#data" class="settings-nav-item">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
           <span>数据管理</span>
+        </a>
+        <a href="#contacts" class="settings-nav-item">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          <span>联系人管理</span>
+        </a>
+        <a href="#shortcuts" class="settings-nav-item">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path></svg>
+          <span>快捷键</span>
         </a>
         <a href="#danger" class="settings-nav-item">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
@@ -176,13 +184,145 @@
                     <span class="text-secondary">
                       <%= backup[:name] %> (<%= number_to_human_size(backup[:size]) %>)
                     </span>
-                    <%= link_to "下载", download_backup_path(backup[:name]), class: "text-blue-600 hover:text-blue-700" %>
+                    <%= link_to "下载", download_settings_backup_path(backup[:name]), class: "text-blue-600 hover:text-blue-700" %>
                   </li>
                 <% end %>
               </ul>
             </div>
           <% end %>
         </div>
+      </div>
+    </section>
+
+    <!-- Contacts Management (Counterparties) -->
+    <section id="contacts" class="bg-container rounded-lg shadow-border-xs">
+      <div class="p-4 border-b border-border flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-primary">联系人管理</h2>
+          <p class="text-sm text-secondary mt-1">管理与你有资金往来的人或机构</p>
+        </div>
+        <%= link_to "新建联系人", new_counterparty_path, class: "px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-smooth" %>
+      </div>
+      
+      <!-- Stats -->
+      <div class="p-4 border-b border-border">
+        <div class="grid grid-cols-3 gap-4">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-primary"><%= @total_counterparties %></div>
+            <div class="text-xs text-secondary">联系人总数</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600"><%= @total_receivables %></div>
+            <div class="text-xs text-secondary">关联应收款</div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600"><%= @counterparties.select { |c| c.receivables_count > 0 }.size %></div>
+            <div class="text-xs text-secondary">有往来对象</div>
+          </div>
+        </div>
+      </div>
+
+      <% if @counterparties.empty? %>
+        <div class="p-8 text-center">
+          <div class="text-gray-400 text-4xl mb-3">👥</div>
+          <p class="text-secondary">暂无联系人</p>
+          <p class="text-sm text-secondary mt-1">添加常往来的人或机构，方便统计和管理</p>
+          <%= link_to "添加第一个联系人", new_counterparty_path, class: "inline-block mt-4 px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700" %>
+        </div>
+      <% else %>
+        <div class="overflow-x-auto">
+          <table class="min-w-full">
+            <thead class="bg-gray-50">
+              <tr>
+                <th class="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">名称</th>
+                <th class="px-4 py-3 text-left text-xs font-medium text-secondary uppercase">联系方式</th>
+                <th class="px-4 py-3 text-center text-xs font-medium text-secondary uppercase">应收款</th>
+                <th class="px-4 py-3 text-right text-xs font-medium text-secondary uppercase">操作</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-border">
+              <% @counterparties.each do |counterparty| %>
+                <tr class="hover:bg-surface-hover">
+                  <td class="px-4 py-3">
+                    <div class="font-medium text-primary"><%= counterparty.name %></div>
+                    <% if counterparty.note.present? %>
+                      <div class="text-xs text-secondary"><%= truncate(counterparty.note, length: 40) %></div>
+                    <% end %>
+                  </td>
+                  <td class="px-4 py-3 text-sm text-secondary">
+                    <%= counterparty.contact || '-' %>
+                  </td>
+                  <td class="px-4 py-3 text-center">
+                    <% if counterparty.receivables_count > 0 %>
+                      <span class="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-700">
+                        <%= counterparty.receivables_count %> 笔
+                      </span>
+                    <% else %>
+                      <span class="text-gray-400 text-xs">-</span>
+                    <% end %>
+                  </td>
+                  <td class="px-4 py-3 text-right text-sm">
+                    <%= link_to "编辑", edit_counterparty_path(counterparty), class: "text-blue-600 hover:text-blue-700" %>
+                    <%= button_to "删除", counterparty_path(counterparty), method: :delete, 
+                        data: { turbo_confirm: "确定删除该联系人？" }, 
+                        class: "text-red-600 hover:text-red-700 ml-2" %>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% end %>
+    </section>
+
+    <!-- Shortcuts Settings -->
+    <section id="shortcuts" class="bg-container rounded-lg shadow-border-xs">
+      <div class="p-4 border-b border-border flex items-center justify-between">
+        <div>
+          <h2 class="text-lg font-semibold text-primary">快捷键设置</h2>
+          <p class="text-sm text-secondary mt-1">自定义键盘快捷键</p>
+        </div>
+        <%= button_to "恢复默认", reset_shortcuts_path, method: :post, 
+            data: { turbo_confirm: "确定恢复默认快捷键？" }, 
+            class: "text-red-600 hover:text-red-700 text-sm" %>
+      </div>
+
+      <div class="p-4">
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+          <div class="flex items-center gap-2">
+            <span class="text-blue-500">⌨️</span>
+            <p class="text-sm text-blue-700">按 <kbd class="bg-blue-100 px-2 py-0.5 rounded text-xs">?</kbd> 随时查看快捷键帮助</p>
+          </div>
+        </div>
+
+        <% @shortcuts.group_by { |s| s[:group] }.each do |group, shortcuts| %>
+          <div class="mb-4">
+            <h3 class="font-medium text-primary mb-2"><%= group %></h3>
+            <div class="bg-surface-inset rounded-lg overflow-hidden">
+              <table class="min-w-full">
+                <tbody class="divide-y divide-border">
+                  <% shortcuts.each do |shortcut| %>
+                    <tr>
+                      <td class="px-3 py-2 text-sm text-primary"><%= shortcut[:description] %></td>
+                      <td class="px-3 py-2 text-right">
+                        <div class="flex items-center justify-end gap-1">
+                          <% shortcut[:key].split.map do |key| %>
+                            <kbd class="bg-gray-100 border border-gray-300 rounded px-2 py-0.5 text-xs font-mono">
+                              <%= key %>
+                            </kbd>
+                            <% unless key == shortcut[:key].split.last %>
+                              <span class="text-gray-400 text-xs">+</span>
+                            <% end %>
+                          <% end %>
+                        </div>
+                      </td>
+                    </tr>
+                  <% end %>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        <% end %>
       </div>
     </section>
 
@@ -235,3 +375,155 @@
     color: #1a1a1a;
   }
 </style>
+
+<!-- Keyboard Shortcuts JavaScript -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const shortcuts = <%= @shortcuts.to_json.html_safe %>;
+  let keyBuffer = '';
+  let keyBufferTimeout = null;
+
+  function clearKeyBuffer() {
+    keyBuffer = '';
+    if (keyBufferTimeout) {
+      clearTimeout(keyBufferTimeout);
+      keyBufferTimeout = null;
+    }
+  }
+
+  document.addEventListener('keydown', function(e) {
+    // Ignore if typing in input fields
+    if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+      if (e.key !== 'Escape') return;
+    }
+
+    // Build key string
+    const key = [];
+    if (e.ctrlKey || e.metaKey) key.push('Ctrl');
+    if (e.shiftKey) key.push('Shift');
+    if (e.altKey) key.push('Alt');
+
+    // For modifier-only shortcuts, use the buffer approach for 'g' prefix
+    const baseKey = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+
+    // Handle 'g' prefix for navigation shortcuts
+    if (baseKey === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      keyBuffer = 'g';
+      // Clear buffer after 1 second of inactivity
+      keyBufferTimeout = setTimeout(clearKeyBuffer, 1000);
+      return;
+    }
+
+    // If we have 'g' in buffer, check for follow-up key
+    if (keyBuffer === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const gShortcut = 'g ' + baseKey;
+      switch (gShortcut) {
+        case 'g t':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= transactions_path %>';
+          return;
+        case 'g a':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= accounts_path %>';
+          return;
+        case 'g r':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= reports_path %>';
+          return;
+        case 'g b':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= budgets_path %>';
+          return;
+        case 'g s':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= settings_path %>';
+          return;
+        default:
+          clearKeyBuffer();
+      }
+    }
+
+    // Build full key string for single-key shortcuts
+    key.push(baseKey);
+    const keyStr = key.join(' ');
+
+    // Handle single-key shortcuts
+    switch (keyStr) {
+      case 'n':
+        if (!e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          window.location.href = '<%= new_transaction_path %>';
+        }
+        break;
+      case 's':
+        if (!e.ctrlKey && !e.metaKey) {
+          e.preventDefault();
+          e.stopPropagation();
+          document.querySelector('#search-input')?.focus();
+        }
+        break;
+      case '/':
+        e.preventDefault();
+        e.stopPropagation();
+        document.querySelector('#search-input')?.focus();
+        break;
+      case '?':
+        e.preventDefault();
+        e.stopPropagation();
+        showShortcutsHelp();
+        break;
+      case 'Escape':
+        clearKeyBuffer();
+        // Close any modal or cancel action
+        const modal = document.querySelector('.modal, [role="dialog"]');
+        if (modal) {
+          modal.querySelector('[data-dismiss]')?.click();
+        }
+        break;
+    }
+  });
+
+  function showShortcutsHelp() {
+    // Create help modal
+    const modal = document.createElement('div');
+    modal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    modal.innerHTML = `
+      <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-auto m-4">
+        <div class="p-6">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="text-xl font-bold">键盘快捷键</h2>
+            <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+          </div>
+          <div class="grid gap-4">
+            ${shortcuts.map(s => `
+              <div class="flex items-center justify-between py-2 border-b">
+                <span class="text-gray-700">${s.description}</span>
+                <div class="flex gap-1">
+                  ${s.key.split(' ').map(k => `<kbd class="bg-gray-100 border border-gray-300 rounded px-2 py-1 text-sm font-mono">${k}</kbd>`).join('<span class="text-gray-400 mx-1">+</span>')}
+                </div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    modal.addEventListener('click', (e) => {
+      if (e.target === modal) modal.remove();
+    });
+  }
+});
+</script>

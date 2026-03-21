@@ -28,7 +28,7 @@
   <div class="bg-white rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-4">步骤 1: 选择文件</h2>
     
-    <%= form_with url: preview_import_path, local: true, multipart: true, id: "upload-form" do |f| %>
+    <%= form_with url: preview_imports_path, local: true, multipart: true, id: "upload-form" do |f| %>
       <div class="space-y-4">
         <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition" id="drop-zone">
           <div class="text-gray-500">

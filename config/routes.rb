@@ -52,19 +52,16 @@ Rails.application.routes.draw do
   end
   get "/webdav/download", to: "backups#webdav_download", as: :webdav_download_backups
 
-  resources :shortcuts, only: [ :index, :update ] do
-    collection do
-      post :reset
-    end
-  end
-
+  # Settings routes (integrated: shortcuts, import, backup)
   get "/settings", to: "settings#show", as: :settings
   post "/settings/export", to: "settings#export_transactions", as: :export_transactions
   post "/settings/import", to: "settings#import_transactions", as: :import_transactions
   post "/settings/validate_import", to: "settings#validate_import", as: :validate_import
   post "/settings/backup", to: "settings#create_backup", as: :create_backup
-  get "/settings/backup/:name", to: "settings#download_backup", as: :download_backup
+  get "/settings/backup/:name", to: "settings#download_backup", as: :download_settings_backup
   post "/settings/clear_data", to: "settings#clear_all_data", as: :clear_all_data
+  post "/settings/shortcuts", to: "settings#update_shortcuts", as: :update_shortcuts
+  post "/settings/shortcuts/reset", to: "settings#reset_shortcuts", as: :reset_shortcuts
 
   get "/reports", to: "reports#show", as: :reports
   get "/reports/:year", to: "reports#show", as: :report_year
@@ -78,5 +75,6 @@ Rails.application.routes.draw do
       post :transactions
     end
     get "currency/rates", to: "currency#rates"
+    post "vitals", to: "vitals#create"
   end
 end
