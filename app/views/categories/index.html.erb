@@ -1,19 +1,19 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark"><%= t("categories.title") %></h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark"><%= t("categories.title") %></h1>
   </div>
 
   <!-- Add Category Form -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs p-6">
-    <h3 class="font-medium text-primary dark:text-primary-dark mb-4"><%= t("categories.add_new_category") %></h3>
+  <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-6">
+    <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark mb-4"><%= t("categories.add_new_category") %></h3>
     <%= form_with model: @category, local: true, class: "flex flex-wrap gap-4 items-end" do |f| %>
       <div class="flex-1 min-w-[200px]">
-        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("categories.category_name") %></label>
+        <label class="block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1"><%= t("categories.category_name") %></label>
         <%= f.text_field :name, placeholder: "例如：餐饮", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
       </div>
       <div class="w-40">
-        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类型</label>
+        <label class="block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1">类型</label>
         <%= f.select :type, options_for_select([["支出", "EXPENSE"], ["收入", "INCOME"]]), {}, 
             class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
       </div>
@@ -28,14 +28,14 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
       <% @categories.each do |category| %>
         <div class="group">
-          <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs">
+          <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
             <div class="p-4 flex items-center justify-between">
               <div class="flex items-center gap-3">
                 <div class="w-10 h-10 rounded-full <%= category.type == "INCOME" ? "bg-income/10" : "bg-expense/10" %> flex items-center justify-center">
                   <svg class="w-5 h-5 <%= category.type == "INCOME" ? "text-income dark:text-income" : "text-expense dark:text-expense" %>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                 </div>
                 <div>
-                  <h3 class="font-medium text-primary dark:text-primary-dark"><%= category.name %></h3>
+                  <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark"><%= category.name %></h3>
                   <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= category.type == "INCOME" ? "bg-income/10 text-income" : "bg-expense/10 text-expense" %>">
                     <%= category.type == "INCOME" ? "收入" : "支出" %>
                   </span>
@@ -52,10 +52,10 @@
       <% end %>
     </div>
   <% else %>
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs p-12 text-center">
-      <svg class="w-12 h-12 mx-auto text-secondary dark:text-secondary-dark mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-      <p class="text-primary dark:text-primary-dark font-medium mb-1"><%= t("categories.no_categories_yet") %></p>
-      <p class="text-secondary dark:text-secondary-dark text-sm">添加分类来更好地组织您的交易</p>
+    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-12 text-center">
+      <svg class="w-12 h-12 mx-auto text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+      <p class="text-primary dark:text-primary dark:text-primary-dark-dark font-medium mb-1"><%= t("categories.no_categories_yet") %></p>
+      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark text-sm">添加分类来更好地组织您的交易</p>
     </div>
   <% end %>
 </div>

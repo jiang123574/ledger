@@ -1,10 +1,10 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
     <%= link_to "← 返回", plans_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">编辑计划</h1>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark">编辑计划</h1>
   </div>
 
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6 max-w-2xl">
+  <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6 max-w-2xl">
     <%= form_with model: @plan, local: true, class: "space-y-6" do |f| %>
       <% if @plan.errors.any? %>
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -18,23 +18,23 @@
 
       <!-- Plan Type -->
       <div>
-        <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-2">计划类型</label>
+        <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark mb-2">计划类型</label>
         <div class="grid grid-cols-3 gap-4">
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-gray-700' %>">
             <%= f.radio_button :type, 'ONE_TIME', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">📌</div>
               <div class="font-medium">一次性</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-gray-700' %>">
             <%= f.radio_button :type, 'INSTALLMENT', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">💳</div>
               <div class="font-medium">分期还款</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-gray-700' %>">
             <%= f.radio_button :type, 'RECURRING', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">🔄</div>
@@ -63,7 +63,7 @@
           <div class="md:col-span-2">
             <%= f.label :total_amount, "总金额", class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
             <div class="mt-1 relative">
-              <span class="absolute left-3 top-2 text-secondary dark:text-secondary-dark">¥</span>
+              <span class="absolute left-3 top-2 text-secondary dark:text-secondary dark:text-secondary-dark-dark">¥</span>
               <%= f.number_field :total_amount, step: "0.01", class: "block w-full border border-border dark:border-gray-600 rounded-lg pl-8 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500" %>
             </div>
           </div>
@@ -81,8 +81,8 @@
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark">每期金额</label>
-            <div class="mt-1 p-2 bg-surface dark:bg-surface-dark rounded-lg text-primary dark:text-primary-dark dark:text-secondary-dark">
+            <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark">每期金额</label>
+            <div class="mt-1 p-2 bg-surface dark:bg-surface-dark rounded-lg text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark">
               ¥<%= (@plan.total_amount.to_f / [@plan.installments_total, 1].max).round(2) %>
             </div>
           </div>
@@ -91,7 +91,7 @@
         <div>
           <%= f.label :amount, "金额", class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
           <div class="mt-1 relative">
-            <span class="absolute left-3 top-2 text-secondary dark:text-secondary-dark">¥</span>
+            <span class="absolute left-3 top-2 text-secondary dark:text-secondary dark:text-secondary-dark-dark">¥</span>
             <%= f.number_field :amount, step: "0.01", class: "block w-full border border-border dark:border-gray-600 rounded-lg pl-8 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
@@ -117,7 +117,7 @@
       </div>
 
       <% if @plan.last_generated.present? %>
-        <div class="text-sm text-secondary dark:text-secondary-dark">
+        <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">
           上次执行: <%= l(@plan.last_generated, format: :short) %>
         </div>
       <% end %>
