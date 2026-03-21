@@ -70,6 +70,7 @@
                 <%= link_to "编辑", edit_counterparty_path(counterparty), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
                 <%= button_to "删除", counterparty_path(counterparty), method: :delete, 
                     data: { turbo_confirm: "确定删除该联系人？" }, 
+                    form: { class: "inline" },
                     class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern ml-2" %>
               </td>
             </tr>
