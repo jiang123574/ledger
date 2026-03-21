@@ -76,4 +76,34 @@ FactoryBot.define do
     currency { 'CNY' }
     date { Date.current }
   end
+
+  factory :plan do
+    sequence(:name) { |n| "Plan #{n}" }
+    type { Plan::ONE_TIME }
+    amount { 100 }
+    currency { 'CNY' }
+    day_of_month { 15 }
+    active { true }
+
+    trait :installment do
+      type { Plan::INSTALLMENT }
+      total_amount { 1200 }
+      installments_total { 12 }
+      installments_completed { 0 }
+    end
+
+    trait :recurring do
+      type { Plan::RECURRING }
+    end
+
+    trait :inactive do
+      active { false }
+    end
+  end
+
+  factory :counterparty do
+    sequence(:name) { |n| "Counterparty #{n}" }
+    contact { 'contact@example.com' }
+    note { 'Test note' }
+  end
 end

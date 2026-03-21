@@ -249,13 +249,36 @@ class ImportService
     errors = []
 
     format = detect_format(file)
-    errors << "不支持的文件格式" unless SUPPORTED_FORMATS.include?(format)
+    errors << I18n.t("import.errors.unsupported_format") unless SUPPORTED_FORMATS.include?(format)
 
     if file.size > 10.megabytes
-      errors << "文件大小超过限制 (最大 10MB)"
+      errors << I18n.t("import.errors.file_too_large", max: "10MB")
+    end
+
+    # Validate file content matches extension
+    unless validate_file_content?(file, format)
+      errors << I18n.t("import.errors.content_mismatch")
     end
 
     { valid: errors.empty?, errors: errors, format: format }
+  end
+
+  def self.create_transaction(data)
+    ApplicationRecord.transaction do
+      account = find_or_create_account(data[:account])
+      category = find_or_create_category(data[:category], data[:type])
+      transaction_type = data[:type] || (data[:amount] >= 0 ? "INCOME" : "EXPENSE")
+
+      Transaction.create!(
+        date: data[:date] || Date.current,
+        type: transaction_type,
+        amount: data[:amount]&.abs || 0,
+        account: account,
+        category: category,
+        note: data[:note],
+        tag: data[:tag]
+      )
+    end
   end
 
   # Field mapping templates
@@ -432,6 +455,27 @@ class ImportService
     Category.find_or_create_by(name: name.strip) do |c|
       c.type = (type == "INCOME") ? "INCOME" : "EXPENSE"
     end
+  end
+
+  # Validate file content matches extension
+  def self.validate_file_content?(file, format)
+    return true unless %w[csv xlsx xls].include?(format)
+
+    # Read first few bytes to check magic numbers/content
+    content = File.read(file.path, 1024)
+
+    case format
+    when "csv"
+      # CSV should be text-based
+      content.valid_encoding? && content.match?(/[\w\s,;|\t\n]/)
+    when "xlsx", "xls"
+      # Excel files start with PK (xlsx) or D0CF (xls)
+      content.start_with?("PK") || content.start_with?("\xD0\xCF")
+    else
+      true
+    end
+  rescue
+    false
   end
 
   # QIF parsing

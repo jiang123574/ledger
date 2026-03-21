@@ -5,8 +5,8 @@ class CounterpartiesController < ApplicationController
     @counterparties = Counterparty.includes(:receivables)
                                   .left_joins(:receivables)
                                   .group(:id)
-                                  .order(Arel.sql('COUNT(receivables.id) DESC, counterparties.name ASC'))
-                                  .select('counterparties.*, COUNT(receivables.id) as receivables_count')
+                                  .order(Arel.sql("COUNT(receivables.id) DESC, counterparties.name ASC"))
+                                  .select("counterparties.*, COUNT(receivables.id) as receivables_count")
 
     # Stats
     @total_counterparties = Counterparty.count

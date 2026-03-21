@@ -22,7 +22,7 @@ class BackupsController < ApplicationController
 
   def download
     record = BackupRecord.find(params[:id])
-    
+
     unless File.exist?(record.file_path)
       redirect_to backups_path, alert: "备份文件不存在"
       return

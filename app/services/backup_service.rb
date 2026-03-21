@@ -50,7 +50,7 @@ class BackupService
 
   def self.list_backups(limit: 20)
     records = BackupRecord.order(created_at: :desc).limit(limit)
-    
+
     records.map do |record|
       {
         id: record.id,
@@ -143,7 +143,7 @@ class BackupService
   def self.webdav_config
     config = load_config
     webdav = config["webdav"] || {}
-    
+
     {
       url: webdav["url"],
       username: webdav["username"],
@@ -356,12 +356,20 @@ class BackupService
   end
 
   def self.encrypt_password(password)
-    # Simple base64 encoding for basic obfuscation
-    # In production, use proper encryption
-    Base64.encode64(password).strip
+    # Use Rails encrypted credentials or a secure key
+    # For simplicity, we use Base64 with a warning that this should be
+    # replaced with proper encryption in production
+    ActiveSupport::MessageEncryptor.new(
+      Rails.application.secret_key_base[0, 32]
+    ).encrypt_and_sign(password)
   end
 
   def self.decrypt_password(encrypted)
+    ActiveSupport::MessageEncryptor.new(
+      Rails.application.secret_key_base[0, 32]
+    ).decrypt_and_verify(encrypted)
+  rescue ActiveSupport::MessageVerifier::InvalidSignature
+    # Fallback for old base64-encoded passwords
     Base64.decode64(encrypted)
   end
 

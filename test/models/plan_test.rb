@@ -103,7 +103,7 @@ class PlanTest < ActiveSupport::TestCase
       day_of_month: 15,
       active: true
     )
-    
+
     travel_to Date.new(2024, 1, 10) do
       assert_equal Date.new(2024, 1, 15), plan.next_due_date
     end

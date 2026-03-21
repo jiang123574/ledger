@@ -14,7 +14,7 @@ class CounterpartyTest < ActiveSupport::TestCase
 
   test "name should be unique" do
     Counterparty.create!(name: "Test Counterparty")
-    
+
     duplicate = Counterparty.new(name: "Test Counterparty")
     assert_not duplicate.valid?
     assert_includes duplicate.errors[:name], "has already been taken"
@@ -27,7 +27,7 @@ class CounterpartyTest < ActiveSupport::TestCase
 
   test "should calculate total_receivable_amount" do
     counterparty = Counterparty.create!(name: "Test Counterparty")
-    
+
     Receivable.create!(
       counterparty: counterparty,
       original_amount: 1000,
@@ -46,7 +46,7 @@ class CounterpartyTest < ActiveSupport::TestCase
 
   test "should calculate pending_receivable_amount" do
     counterparty = Counterparty.create!(name: "Test Counterparty")
-    
+
     # Pending
     Receivable.create!(
       counterparty: counterparty,

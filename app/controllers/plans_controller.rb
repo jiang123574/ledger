@@ -1,5 +1,5 @@
 class PlansController < ApplicationController
-  before_action :set_plan, only: [ :edit, :update, :destroy, :execute ]
+  before_action :set_plan, only: %i[edit update destroy execute]
 
   def index
     @plans = Plan.includes(:account).order(:name)
@@ -32,7 +32,7 @@ class PlansController < ApplicationController
     end
 
     if @plan.save
-      redirect_to plans_path, notice: "计划已创建"
+      redirect_to plans_path, notice: t("plans.created")
     else
       @accounts = Account.order(:name)
       render :new, status: :unprocessable_content
@@ -49,8 +49,8 @@ class PlansController < ApplicationController
       if @plan.type == Plan::INSTALLMENT && @plan.total_amount.present? && @plan.installments_total.present?
         @plan.update(amount: @plan.total_amount / @plan.installments_total)
       end
-      
-      redirect_to plans_path, notice: "计划已更新"
+
+      redirect_to plans_path, notice: t("plans.updated")
     else
       @accounts = Account.order(:name)
       render :edit, status: :unprocessable_content
@@ -59,26 +59,26 @@ class PlansController < ApplicationController
 
   def destroy
     @plan.destroy
-    redirect_to plans_path, notice: "计划已删除"
+    redirect_to plans_path, notice: t("plans.deleted")
   end
 
   def execute
     if @plan.account.blank?
-      redirect_to plans_path, alert: "计划需要关联账户才能执行"
+      redirect_to plans_path, alert: t("plans.need_account")
       return
     end
 
     if @plan.type == Plan::INSTALLMENT && @plan.completed?
-      redirect_to plans_path, alert: "该分期计划已完成"
+      redirect_to plans_path, alert: t("plans.already_completed")
       return
     end
 
     transaction = @plan.generate_transaction!
 
     if transaction
-      redirect_to transaction_path(transaction), notice: "计划已执行，交易已创建"
+      redirect_to transaction_path(transaction), notice: t("plans.executed")
     else
-      redirect_to plans_path, alert: "计划执行失败"
+      redirect_to plans_path, alert: t("plans.execute_failed")
     end
   end
 

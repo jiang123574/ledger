@@ -42,10 +42,16 @@ class Plan < ApplicationRecord
 
   def next_due_date
     return nil unless active?
-    
+
     today = Date.current
+
+    # If today is the due day, return today
+    if today.day == day_of_month
+      return today
+    end
+
     next_month = today.next_month
-    
+
     # Calculate next due date based on day_of_month
     if today.day < day_of_month
       Date.new(today.year, today.month, day_of_month)
@@ -58,30 +64,54 @@ class Plan < ApplicationRecord
     return nil unless active? && account.present?
     return nil if type == INSTALLMENT && completed?
 
-    transaction = Transaction.create!(
-      account: account,
-      amount: amount,
-      currency: currency || "CNY",
-      type: "EXPENSE",
-      category: "计划还款",
-      note: "#{name} (#{installments_completed + 1}/#{installments_total})",
-      date: Date.current
-    )
+    ApplicationRecord.transaction do
+      transaction = Transaction.create!(
+        account: account,
+        amount: amount,
+        currency: currency || default_currency,
+        type: transaction_type,
+        category: find_or_create_default_category,
+        note: transaction_note,
+        date: Date.current
+      )
 
-    if type == INSTALLMENT
-      increment!(:installments_completed)
-      update!(active: false) if completed?
+      if type == INSTALLMENT
+        increment!(:installments_completed)
+        update!(active: false) if completed?
+      end
+
+      update!(last_generated: Time.current)
+      transaction
     end
+  end
 
-    update!(last_generated: Time.current)
-    transaction
+  private
+
+  def default_currency
+    "CNY"
+  end
+
+  def transaction_type
+    "EXPENSE"
+  end
+
+  def transaction_note
+    return name unless type == INSTALLMENT
+
+    I18n.t("plans.installment_note", name: name, current: installments_completed + 1, total: installments_total)
+  end
+
+  def find_or_create_default_category
+    Category.find_or_create_by(name: I18n.t("plans.default_category")) do |c|
+      c.type = "EXPENSE"
+    end
   end
 
   class << self
     def generate_all_due!
       active.find_each do |plan|
         next unless plan.next_due_date == Date.current
-        
+
         begin
           plan.generate_transaction!
         rescue => e

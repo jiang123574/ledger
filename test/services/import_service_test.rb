@@ -8,7 +8,7 @@ class ImportServiceTest < ActiveSupport::TestCase
       2024-01-16,支出,100,现金,餐饮,午餐
       2024-01-17,支出,50,现金,交通,地铁
     CSV
-    
+
     @temp_file = Tempfile.new([ "test", ".csv" ])
     @temp_file.write(@csv_content)
     @temp_file.rewind
