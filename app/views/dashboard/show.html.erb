@@ -59,7 +59,7 @@
             <%= balance_info[:amount] %>
           </p>
         </div>
-        <div class="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-gray-700 rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
         </div>
       </div>
@@ -214,7 +214,7 @@
         <% @accounts.each do |account| %>
           <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center shrink-0">
+              <div class="w-10 h-10 rounded-full bg-surface dark:bg-gray-700 flex items-center justify-center shrink-0">
                 <span class="text-sm font-semibold text-primary"><%= account.name[0] %></span>
               </div>
               <div>

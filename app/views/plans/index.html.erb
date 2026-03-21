@@ -5,8 +5,10 @@
   </div>
 
   <% if @plans.empty? %>
-    <div class="bg-white rounded-lg shadow p-8 text-center">
-      <div class="text-gray-400 text-6xl mb-4">📋</div>
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-8 text-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-gray-700 flex items-center justify-center">
+        <%= render(Ds::IconComponent.new(name: "calendar", size: :xl, color: :secondary)) %>
+      </div>
       <p class="text-gray-500"><%= t('plans.no_plans_yet') %></p>
       <p class="text-gray-400 text-sm mt-2"><%= t('plans.create_first_hint', default: '创建计划来管理分期还款、定期支出等') %></p>
       <%= link_to t('plans.new_plan'), new_plan_path, class: "inline-block mt-4 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
@@ -15,15 +17,15 @@
     <!-- Active Plans -->
     <% if @active_plans.any? %>
       <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-gray-700"><%= t('plans.in_progress', default: '进行中的计划') %></h2>
+        <h2 class="text-lg font-semibold text-gray-700 dark:text-gray-300"><%= t('plans.in_progress', default: '进行中的计划') %></h2>
         <div class="grid gap-4">
           <% @active_plans.each do |plan| %>
-            <div class="bg-white rounded-lg shadow p-4 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-inverse' : 'border-green-500' %>">
+            <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-inverse' : 'border-green-500' %>">
               <div class="flex justify-between items-start">
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <h3 class="font-semibold text-gray-900"><%= plan.name %></h3>
-                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-gray-100 text-gray-700' : 'bg-green-100 text-green-700' %>">
+                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 dark:text-gray-300' : 'bg-green-100 text-green-700' %>">
                       <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::RECURRING ? t('plans.recurring') : t('plans.one_time')) %>
                     </span>
                   </div>
@@ -76,7 +78,7 @@
         <h2 class="text-lg font-semibold text-gray-400"><%= t('plans.completed_inactive', default: '已完成/已停用') %></h2>
         <div class="grid gap-4">
           <% @completed_plans.each do |plan| %>
-            <div class="bg-gray-50 rounded-lg p-4 border-l-4 border-gray-300 opacity-75">
+            <div class="bg-surface-inset dark:bg-gray-800 rounded-lg p-4 border-l-4 border-border dark:border-gray-600 opacity-75">
               <div class="flex justify-between items-center">
                 <div>
                   <div class="flex items-center gap-2">

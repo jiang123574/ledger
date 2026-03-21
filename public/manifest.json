@@ -1,0 +1,41 @@
+{
+  "name": "我的账本",
+  "short_name": "账本",
+  "description": "个人财务管理应用",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#1a1a1a",
+  "theme_color": "#1a1a1a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "any",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "记一笔",
+      "short_name": "记账",
+      "description": "快速添加新交易",
+      "url": "/transactions/new",
+      "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+    },
+    {
+      "name": "仪表盘",
+      "short_name": "仪表盘",
+      "description": "查看财务概览",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
+    }
+  ],
+  "categories": ["finance", "productivity"],
+  "lang": "zh-CN"
+}

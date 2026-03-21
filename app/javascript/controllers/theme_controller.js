@@ -8,6 +8,10 @@ export default class extends Controller {
 
   connect() {
     this.updateThemeClass()
+    // Update checkbox state on connect
+    if (this.hasToggleTarget) {
+      this.toggleTarget.checked = document.documentElement.classList.contains("dark")
+    }
   }
 
   toggle() {
@@ -26,6 +30,10 @@ export default class extends Controller {
       document.documentElement.setAttribute("data-theme", "light")
     }
     this.updateIcon()
+    // Update checkbox state
+    if (this.hasToggleTarget) {
+      this.toggleTarget.checked = isDark
+    }
   }
 
   updateThemeClass() {

@@ -1,31 +1,31 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", transactions_path, class: "text-gray-500 hover:text-gray-700" %>
+    <%= link_to "← 返回", transactions_path, class: "text-gray-500 hover:text-gray-700 dark:text-gray-300" %>
     <h1 class="text-2xl font-bold text-gray-900">导入交易</h1>
   </div>
 
   <!-- Info Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-white rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
       <div class="text-sm text-gray-500">支持的格式</div>
       <div class="mt-1 flex flex-wrap gap-2">
         <% @supported_formats.each do |format| %>
-          <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm uppercase"><%= format %></span>
+          <span class="px-2 py-1 bg-surface dark:bg-gray-600 text-primary dark:text-gray-300 dark:text-gray-300 rounded text-sm uppercase"><%= format %></span>
         <% end %>
       </div>
     </div>
-    <div class="bg-white rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
       <div class="text-sm text-gray-500">文件大小限制</div>
       <div class="text-lg font-medium">10 MB</div>
     </div>
-    <div class="bg-white rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
       <div class="text-sm text-gray-500">预览限制</div>
       <div class="text-lg font-medium">前 100 行</div>
     </div>
   </div>
 
   <!-- Upload Form -->
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-4">步骤 1: 选择文件</h2>
     
     <%= form_with url: preview_imports_path, local: true, multipart: true, id: "upload-form" do |f| %>
@@ -41,7 +41,7 @@
           <%= f.file_field :file, accept: ".csv,.xlsx,.xls,.ofx,.qif", class: "hidden", id: "file-input" %>
         </div>
 
-        <div id="file-info" class="hidden bg-gray-50 rounded-lg p-4">
+        <div id="file-info" class="hidden bg-surface-inset dark:bg-gray-800 rounded-lg p-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
               <div class="text-gray-500">📄</div>
@@ -56,13 +56,13 @@
 
         <!-- Account Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">导入到账户（可选）</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">导入到账户（可选）</label>
           <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- Template Selection -->
         <div>
-          <label class="block text-sm font-medium text-gray-700 mb-1">字段映射模板</label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">字段映射模板</label>
           <select id="template-select" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
             <option value="">自动检测</option>
             <% @templates.each do |template| %>
@@ -79,7 +79,7 @@
   </div>
 
   <!-- Templates Info -->
-  <div class="bg-white rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-4">导入模板说明</h2>
     <div class="grid gap-4 md:grid-cols-2">
       <% @templates.each do |template| %>
@@ -109,16 +109,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // Drag and drop
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropZone.classList.add('border-inverse', 'bg-gray-50');
+    dropZone.classList.add('border-inverse', 'bg-surface-inset dark:bg-gray-800');
   });
 
   dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('border-inverse', 'bg-gray-50');
+    dropZone.classList.remove('border-inverse', 'bg-surface-inset dark:bg-gray-800');
   });
 
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('border-inverse', 'bg-gray-50');
+    dropZone.classList.remove('border-inverse', 'bg-surface-inset dark:bg-gray-800');
     
     const files = e.dataTransfer.files;
     if (files.length > 0) {

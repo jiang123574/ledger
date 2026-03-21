@@ -110,7 +110,7 @@
       <% if @search.active_filters? %>
         <div class="flex flex-wrap gap-2 pt-3 border-t border-border">
           <% @search.active_filters_list.each do |filter| %>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-gray-50 text-gray-700">
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface dark:bg-gray-900 text-gray-700">
               <span class="text-gray-500"><%= filter[:label] %>:</span>
               <%= filter[:value] %>
               <%= link_to transactions_path(@search.clear_filter(filter[:key]).merge(account_id: params[:account_id])), 
@@ -165,7 +165,7 @@
             class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].blank? ? 'bg-surface-inset' : ''}" do %>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+              <div class="w-8 h-8 rounded-full bg-surface dark:bg-gray-700 flex items-center justify-center">
                 <%= render Ds::IconComponent.new(name: "bars-3", size: :sm, class: "text-primary") %>
               </div>
               <span class="font-medium text-primary text-sm">所有交易</span>
@@ -179,7 +179,7 @@
               class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].to_i == account.id ? 'bg-surface-inset' : ''}" do %>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                <div class="w-8 h-8 rounded-full bg-surface dark:bg-gray-700 flex items-center justify-center">
                   <span class="text-sm font-bold text-primary"><%= account.name[0] %></span>
                 </div>
                 <div>
@@ -202,7 +202,7 @@
       <div class="p-4">
         <% if params[:account_id].present? && (selected_account = @accounts.find { |a| a.id == params[:account_id].to_i }) %>
           <div class="text-center mb-4">
-            <div class="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-2">
+            <div class="w-16 h-16 rounded-full bg-surface dark:bg-gray-700 flex items-center justify-center mx-auto mb-2">
               <span class="text-2xl font-bold text-primary"><%= selected_account.name[0] %></span>
             </div>
             <h3 class="font-semibold text-primary"><%= selected_account.name %></h3>
@@ -288,7 +288,7 @@
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%= 
                           case t.type
                           when 'INCOME' then 'bg-green-100 text-green-700'
-                          when 'TRANSFER' then 'bg-gray-100 text-gray-700'
+                          when 'TRANSFER' then 'bg-surface dark:bg-gray-600 text-primary dark:text-gray-300'
                           when 'ADVANCE' then 'bg-yellow-100 text-yellow-700'
                           when 'REIMBURSE' then 'bg-purple-100 text-purple-700'
                           else 'bg-red-100 text-red-700'

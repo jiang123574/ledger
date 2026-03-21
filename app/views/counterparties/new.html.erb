@@ -4,7 +4,7 @@
     <h1 class="text-2xl font-bold text-gray-900">新建交易对方</h1>
   </div>
 
-  <div class="bg-white rounded-lg shadow p-6 max-w-xl">
+  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6 max-w-xl">
     <%= form_with model: @counterparty, local: true, class: "space-y-4" do |f| %>
       <% if @counterparty.errors.any? %>
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -32,7 +32,7 @@
       </div>
 
       <div class="flex justify-end space-x-4 pt-4 border-t">
-        <%= link_to "取消", counterparties_path, class: "px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50" %>
+        <%= link_to "取消", counterparties_path, class: "px-4 py-2 border border-gray-300 rounded-lg hover:bg-surface dark:hover:bg-gray-700" %>
         <%= f.submit "创建", class: "bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover" %>
       </div>
     <% end %>
