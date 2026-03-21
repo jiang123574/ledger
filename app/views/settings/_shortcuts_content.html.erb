@@ -10,7 +10,7 @@
     <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container-dark-dark border border-border dark:border-border dark:border-border-dark-dark rounded-lg p-3 mb-4">
       <div class="flex items-center gap-2">
         <span class="text-secondary dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">⌨️</span>
-        <p class="text-sm text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark">按 <kbd class="bg-surface dark:bg-surface-dark dark:bg-surface-dark dark:bg-surface-dark px-2 py-0.5 rounded text-xs">?</kbd> 随时查看快捷键帮助</p>
+        <p class="text-sm text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark">按 <kbd class="bg-surface dark:bg-surface-dark dark:bg-surface-dark px-2 py-0.5 rounded text-xs">?</kbd> 随时查看快捷键帮助</p>
       </div>
     </div>
     
@@ -26,7 +26,7 @@
                   <td class="px-3 py-2 text-right">
                     <div class="flex items-center justify-end gap-1">
                       <% shortcut[:key].split.map do |key| %>
-                        <kbd class="bg-surface dark:bg-surface-dark dark:bg-surface-dark dark:bg-surface-dark border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border-dark rounded px-2 py-0.5 text-xs font-mono">
+                        <kbd class="bg-surface dark:bg-surface-dark dark:bg-surface-dark border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border-dark rounded px-2 py-0.5 text-xs font-mono">
                           <%= key %>
                         </kbd>
                         <% unless key == shortcut[:key].split.last %>

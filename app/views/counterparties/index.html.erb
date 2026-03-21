@@ -25,7 +25,7 @@
 
   <% if @counterparties.empty? %>
     <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-8 text-center">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark dark:bg-surface-dark flex items-center justify-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
         <%= render(Ds::IconComponent.new(name: "user", size: :xl, color: :secondary)) %>
       </div>
       <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">暂无交易对方</p>
