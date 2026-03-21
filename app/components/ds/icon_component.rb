@@ -68,7 +68,9 @@ module Ds
       "pie-chart" => "pie-chart",
       "target" => "target",
       "x-mark" => "x",
-      "trash-2" => "trash-2"
+      "trash-2" => "trash-2",
+      "trending-up" => "trending-up",
+      "trending-down" => "trending-down"
     }.freeze
 
     def initialize(name:, size: :md, color: :current, **options)
