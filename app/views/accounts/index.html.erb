@@ -29,12 +29,12 @@
 
             <div class="space-y-2">
               <div class="flex justify-between items-center">
-                <span class="text-sm text-secondary dark:text-secondary-dark"><%= t("accounts.balance") %></span>
+                <span class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= t("accounts.balance") %></span>
                 <span class="text-xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark">¥<%= account.current_balance.to_s("%.2f") %></span>
               </div>
               <% if account.currency.present? %>
                 <div class="flex justify-between items-center text-sm">
-                  <span class="text-secondary dark:text-secondary-dark">货币</span>
+                  <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark">货币</span>
                   <span class="text-primary dark:text-primary dark:text-primary-dark-dark"><%= account.currency %></span>
                 </div>
               <% end %>

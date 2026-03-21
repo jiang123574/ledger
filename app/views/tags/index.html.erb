@@ -5,7 +5,7 @@
   <div class="flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark">标签管理</h1>
-      <p class="text-sm text-secondary dark:text-secondary-dark mt-1">创建和管理交易标签，用于分类和筛选</p>
+      <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-1">创建和管理交易标签，用于分类和筛选</p>
     </div>
   </div>
 
@@ -16,18 +16,18 @@
       <%= form_with model: @tag, url: tags_path, class: "space-y-4" do |f| %>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <%= f.label :name, "标签名称", class: "block text-sm font-medium text-secondary mb-1" %>
+            <%= f.label :name, "标签名称", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
             <%= f.text_field :name, 
                 class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent",
                 placeholder: "例如：出差、餐饮、交通" %>
           </div>
           <div>
-            <%= f.label :color, "颜色", class: "block text-sm font-medium text-secondary mb-1" %>
+            <%= f.label :color, "颜色", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
             <div class="flex items-center gap-2">
               <%= f.color_field :color, 
                   class: "w-12 h-10 rounded cursor-pointer border border-border dark:border-border-dark",
                   value: @tag.color || "#3498db" %>
-              <span class="text-sm text-secondary dark:text-secondary-dark" id="color-preview"><%= @tag.color || "#3498db" %></span>
+              <span class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark" id="color-preview"><%= @tag.color || "#3498db" %></span>
             </div>
           </div>
           <div class="flex items-end">
@@ -49,7 +49,7 @@
               <div class="w-4 h-4 rounded-full" style="background-color: <%= tag.color %>"></div>
               <div>
                 <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark"><%= tag.name %></h3>
-                <p class="text-xs text-secondary dark:text-secondary-dark mt-1">
+                <p class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-1">
                   <%= tag.transactions.count %> 笔交易
                 </p>
               </div>
@@ -70,7 +70,7 @@
             </div>
           </div>
           <% if tag.description.present? %>
-            <p class="text-sm text-secondary dark:text-secondary-dark mt-3"><%= tag.description %></p>
+            <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-3"><%= tag.description %></p>
           <% end %>
         </div>
       <% end %>
@@ -80,7 +80,7 @@
       <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
         <%= render(Ds::IconComponent.new(name: "tag", size: :lg, color: :secondary)) %>
       </div>
-      <p class="text-secondary dark:text-secondary-dark">还没有标签，创建第一个吧！</p>
+      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark">还没有标签，创建第一个吧！</p>
     </div>
   <% end %>
 </div>

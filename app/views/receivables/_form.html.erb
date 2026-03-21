@@ -11,12 +11,12 @@
 
   <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
     <div>
-      <%= f.label :date, "日期", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
+      <%= f.label :date, "日期", class: "block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
       <%= f.date_field :date, class: "w-full px-3 py-1.5 border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
     </div>
 
     <div>
-      <%= f.label :category, "类别", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
+      <%= f.label :category, "类别", class: "block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
       <%= f.select :category, 
         ["差旅", "餐饮", "交通", "办公用品", "其他"],
         { prompt: "选择类别" },
@@ -24,20 +24,20 @@
     </div>
 
     <div class="md:col-span-2">
-      <%= f.label :description, "描述", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
+      <%= f.label :description, "描述", class: "block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
       <%= f.text_field :description, class: "w-full px-3 py-1.5 border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent", placeholder: "如：出差北京交通费" %>
     </div>
 
     <div>
-      <%= f.label :original_amount, "金额", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
+      <%= f.label :original_amount, "金额", class: "block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
       <div class="relative">
-        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary dark:text-secondary-dark-dark">¥</span>
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">¥</span>
         <%= f.number_field :original_amount, step: "0.01", class: "w-full pl-8 pr-3 py-2 border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent", placeholder: "0.00" %>
       </div>
     </div>
 
     <div>
-      <%= f.label :note, "备注", class: "block text-sm font-medium text-secondary dark:text-secondary-dark mb-1" %>
+      <%= f.label :note, "备注", class: "block text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
       <%= f.text_field :note, class: "w-full px-3 py-1.5 border border-border dark:border-border dark:border-border-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent", placeholder: "可选" %>
     </div>
   </div>

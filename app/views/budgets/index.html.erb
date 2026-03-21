@@ -5,17 +5,17 @@
       <%= form_tag budgets_path, method: :get do %>
         <%= month_field_tag :month, @month, class: "border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-gray-600 dark:text-white" %>
         <%= hidden_field_tag :tab, params[:tab] || "monthly" %>
-        <%= submit_tag "Go", class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:border-gray-600 dark:text-secondary-dark dark:hover:bg-gray-700" %>
+        <%= submit_tag "Go", class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:border-gray-600 dark:text-secondary dark:text-secondary-dark-dark dark:hover:bg-gray-700" %>
       <% end %>
     </div>
   </div>
 
   <div class="border-b border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-gray-700">
     <nav class="-mb-px flex space-x-8" aria-label="Tabs">
-      <%= link_to budgets_path(month: @month, tab: "monthly"), class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:tab] != 'single' ? 'border-inverse text-inverse' : 'border-transparent text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark hover:border-border dark:border-border dark:border-border-dark-dark dark:text-secondary dark:text-secondary-dark dark:hover:text-gray-300'}" do %>
+      <%= link_to budgets_path(month: @month, tab: "monthly"), class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:tab] != 'single' ? 'border-inverse text-inverse' : 'border-transparent text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark hover:border-border dark:border-border dark:border-border-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:hover:text-gray-300'}" do %>
         <%= t("budgets.monthly") %>
       <% end %>
-      <%= link_to budgets_path(month: @month, tab: "single"), class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:tab] == 'single' ? 'border-inverse text-inverse' : 'border-transparent text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark hover:border-border dark:border-border dark:border-border-dark-dark dark:text-secondary dark:text-secondary-dark dark:hover:text-gray-300'}" do %>
+      <%= link_to budgets_path(month: @month, tab: "single"), class: "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm #{params[:tab] == 'single' ? 'border-inverse text-inverse' : 'border-transparent text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark hover:border-border dark:border-border dark:border-border-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:hover:text-gray-300'}" do %>
         <%= t("single_budgets.title") %>
       <% end %>
     </nav>
@@ -28,19 +28,19 @@
     </div>
 
     <div class="flex items-center space-x-2 mb-4">
-      <%= link_to budgets_path(tab: "single"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status].blank? ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status].blank? ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status].blank? ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status].blank? ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.all") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "planning"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'planning' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'planning' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "planning"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'planning' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'planning' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.planning") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "active"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'active' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'active' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "active"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'active' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'active' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.active") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "completed"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'completed' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'completed' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "completed"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'completed' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'completed' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.completed") %>
       <% end %>
-      <%= link_to budgets_path(tab: "single", status: "cancelled"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'cancelled' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'cancelled' ? '' : 'dark:bg-surface-dark'}" do %>
+      <%= link_to budgets_path(tab: "single", status: "cancelled"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'cancelled' ? 'bg-inverse text-white' : 'border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:text-secondary dark:text-secondary-dark-dark dark:border-gray-600 dark:hover:bg-gray-700'} #{params[:status] == 'cancelled' ? '' : 'dark:bg-surface-dark'}" do %>
         <%= t("single_budgets.cancelled") %>
       <% end %>
     </div>
@@ -56,14 +56,14 @@
         <div class="flex items-center gap-4">
           <div class="flex-1">
             <div class="flex justify-between text-sm mb-1">
-              <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= t("single_budgets.spent") %></span>
+              <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= t("single_budgets.spent") %></span>
               <span class="font-medium dark:text-white"><%= format_currency(@single_total_spent) %> / <%= format_currency(@single_total_budget) %></span>
             </div>
             <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-4 dark:bg-surface-dark">
               <% percentage = @single_total_budget > 0 ? (@single_total_spent.to_f / @single_total_budget * 100).round : 0 %>
               <div class="<%= percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-inverse') %> h-4 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
             </div>
-            <div class="flex justify-between text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-1">
+            <div class="flex justify-between text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mt-1">
               <span>0%</span>
               <span class="<%= percentage > 100 ? 'text-red-600 font-medium' : '' %>"><%= percentage %>%</span>
               <span>100%</span>
@@ -85,21 +85,21 @@
                 when 'red' then 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
                 when 'yellow' then 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
                 when 'green' then 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
-                else 'bg-surface dark:bg-gray-600 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark'
+                else 'bg-surface dark:bg-gray-600 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark'
                 end
               %>"><%= budget.status_text %></span>
             </div>
             <div class="text-right">
               <span class="font-medium dark:text-white"><%= format_currency(budget.total_amount) %></span>
-              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= t("single_budgets.budget") %></span>
+              <span class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= t("single_budgets.budget") %></span>
             </div>
           </div>
           
           <% if budget.description.present? %>
-            <p class="text-sm text-secondary dark:text-secondary-dark mb-2 dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= budget.description %></p>
+            <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-2 dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= budget.description %></p>
           <% end %>
           
-          <div class="flex items-center gap-4 text-sm text-secondary dark:text-secondary-dark mb-2 dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">
+          <div class="flex items-center gap-4 text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-2 dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
             <span><%= budget.start_date.strftime("%Y-%m-%d") %></span>
             <% if budget.end_date.present? %>
               <span>~ <%= budget.end_date.strftime("%Y-%m-%d") %></span>
@@ -113,14 +113,14 @@
             <div class="<%= budget.status_color == 'red' ? 'bg-red-500' : (budget.status_color == 'yellow' ? 'bg-yellow-500' : 'bg-inverse') %> h-3 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
           </div>
           <div class="flex justify-between text-sm mt-2">
-            <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= t("single_budgets.spent") %>: <%= format_currency(budget.spent_amount) %></span>
-            <span class="<%= budget.overspent? ? 'text-red-600 font-medium' : 'text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark' %>">
+            <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= t("single_budgets.spent") %>: <%= format_currency(budget.spent_amount) %></span>
+            <span class="<%= budget.overspent? ? 'text-red-600 font-medium' : 'text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark' %>">
               <%= budget.overspent? ? t("single_budgets.overspent", amount: format_currency(budget.remaining_amount.abs)) : t("single_budgets.remaining", amount: format_currency(budget.remaining_amount)) %>
             </span>
           </div>
           <div class="flex justify-end gap-2 mt-2">
-            <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:text-secondary-dark" %>
-            <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:text-secondary-dark" %>
+            <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:text-secondary dark:text-secondary-dark-dark" %>
+            <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern dark:text-secondary dark:text-secondary-dark-dark" %>
             <%= button_to t("single_budgets.delete"), budget, method: :delete, data: { turbo_confirm: t("single_budgets.are_you_sure") }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
           </div>
         </div>
@@ -128,7 +128,7 @@
     </div>
 
     <% if @single_budgets.empty? %>
-      <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-8 text-center text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">
+      <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-8 text-center text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
         <%= t("single_budgets.no_single_budgets") %>
       </div>
     <% end %>
@@ -155,14 +155,14 @@
         <div class="flex items-center gap-4">
           <div class="flex-1">
             <div class="flex justify-between text-sm mb-1">
-              <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">已使用</span>
+              <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">已使用</span>
               <span class="font-medium dark:text-white">¥<%= @total_spent %> / ¥<%= @total_budget %></span>
             </div>
             <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-4 dark:bg-surface-dark">
               <% percentage = @total_budget > 0 ? (@total_spent.to_f / @total_budget * 100).round : 0 %>
               <div class="<%= percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-inverse') %> h-4 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
             </div>
-            <div class="flex justify-between text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-1">
+            <div class="flex justify-between text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mt-1">
               <span>0%</span>
               <span class="<%= percentage > 100 ? 'text-red-600 font-medium' : '' %>"><%= percentage %>%</span>
               <span>100%</span>
@@ -184,21 +184,21 @@
                 case budget.status_color
                 when 'red' then 'bg-red-100 text-red-700'
                 when 'yellow' then 'bg-yellow-100 text-yellow-700'
-                else 'bg-surface dark:bg-gray-600 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark'
+                else 'bg-surface dark:bg-gray-600 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark'
                 end
               %>"><%= budget.status_text %></span>
             </div>
             <div class="text-right">
               <span class="font-medium dark:text-white"><%= format_currency(budget.amount) %></span>
-              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">预算</span>
+              <span class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">预算</span>
             </div>
           </div>
           <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-3 dark:bg-surface-dark">
             <div class="<%= budget.status_color == 'red' ? 'bg-red-500' : (budget.status_color == 'yellow' ? 'bg-yellow-500' : 'bg-inverse') %> h-3 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
           </div>
           <div class="flex justify-between text-sm mt-2">
-            <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">已支出: <%= format_currency(spent) %></span>
-            <span class="<%= budget.overspent? ? 'text-red-600 font-medium' : 'text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark' %>">
+            <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">已支出: <%= format_currency(spent) %></span>
+            <span class="<%= budget.overspent? ? 'text-red-600 font-medium' : 'text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark' %>">
               <%= budget.overspent? ? "超支 #{format_currency(budget.remaining_amount.abs)}" : "剩余 #{format_currency(budget.remaining_amount)}" %>
             </span>
           </div>
@@ -210,7 +210,7 @@
     </div>
 
     <% if @budgets.empty? && @total_budget == 0 %>
-      <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-8 text-center text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark">
+      <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-8 text-center text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
         <%= t("budgets.no_budgets_set") %>
       </div>
     <% end %>

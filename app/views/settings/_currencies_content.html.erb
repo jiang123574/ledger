@@ -7,10 +7,10 @@
     <table class="min-w-full">
       <thead>
         <tr>
-          <th class="text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase tracking-wider">代码</th>
-          <th class="text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase tracking-wider">名称</th>
-          <th class="text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase tracking-wider">符号</th>
-          <th class="text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase tracking-wider">汇率</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase tracking-wider">代码</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase tracking-wider">名称</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase tracking-wider">符号</th>
+          <th class="text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase tracking-wider">汇率</th>
           <th class="text-right"></th>
         </tr>
       </thead>
@@ -18,9 +18,9 @@
         <% @currencies.each do |currency| %>
           <tr class="border-t border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark">
             <td class="py-3 font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= currency.code %></td>
-            <td class="py-3 text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= currency.name %></td>
+            <td class="py-3 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= currency.name %></td>
             <td class="py-3 text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= currency.symbol %></td>
-            <td class="py-3 text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= currency.exchange_rate %></td>
+            <td class="py-3 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= currency.exchange_rate %></td>
             <td class="py-3 text-right">
               <button class="px-2 py-1 text-sm font-medium rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">编辑</button>
             </td>
@@ -29,7 +29,7 @@
       </tbody>
     </table>
     <% if @currencies.empty? %>
-      <p class="text-center text-secondary dark:text-secondary dark:text-secondary-dark-dark py-4">暂无货币配置</p>
+      <p class="text-center text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark py-4">暂无货币配置</p>
     <% end %>
   </div>
 </section>

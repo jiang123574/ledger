@@ -22,7 +22,7 @@
                   </div>
                   <div>
                     <h3 class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= receivable.description %></h3>
-                    <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= receivable.date&.strftime("%Y-%m-%d") %></p>
+                    <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= receivable.date&.strftime("%Y-%m-%d") %></p>
                     <% if receivable.category.present? %>
                       <%= render(Ds::BadgeComponent.new(variant: :default, size: :xs)) do %>
                         <%= receivable.category %>
@@ -32,7 +32,7 @@
                 </div>
                 <div class="text-right">
                   <p class="text-xl font-bold text-orange-600 dark:text-orange-400"><%= format_currency(receivable.remaining_amount) %></p>
-                  <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">剩余 / <%= format_currency(receivable.original_amount) %> 总额</p>
+                  <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">剩余 / <%= format_currency(receivable.original_amount) %> 总额</p>
                 </div>
               </div>
 
@@ -71,10 +71,10 @@
                   </div>
                   <div>
                     <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= receivable.description %></h3>
-                    <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></p>
+                    <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></p>
                   </div>
                 </div>
-                <span class="font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= format_currency(receivable.original_amount) %></span>
+                <span class="font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= format_currency(receivable.original_amount) %></span>
               </div>
             </div>
           <% end %>

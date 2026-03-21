@@ -6,7 +6,7 @@
 
   <div class="bg-surface dark:bg-gray-900 border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg p-4">
     <div class="flex items-start gap-3">
-      <div class="text-secondary dark:text-secondary dark:text-secondary-dark-dark text-2xl">⌨️</div>
+      <div class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark text-2xl">⌨️</div>
       <div>
         <h3 class="font-medium text-gray-800">提示</h3>
         <p class="text-sm text-primary dark:text-primary dark:text-primary-dark-dark">按 <kbd class="bg-surface dark:bg-surface-dark px-2 py-0.5 rounded">?</kbd> 随时查看快捷键帮助</p>
@@ -24,9 +24,9 @@
         <table class="min-w-full divide-y divide-gray-200">
           <thead class="bg-surface dark:bg-gray-900">
             <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase">功能</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase">快捷键</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase">说明</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase">功能</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase">快捷键</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase">说明</th>
             </tr>
           </thead>
           <tbody class="bg-container dark:bg-container dark:bg-container-dark-dark divide-y divide-gray-200">
@@ -42,12 +42,12 @@
                         <%= key %>
                       </kbd>
                       <% unless key == shortcut[:key].split.last %>
-                        <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark">+</span>
+                        <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">+</span>
                       <% end %>
                     <% end %>
                   </div>
                 </td>
-                <td class="px-6 py-4 text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark">
+                <td class="px-6 py-4 text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
                   按 <%= shortcut[:key] %> <%= shortcut[:description].downcase %>
                 </td>
               </tr>
@@ -192,14 +192,14 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="p-6">
           <div class="flex justify-between items-center mb-4">
             <h2 class="text-xl font-bold"><%= t('shortcuts.title', default: '键盘快捷键') %></h2>
-            <button onclick="this.closest('.fixed').remove()" class="text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark text-2xl">&times;</button>
+            <button onclick="this.closest('.fixed').remove()" class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark text-2xl">&times;</button>
           </div>
           <div class="grid gap-4">
             ${shortcuts.map(s => `
               <div class="flex items-center justify-between py-2 border-b">
                 <span class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">${s.description}</span>
                 <div class="flex gap-1">
-                  ${s.key.split(' ').map(k => `<kbd class="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded px-2 py-1 text-sm font-mono">${k}</kbd>`).join('<span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark mx-1">+</span>')}
+                  ${s.key.split(' ').map(k => `<kbd class="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded px-2 py-1 text-sm font-mono">${k}</kbd>`).join('<span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mx-1">+</span>')}
                 </div>
               </div>
             `).join('')}

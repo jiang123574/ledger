@@ -15,28 +15,28 @@
   <%# Navigation %>
   <nav class="flex-1 p-4 space-y-1 overflow-y-auto">
     <div class="mb-2">
-      <span class="text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider px-3">主要功能</span>
+      <span class="text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase tracking-wider px-3">主要功能</span>
     </div>
     <%= nav_item(:dashboard, "仪表盘", dashboard_path, "home") %>
     <%= nav_item(:transactions, "交易记录", transactions_path, "credit-card") %>
     <%= nav_item(:accounts, "账户管理", accounts_path, "folder") %>
     
     <div class="mt-4 mb-2">
-      <span class="text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider px-3">财务规划</span>
+      <span class="text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase tracking-wider px-3">财务规划</span>
     </div>
     <%= nav_item(:budgets, "预算管理", budgets_path, "map") %>
     <%= nav_item(:plans, "计划管理", plans_path, "calendar") %>
     <%= nav_item(:receivables, "应收款", receivables_path, "inbox") %>
     
     <div class="mt-4 mb-2">
-      <span class="text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider px-3">数据分析</span>
+      <span class="text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark uppercase tracking-wider px-3">数据分析</span>
     </div>
     <%= nav_item(:reports, "报表统计", reports_path, "bar-chart-2") %>
   </nav>
 
   <%# Footer - Fixed at bottom %>
   <div class="p-4 border-t border-border dark:border-border dark:border-border-dark-dark bg-container dark:bg-container-dark shrink-0">
-    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark-dark transition-colors" do %>
+    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark-dark transition-colors" do %>
       <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
       <span class="text-sm font-medium">设置</span>
     <% end %>

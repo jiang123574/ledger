@@ -40,7 +40,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark">总收入</p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark">总收入</p>
           <p class="text-2xl font-semibold text-income mt-1"><%= format_currency(@total_income) %></p>
         </div>
         <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -52,7 +52,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark">总支出</p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark">总支出</p>
           <p class="text-2xl font-semibold text-expense mt-1"><%= format_currency(@total_expense) %></p>
         </div>
         <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -64,7 +64,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark">结余</p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark">结余</p>
           <% balance_info = format_balance(@net_balance) %>
           <p class="text-2xl font-semibold mt-1 <%= balance_info[:css_class] %>">
             <%= balance_info[:amount] %>
@@ -94,7 +94,7 @@
         </div>
       <% else %>
         <div class="h-64 flex items-center justify-center">
-          <p class="text-secondary dark:text-secondary-dark">暂无数据</p>
+          <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark">暂无数据</p>
         </div>
       <% end %>
     <% end %>
@@ -110,7 +110,7 @@
         </div>
       <% else %>
         <div class="h-64 flex items-center justify-center">
-          <p class="text-secondary dark:text-secondary-dark">暂无数据</p>
+          <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark">暂无数据</p>
         </div>
       <% end %>
     <% end %>
@@ -126,7 +126,7 @@
         </div>
       <% else %>
         <div class="h-64 flex items-center justify-center">
-          <p class="text-secondary dark:text-secondary-dark">暂无数据</p>
+          <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark">暂无数据</p>
         </div>
       <% end %>
     <% end %>
@@ -169,7 +169,7 @@
               <div class="w-full bg-surface rounded-full h-3">
                 <div class="<%= item[:percentage] > 100 ? 'bg-red-500' : (item[:percentage] > 80 ? 'bg-yellow-500' : 'bg-surface dark:bg-surface-dark0') %> h-3 rounded-full" style="width: <%= [item[:percentage], 100].min %>%"></div>
               </div>
-              <p class="text-xs text-secondary dark:text-secondary-dark mt-1"><%= item[:percentage] %>% 已使用</p>
+              <p class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark mt-1"><%= item[:percentage] %>% 已使用</p>
             </div>
           <% end %>
         </div>
