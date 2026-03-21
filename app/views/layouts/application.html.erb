@@ -326,13 +326,7 @@
           <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
         </nav>
 
-        <%# Mobile Sidebar Footer %>
-        <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border pb-[calc(env(safe-area-inset-bottom)+1rem)]">
-          <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
-            <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
-            <span class="text-sm font-medium"><%= t("nav.settings") %></span>
-          <% end %>
-        </div>
+
       </aside>
 
       <%# Mobile Top Header %>

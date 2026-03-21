@@ -1,7 +1,7 @@
 <%# Desktop Sidebar (hidden on mobile) %>
-<aside class="hidden lg:flex flex-col w-64 shrink-0 bg-container border-r border-border min-h-screen sticky top-0">
+<aside class="hidden lg:flex flex-col w-64 shrink-0 bg-container border-r border-border h-screen sticky top-0">
   <%# Logo %>
-  <div class="h-16 flex items-center px-6 border-b border-border">
+  <div class="h-16 flex items-center px-6 border-b border-border shrink-0">
     <%= link_to dashboard_path, class: "flex items-center gap-3 min-h-[44px]" do %>
       <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-sm">
         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -34,8 +34,8 @@
     <%= nav_item(:reports, "报表统计", reports_path, "bar-chart-2") %>
   </nav>
 
-  <%# Footer %>
-  <div class="p-4 border-t border-border">
+  <%# Footer - Fixed at bottom %>
+  <div class="p-4 border-t border-border bg-container shrink-0">
     <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-colors" do %>
       <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
       <span class="text-sm font-medium">设置</span>

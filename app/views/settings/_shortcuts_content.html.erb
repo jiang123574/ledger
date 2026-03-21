@@ -1,0 +1,46 @@
+<section class="bg-container rounded-lg shadow-border-xs card-hover">
+  <div class="p-4 border-b border-border flex items-center justify-between">
+    <h2 class="text-lg font-semibold text-primary">键盘快捷键</h2>
+    <%= button_to "恢复默认", reset_shortcuts_path, method: :post, 
+        data: { turbo_confirm: "确定恢复默认快捷键？" }, 
+        class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+  </div>
+  
+  <div class="p-4">
+    <div class="bg-surface-inset dark:bg-gray-800 border border-border rounded-lg p-3 mb-4">
+      <div class="flex items-center gap-2">
+        <span class="text-gray-500 dark:text-gray-400">⌨️</span>
+        <p class="text-sm text-gray-700 dark:text-gray-300">按 <kbd class="bg-gray-100 dark:bg-gray-700 px-2 py-0.5 rounded text-xs">?</kbd> 随时查看快捷键帮助</p>
+      </div>
+    </div>
+    
+    <% @shortcuts.group_by { |s| s[:group] }.each do |group, shortcuts| %>
+      <div class="mb-4">
+        <h3 class="font-medium text-primary mb-2"><%= group %></h3>
+        <div class="bg-surface-inset rounded-lg overflow-hidden">
+          <table class="min-w-full">
+            <tbody class="divide-y divide-border">
+              <% shortcuts.each do |shortcut| %>
+                <tr>
+                  <td class="px-3 py-2 text-sm text-primary"><%= shortcut[:description] %></td>
+                  <td class="px-3 py-2 text-right">
+                    <div class="flex items-center justify-end gap-1">
+                      <% shortcut[:key].split.map do |key| %>
+                        <kbd class="bg-gray-100 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-0.5 text-xs font-mono">
+                          <%= key %>
+                        </kbd>
+                        <% unless key == shortcut[:key].split.last %>
+                          <span class="text-gray-400 text-xs">+</span>
+                        <% end %>
+                      <% end %>
+                    </div>
+                  </td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</section>

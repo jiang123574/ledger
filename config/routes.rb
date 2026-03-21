@@ -65,15 +65,21 @@ Rails.application.routes.draw do
   end
   get "/webdav/download", to: "backups#webdav_download", as: :webdav_download_backups
 
-  # Settings routes (integrated: shortcuts, import, backup)
+  # Settings routes
   get "/settings", to: "settings#show", as: :settings
+  get "/settings/general", to: "settings#show", as: :settings_general
+  get "/settings/currencies", to: "settings#show", as: :settings_currencies
+  get "/settings/data", to: "settings#show", as: :settings_data
+  get "/settings/shortcuts", to: "settings#show", as: :settings_shortcuts
+  get "/settings/danger", to: "settings#show", as: :settings_danger
+  
+  # Settings actions
   post "/settings/export", to: "settings#export_transactions", as: :export_transactions
   post "/settings/import", to: "settings#import_transactions", as: :import_transactions
   post "/settings/validate_import", to: "settings#validate_import", as: :validate_import
   post "/settings/backup", to: "settings#create_backup", as: :create_backup
   get "/settings/backup/:name", to: "settings#download_backup", as: :download_settings_backup
   post "/settings/clear_data", to: "settings#clear_all_data", as: :clear_all_data
-  post "/settings/shortcuts", to: "settings#update_shortcuts", as: :update_shortcuts
   post "/settings/shortcuts/reset", to: "settings#reset_shortcuts", as: :reset_shortcuts
 
   get "/reports", to: "reports#show", as: :reports
