@@ -11,6 +11,7 @@ Rails.application.routes.draw do
 
   resources :accounts
   resources :categories
+  resources :tags, only: [ :index, :create, :update, :destroy ]
   resources :counterparties
   resources :budgets, only: [ :index, :create, :update, :destroy ]
   resources :plans do
