@@ -1,56 +1,56 @@
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark"><%= t("recurring.edit_recurring") %></h1>
+  <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= t("recurring.edit_recurring") %></h1>
 
-  <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6">
     <%= form_with model: @recurring, url: recurring_path(@recurring), method: :patch, local: true, class: "space-y-4" do |f| %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <%= f.label :transaction_type, t("transactions.type"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
+          <%= f.label :transaction_type, t("transactions.type"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
           <%= f.select :transaction_type, options_for_select(["INCOME", "EXPENSE"]), {}, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
         </div>
 
         <div>
-          <%= f.label :amount, t("transactions.amount"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
+          <%= f.label :amount, t("transactions.amount"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
           <%= f.number_field :amount, step: "0.01", class: "mt-1 block w-full border rounded-md px-3 py-2" %>
         </div>
 
         <div>
-          <%= f.label :frequency, t("recurring.frequency"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
+          <%= f.label :frequency, t("recurring.frequency"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
           <%= f.select :frequency, options_for_select([[t("recurring.daily"), "daily"], [t("recurring.weekly"), "weekly"], [t("recurring.monthly"), "monthly"], [t("recurring.yearly"), "yearly"]]), {}, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
         </div>
 
         <div>
-          <%= f.label :next_date, t("recurring.next_date"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
+          <%= f.label :next_date, t("recurring.next_date"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
           <%= f.date_field :next_date, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
         </div>
 
         <div>
-          <%= f.label :account_id, t("transactions.account"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
+          <%= f.label :account_id, t("transactions.account"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
           <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: true }, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
         </div>
 
         <div>
-          <%= f.label :category_id, t("transactions.category"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
+          <%= f.label :category_id, t("transactions.category"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
           <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: true }, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
         </div>
 
         <div>
           <%= f.label :is_active, class: "flex items-center mt-6" do %>
             <%= f.check_box :is_active, class: "mr-2" %>
-            <span class="text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark"><%= t("recurring.active") %></span>
+            <span class="text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= t("recurring.active") %></span>
           <% end %>
         </div>
       </div>
 
       <div>
-        <%= f.label :note, t("transactions.note"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
+        <%= f.label :note, t("transactions.note"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
         <%= f.text_area :note, rows: 2, class: "mt-1 block w-full border rounded-md px-3 py-2" %>
       </div>
 
       <div class="flex justify-between">
         <%= button_to t("common.delete"), recurring_path(@recurring), method: :delete, data: { confirm: t("common.are_you_sure") }, class: "text-red-600 hover:text-red-900" %>
         <div class="flex space-x-4">
-          <%= link_to t("common.cancel"), recurring_index_path, class: "px-4 py-2 border rounded-md hover:bg-surface dark:bg-surface-dark dark:hover:bg-gray-700" %>
+          <%= link_to t("common.cancel"), recurring_index_path, class: "px-4 py-2 border rounded-md hover:bg-surface dark:bg-surface-dark dark:bg-surface-dark dark:hover:bg-gray-700" %>
           <%= f.submit t("common.update"), class: "bg-inverse text-white px-4 py-2 rounded hover:bg-inverse-hover" %>
         </div>
       </div>

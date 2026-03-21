@@ -1,53 +1,53 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", transactions_path, class: "text-secondary dark:text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark">导入交易</h1>
+    <%= link_to "← 返回", transactions_path, class: "text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">导入交易</h1>
   </div>
 
   <!-- Info Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">支持的格式</div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">支持的格式</div>
       <div class="mt-1 flex flex-wrap gap-2">
         <% @supported_formats.each do |format| %>
-          <span class="px-2 py-1 bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark rounded text-sm uppercase"><%= format %></span>
+          <span class="px-2 py-1 bg-surface dark:bg-surface-dark dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark rounded text-sm uppercase"><%= format %></span>
         <% end %>
       </div>
     </div>
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">文件大小限制</div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">文件大小限制</div>
       <div class="text-lg font-medium">10 MB</div>
     </div>
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">预览限制</div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">预览限制</div>
       <div class="text-lg font-medium">前 100 行</div>
     </div>
   </div>
 
   <!-- Upload Form -->
-  <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-4">步骤 1: 选择文件</h2>
     
     <%= form_with url: preview_imports_path, local: true, multipart: true, id: "upload-form" do |f| %>
       <div class="space-y-4">
-        <div class="border-2 border-dashed border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg p-8 text-center hover:border-inverse transition" id="drop-zone">
-          <div class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">
-            <svg class="mx-auto h-12 w-12 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+        <div class="border-2 border-dashed border-border dark:border-border dark:border-border-dark-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark rounded-lg p-8 text-center hover:border-inverse transition" id="drop-zone">
+          <div class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
+            <svg class="mx-auto h-12 w-12 text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark" stroke="currentColor" fill="none" viewBox="0 0 48 48">
               <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
             </svg>
             <p class="mt-2">拖拽文件到此处，或点击选择文件</p>
-            <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark mt-1">支持 CSV, Excel, OFX, QIF 格式</p>
+            <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mt-1">支持 CSV, Excel, OFX, QIF 格式</p>
           </div>
           <%= f.file_field :file, accept: ".csv,.xlsx,.xls,.ofx,.qif", class: "hidden", id: "file-input" %>
         </div>
 
-        <div id="file-info" class="hidden bg-surface-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container-dark-dark rounded-lg p-4">
+        <div id="file-info" class="hidden bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg p-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">📄</div>
+              <div class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">📄</div>
               <div>
-                <div id="file-name" class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark"></div>
-                <div id="file-size" class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark"></div>
+                <div id="file-name" class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"></div>
+                <div id="file-size" class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"></div>
               </div>
             </div>
             <button type="button" id="remove-file" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern">移除</button>
@@ -56,14 +56,14 @@
 
         <!-- Account Selection -->
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1">导入到账户（可选）</label>
-          <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mb-1">导入到账户（可选）</label>
+          <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- Template Selection -->
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1">字段映射模板</label>
-          <select id="template-select" class="border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
+          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mb-1">字段映射模板</label>
+          <select id="template-select" class="border border-border dark:border-border dark:border-border-dark-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
             <option value="">自动检测</option>
             <% @templates.each do |template| %>
               <option value="<%= template[:mapping].to_json %>"><%= template[:name] %></option>
@@ -79,13 +79,13 @@
   </div>
 
   <!-- Templates Info -->
-  <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-4">导入模板说明</h2>
     <div class="grid gap-4 md:grid-cols-2">
       <% @templates.each do |template| %>
         <div class="border rounded-lg p-4">
-          <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark"><%= template[:name] %></h3>
-          <div class="mt-2 text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">
+          <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= template[:name] %></h3>
+          <div class="mt-2 text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
             字段: <%= template[:mapping].keys.join(", ") %>
           </div>
         </div>

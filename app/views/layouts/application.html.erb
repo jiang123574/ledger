@@ -314,19 +314,19 @@
         data-mobile-layout-target="sidebar">
         <%# Mobile Sidebar Header with Safe Area %>
         <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
-          <div class="h-14 flex items-center justify-between px-4 border-b border-border dark:border-border dark:border-border-dark-dark">
+          <div class="h-14 flex items-center justify-between px-4 border-b border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark">
             <%= link_to dashboard_path, class: "flex items-center gap-3 min-h-[44px]" do %>
               <div class="w-8 h-8 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-sm">
                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
                 </svg>
               </div>
-              <span class="font-semibold text-primary dark:text-primary dark:text-primary-dark"><%= t("app_name") %></span>
+              <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark"><%= t("app_name") %></span>
             <% end %>
             <button
               type="button"
               data-action="click->mobile-layout#closeSidebar"
-              class="p-2 -mr-2 text-secondary dark:text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors"
+              class="p-2 -mr-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark dark:hover:text-primary dark:text-primary dark:text-primary-dark-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors"
               aria-label="关闭菜单">
               <%= render(Ds::IconComponent.new(name: "x", size: :md)) %>
             </button>
@@ -346,23 +346,23 @@
       </aside>
 
       <%# Mobile Top Header %>
-      <header class="lg:hidden fixed top-0 left-0 right-0 z-30 bg-container dark:bg-container-dark border-b border-border dark:border-border dark:border-border-dark-dark">
+      <header class="lg:hidden fixed top-0 left-0 right-0 z-30 bg-container dark:bg-container-dark border-b border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark">
         <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
           <div class="flex items-center justify-between h-14 px-4">
             <%# Menu Button %>
             <button
               type="button"
               data-action="click->mobile-layout#openSidebar"
-              class="p-2 -ml-2 text-secondary dark:text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors"
+              class="p-2 -ml-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark dark:hover:text-primary dark:text-primary dark:text-primary-dark-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors"
               aria-label="打开菜单">
               <%= render(Ds::IconComponent.new(name: "menu", size: :md)) %>
             </button>
 
             <%# Page Title %>
-            <span class="font-semibold text-primary dark:text-primary dark:text-primary-dark truncate"><%= content_for(:title) || t("app_name") %></span>
+            <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark truncate"><%= content_for(:title) || t("app_name") %></span>
 
             <%# Quick Action Button %>
-            <%= link_to new_transaction_path, class: "p-2 -mr-2 text-secondary dark:text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" do %>
+            <%= link_to new_transaction_path, class: "p-2 -mr-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark dark:hover:text-primary dark:text-primary dark:text-primary-dark-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" do %>
               <%= render(Ds::IconComponent.new(name: "plus", size: :md)) %>
             <% end %>
           </div>

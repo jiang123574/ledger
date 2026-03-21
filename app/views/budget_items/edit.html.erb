@@ -1,35 +1,35 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to t("common.back"), @single_budget, class: "text-primary dark:text-primary-dark hover:text-inverse" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark"><%= t("single_budgets.edit_item") %></h1>
+    <%= link_to t("common.back"), @single_budget, class: "text-primary dark:text-primary dark:text-primary-dark-dark hover:text-inverse" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= t("single_budgets.edit_item") %></h1>
   </div>
 
-  <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6">
     <%= form_with model: [@single_budget, @budget_item], url: single_budget_budget_item_path(@single_budget, @budget_item), local: true, class: "space-y-4" do |f| %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <%= f.label :name, t("single_budgets.item_name"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1" %>
-          <%= f.text_field :name, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white", required: true %>
+          <%= f.label :name, t("single_budgets.item_name"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+          <%= f.text_field :name, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border dark:border-border-dark-dark dark:text-white", required: true %>
         </div>
         <div>
-          <%= f.label :category, t("single_budgets.category"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1" %>
-          <%= f.text_field :category, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
+          <%= f.label :category, t("single_budgets.category"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+          <%= f.text_field :category, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border dark:border-border-dark-dark dark:text-white" %>
         </div>
         <div>
-          <%= f.label :amount, t("single_budgets.amount"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1" %>
-          <%= f.number_field :amount, step: "0.01", class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white", required: true %>
+          <%= f.label :amount, t("single_budgets.amount"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+          <%= f.number_field :amount, step: "0.01", class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border dark:border-border-dark-dark dark:text-white", required: true %>
         </div>
         <div>
-          <%= f.label :spent_amount, t("single_budgets.spent"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1" %>
-          <%= f.number_field :spent_amount, step: "0.01", class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
+          <%= f.label :spent_amount, t("single_budgets.spent"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+          <%= f.number_field :spent_amount, step: "0.01", class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border dark:border-border-dark-dark dark:text-white" %>
         </div>
       </div>
       <div>
-        <%= f.label :notes, t("single_budgets.notes"), class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1" %>
-        <%= f.text_area :notes, rows: 3, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
+        <%= f.label :notes, t("single_budgets.notes"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+        <%= f.text_area :notes, rows: 3, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border dark:border-border-dark-dark dark:text-white" %>
       </div>
       <div class="flex justify-end gap-2">
-        <%= link_to t("common.cancel"), @single_budget, class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:border-border-dark dark:text-secondary dark:text-secondary-dark" %>
+        <%= link_to t("common.cancel"), @single_budget, class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:border-border dark:border-border-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
         <%= f.submit t("common.update"), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
       </div>
     <% end %>

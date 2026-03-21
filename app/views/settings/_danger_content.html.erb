@@ -1,13 +1,13 @@
-<section class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs card-hover border border-red-200 dark:border-red-800">
+<section class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs card-hover border border-red-200 dark:border-red-800">
   <div class="p-4 border-b border-red-200 dark:border-red-800">
     <h2 class="text-lg font-semibold text-red-600 dark:text-red-400">危险操作</h2>
-    <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark mt-1">以下操作不可逆，请谨慎操作</p>
+    <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mt-1">以下操作不可逆，请谨慎操作</p>
   </div>
   <div class="p-4 space-y-4">
     <div class="flex items-center justify-between py-3 border-b border-red-100 dark:border-red-900/30">
       <div>
-        <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark">清除所有数据</h3>
-        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">删除所有交易、账户和分类数据</p>
+        <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">清除所有数据</h3>
+        <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">删除所有交易、账户和分类数据</p>
       </div>
       <%= button_to "清除数据", clear_all_data_path, method: :post, 
           data: { confirm: "确定要清除所有数据吗？此操作不可恢复！" },
@@ -15,8 +15,8 @@
     </div>
     <div class="flex items-center justify-between py-3">
       <div>
-        <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark">重置应用</h3>
-        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">恢复所有设置为默认值</p>
+        <h3 class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">重置应用</h3>
+        <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">恢复所有设置为默认值</p>
       </div>
       <button class="px-4 py-1.5 text-sm font-medium rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 transition-smooth btn-modern">重置</button>
     </div>

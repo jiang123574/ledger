@@ -1,21 +1,21 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", new_import_path, class: "text-secondary dark:text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark">预览导入</h1>
+    <%= link_to "← 返回", new_import_path, class: "text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">预览导入</h1>
   </div>
 
   <!-- Summary -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">文件格式</div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">文件格式</div>
       <div class="text-lg font-medium uppercase"><%= @preview_data[:format] %></div>
     </div>
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">总行数</div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">总行数</div>
       <div class="text-lg font-medium"><%= @preview_data[:total_rows] %></div>
     </div>
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">预览行数</div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">预览行数</div>
       <div class="text-lg font-medium"><%= @preview_data[:rows].length %></div>
     </div>
   </div>
@@ -24,16 +24,16 @@
     <%= f.hidden_field :file, value: params[:file] %>
 
     <!-- Field Mapping -->
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6">
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6">
       <h2 class="text-lg font-semibold mb-4">字段映射</h2>
       
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         <% @preview_data[:headers].each do |header| %>
           <div class="space-y-1">
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark">
+            <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
               <%= header %>
             </label>
-            <select name="field_mapping[<%= header %>]" class="w-full border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
+            <select name="field_mapping[<%= header %>]" class="w-full border border-border dark:border-border dark:border-border-dark-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
               <option value="">忽略</option>
               <option value="date" <%= @preview_data[:suggested_mapping][header] == "date" ? "selected" : "" %>>日期</option>
               <option value="type" <%= @preview_data[:suggested_mapping][header] == "type" ? "selected" : "" %>>类型</option>
@@ -49,31 +49,31 @@
     </div>
 
     <!-- Preview Table -->
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow overflow-hidden">
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow overflow-hidden">
       <div class="px-6 py-4 border-b flex justify-between items-center">
         <h2 class="text-lg font-semibold">数据预览</h2>
-        <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">显示前 <%= @preview_data[:rows].length %> 行</span>
+        <span class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">显示前 <%= @preview_data[:rows].length %> 行</span>
       </div>
 
       <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
-          <thead class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container-dark-dark">
+          <thead class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark">
             <tr>
               <% @preview_data[:headers].each do |header| %>
-                <th class="px-4 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark uppercase whitespace-nowrap">
+                <th class="px-4 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark uppercase whitespace-nowrap">
                   <%= header %>
                   <% if @preview_data[:suggested_mapping][header].present? %>
-                    <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">→ <%= @preview_data[:suggested_mapping][header] %></span>
+                    <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">→ <%= @preview_data[:suggested_mapping][header] %></span>
                   <% end %>
                 </th>
               <% end %>
             </tr>
           </thead>
-          <tbody class="bg-container dark:bg-container dark:bg-container-dark-dark divide-y divide-gray-200">
+          <tbody class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark divide-y divide-gray-200">
             <% @preview_data[:rows].first(20).each do |row| %>
-              <tr class="hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container-dark-dark">
+              <tr class="hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark">
                 <% @preview_data[:headers].each do |header| %>
-                  <td class="px-4 py-3 text-sm text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark whitespace-nowrap">
+                  <td class="px-4 py-3 text-sm text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark whitespace-nowrap">
                     <%= truncate(row[header]&.to_s || "-", length: 50) %>
                   </td>
                 <% end %>
@@ -85,14 +85,14 @@
     </div>
 
     <!-- Account Selection -->
-    <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6">
-      <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-1">导入到账户（可选）</label>
-      <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6">
+      <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mb-1">导入到账户（可选）</label>
+      <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
     </div>
 
     <!-- Actions -->
     <div class="flex justify-between items-center">
-      <%= link_to "重新选择文件", new_import_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+      <%= link_to "重新选择文件", new_import_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
       <%= f.submit "确认导入", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
     </div>
   <% end %>
