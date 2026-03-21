@@ -67,6 +67,16 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
   const shortcuts = <%= @shortcuts.to_json.html_safe %>;
+  let keyBuffer = '';
+  let keyBufferTimeout = null;
+
+  function clearKeyBuffer() {
+    keyBuffer = '';
+    if (keyBufferTimeout) {
+      clearTimeout(keyBufferTimeout);
+      keyBufferTimeout = null;
+    }
+  }
 
   document.addEventListener('keydown', function(e) {
     // Ignore if typing in input fields
@@ -74,58 +84,96 @@ document.addEventListener('DOMContentLoaded', function() {
       if (e.key !== 'Escape') return;
     }
 
-    // Find matching shortcut
+    // Build key string
     const key = [];
     if (e.ctrlKey || e.metaKey) key.push('Ctrl');
     if (e.shiftKey) key.push('Shift');
     if (e.altKey) key.push('Alt');
-    key.push(e.key.length === 1 ? e.key.toLowerCase() : e.key);
 
+    // For modifier-only shortcuts, use the buffer approach for 'g' prefix
+    const baseKey = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+
+    // Handle 'g' prefix for navigation shortcuts
+    if (baseKey === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      e.preventDefault();
+      e.stopPropagation();
+      keyBuffer = 'g';
+      // Clear buffer after 1 second of inactivity
+      keyBufferTimeout = setTimeout(clearKeyBuffer, 1000);
+      return;
+    }
+
+    // If we have 'g' in buffer, check for follow-up key
+    if (keyBuffer === 'g' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+      const gShortcut = 'g ' + baseKey;
+      switch (gShortcut) {
+        case 'g t':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= transactions_path %>';
+          return;
+        case 'g a':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= accounts_path %>';
+          return;
+        case 'g r':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= reports_path %>';
+          return;
+        case 'g b':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= budgets_path %>';
+          return;
+        case 'g s':
+          e.preventDefault();
+          e.stopPropagation();
+          clearKeyBuffer();
+          window.location.href = '<%= settings_path %>';
+          return;
+        default:
+          clearKeyBuffer();
+      }
+    }
+
+    // Build full key string for single-key shortcuts
+    key.push(baseKey);
     const keyStr = key.join(' ');
 
-    // Handle shortcuts
+    // Handle single-key shortcuts
     switch (keyStr) {
       case 'n':
         if (!e.ctrlKey && !e.metaKey) {
           e.preventDefault();
+          e.stopPropagation();
           window.location.href = '<%= new_transaction_path %>';
         }
         break;
       case 's':
         if (!e.ctrlKey && !e.metaKey) {
           e.preventDefault();
+          e.stopPropagation();
           document.querySelector('#search-input')?.focus();
         }
         break;
       case '/':
         e.preventDefault();
+        e.stopPropagation();
         document.querySelector('#search-input')?.focus();
-        break;
-      case 'g t':
-        e.preventDefault();
-        window.location.href = '<%= transactions_path %>';
-        break;
-      case 'g a':
-        e.preventDefault();
-        window.location.href = '<%= accounts_path %>';
-        break;
-      case 'g r':
-        e.preventDefault();
-        window.location.href = '<%= reports_path %>';
-        break;
-      case 'g b':
-        e.preventDefault();
-        window.location.href = '<%= budgets_path %>';
-        break;
-      case 'g s':
-        e.preventDefault();
-        window.location.href = '<%= settings_path %>';
         break;
       case '?':
         e.preventDefault();
+        e.stopPropagation();
         showShortcutsHelp();
         break;
       case 'Escape':
+        clearKeyBuffer();
         // Close any modal or cancel action
         const modal = document.querySelector('.modal, [role="dialog"]');
         if (modal) {
@@ -143,7 +191,7 @@ document.addEventListener('DOMContentLoaded', function() {
       <div class="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[80vh] overflow-auto m-4">
         <div class="p-6">
           <div class="flex justify-between items-center mb-4">
-            <h2 class="text-xl font-bold">键盘快捷键</h2>
+            <h2 class="text-xl font-bold"><%= t('shortcuts.title', default: '键盘快捷键') %></h2>
             <button onclick="this.closest('.fixed').remove()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
           </div>
           <div class="grid gap-4">
