@@ -8,6 +8,12 @@ class BudgetsController < ApplicationController
     start_date = Date.parse("#{@month}-01")
     end_date = start_date.end_of_month
     @total_spent = Transaction.where(type: "EXPENSE", date: start_date..end_date).sum(:amount)
+
+    @single_budgets = SingleBudget.all
+    @single_budgets = @single_budgets.where(status: params[:status]) if params[:status].present?
+    @single_budgets = @single_budgets.order(start_date: :desc)
+    @single_total_budget = @single_budgets.sum(:total_amount)
+    @single_total_spent = @single_budgets.sum(:spent_amount)
   end
 
   def create

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2024_01_01_000030) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_21_140325) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -82,6 +82,19 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000030) do
     t.string "webdav_url", limit: 500
   end
 
+  create_table "budget_items", force: :cascade do |t|
+    t.decimal "amount", precision: 10, scale: 2, null: false
+    t.string "category", limit: 50
+    t.datetime "created_at", null: false
+    t.string "name", limit: 100, null: false
+    t.text "notes"
+    t.bigint "single_budget_id", null: false
+    t.decimal "spent_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.datetime "updated_at", null: false
+    t.index ["category"], name: "index_budget_items_on_category"
+    t.index ["single_budget_id"], name: "index_budget_items_on_single_budget_id"
+  end
+
   create_table "budgets", force: :cascade do |t|
     t.decimal "amount", precision: 10, scale: 2, null: false
     t.integer "category_id"
@@ -127,32 +140,6 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000030) do
     t.string "symbol", limit: 10, null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_currencies_on_code", unique: true
-  end
-
-  create_table "event_budget_transactions", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.bigint "event_budget_id", null: false
-    t.bigint "transaction_id", null: false
-    t.datetime "updated_at", null: false
-    t.index ["event_budget_id", "transaction_id"], name: "idx_on_event_budget_id_transaction_id_6ffb818517", unique: true
-    t.index ["event_budget_id"], name: "index_event_budget_transactions_on_event_budget_id"
-    t.index ["transaction_id"], name: "index_event_budget_transactions_on_transaction_id"
-  end
-
-  create_table "event_budgets", force: :cascade do |t|
-    t.datetime "created_at", null: false
-    t.string "currency", limit: 3, default: "CNY"
-    t.text "description"
-    t.date "end_date"
-    t.string "name", limit: 100, null: false
-    t.decimal "spent_amount", precision: 10, scale: 2, default: "0.0", null: false
-    t.date "start_date", null: false
-    t.string "status", limit: 20, default: "active", null: false
-    t.decimal "total_amount", precision: 10, scale: 2, null: false
-    t.datetime "updated_at", null: false
-    t.index ["end_date"], name: "index_event_budgets_on_end_date"
-    t.index ["start_date"], name: "index_event_budgets_on_start_date"
-    t.index ["status"], name: "index_event_budgets_on_status"
   end
 
   create_table "exchange_rates", force: :cascade do |t|
@@ -241,6 +228,22 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000030) do
     t.index ["category_id"], name: "index_recurring_transactions_on_category_id"
   end
 
+  create_table "single_budgets", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.string "currency", limit: 3, default: "CNY"
+    t.text "description"
+    t.date "end_date"
+    t.string "name", limit: 100, null: false
+    t.decimal "spent_amount", precision: 10, scale: 2, default: "0.0", null: false
+    t.date "start_date", null: false
+    t.string "status", limit: 20, default: "planning", null: false
+    t.decimal "total_amount", precision: 10, scale: 2, null: false
+    t.datetime "updated_at", null: false
+    t.index ["end_date"], name: "index_single_budgets_on_end_date"
+    t.index ["start_date"], name: "index_single_budgets_on_start_date"
+    t.index ["status"], name: "index_single_budgets_on_status"
+  end
+
   create_table "tags", force: :cascade do |t|
     t.string "color", limit: 7, default: "#3498db"
     t.datetime "created_at", null: false
@@ -292,10 +295,9 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000030) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "attachments", "transactions"
+  add_foreign_key "budget_items", "single_budgets"
   add_foreign_key "budgets", "categories"
   add_foreign_key "categories", "categories", column: "parent_id"
-  add_foreign_key "event_budget_transactions", "event_budgets"
-  add_foreign_key "event_budget_transactions", "transactions"
   add_foreign_key "one_time_budgets", "categories"
   add_foreign_key "plans", "accounts"
   add_foreign_key "receivables", "transactions", column: "source_transaction_id"

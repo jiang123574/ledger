@@ -18,7 +18,14 @@ Rails.application.routes.draw do
   resources :tags, only: [ :index, :create, :update, :destroy ]
   resources :counterparties
   resources :budgets, only: [ :index, :create, :update, :destroy ]
-  resources :event_budgets
+  resources :single_budgets do
+    member do
+      patch :start
+      patch :complete
+      patch :cancel
+    end
+    resources :budget_items
+  end
   resources :plans do
     member do
       post :execute
