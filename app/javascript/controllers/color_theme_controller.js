@@ -42,22 +42,28 @@ const COLOR_THEMES = {
 export default class extends Controller {
   static targets = ["select"]
 
+  initialize() {
+    this.boundLoadTheme = this.loadTheme.bind(this)
+  }
+
   connect() {
-    // Ensure we read from localStorage and update select value
     this.loadTheme()
-    // Also listen for turbo:load in case of page navigation
-    document.addEventListener('turbo:load', () => this.loadTheme())
+    document.addEventListener('turbo:load', this.boundLoadTheme)
   }
 
   disconnect() {
-    document.removeEventListener('turbo:load', () => this.loadTheme())
+    document.removeEventListener('turbo:load', this.boundLoadTheme)
   }
 
   loadTheme() {
-    const savedTheme = localStorage.getItem("colorTheme") || "default"
+    let savedTheme = "default"
+    try {
+      savedTheme = localStorage.getItem("colorTheme") || "default"
+    } catch (e) {
+      console.warn('Failed to read color theme from localStorage:', e)
+    }
     this.applyTheme(savedTheme)
     if (this.hasSelectTarget) {
-      // Set select value, ensuring it matches one of the options
       const select = this.selectTarget
       const optionExists = Array.from(select.options).some(opt => opt.value === savedTheme)
       select.value = optionExists ? savedTheme : "default"
@@ -67,7 +73,11 @@ export default class extends Controller {
   change(event) {
     const themeName = event.target.value
     this.applyTheme(themeName)
-    localStorage.setItem("colorTheme", themeName)
+    try {
+      localStorage.setItem("colorTheme", themeName)
+    } catch (e) {
+      console.warn('Failed to save color theme to localStorage:', e)
+    }
   }
 
   applyTheme(themeName) {
@@ -76,19 +86,20 @@ export default class extends Controller {
     document.documentElement.style.setProperty("--color-income", theme.income)
     document.documentElement.style.setProperty("--color-expense", theme.expense)
     
-    // Also update data attributes for CSS selectors
     document.documentElement.setAttribute("data-color-theme", themeName)
     
-    // Dispatch event for other components to react
     window.dispatchEvent(new CustomEvent("colorThemeChanged", { detail: { theme: themeName, colors: theme } }))
   }
 
-  // Get current theme colors (utility method)
   static getCurrentColors() {
-    const themeName = localStorage.getItem("colorTheme") || "default"
+    let themeName = "default"
+    try {
+      themeName = localStorage.getItem("colorTheme") || "default"
+    } catch (e) {
+      console.warn('Failed to read color theme from localStorage:', e)
+    }
     return COLOR_THEMES[themeName] || COLOR_THEMES.default
   }
 }
 
-// Export themes for use in other modules
 export { COLOR_THEMES }

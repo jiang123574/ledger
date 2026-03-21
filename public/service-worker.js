@@ -19,13 +19,16 @@ self.addEventListener('install', (event) => {
   console.log('[SW] Install');
   
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      console.log('[SW] Precaching essential assets');
-      return cache.addAll(PRECACHE_ASSETS);
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) => {
+        console.log('[SW] Precaching essential assets');
+        return cache.addAll(PRECACHE_ASSETS);
+      })
+      .catch((error) => {
+        console.error('[SW] Failed to precache assets:', error);
+      })
   );
   
-  // Activate immediately
   self.skipWaiting();
 });
 
