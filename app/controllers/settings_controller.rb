@@ -23,6 +23,8 @@ class SettingsController < ApplicationController
 
   private
 
+  ITEMS_PER_PAGE = 20
+
   def load_settings_data
     @currencies = Currency.order(:code)
     @backups = BackupService.list_backups.take(10)
@@ -31,13 +33,19 @@ class SettingsController < ApplicationController
     @shortcuts = default_shortcuts
     @custom_shortcuts = load_custom_shortcuts
 
-    # Load counterparties data
-    @counterparties = Counterparty.all.order(:name).map do |cp|
+    # Load counterparties data with pagination
+    page = params[:page].to_i.zero? ? 1 : params[:page].to_i
+    @total_counterparties = Counterparty.count
+    @total_receivables = Receivable.where.not(counterparty: [ nil, "" ]).count
+    
+    # Get all counterparties sorted by receivables count, then by name
+    all_counterparties = Counterparty.all.order(:name).map do |cp|
       cp.define_singleton_method(:receivables_count) { Receivable.where(counterparty: cp.name).count }
       cp
     end.sort_by { |cp| [ -cp.receivables_count, cp.name ] }
-    @total_counterparties = Counterparty.count
-    @total_receivables = Receivable.where.not(counterparty: [ nil, "" ]).count
+    
+    @counterparties = Kaminari.paginate_array(all_counterparties).page(page).per(ITEMS_PER_PAGE)
+    @total_pages = (@total_counterparties.to_f / ITEMS_PER_PAGE).ceil
   end
 
   def default_shortcuts
