@@ -1,73 +1,73 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", counterparties_path, class: "text-gray-500 hover:text-gray-700" %>
-    <h1 class="text-2xl font-bold text-gray-900"><%= @counterparty.name %></h1>
+    <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark"><%= @counterparty.name %></h1>
     <%= link_to "编辑", edit_counterparty_path(@counterparty), class: "text-primary hover:text-gray-800" %>
   </div>
 
   <!-- Info Card -->
-  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div>
-        <div class="text-sm text-gray-500">联系方式</div>
+        <div class="text-sm text-secondary dark:text-secondary-dark">联系方式</div>
         <div class="text-lg font-medium"><%= @counterparty.contact || '-' %></div>
       </div>
       <div>
-        <div class="text-sm text-gray-500">应收款总数</div>
+        <div class="text-sm text-secondary dark:text-secondary-dark">应收款总数</div>
         <div class="text-lg font-medium"><%= @receivables.count %> 笔</div>
       </div>
       <div>
-        <div class="text-sm text-gray-500">待收金额</div>
+        <div class="text-sm text-secondary dark:text-secondary-dark">待收金额</div>
         <div class="text-lg font-medium text-green-600"><%= format_currency(@pending_amount, 'CNY') %></div>
       </div>
     </div>
     <% if @counterparty.note.present? %>
       <div class="mt-4 pt-4 border-t">
-        <div class="text-sm text-gray-500">备注</div>
-        <div class="mt-1 text-gray-700"><%= @counterparty.note %></div>
+        <div class="text-sm text-secondary dark:text-secondary-dark">备注</div>
+        <div class="mt-1 text-primary dark:text-primary-dark"><%= @counterparty.note %></div>
       </div>
     <% end %>
   </div>
 
   <!-- Stats -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
-      <div class="text-sm text-gray-500">总应收金额</div>
-      <div class="text-2xl font-bold text-gray-900"><%= format_currency(@total_amount, 'CNY') %></div>
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary-dark">总应收金额</div>
+      <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= format_currency(@total_amount, 'CNY') %></div>
     </div>
-    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
-      <div class="text-sm text-gray-500">已收金额</div>
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary-dark">已收金额</div>
       <div class="text-2xl font-bold text-primary"><%= format_currency(@settled_amount, 'CNY') %></div>
     </div>
-    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
-      <div class="text-sm text-gray-500">待收金额</div>
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary-dark">待收金额</div>
       <div class="text-2xl font-bold text-green-600"><%= format_currency(@pending_amount, 'CNY') %></div>
     </div>
   </div>
 
   <!-- Receivables List -->
-  <div class="bg-container dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
     <div class="px-6 py-4 border-b flex justify-between items-center">
       <h2 class="text-lg font-semibold">相关应收款</h2>
       <%= link_to "新建应收款", new_receivable_path(counterparty: @counterparty.name), class: "text-primary hover:text-gray-800" %>
     </div>
 
     <% if @receivables.empty? %>
-      <div class="p-8 text-center text-gray-500">
+      <div class="p-8 text-center text-secondary dark:text-secondary-dark">
         暂无相关应收款
       </div>
     <% else %>
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-surface dark:bg-gray-900">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">日期</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">描述</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">金额</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">剩余</th>
-            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">状态</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">日期</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">描述</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary-dark uppercase">金额</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary-dark uppercase">剩余</th>
+            <th class="px-6 py-3 text-center text-xs font-medium text-secondary dark:text-secondary-dark uppercase">状态</th>
           </tr>
         </thead>
-        <tbody class="bg-container dark:bg-gray-800 divide-y divide-gray-200">
+        <tbody class="bg-container dark:bg-container-dark divide-y divide-gray-200">
           <% @receivables.each do |r| %>
             <tr class="hover:bg-surface dark:bg-gray-900">
               <td class="px-6 py-4 whitespace-nowrap text-sm"><%= l(r.date) %></td>
@@ -78,7 +78,7 @@
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
                 <% if r.settled_at %>
-                  <span class="px-2 py-1 rounded text-xs bg-surface dark:bg-gray-700 text-primary dark:text-gray-400">已结算</span>
+                  <span class="px-2 py-1 rounded text-xs bg-surface dark:bg-surface-dark text-primary dark:text-secondary dark:text-secondary-dark">已结算</span>
                 <% else %>
                   <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">待收</span>
                 <% end %>

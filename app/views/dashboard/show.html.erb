@@ -32,7 +32,7 @@
           <p class="text-sm font-medium text-secondary"><%= t("dashboard.income") %></p>
           <p class="text-2xl font-semibold text-income mt-1"><%= format_currency(@total_income) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-gray-700 rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "trending-up", size: :md, color: :income)) %>
         </div>
       </div>
@@ -44,7 +44,7 @@
           <p class="text-sm font-medium text-secondary"><%= t("dashboard.expense") %></p>
           <p class="text-2xl font-semibold text-expense mt-1"><%= format_currency(@total_expense) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-gray-700 rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "trending-down", size: :md, color: :expense)) %>
         </div>
       </div>
@@ -59,7 +59,7 @@
             <%= balance_info[:amount] %>
           </p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-gray-700 rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
         </div>
       </div>
@@ -71,7 +71,7 @@
           <p class="text-sm font-medium text-secondary">总资产</p>
           <p class="text-2xl font-semibold text-primary mt-1"><%= format_currency(@total_assets) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-gray-700 rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "wallet", size: :md, color: :primary)) %>
         </div>
       </div>
@@ -214,7 +214,7 @@
         <% @accounts.each do |account| %>
           <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-surface dark:bg-gray-700 flex items-center justify-center shrink-0">
+              <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0">
                 <span class="text-sm font-semibold text-primary"><%= account.name[0] %></span>
               </div>
               <div>

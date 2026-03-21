@@ -1,6 +1,6 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-gray-900">备份管理</h1>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">备份管理</h1>
     <div class="flex gap-2">
       <%= button_to "创建备份", backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
     </div>
@@ -8,21 +8,21 @@
 
   <!-- Status Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
       <div class="flex justify-between items-start">
         <div>
-          <div class="text-sm text-gray-500">本地备份</div>
+          <div class="text-sm text-secondary dark:text-secondary-dark">本地备份</div>
           <div class="text-2xl font-bold"><%= @backups.size %></div>
         </div>
         <div class="text-3xl">💾</div>
       </div>
     </div>
 
-    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
       <div class="flex justify-between items-start">
         <div>
-          <div class="text-sm text-gray-500">WebDAV 状态</div>
-          <div class="text-lg font-medium <%= @webdav_configured ? 'text-green-600' : 'text-gray-400' %>">
+          <div class="text-sm text-secondary dark:text-secondary-dark">WebDAV 状态</div>
+          <div class="text-lg font-medium <%= @webdav_configured ? 'text-green-600' : 'text-secondary dark:text-secondary-dark' %>">
             <%= @webdav_configured ? '已连接' : '未配置' %>
           </div>
         </div>
@@ -30,11 +30,11 @@
       </div>
     </div>
 
-    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
       <div class="flex justify-between items-start">
         <div>
-          <div class="text-sm text-gray-500">自动备份</div>
-          <div class="text-lg font-medium <%= @auto_backup_enabled ? 'text-green-600' : 'text-gray-400' %>">
+          <div class="text-sm text-secondary dark:text-secondary-dark">自动备份</div>
+          <div class="text-lg font-medium <%= @auto_backup_enabled ? 'text-green-600' : 'text-secondary dark:text-secondary-dark' %>">
             <%= @auto_backup_enabled ? '已启用' : '未启用' %>
           </div>
         </div>
@@ -44,7 +44,7 @@
   </div>
 
   <!-- WebDAV Configuration -->
-  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-4">WebDAV 云备份</h2>
     
     <% if @webdav_configured %>
@@ -75,7 +75,7 @@
         <% end %>
       </div>
     <% else %>
-      <div class="text-gray-500 text-center py-8">
+      <div class="text-secondary dark:text-secondary-dark text-center py-8">
         <div class="text-4xl mb-2">☁️</div>
         <p>配置 WebDAV 以启用云备份</p>
         <button onclick="document.getElementById('webdav-form').classList.toggle('hidden')" class="mt-4 px-4 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern">
@@ -87,19 +87,19 @@
         <%= form_with url: webdav_connect_backups_path, local: true, class: "space-y-4" do |f| %>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <%= f.label :url, "WebDAV 地址", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.label :url, "WebDAV 地址", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
               <%= f.text_field :url, placeholder: "https://dav.example.com", class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
             </div>
             <div>
-              <%= f.label :directory, "目录", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.label :directory, "目录", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
               <%= f.text_field :directory, value: "/ledger-backups", class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
             </div>
             <div>
-              <%= f.label :username, "用户名", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.label :username, "用户名", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
               <%= f.text_field :username, class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
             </div>
             <div>
-              <%= f.label :password, "密码", class: "block text-sm font-medium text-gray-700" %>
+              <%= f.label :password, "密码", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
               <%= f.password_field :password, class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
             </div>
           </div>
@@ -110,7 +110,7 @@
   </div>
 
   <!-- Auto Backup -->
-  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
     <h2 class="text-lg font-semibold mb-4">自动备份</h2>
     
     <% if @auto_backup_enabled %>
@@ -119,27 +119,27 @@
           <div class="text-green-500 text-2xl">🔄</div>
           <div>
             <div class="font-medium text-green-800">自动备份已启用</div>
-            <div class="text-sm text-gray-500">每日自动备份，保留最近 10 个</div>
+            <div class="text-sm text-secondary dark:text-secondary-dark">每日自动备份，保留最近 10 个</div>
           </div>
         </div>
         <%= button_to "禁用", disable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
       </div>
     <% else %>
       <div class="text-center py-4">
-        <p class="text-gray-500 mb-4">启用自动备份，每日自动创建数据备份</p>
+        <p class="text-secondary dark:text-secondary-dark mb-4">启用自动备份，每日自动创建数据备份</p>
         <%= button_to "启用自动备份", enable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
       </div>
     <% end %>
   </div>
 
   <!-- Backup List -->
-  <div class="bg-container dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
     <div class="px-6 py-4 border-b">
       <h2 class="text-lg font-semibold">备份历史</h2>
     </div>
 
     <% if @backups.empty? %>
-      <div class="p-8 text-center text-gray-500">
+      <div class="p-8 text-center text-secondary dark:text-secondary-dark">
         <div class="text-4xl mb-2">📭</div>
         <p>暂无备份</p>
       </div>
@@ -147,29 +147,29 @@
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-surface dark:bg-gray-900">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">文件名</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">类型</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">大小</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">创建时间</th>
-            <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">云端</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">文件名</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">类型</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary-dark uppercase">大小</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">创建时间</th>
+            <th class="px-6 py-3 text-center text-xs font-medium text-secondary dark:text-secondary-dark uppercase">云端</th>
             <th class="px-6 py-3 actions"></th>
           </tr>
         </thead>
-        <tbody class="bg-container dark:bg-gray-800 divide-y divide-gray-200">
+        <tbody class="bg-container dark:bg-container-dark divide-y divide-gray-200">
           <% @backups.each do |backup| %>
             <tr class="hover:bg-surface dark:bg-gray-900">
-              <td class="px-6 py-4 whitespace-nowrap font-medium text-gray-900">
+              <td class="px-6 py-4 whitespace-nowrap font-medium text-primary dark:text-primary-dark">
                 <%= backup[:name] %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap">
-                <span class="px-2 py-1 rounded text-xs bg-surface dark:bg-gray-600 text-primary dark:text-gray-300">
+                <span class="px-2 py-1 rounded text-xs bg-surface dark:bg-gray-600 text-primary dark:text-secondary-dark">
                   <%= backup[:type] == 'auto' ? '自动' : '手动' %>
                 </span>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-gray-500">
+              <td class="px-6 py-4 whitespace-nowrap text-right text-sm text-secondary dark:text-secondary-dark">
                 <%= number_to_human_size(backup[:size]) %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary dark:text-secondary-dark">
                 <%= l(backup[:created_at], format: :short) %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
