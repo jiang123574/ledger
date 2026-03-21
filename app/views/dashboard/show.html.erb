@@ -32,7 +32,7 @@
           <p class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= t("dashboard.income") %></p>
           <p class="text-2xl font-semibold text-income mt-1"><%= format_currency(@total_income) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "trending-up", size: :md, color: :income)) %>
         </div>
       </div>
@@ -44,7 +44,7 @@
           <p class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= t("dashboard.expense") %></p>
           <p class="text-2xl font-semibold text-expense mt-1"><%= format_currency(@total_expense) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "trending-down", size: :md, color: :expense)) %>
         </div>
       </div>
@@ -59,7 +59,7 @@
             <%= balance_info[:amount] %>
           </p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
         </div>
       </div>
@@ -71,7 +71,7 @@
           <p class="text-sm font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark">总资产</p>
           <p class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark mt-1"><%= format_currency(@total_assets) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="w-10 h-10 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "wallet", size: :md, color: :primary)) %>
         </div>
       </div>
@@ -136,7 +136,7 @@
       <!-- Section Content -->
       <div class="divide-y divide-border" data-dashboard-section-target="content">
         <% @transactions.first(8).each do |t| %>
-          <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
+          <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface dark:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-10 h-10 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center shrink-0">
                 <%= render(Ds::IconComponent.new(name: t.type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: t.type == "INCOME" ? :income : :expense)) %>
@@ -212,9 +212,9 @@
       <!-- Section Content -->
       <div class="divide-y divide-border" data-dashboard-section-target="content">
         <% @accounts.each do |account| %>
-          <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
+          <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface dark:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0">
+              <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark dark:bg-surface-dark flex items-center justify-center shrink-0">
                 <span class="text-sm font-semibold text-primary dark:text-primary dark:text-primary-dark-dark"><%= account.name[0] %></span>
               </div>
               <div>
@@ -290,7 +290,7 @@
                   <span class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark"><%= category || t("dashboard.uncategorized") %></span>
                   <span class="text-expense font-medium"><%= format_currency(amount) %></span>
                 </div>
-                <div class="w-full bg-surface rounded-full h-2">
+                <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
                   <div class="bg-expense h-2 rounded-full transition-all" style="width: <%= percentage %>%"></div>
                 </div>
               </div>

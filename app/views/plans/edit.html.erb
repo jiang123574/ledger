@@ -20,21 +20,21 @@
       <div>
         <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mb-2">计划类型</label>
         <div class="grid grid-cols-3 gap-4">
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
             <%= f.radio_button :type, 'ONE_TIME', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">📌</div>
               <div class="font-medium">一次性</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
             <%= f.radio_button :type, 'INSTALLMENT', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">💳</div>
               <div class="font-medium">分期还款</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
             <%= f.radio_button :type, 'RECURRING', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">🔄</div>
@@ -82,7 +82,7 @@
           
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">每期金额</label>
-            <div class="mt-1 p-2 bg-surface dark:bg-surface-dark rounded-lg text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
+            <div class="mt-1 p-2 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-lg text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
               ¥<%= (@plan.total_amount.to_f / [@plan.installments_total, 1].max).round(2) %>
             </div>
           </div>
