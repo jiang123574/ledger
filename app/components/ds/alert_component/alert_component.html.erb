@@ -1,0 +1,7 @@
+<div class="<%= container_classes %>" role="alert">
+  <%= render Ds::IconComponent.new(icon_name, size: "sm", class: "shrink-0 text-current") %>
+
+  <div class="flex-1 text-sm">
+    <%= @message %>
+  </div>
+</div>

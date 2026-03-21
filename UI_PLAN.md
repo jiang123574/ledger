@@ -1,124 +1,134 @@
-# UI 改造计划 - 基于 Sure 项目设计模式
+# UI 改造计划 - 基于 Sure 项目研究
 
-## 目标
+> 参考: [Sure 项目研究文档](./docs/sure-ui-research.md)
 
-将 Sure 项目的设计系统模式应用到 Ledger 项目，提升 UI/UX 体验。
+## 已完成 ✅
 
-## 当前状态 vs 目标状态
-
-| 模块 | 当前 | 目标 |
+| 功能 | 状态 | 文件 |
 |------|------|------|
-| 配色 | 默认 Tailwind | 自定义语义配色 (surface, container, primary, secondary) |
-| 布局 | 简单顶部导航 | 响应式侧边栏 + 底部导航 |
-| 组件 | 原生 HTML | Design System 组件库 |
-| 交易列表 | 简单列表 | 12列网格 + 复选框 + 分类徽章 |
-| Dashboard | 基础卡片 | 可拖拽/折叠区块 |
+| DS 基础组件 | ✅ | `app/components/ds/` |
+| 语义化颜色系统 | ✅ | `tailwind.config.js` |
+| 响应式布局 | ✅ | `app/views/layouts/` |
+| 设置页左导航 | ✅ | `app/views/settings/` |
+| 交易列表改版 | ✅ | `app/views/transactions/` |
+| 账户类型下拉 | ✅ | `Account::ACCOUNT_TYPES` |
+| 收入/支出颜色 | ✅ | 红/绿 颜色对调 |
+
+## 阶段一：组件完善 ✅
+
+| 组件 | 状态 | 文件 |
+|------|------|------|
+| Disclosure | ✅ | `app/components/ds/disclosure_component.rb` |
+| Alert | ✅ | `app/components/ds/alert_component.rb` |
+| Toggle | ✅ | `app/components/ds/toggle_component.rb` |
+| Menu | ✅ | `app/components/ds/menu_component.rb` |
+| Tooltip | ✅ | `app/components/ds/tooltip_component.rb` |
+| FilledIcon | ✅ | `app/components/ds/filled_icon_component.rb` |
+
+## 阶段二：交互增强 ✅
+
+| 功能 | 状态 | 文件 |
+|------|------|------|
+| auto-submit-form | ✅ | `app/javascript/controllers/auto_submit_form_controller.js` |
+| bulk-select | ✅ | `app/javascript/controllers/bulk_select_controller.js` |
+| tabs | ✅ | `app/javascript/controllers/tabs_controller.js` |
+| disclosure | ✅ | `app/javascript/controllers/ds_disclosure_controller.js` |
+
+## 阶段三：页面改版 ✅
+
+| 功能 | 状态 | 文件 |
+|------|------|------|
+| 交易页三栏布局 | ✅ | `app/views/transactions/index.html.erb` |
+| 账户详情页 | ✅ | `app/views/accounts/show.html.erb` |
+| 批量操作 (SelectionBar) | ✅ | `app/components/ds/selection_bar_component.rb` |
+| 过滤器系统 | ✅ | `TransactionSearch` 模型 |
+
+## 阶段四：高级功能 ✅
+
+| 功能 | 状态 | 文件 |
+|------|------|------|
+| 图表系统 - 环形图 | ✅ | `app/components/ds/donut_chart_component.rb` |
+| 图表系统 - 折线图 | ✅ | `app/javascript/controllers/sparkline_chart_controller.js` |
+| 图表系统 - 时间序列 | ✅ | `app/javascript/controllers/time_series_chart_controller.js` |
+| 图表系统 - 桑基图 | ✅ | `app/components/ds/sankey_chart_component.rb` |
+| 暗色模式 | ✅ | `tailwind.config.js`, `theme_controller.js` |
+| Turbo 实时更新 | ✅ | `Account#broadcast_refresh`, `Transaction#broadcast_refresh` |
+
+## DS 组件库完整列表
+
+| 组件 | 文件 | 功能 |
+|------|------|------|
+| Base | `base_component.rb` | 基础组件 |
+| Icon | `icon_component.rb` | SVG 图标 |
+| Button | `button_component.rb` | 按钮 |
+| Badge | `badge_component.rb` | 徽章 |
+| Card | `card_component.rb` | 卡片 |
+| Tabs | `tabs_component.rb` | 标签页 |
+| Dialog | `dialog_component.rb` | 对话框 |
+| EmptyState | `empty_state_component.rb` | 空状态 |
+| Input | `input_component.rb` | 输入框 |
+| Disclosure | `disclosure_component.rb` | 折叠内容 |
+| Alert | `alert_component.rb` | 警告提示 |
+| Toggle | `toggle_component.rb` | 开关 |
+| Menu | `menu_component.rb` | 下拉菜单 |
+| MenuItem | `menu_item_component.rb` | 菜单项 |
+| Tooltip | `tooltip_component.rb` | 工具提示 |
+| FilledIcon | `filled_icon_component.rb` | 填充图标 |
+| DonutChart | `donut_chart_component.rb` | 环形图 |
+| SankeyChart | `sankey_chart_component.rb` | 桑基图 |
+| FilterBadge | `filter_badge_component.rb` | 筛选徽章 |
+| SelectionBar | `selection_bar_component.rb` | 批量选择栏 |
+
+## Stimulus 控制器列表
+
+| 控制器 | 文件 | 功能 |
+|--------|------|------|
+| auto-submit-form | `auto_submit_form_controller.js` | 表单自动提交 |
+| bulk-select | `bulk_select_controller.js` | 批量选择 |
+| tabs | `tabs_controller.js` | 标签页 |
+| ds-menu | `ds_menu_controller.js` | 下拉菜单 |
+| ds-tooltip | `ds_tooltip_controller.js` | 工具提示 |
+| ds-disclosure | `ds_disclosure_controller.js` | 折叠面板 |
+| donut-chart | `donut_chart_controller.js` | 环形图 |
+| sparkline-chart | `sparkline_chart_controller.js` | 迷你折线图 |
+| time-series-chart | `time_series_chart_controller.js` | 时间序列图 |
+| sankey-chart | `sankey_chart_controller.js` | 桑基图 |
+| theme | `theme_controller.js` | 主题切换 |
+
+## 颜色语义
+
+| 颜色 | CSS 类 | 用途 |
+|------|--------|------|
+| `bg-surface` | 页面背景 | 主背景色 |
+| `bg-container` | 卡片背景 | 卡片/容器背景 |
+| `text-primary` | 主文字 | 标题/重要文字 |
+| `text-secondary` | 次要文字 | 说明文字 |
+| `text-income` | 收入 | 金额为正 (红色 #ef4444) |
+| `text-expense` | 支出 | 金额为负 (绿色 #22c55e) |
+
+## 响应式断点
+
+| 类名 | 断点 | 用途 |
+|------|------|------|
+| `lg:hidden` | 1024px+ | 桌面端隐藏 |
+| `hidden lg:block` | 1024px+ | 移动端隐藏 |
+| `md:hidden` | 768px+ | 仅移动端 |
+
+## Hotwire 模式
+
+```erb
+<%# 局部刷新 %>
+<%= turbo_frame_tag "transactions", src: transactions_path(format: :turbo) %>
+
+<%# 实时广播 %>
+<%= turbo_stream_from @account %>
+<%= turbo_stream_from "transactions" %>
+
+<%# 模型广播 %>
+<%# after_save_commit :broadcast_refresh %>
+<%# after_destroy_commit :broadcast_destroy %>
+```
 
 ---
 
-## 第一阶段：设计系统基础
-
-### 1.1 配色系统
-- [ ] 更新 `tailwind.config.js` 添加语义颜色
-- [ ] 添加 surface, container, primary, secondary 等 CSS 变量
-- [ ] 更新全局样式
-
-### 1.2 DS 基础组件
-- [ ] 创建 `app/components/ds/button_component.rb` - 按钮组件
-- [ ] 创建 `app/components/ds/link_component.rb` - 链接组件
-- [ ] 创建 `app/components/ds/icon_component.rb` - 图标组件 (使用 Heroicons)
-- [ ] 创建 `app/components/ds/badge_component.rb` - 徽章组件
-- [ ] 创建 `app/components/ds/dialog_component.rb` - 对话框组件
-- [ ] 创建 `app/components/ds/tabs_component.rb` - 标签页组件
-- [ ] 创建 `app/components/ds/card_component.rb` - 卡片组件
-
----
-
-## 第二阶段：响应式布局
-
-### 2.1 布局架构
-- [ ] 创建 `app/views/layouts/_sidebar.html.erb` - 桌面端侧边栏
-- [ ] 创建 `app/views/layouts/_mobile_nav.html.erb` - 移动端底部导航
-- [ ] 更新 `application.html.erb` 使用新布局架构
-- [ ] 添加布局 JavaScript 控制器
-
-### 2.2 导航
-- [ ] 更新顶部导航使用新设计
-- [ ] 添加侧边栏导航项
-- [ ] 添加移动端底部导航
-
----
-
-## 第三阶段：核心页面改造
-
-### 3.1 Dashboard
-- [ ] 更新 Dashboard 布局为网格系统
-- [ ] 创建仪表盘卡片组件
-- [ ] 添加月份导航器
-- [ ] 改进统计卡片显示
-
-### 3.2 交易列表
-- [ ] 更新交易列表使用 12 列网格
-- [ ] 添加复选框批量选择
-- [ ] 添加分类徽章显示
-- [ ] 改进交易行组件
-- [ ] 添加搜索和筛选功能
-
-### 3.3 账户页面
-- [ ] 更新账户卡片设计
-- [ ] 改进余额显示
-- [ ] 添加账户类型标签
-
-### 3.4 分类页面
-- [ ] 更新分类卡片设计
-- [ ] 添加类型筛选标签
-
----
-
-## 第四阶段：交互优化
-
-### 4.1 表单
-- [ ] 更新交易表单设计
-- [ ] 添加交易类型切换 (支出/收入/转账)
-- [ ] 改进金额输入
-
-### 4.2 空状态
-- [ ] 为各页面添加统一空状态组件
-
-### 4.3 加载状态
-- [ ] 添加骨架屏加载效果
-
----
-
-## 第五阶段：收尾
-
-### 5.1 测试
-- [ ] 测试响应式布局
-- [ ] 测试所有页面功能
-
-### 5.2 文档
-- [ ] 更新 AGENTS.md 添加 UI 组件使用规范
-
----
-
-## 实施顺序
-
-1. **配色系统** - 基础中的基础
-2. **图标组件** - 其他组件依赖
-3. **按钮/链接组件** - 快速见效
-4. **卡片组件** - Dashboard 和列表使用
-5. **布局架构** - 整体框架
-6. **导航组件** - 页面跳转
-7. **Dashboard 改造** - 核心页面
-8. **交易列表改造** - 核心功能
-9. **其他页面改造** - 账户、分类、预算
-10. **表单和状态优化** - 细节打磨
-
----
-
-## 预期效果
-
-- 统一的视觉设计语言
-- 良好的移动端体验
-- 可复用的组件库
-- 现代化的界面风格
+## 所有任务已完成！ ✅

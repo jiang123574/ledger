@@ -1,11 +1,11 @@
-<aside class="hidden lg:flex flex-col w-64 shrink-0 bg-container border-r border-border min-h-screen sticky top-0">
+<aside class="hidden lg:flex flex-col w-64 shrink-0 bg-container dark:bg-gray-800 border-r border-border dark:border-gray-700 min-h-screen sticky top-0">
   <!-- Logo -->
-  <div class="h-16 flex items-center px-6 border-b border-border">
+  <div class="h-16 flex items-center px-6 border-b border-border dark:border-gray-700">
     <%= link_to dashboard_path, class: "flex items-center gap-3" do %>
       <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
         <span class="text-white font-bold text-sm">账</span>
       </div>
-      <span class="font-semibold text-primary"><%= t("app_name") %></span>
+      <span class="font-semibold text-primary dark:text-white"><%= t("app_name") %></span>
     <% end %>
   </div>
 
@@ -20,8 +20,18 @@
   </nav>
 
   <!-- Footer -->
-  <div class="p-4 border-t border-border">
-    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-smooth" do %>
+  <div class="p-4 border-t border-border dark:border-gray-700 space-y-1">
+    <!-- Theme Toggle -->
+    <button type="button" class="flex items-center gap-3 px-3 py-2 rounded-lg text-secondary dark:text-gray-400 hover:bg-surface dark:hover:bg-gray-700 hover:text-primary dark:hover:text-white transition-smooth w-full" data-action="click->theme#toggle">
+      <svg data-theme-icon="sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+      </svg>
+      <svg data-theme-icon="moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+      </svg>
+      <span class="text-sm font-medium">深色模式</span>
+    </button>
+    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-secondary dark:text-gray-400 hover:bg-surface dark:hover:bg-gray-700 hover:text-primary dark:hover:text-white transition-smooth" do %>
       <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
       <span class="text-sm font-medium"><%= t("nav.settings") %></span>
     <% end %>
@@ -31,16 +41,16 @@
 <!-- Mobile Sidebar -->
 <div id="sidebar-overlay" class="lg:hidden fixed inset-0 z-40 bg-black/50 hidden"></div>
 
-<aside id="mobile-sidebar" class="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-container shadow-border-lg transform transition-transform duration-200 ease-out translate-x-[-100%]">
+<aside id="mobile-sidebar" class="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-container dark:bg-gray-800 shadow-lg transform transition-transform duration-200 ease-out -translate-x-full">
   <!-- Logo -->
-  <div class="h-16 flex items-center justify-between px-6 border-b border-border">
+  <div class="h-16 flex items-center justify-between px-6 border-b border-border dark:border-gray-700">
     <%= link_to dashboard_path, class: "flex items-center gap-3" do %>
       <div class="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
         <span class="text-white font-bold text-sm">账</span>
       </div>
-      <span class="font-semibold text-primary"><%= t("app_name") %></span>
+      <span class="font-semibold text-primary dark:text-white"><%= t("app_name") %></span>
     <% end %>
-    <button type="button" id="sidebar-close" class="p-2 text-secondary hover:text-primary">
+    <button type="button" id="sidebar-close" class="p-2 text-secondary dark:text-gray-400 hover:text-primary dark:hover:text-white">
       <%= render(Ds::IconComponent.new(name: "x", size: :md)) %>
     </button>
   </div>
@@ -56,8 +66,17 @@
   </nav>
 
   <!-- Footer -->
-  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border">
-    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-secondary hover:bg-surface-hover hover:text-primary transition-smooth" do %>
+  <div class="absolute bottom-0 left-0 right-0 p-4 border-t border-border dark:border-gray-700 space-y-1">
+    <button type="button" class="flex items-center gap-3 px-3 py-2 rounded-lg text-secondary dark:text-gray-400 hover:bg-surface dark:hover:bg-gray-700 hover:text-primary dark:hover:text-white transition-smooth w-full" data-action="click->theme#toggle">
+      <svg data-theme-icon="sun" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+      </svg>
+      <svg data-theme-icon="moon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+      </svg>
+      <span class="text-sm font-medium">深色模式</span>
+    </button>
+    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-2 rounded-lg text-secondary dark:text-gray-400 hover:bg-surface dark:hover:bg-gray-700 hover:text-primary dark:hover:text-white transition-smooth" do %>
       <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
       <span class="text-sm font-medium"><%= t("nav.settings") %></span>
     <% end %>

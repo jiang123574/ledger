@@ -1,0 +1,117 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <div class="flex items-center gap-4">
+      <%= link_to accounts_path, class: "p-2 hover:bg-surface rounded-lg transition-colors" do %>
+        <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
+      <% end %>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+          <span class="text-lg font-bold text-blue-600"><%= @account.name[0] %></span>
+        </div>
+        <div>
+          <h1 class="text-2xl font-semibold text-primary"><%= @account.name %></h1>
+          <p class="text-sm text-secondary"><%= @account.type_name %></p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <%= link_to edit_account_path(@account), class: "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface transition-smooth" do %>
+        <%= render(Ds::IconComponent.new(name: "pencil", size: :sm)) %>
+        编辑
+      <% end %>
+      <%= link_to new_transaction_path(account_id: @account.id), class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" do %>
+        <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
+        新交易
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Balance & Stats -->
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+    <!-- Balance Card -->
+    <%= render(Ds::CardComponent.new) do %>
+      <div class="text-center">
+        <p class="text-sm font-medium text-secondary mb-1">当前余额</p>
+        <p class="text-3xl font-bold text-primary">¥<%= @account.current_balance.to_s("%.2f") %></p>
+        <% if @account.currency.present? %>
+          <p class="text-xs text-secondary mt-1"><%= @account.currency %></p>
+        <% end %>
+      </div>
+    <% end %>
+
+    <!-- Stats -->
+    <div class="bg-container rounded-lg shadow-border-xs p-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <p class="text-xs text-secondary mb-1">总收入</p>
+          <p class="text-lg font-semibold text-income">+¥<%= @stats[:total_income].to_s("%.2f") %></p>
+        </div>
+        <div>
+          <p class="text-xs text-secondary mb-1">总支出</p>
+          <p class="text-lg font-semibold text-expense">-¥<%= @stats[:total_expense].to_s("%.2f") %></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction Count -->
+    <div class="bg-container rounded-lg shadow-border-xs p-4 flex items-center justify-center">
+      <div class="text-center">
+        <p class="text-xs text-secondary mb-1">交易数量</p>
+        <p class="text-2xl font-bold text-primary"><%= @stats[:transaction_count] %></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Balance Chart -->
+  <div class="bg-container rounded-lg shadow-border-xs p-4">
+    <h2 class="text-base font-semibold text-primary mb-4">余额趋势</h2>
+    <div class="h-48" id="balance-chart" data-controller="sparkline-chart" data-sparkline-chart-data-value="<%= @balance_history.map { |h| h[:balance] }.to_json %>">
+      <svg class="w-full h-full" data-sparkline-chart-target="chart"></svg>
+    </div>
+  </div>
+
+  <!-- Recent Transactions -->
+  <div class="bg-container rounded-lg shadow-border-xs">
+    <div class="p-4 border-b border-border">
+      <div class="flex items-center justify-between">
+        <h2 class="text-base font-semibold text-primary">最近交易</h2>
+        <%= link_to transactions_path(account_id: @account.id), class: "text-sm text-blue-600 hover:text-blue-700 font-medium" do %>
+          查看全部
+        <% end %>
+      </div>
+    </div>
+    
+    <% if @transactions.any? %>
+      <div class="divide-y divide-border max-h-[400px] overflow-y-auto">
+        <% @transactions.first(20).each do |t| %>
+          <%= link_to edit_transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
+            <div class="flex items-center gap-3 min-w-0">
+              <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 <%= t.type == "INCOME" ? "bg-red-100" : "bg-green-100" %>">
+                <% if t.type == "INCOME" %>
+                  <%= render(Ds::IconComponent.new(name: "arrow-up-right", size: :sm, class: "text-red-600")) %>
+                <% else %>
+                  <%= render(Ds::IconComponent.new(name: "arrow-down-right", size: :sm, class: "text-green-600")) %>
+                <% end %>
+              </div>
+              <div class="min-w-0">
+                <p class="font-medium text-primary truncate"><%= t.category&.name || t.note || "无分类" %></p>
+                <p class="text-xs text-secondary"><%= t.date&.strftime("%Y-%m-%d") %></p>
+              </div>
+            </div>
+            <span class="font-medium <%= t.type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
+              <%= t.type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
+            </span>
+          <% end %>
+        <% end %>
+      </div>
+    <% else %>
+      <div class="p-8 text-center">
+        <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mx-auto mb-3">
+          <%= render(Ds::IconComponent.new(name: "inbox", class: "text-secondary")) %>
+        </div>
+        <p class="text-secondary">暂无交易记录</p>
+      </div>
+    <% end %>
+  </div>
+</div>

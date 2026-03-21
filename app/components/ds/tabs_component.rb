@@ -2,36 +2,77 @@
 
 module Ds
   class TabsComponent < BaseComponent
-    def initialize(active_tab: nil, **options)
+    def initialize(
+      active_tab: nil,
+      url_param_key: nil,
+      variant: :default,
+      **options
+    )
       @active_tab = active_tab
+      @url_param_key = url_param_key
+      @variant = variant
       @options = options
+      @tabs = []
     end
 
-    def tab_link(id, label, **link_options)
-      active_class = active?(id) ? "border-blue-500 text-blue-600" : "border-transparent text-secondary hover:text-primary hover:border-border"
-      tab_classes = "px-4 py-2 text-sm font-medium border-b-2 transition-smooth #{active_class}"
+    def tab(id:, label:, &block)
+      @tabs << { id: id, label: label, block: block }
+    end
 
-      data = { action: "tabs#switch", tabs_target: "tab", tab_id: id }
-      data = data.merge(link_options[:data]) if link_options[:data]
-
-      link_to("#", class: tab_classes, data: data) do
-        label
+    def call
+      content_tag(:div, class: "w-full", data: {
+        controller: "tabs",
+        tabs_active_tab_value: @active_tab || @tabs.first&.dig(:id),
+        tabs_url_param_key_value: @url_param_key
+      }) do
+        safe_join([
+          content_tag(:div, class: "border-b border-border") do
+            content_tag(:nav, class: "flex space-x-8") do
+              safe_join(@tabs.map { |t| tab_button(t) })
+            end
+          end,
+          content_tag(:div, class: "mt-4") do
+            safe_join(@tabs.map { |t| tab_panel(t) })
+          end
+        ])
       end
-    end
-
-    def panel(id, &block)
-      panel_classes = active?(id) ? "mt-4" : "mt-4 hidden"
-      content_tag(:div, class: panel_classes, data: { tabs_target: "panel", tab_panel_id: id }, &block)
-    end
-
-    def panel_with_frame(id, &block)
-      turbo_frame_tag("tab_panel_#{id}", data: { tabs_target: "panel", tab_panel_id: id }, &block)
     end
 
     private
 
-    def active?(id)
-      @active_tab == id
+    attr_reader :options
+
+    def tab_button(tab)
+      is_active = (tab[:id].to_s == (@active_tab || @tabs.first[:id]).to_s)
+      
+      content_tag(:button,
+        type: :button,
+        class: tab_classes(is_active),
+        data: { tab: tab[:id], action: "tabs#selectTab" }
+      ) do
+        tab[:label]
+      end
+    end
+
+    def tab_panel(tab)
+      is_active = (tab[:id].to_s == (@active_tab || @tabs.first[:id]).to_s)
+      
+      content_tag(:div,
+        class: [is_active ? "" : "hidden"],
+        data: { tab_panel: tab[:id] }
+      ) do
+        tab[:block].call
+      end
+    end
+
+    def tab_classes(active)
+      base = if @variant == :unstyled
+        "py-2 px-3 text-sm font-medium rounded"
+      else
+        "whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm transition-colors"
+      end
+      
+      active ? "#{base} #{@variant == :unstyled ? 'bg-blue-100 text-blue-700' : 'border-blue-600 text-blue-600'}" : "#{base} #{@variant == :unstyled ? 'text-gray-500 hover:text-gray-700' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}"
     end
   end
 end

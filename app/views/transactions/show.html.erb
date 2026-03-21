@@ -1,0 +1,77 @@
+<div class="space-y-6">
+  <!-- Header -->
+  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+    <div class="flex items-center gap-4">
+      <%= link_to transactions_path, class: "p-2 hover:bg-surface rounded-lg transition-colors" do %>
+        <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
+      <% end %>
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full flex items-center justify-center <%= @transaction.type == "INCOME" ? "bg-red-100" : "bg-green-100" %>">
+          <% if @transaction.type == "INCOME" %>
+            <%= render(Ds::IconComponent.new(name: "arrow-up-right", size: :lg, class: "text-red-600")) %>
+          <% else %>
+            <%= render(Ds::IconComponent.new(name: "arrow-down-right", size: :lg, class: "text-green-600")) %>
+          <% end %>
+        </div>
+        <div>
+          <h1 class="text-2xl font-semibold text-primary"><%= @transaction.category&.name || @transaction.note || "交易" %></h1>
+          <p class="text-sm text-secondary"><%= @transaction.date&.strftime("%Y-%m-%d") %></p>
+        </div>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <%= link_to edit_transaction_path(@transaction), class: "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface transition-smooth" do %>
+        <%= render(Ds::IconComponent.new(name: "pencil", size: :sm)) %>
+        编辑
+      <% end %>
+      <%= button_to @transaction, method: :delete, data: { turbo_confirm: "确定要删除这笔交易吗？" }, class: "inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-smooth" do %>
+        <%= render(Ds::IconComponent.new(name: "trash", size: :sm)) %>
+        删除
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Transaction Details -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Amount Card -->
+    <%= render(Ds::CardComponent.new) do %>
+      <div class="text-center">
+        <p class="text-sm font-medium text-secondary mb-1">金额</p>
+        <p class="text-3xl font-bold <%= @transaction.type == "INCOME" ? "text-income" : "text-expense" %>">
+          <%= @transaction.type == "INCOME" ? "+" : "-" %>¥<%= sprintf("%.2f", @transaction.amount.to_f) %>
+        </p>
+        <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium mt-2 <%= @transaction.type == "INCOME" ? "bg-red-100 text-red-700" : "bg-green-100 text-green-700" %>">
+          <%= @transaction.type == "INCOME" ? "收入" : "支出" %>
+        </span>
+      </div>
+    <% end %>
+
+    <!-- Details Card -->
+    <%= render(Ds::CardComponent.new) do %>
+      <div class="space-y-4">
+        <div class="flex justify-between items-center">
+          <span class="text-sm text-secondary">账户</span>
+          <span class="text-sm font-medium text-primary"><%= @transaction.account_name %></span>
+        </div>
+        <% if @transaction.target_account_name.present? %>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-secondary">目标账户</span>
+            <span class="text-sm font-medium text-primary"><%= @transaction.target_account_name %></span>
+          </div>
+        <% end %>
+        <% if @transaction.category.present? %>
+          <div class="flex justify-between items-center">
+            <span class="text-sm text-secondary">分类</span>
+            <span class="text-sm font-medium text-primary"><%= @transaction.category.name %></span>
+          </div>
+        <% end %>
+        <% if @transaction.note.present? %>
+          <div class="flex justify-between items-start">
+            <span class="text-sm text-secondary">备注</span>
+            <span class="text-sm font-medium text-primary text-right max-w-[200px]"><%= @transaction.note %></span>
+          </div>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
+</div>

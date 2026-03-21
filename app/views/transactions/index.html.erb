@@ -2,67 +2,143 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
     <h1 class="text-2xl font-semibold text-primary"><%= t("transactions.title") %></h1>
-    <%= link_to new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" do %>
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-      <%= t("transactions.new_transaction") %>
-    <% end %>
+    <div class="flex items-center gap-3">
+      <% if @search.active_filters? %>
+        <%= link_to transactions_path, class: "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border text-secondary hover:bg-surface-hover transition-smooth" do %>
+          <%= render Ds::IconComponent.new(name: "x-mark", size: :sm) %>
+          清除筛选
+        <% end %>
+      <% end %>
+      <%= link_to new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" do %>
+        <%= render Ds::IconComponent.new(name: "plus", size: :sm) %>
+        <%= t("transactions.new_transaction") %>
+      <% end %>
+    </div>
   </div>
 
   <!-- Search & Filter -->
   <div class="bg-container rounded-lg shadow-border-xs">
     <div class="p-4">
-      <%= form_tag transactions_path, method: :get, class: "flex flex-wrap gap-3 items-end" do %>
-        <div class="flex-1 min-w-[120px]">
-          <label class="block text-sm font-medium text-secondary mb-1">开始日期</label>
-          <%= date_field_tag :start_date, params[:start_date], class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
-        </div>
-        <div class="flex-1 min-w-[120px]">
-          <label class="block text-sm font-medium text-secondary mb-1">结束日期</label>
-          <%= date_field_tag :end_date, params[:end_date], class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
-        </div>
-        <div class="flex-1 min-w-[120px]">
-          <label class="block text-sm font-medium text-secondary mb-1">类型</label>
-          <%= select_tag :type, options_for_select([["全部", ""], ["收入", "INCOME"], ["支出", "EXPENSE"]], params[:type]), 
-              class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
-        </div>
+      <%= form_tag transactions_path, method: :get, class: "space-y-4", data: { controller: "auto-submit-form" } do %>
+        <!-- Search Input -->
         <div>
-          <%= submit_tag "筛选", class: "px-4 py-2 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth" %>
+          <%= text_field_tag :search, @search.search, 
+              placeholder: "搜索备注...",
+              class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
-        <% if params[:start_date] || params[:end_date] || params[:type].present? %>
-          <div>
-            <%= link_to "清除", transactions_path, class: "text-sm text-secondary hover:text-primary" %>
+
+        <!-- Filter Row -->
+        <div class="flex flex-wrap gap-3 items-end">
+          <div class="flex-1 min-w-[120px]">
+            <label class="block text-sm font-medium text-secondary mb-1">开始日期</label>
+            <%= date_field_tag :start_date, @search.start_date, 
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
-        <% end %>
+          <div class="flex-1 min-w-[120px]">
+            <label class="block text-sm font-medium text-secondary mb-1">结束日期</label>
+            <%= date_field_tag :end_date, @search.end_date, 
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+          <div class="flex-1 min-w-[120px]">
+            <label class="block text-sm font-medium text-secondary mb-1">类型</label>
+            <%= select_tag :type, options_for_select([
+              ["全部", ""], 
+              ["收入", "INCOME"], 
+              ["支出", "EXPENSE"]
+            ], @search.type), 
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+          <div class="flex-1 min-w-[120px]">
+            <label class="block text-sm font-medium text-secondary mb-1">分类</label>
+            <%= select_tag :category_id, options_for_select(
+              [["全部", ""]] + @categories.pluck(:name, :id),
+              @search.category_id
+            ), 
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+          </div>
+        </div>
+
+        <%= hidden_field_tag :account_id, params[:account_id] if params[:account_id].present? %>
+      <% end %>
+
+      <!-- Active Filter Badges -->
+      <% if @search.active_filters? %>
+        <div class="flex flex-wrap gap-2 pt-3 border-t border-border">
+          <%= render Ds::FilterBadgeComponent.new(
+            label: "日期",
+            value: "#{@search.start_date&.strftime('%m/%d')}-#{@search.end_date&.strftime('%m/%d')}",
+            remove_url: transactions_path(@search.to_params.except(:start_date, :end_date).merge(account_id: params[:account_id]))
+          ) if @search.start_date && @search.end_date %>
+          
+          <%= render Ds::FilterBadgeComponent.new(
+            label: "类型",
+            value: @search.type == "INCOME" ? "收入" : "支出",
+            remove_url: transactions_path(@search.to_params.except(:type).merge(account_id: params[:account_id]))
+          ) if @search.type.present? %>
+          
+          <%= render Ds::FilterBadgeComponent.new(
+            label: "分类",
+            value: @categories.find { |c| c.id == @search.category_id }&.name,
+            remove_url: transactions_path(@search.to_params.except(:category_id).merge(account_id: params[:account_id]))
+          ) if @search.category_id.present? %>
+          
+          <%= render Ds::FilterBadgeComponent.new(
+            label: "搜索",
+            value: @search.search,
+            remove_url: transactions_path(@search.to_params.except(:search).merge(account_id: params[:account_id]))
+          ) if @search.search.present? %>
+        </div>
       <% end %>
     </div>
   </div>
 
+  <!-- Summary -->
+  <% if @transactions.any? %>
+    <div class="grid grid-cols-3 gap-4">
+      <div class="bg-container rounded-lg shadow-border-xs p-4">
+        <p class="text-sm text-secondary mb-1">总收入</p>
+        <p class="text-xl font-semibold text-income">+¥<%= @summary[:total_income].to_s("%.2f") %></p>
+      </div>
+      <div class="bg-container rounded-lg shadow-border-xs p-4">
+        <p class="text-sm text-secondary mb-1">总支出</p>
+        <p class="text-xl font-semibold text-expense">-¥<%= @summary[:total_expense].to_s("%.2f") %></p>
+      </div>
+      <div class="bg-container rounded-lg shadow-border-xs p-4">
+        <p class="text-sm text-secondary mb-1">净额</p>
+        <p class="text-xl font-semibold <%= @summary[:total_income] - @summary[:total_expense] >= 0 ? 'text-income' : 'text-expense' %>">
+          <%= @summary[:total_income] - @summary[:total_expense] >= 0 ? '+' : '' %>¥<%= (@summary[:total_income] - @summary[:total_expense]).to_s("%.2f") %>
+        </p>
+      </div>
+    </div>
+  <% end %>
+
   <!-- Three Column Layout: Account List | Transactions | Account Details -->
-  <div class="grid grid-cols-12 gap-4">
+  <div class="grid grid-cols-12 gap-4" data-controller="bulk-select">
     <!-- Left Column: Account List -->
     <div class="col-span-12 md:col-span-3 bg-container rounded-lg shadow-border-xs">
-      <div class="p-3 border-b border-border">
+      <div class="p-3 border-b border-border flex items-center justify-between">
         <h2 class="text-sm font-semibold text-primary">账户</h2>
+        <%= link_to new_account_path, class: "p-1 hover:bg-surface-hover rounded" do %>
+          <%= render Ds::IconComponent.new(name: "plus", size: :sm) %>
+        <% end %>
       </div>
-      <div class="divide-y divide-border max-h-[600px] overflow-y-auto">
+      <div class="divide-y divide-border max-h-[500px] overflow-y-auto">
         <!-- All Transactions -->
-        <%= link_to transactions_path(merge_filter_params), 
+        <%= link_to transactions_path(@search.to_params.except(:account_id)), 
             class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].blank? ? 'bg-surface-inset' : ''}" do %>
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-2">
               <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h16M4 18h16"></path>
-                </svg>
+                <%= render Ds::IconComponent.new(name: "bars-3", size: :sm, class: "text-blue-600") %>
               </div>
               <span class="font-medium text-primary text-sm">所有交易</span>
             </div>
-            <span class="text-xs text-secondary"><%= @transactions.count %></span>
+            <span class="text-xs text-secondary"><%= @summary[:count] %></span>
           </div>
         <% end %>
         
         <% @accounts.each do |account| %>
-          <%= link_to transactions_path(merge_filter_params.merge(account_id: account.id)), 
+          <%= link_to transactions_path(@search.to_params.merge(account_id: account.id)), 
               class: "block p-3 hover:bg-surface transition-smooth #{params[:account_id].to_i == account.id ? 'bg-surface-inset' : ''}" do %>
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
@@ -116,9 +192,9 @@
           </div>
         <% else %>
           <div class="text-center py-8">
-            <svg class="w-12 h-12 mx-auto text-secondary mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-            </svg>
+            <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mx-auto mb-3">
+              <%= render Ds::IconComponent.new(name: "credit-card", class: "text-secondary") %>
+            </div>
             <p class="text-sm text-secondary">选择左侧账户查看详情</p>
           </div>
         <% end %>
@@ -127,10 +203,16 @@
 
     <!-- Right Column: Transaction List -->
     <div class="col-span-12 md:col-span-6 bg-container rounded-lg shadow-border-xs">
+      <%= render Ds::SelectionBarComponent.new(
+        count: 0,
+        delete_url: bulk_destroy_transactions_path,
+        edit_url: nil
+      ) %>
       <% if @transactions.any? %>
         <!-- Header -->
         <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-surface-inset text-xs font-medium text-secondary uppercase tracking-wider rounded-t-lg">
-          <div class="col-span-3">日期</div>
+          <div class="col-span-1"></div>
+          <div class="col-span-2">日期</div>
           <div class="col-span-2">分类</div>
           <div class="col-span-3">账户</div>
           <div class="col-span-2">备注</div>
@@ -140,17 +222,26 @@
         <!-- Transactions -->
         <div class="divide-y divide-border max-h-[600px] overflow-y-auto">
           <% @transactions.each do |t| %>
-            <div class="group">
+            <div class="group relative">
               <%= link_to edit_transaction_path(t), class: "block" do %>
                 <div class="p-4 hover:bg-surface transition-smooth">
                   <div class="md:grid md:grid-cols-12 md:gap-4 md:items-center">
+                    <!-- Checkbox -->
+                    <div class="col-span-1 mb-2 md:mb-0">
+                      <input type="checkbox" 
+                             value="<%= t.id %>" 
+                             data-bulk-select-target="checkbox"
+                             data-action="change->bulk-select#toggleRowSelection"
+                             class="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500">
+                    </div>
+
                     <!-- Date & Type -->
-                    <div class="col-span-3 flex items-center gap-3 mb-2 md:mb-0">
+                    <div class="col-span-2 flex items-center gap-3 mb-2 md:mb-0">
                       <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0 <%= t.type == "INCOME" ? "bg-red-100" : "bg-green-100" %>">
                         <% if t.type == "INCOME" %>
-                          <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path></svg>
+                          <%= render Ds::IconComponent.new(name: "arrow-up-right", size: :sm, class: "text-red-600") %>
                         <% else %>
-                          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                          <%= render Ds::IconComponent.new(name: "arrow-down-right", size: :sm, class: "text-green-600") %>
                         <% end %>
                       </div>
                       <div>
@@ -185,7 +276,7 @@
                         <%= t.type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
                       </span>
                       <div class="md:hidden opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg class="w-5 h-5 text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                        <%= render Ds::IconComponent.new(name: "chevron-right", size: :sm, class: "text-secondary") %>
                       </div>
                     </div>
                   </div>
@@ -196,10 +287,12 @@
         </div>
       <% else %>
         <div class="p-12 text-center">
-          <svg class="w-12 h-12 mx-auto text-secondary mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+          <div class="w-12 h-12 rounded-full bg-surface flex items-center justify-center mx-auto mb-4">
+            <%= render Ds::IconComponent.new(name: "inbox", class: "text-secondary") %>
+          </div>
           <p class="text-primary font-medium mb-1"><%= t("transactions.no_transactions_found") %></p>
           <p class="text-secondary text-sm mb-4">开始添加您的第一笔交易吧</p>
-          <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-blue-600 text-white hover:bg-blue-700 transition-smooth" %>
+          <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
         </div>
       <% end %>
     </div>

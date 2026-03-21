@@ -1,0 +1,19 @@
+<div class="<%= wrapper_classes %>" data-controller="ds-menu">
+  <div data-ds-menu-target="trigger" data-action="click@document->ds-menu#toggle">
+    <% if @variant == :icon %>
+      <%= render Ds::ButtonComponent.new(variant: :ghost, size: :sm) do %>
+        <%= render Ds::IconComponent.new("ellipsis-horizontal", size: "sm") %>
+      <% end %>
+    <% elsif @variant == :button && button_content %>
+      <%= button_content %>
+    <% end %>
+  </div>
+
+  <div data-ds-menu-target="content" class="hidden absolute z-50 mt-2 min-w-[180px] right-0">
+    <div class="bg-container rounded-lg shadow-lg border border-border p-1">
+      <% items.each do |item| %>
+        <%= item %>
+      <% end %>
+    </div>
+  </div>
+</div>

@@ -1,23 +1,23 @@
+# frozen_string_literal: true
+
 class TransactionsController < ApplicationController
   before_action :set_transaction, only: [:show, :edit, :update, :destroy]
   before_action :load_lookups, only: [:new, :edit, :create, :update]
 
   def index
-    @accounts = Account.visible.order(:name).select(:id, :name, :type, :currency, :initial_balance)
+    @search = TransactionSearch.new(params)
     @transactions = Transaction.includes(:account, :category)
       .order(date: :desc)
+    @transactions = @search.apply(@transactions)
 
-    if params[:start_date].present? && params[:end_date].present?
-      @transactions = @transactions.where(date: params[:start_date]..params[:end_date])
-    end
+    @accounts = Account.visible.order(:name).select(:id, :name, :type, :currency, :initial_balance)
+    @categories = Category.order(:name)
 
-    if params[:type].present?
-      @transactions = @transactions.where(type: params[:type])
-    end
-
-    if params[:account_id].present?
-      @transactions = @transactions.where(account_id: params[:account_id])
-    end
+    @summary = {
+      total_income: @transactions.where(type: "INCOME").sum(:amount),
+      total_expense: @transactions.where(type: "EXPENSE").sum(:amount),
+      count: @transactions.count
+    }
   end
 
   def show
@@ -33,7 +33,7 @@ class TransactionsController < ApplicationController
   def create
     @transaction = Transaction.new(transaction_params)
     if @transaction.save
-      redirect_to @transaction, notice: "交易已创建"
+      redirect_to transactions_path, notice: "交易已创建"
     else
       render :new
     end
@@ -41,7 +41,7 @@ class TransactionsController < ApplicationController
 
   def update
     if @transaction.update(transaction_params)
-      redirect_to @transaction, notice: "交易已更新"
+      redirect_to transactions_path, notice: "交易已更新"
     else
       render :edit
     end
@@ -49,7 +49,16 @@ class TransactionsController < ApplicationController
 
   def destroy
     @transaction.destroy
-    redirect_to transactions_url, notice: "交易已删除"
+    redirect_to transactions_path, notice: "交易已删除"
+  end
+
+  def bulk_destroy
+    if params[:ids].present?
+      Transaction.where(id: params[:ids]).destroy_all
+      redirect_to transactions_path, notice: "已删除 #{params[:ids].count} 笔交易"
+    else
+      redirect_to transactions_path, alert: "请选择要删除的交易"
+    end
   end
 
   private

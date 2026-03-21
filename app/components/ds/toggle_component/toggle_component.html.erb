@@ -1,0 +1,11 @@
+<div class="relative">
+  <%= hidden_field_tag(@name, @unchecked_value, id: nil) %>
+  <%= check_box_tag(@name, @checked_value, @checked,
+    class: "sr-only peer",
+    disabled: @disabled,
+    id: @id,
+    **options
+  ) %>
+  <%= label_tag(@id, "&nbsp;".html_safe, class: track_classes, for: @id) %>
+  <span class="<%= thumb_classes %>"></span>
+</div>

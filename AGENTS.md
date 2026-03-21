@@ -13,24 +13,103 @@ Ledger 是一个基于 Ruby on Rails 8 的个人记账应用，采用 PostgreSQL
 - **缓存**: Solid Cache + Solid Queue
 - **前端**: ERB + Tailwind CSS + Hotwire (Turbo Frames)
 - **组件化**: ViewComponent
+- **图标**: Heroicons (内嵌 SVG)
 
 ## 项目结构
 
 ```
 app/
 ├── components/      # ViewComponent 组件
-├── controllers/    # 控制器
-├── helpers/        # 视图助手
-├── javascript/     # JavaScript
-├── models/         # 数据模型
-├── services/      # 服务类
-└── views/          # 视图模板
+│   ├── ds/        # Design System 基础组件
+│   └── ui/        # 业务组件
+├── controllers/   # 控制器
+├── helpers/       # 视图助手
+├── javascript/    # JavaScript
+│   └── controllers/  # Stimulus 控制器
+├── models/        # 数据模型
+├── services/     # 服务类
+└── views/        # 视图模板
 config/
-├── locales/        # 国际化文件
+├── locales/      # 国际化文件
 └── ...
 lib/
-├── money.rb       # 货币处理模块
+├── money.rb      # 货币处理模块
 └── ...
+```
+
+## 设计系统 (Design System)
+
+### DS 组件库
+
+位置: `app/components/ds/`
+
+| 组件 | 文件 | 功能 |
+|------|------|------|
+| Icon | `icon_component.rb` | SVG 图标 |
+| Button | `button_component.rb` | 按钮，支持 variants/sizes |
+| Badge | `badge_component.rb` | 徽章标签 |
+| Card | `card_component.rb` | 卡片容器 |
+| Tabs | `tabs_component.rb` | 标签页 |
+| Dialog | `dialog_component.rb` | 对话框 |
+| EmptyState | `empty_state_component.rb` | 空状态 |
+| Input | `input_component.rb` | 输入框 |
+| Base | `base_component.rb` | 基础组件 |
+
+### 待添加组件
+
+| 组件 | 说明 | 参考 |
+|------|------|------|
+| Disclosure | 可折叠内容 | Sure `DS::Disclosure` |
+| Alert | 警告提示 | Sure `DS::Alert` |
+| Toggle | 开关组件 | Sure `DS::Toggle` |
+| Menu | 下拉菜单 | Sure `DS::Menu` |
+| Tooltip | 工具提示 | Sure `DS::Tooltip` |
+
+### Button 变体
+
+```ruby
+VARIANTS = {
+  primary: "bg-inverse text-white hover:bg-inverse-hover",
+  secondary: "bg-gray-200 text-primary hover:bg-gray-300",
+  destructive: "bg-destructive text-white hover:bg-destructive-hover",
+  outline: "border border-border text-primary hover:bg-surface-hover",
+  ghost: "text-primary hover:bg-surface-hover",
+  link: "text-blue-600 hover:underline"
+}
+```
+
+### 颜色语义
+
+```css
+/* 功能性颜色 */
+--color-primary     /* 主文字颜色 */
+--color-secondary   /* 次要文字颜色 */
+--color-destructive /* 危险/删除操作 */
+
+/* 容器颜色 */
+--color-surface      /* 页面背景 */
+--color-container    /* 卡片背景 */
+--color-container-inset /* 内嵌卡片背景 */
+
+/* 边框 */
+--color-border
+
+/* 收入/支出颜色约定 */
+--color-income: #ef4444    /* 收入 - 红色 */
+--color-expense: #22c55e  /* 支出 - 绿色 */
+```
+
+### Tailwind 配置
+
+```javascript
+colors: {
+  surface: { DEFAULT: '#f8f9fa', hover: '#f1f3f5', inset: '#e9ecef' },
+  container: { DEFAULT: '#ffffff', inset: '#f8f9fa' },
+  primary: { DEFAULT: '#1a1a1a', hover: '#333333' },
+  secondary: { DEFAULT: '#6c757d', hover: '#495057' },
+  income: '#ef4444',
+  expense: '#22c55e'
+}
 ```
 
 ## 开发规范
@@ -59,30 +138,39 @@ lib/
 | 多处复用 | 使用 ViewComponent |
 | 简单数据展示 | 使用 partial |
 
-### i18n 命名规范
+### JavaScript 控制器 (Stimulus)
 
+| 控制器 | 文件 | 功能 |
+|--------|------|------|
+| auto-submit-form | 待添加 | 表单自动提交 |
+| bulk-select | 待添加 | 批量选择 |
+| tabs | 待添加 | 标签页切换 |
+| disclosure | 待添加 | 折叠面板 |
+
+### 响应式设计
+
+| 断点 | 宽度 | 用途 |
+|------|------|------|
+| `sm:` | 640px+ | 小屏幕 |
+| `md:` | 768px+ | 平板 |
+| `lg:` | 1024px+ | 桌面 |
+| `xl:` | 1280px+ | 大桌面 |
+| `2xl:` | 1536px+ | 超大屏幕 |
+
+### 布局模式
+
+**三栏式布局** (设置页):
 ```
-模块.组件.键名
+┌─────┬────────────────────┐
+│ 导航 │       主内容        │
+│ 224px│       flex-1       │
+└─────┴────────────────────┘
 ```
 
-例如:
-```yaml
-dashboard:
-  title: "仪表盘"
-transactions:
-  list: "交易列表"
-```
-
-### Hotwire 局部刷新
-
-数据按"年"或"月"切片加载，使用 Turbo Frames 实现局部刷新:
-
-```erb
-<%= turbo_frame_tag "monthly_report" do %>
-  <%= render @transactions %>
-  <%== pagy_nav(@pagy) %>
-<% end %>
-```
+**移动端布局**:
+- 固定顶部导航栏
+- 固定底部导航栏
+- 内容区域可滚动
 
 ## 性能优化
 
@@ -135,6 +223,31 @@ end
 Transaction.find_each(batch_size: 1000) do |transaction|
   # 处理每条记录
 end
+```
+
+## Hotwire 局部刷新
+
+数据按"年"或"月"切片加载，使用 Turbo Frames 实现局部刷新:
+
+```erb
+<%= turbo_frame_tag "monthly_report" do %>
+  <%= render @transactions %>
+  <%== pagy_nav(@pagy) %>
+<% end %>
+```
+
+## i18n 命名规范
+
+```
+模块.组件.键名
+```
+
+例如:
+```yaml
+dashboard:
+  title: "仪表盘"
+transactions:
+  list: "交易列表"
 ```
 
 ## Git 提交规范

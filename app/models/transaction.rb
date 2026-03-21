@@ -11,6 +11,9 @@ class Transaction < ApplicationRecord
   validates :type, presence: true
   validates :amount, presence: true, numericality: true
 
+  after_save_commit :broadcast_refresh
+  after_destroy_commit :broadcast_destroy
+
   scope :by_date, ->(start_date, end_date) {
     where(date: start_date..end_date)
   }
@@ -23,6 +26,24 @@ class Transaction < ApplicationRecord
     end_date = start_date.end_of_month
     where(date: start_date..end_date)
   }
+
+  def broadcast_channel
+    "transaction_#{id}"
+  end
+
+  def broadcast_refresh
+    broadcast_replace_later_to "transactions"
+    broadcast_replace_later_to "dashboard"
+    account&.broadcast_refresh
+    target_account&.broadcast_refresh
+  end
+
+  def broadcast_destroy
+    broadcast_remove_to "transactions"
+    broadcast_replace_to "dashboard"
+    account&.broadcast_refresh
+    target_account&.broadcast_refresh
+  end
 
   def currency_symbol
     account&.currency_symbol || "¥"

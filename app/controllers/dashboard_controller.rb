@@ -22,11 +22,12 @@ class DashboardController < ApplicationController
     @total_expense = @monthly_stats[:expense]
     
     @expenses_by_category = Transaction.by_category(@month)
+    @expenses_for_chart = @expenses_by_category.reject { |k, _| k.blank? }
 
     @budgets = Budget.for_month(@month)
     @total_budget = @budgets.sum(:amount)
     @total_spent = Transaction.where(
-      transaction_type: "EXPENSE",
+      type: "EXPENSE",
       category_id: @budgets.pluck(:category_id),
       date: start_date..end_date
     ).sum(:amount)

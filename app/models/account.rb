@@ -18,9 +18,26 @@ class Account < ApplicationRecord
   validates :name, presence: true, uniqueness: true
   validates :currency, length: { is: 3 }, allow_blank: true
 
+  after_save_commit :broadcast_refresh
+  after_destroy_commit :broadcast_destroy
+
   scope :visible, -> { where(hidden: false) }
   scope :included_in_total, -> { where(include_in_total: true) }
   scope :by_type, ->(type) { where(type: type) if type.present? }
+
+  def broadcast_channel
+    "account_#{id}"
+  end
+
+  def broadcast_refresh
+    broadcast_replace_later_to "accounts", partial: "accounts/account", locals: { account: self }
+    broadcast_replace_later_to "dashboard", partial: "dashboard/account_item", locals: { account: self }
+  end
+
+  def broadcast_destroy
+    broadcast_remove_to "accounts"
+    broadcast_replace_to "dashboard", partial: "dashboard/account_item", locals: { account: self }
+  end
 
   def current_balance
     initial_balance.to_d + sent_transactions.sum(:amount).to_d - received_transactions.where.not(account_id: id).sum(:amount).to_d
@@ -58,5 +75,9 @@ class Account < ApplicationRecord
     income = sent_transactions.income.where(date: from_date..to_date).sum(:amount)
     expense = sent_transactions.expense.where(date: from_date..to_date).sum(:amount)
     { income: income, expense: expense, net: income - expense }
+  end
+
+  def transactions
+    Transaction.where("account_id = ? OR target_account_id = ?", id, id)
   end
 end
