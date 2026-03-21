@@ -26,9 +26,12 @@ class DashboardController < ApplicationController
     @budgets = Budget.for_month(@month)
     @total_budget = @budgets.sum(:amount)
     @total_spent = Transaction.where(
-      transaction_type: "EXPENSE",
+      type: "EXPENSE",
       category_id: @budgets.pluck(:category_id),
       date: start_date..end_date
     ).sum(:amount)
+
+    # 总资产
+    @total_assets = Account.total_assets
   end
 end

@@ -8,17 +8,17 @@ FactoryBot.define do
 
   factory :category do
     sequence(:name) { |n| "Category #{n}" }
-    type { 'EXPENSE' }
+    category_type { 'EXPENSE' }
     color { '#6b7280' }
     active { true }
     level { 0 }
 
     trait :income do
-      type { 'INCOME' }
+      category_type { 'INCOME' }
     end
 
     trait :expense do
-      type { 'EXPENSE' }
+      category_type { 'EXPENSE' }
     end
 
     trait :with_parent do
@@ -29,9 +29,11 @@ FactoryBot.define do
 
   factory :account do
     sequence(:name) { |n| "Account #{n}" }
-    account_type { 'CHECKING' }
+    type { 'CASH' }
     currency { 'CNY' }
     initial_balance { 1000 }
+    include_in_total { true }
+    hidden { false }
   end
 
   factory :transaction do
@@ -40,6 +42,38 @@ FactoryBot.define do
     type { 'EXPENSE' }
     amount { 100.50 }
     date { Date.today }
+    currency { 'CNY' }
     note { 'Test transaction' }
+  end
+
+  factory :budget do
+    sequence(:month) { |n| "2024-#{(n % 12 + 1).to_s.rjust(2, '0')}" }
+    amount { 1000 }
+    association :category, factory: :category
+  end
+
+  factory :currency do
+    sequence(:code) { |n| [ 'CNY', 'USD', 'EUR', 'GBP', 'JPY' ][n % 5] }
+    name { [ '人民币', '美元', '欧元', '英镑', '日元' ][code[0].ord % 5] }
+    symbol { [ '¥', '$', '€', '£', '¥' ][code[0].ord % 5] }
+    rate { 1.0 }
+    is_default { code == 'CNY' }
+    is_active { true }
+  end
+
+  factory :exchange_rate do
+    from_currency { 'USD' }
+    to_currency { 'CNY' }
+    rate { 7.2 }
+    date { Date.current }
+    source { 'manual' }
+  end
+
+  factory :receivable do
+    description { 'Test receivable' }
+    original_amount { 1000 }
+    remaining_amount { 1000 }
+    currency { 'CNY' }
+    date { Date.current }
   end
 end

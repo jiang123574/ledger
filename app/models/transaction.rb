@@ -20,9 +20,13 @@ class Transaction < ApplicationRecord
   has_many :transaction_tags, dependent: :destroy
   has_many :tags, through: :transaction_tags
 
+  # Active Storage 附件
+  has_many_attached :files
+
   validates :type, presence: true, inclusion: { in: TYPES }
   validates :amount, presence: true, numericality: { greater_than: 0 }
   validates :date, presence: true
+  validates :currency, presence: true, length: { is: 3 }
 
   # 转账交易必须指定目标账户
   validates :target_account, presence: true, if: :transfer?
@@ -76,7 +80,7 @@ class Transaction < ApplicationRecord
 
   # ============ 显示方法 ============
   def currency_symbol
-    account&.currency_symbol || "¥"
+    Currency.symbol(currency) || account&.currency_symbol || "¥"
   end
 
   def account_name
@@ -100,6 +104,23 @@ class Transaction < ApplicationRecord
       "ADVANCE" => "预支",
       "REIMBURSE" => "报销"
     }[type] || type
+  end
+
+  # 获取原始金额（如果有）
+  def original_amount_value
+    original_amount || amount
+  end
+
+  # 转换到默认货币金额
+  def amount_in_default_currency
+    return amount if currency == Currency.default&.code
+    Currency.convert(amount, currency, Currency.default&.code)
+  end
+
+  # 转换到指定货币金额
+  def amount_in_currency(target_currency)
+    return amount if currency == target_currency
+    Currency.convert(amount, currency, target_currency)
   end
 
   def tag_list=(tag_ids)

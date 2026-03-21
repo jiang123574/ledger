@@ -2,7 +2,7 @@
 
 class Tag < ApplicationRecord
   has_many :transaction_tags, dependent: :destroy
-  has_many :transactions, through: :transaction_tags
+  has_many :transactions, through: :transaction_tags, source: :transaction_record
 
   validates :name, presence: true, uniqueness: true, length: { maximum: 50 }
   validates :color, format: { with: /\A#[0-9A-Fa-f]{6}\z/ }, allow_nil: true
@@ -32,7 +32,7 @@ class Tag < ApplicationRecord
 
   def generate_random_color
     hue = SecureRandom.rand(360)
-    "##{ColorUtils.hsl_to_hex(hue, 65, 55)}"
+    ColorUtils.hsl_to_hex(hue, 65, 55)
   end
 end
 

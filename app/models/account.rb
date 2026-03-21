@@ -16,14 +16,58 @@ class Account < ApplicationRecord
   has_many :recurring_transactions, dependent: :destroy
 
   validates :name, presence: true, uniqueness: true
-  validates :currency, length: { is: 3 }, allow_blank: true
+  validates :currency, presence: true, length: { is: 3 }
 
   scope :visible, -> { where(hidden: false) }
   scope :included_in_total, -> { where(include_in_total: true) }
   scope :by_type, ->(type) { where(type: type) if type.present? }
+  scope :by_currency, ->(currency) { where(currency: currency) if currency.present? }
 
+  # 获取默认货币
+  def self.default_currency
+    Currency.default&.code || "CNY"
+  end
+
+  # 计算当前余额
+  # INCOME: +amount
+  # EXPENSE: -amount
+  # TRANSFER: 源账户 -amount, 目标账户 +amount
   def current_balance
-    initial_balance.to_d + sent_transactions.sum(:amount).to_d - received_transactions.where.not(account_id: id).sum(:amount).to_d
+    balance = initial_balance.to_d
+
+    # 收入：增加余额
+    balance += sent_transactions.income.sum(:amount).to_d
+
+    # 支出：减少余额
+    balance -= sent_transactions.expense.sum(:amount).to_d
+
+    # 预支：减少余额
+    balance -= sent_transactions.where(type: "ADVANCE").sum(:amount).to_d
+
+    # 报销：增加余额
+    balance += sent_transactions.where(type: "REIMBURSE").sum(:amount).to_d
+
+    # 转账：从本账户转出减少余额
+    balance -= sent_transactions.transfers.sum(:amount).to_d
+
+    # 转账：转入本账户增加余额
+    balance += received_transactions.transfers.sum(:amount).to_d
+
+    balance
+  end
+
+  # 计算总资产（所有账户余额之和）
+  def self.total_assets
+    visible.included_in_total.sum do |account|
+      account.current_balance
+    end
+  end
+
+  # 按账户类型统计余额
+  def self.balance_by_type
+    visible.group(:type).sum do |account|
+      account.current_balance
+    end
   end
 
   def balance_series(months = 12)

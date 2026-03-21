@@ -37,9 +37,15 @@
         <!-- 金额 -->
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.amount") %></label>
-          <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary">¥</span>
-            <%= f.number_field :amount, step: "0.01", placeholder: "0.00", class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <div class="flex gap-2">
+            <div class="relative flex-1">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary"><%= Currency.symbol(@transaction.currency || "CNY") %></span>
+              <%= f.number_field :amount, step: "0.01", placeholder: "0.00", class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+            </div>
+            <%= f.select :currency, 
+              Currency.active.map { |c| [c.code, c.code] },
+              { selected: @transaction.currency || "CNY" },
+              class: "w-24 px-2 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
 
@@ -84,6 +90,18 @@
       <div>
         <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.note") %></label>
         <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+      </div>
+
+      <!-- 附件 -->
+      <div>
+        <label class="block text-sm font-medium text-primary mb-1.5">附件</label>
+        <div class="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-blue-500 transition-smooth cursor-pointer" onclick="document.getElementById('file_input').click()">
+          <%= render(Ds::IconComponent.new(name: "upload", size: :lg, color: :secondary)) %>
+          <p class="text-sm text-secondary mt-2">点击或拖拽上传附件</p>
+          <p class="text-xs text-secondary mt-1">支持图片、PDF、发票等</p>
+          <%= f.file_field :files, multiple: true, id: "file_input", class: "hidden", accept: "image/*,.pdf,.doc,.docx,.xls,.xlsx" %>
+        </div>
+        <div id="file_list" class="mt-2 space-y-1"></div>
       </div>
 
       <div class="flex justify-end gap-3 pt-4 border-t border-border">

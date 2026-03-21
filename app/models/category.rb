@@ -1,6 +1,9 @@
 class Category < ApplicationRecord
   self.inheritance_column = nil
 
+  # 数据库列名是 type，但模型使用 category_type
+  alias_attribute :category_type, :type
+
   # ============ 关联 ============
   has_many :children, class_name: "Category", foreign_key: "parent_id", dependent: :destroy
   belongs_to :parent, class_name: "Category", foreign_key: "parent_id", optional: true
