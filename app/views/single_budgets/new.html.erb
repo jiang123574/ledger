@@ -37,7 +37,7 @@
         <%= f.text_area :description, rows: 3, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-gray-600 dark:text-white" %>
       </div>
       <div class="flex justify-end gap-2">
-        <%= link_to t("common.cancel"), single_budgets_path, class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern dark:border-gray-600 dark:text-secondary-dark" %>
+        <%= link_to t("common.cancel"), single_budgets_path, class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary hover:bg-surface-hover transition-smooth btn-modern dark:border-gray-600 dark:text-secondary-dark" %>
         <%= f.submit t("common.create"), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
       </div>
     <% end %>

@@ -1,6 +1,6 @@
 <% is_danger = local_assigns[:danger].present? rescue false %>
 <%= link_to href, class: [
-  "block p-6 rounded-lg bg-container shadow-border-xs card-hover",
+  "block p-6 rounded-lg bg-container dark:bg-container-dark shadow-border-xs dark:shadow-dark-border-xs card-hover",
   "border border-transparent hover:border-primary/20",
   is_danger ? "hover:border-red-200" : ""
 ] do %>

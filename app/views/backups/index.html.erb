@@ -57,7 +57,7 @@
               <div class="text-sm text-green-600"><%= @webdav_config[:url] %></div>
             </div>
           </div>
-          <%= link_to "测试连接", webdav_test_backups_path, remote: true, class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+          <%= link_to "测试连接", webdav_test_backups_path, remote: true, class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
         </div>
 
         <% if @webdav_backups&.any? %>
@@ -67,7 +67,7 @@
               <% @webdav_backups.each do |backup| %>
                 <div class="flex justify-between items-center text-sm">
                   <span><%= backup[:name] %></span>
-                  <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+                  <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
                 </div>
               <% end %>
             </div>
@@ -78,7 +78,7 @@
       <div class="text-secondary dark:text-secondary dark:text-secondary-dark-dark text-center py-8">
         <div class="text-4xl mb-2">☁️</div>
         <p>配置 WebDAV 以启用云备份</p>
-        <button onclick="document.getElementById('webdav-form').classList.toggle('hidden')" class="mt-4 px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern">
+        <button onclick="document.getElementById('webdav-form').classList.toggle('hidden')" class="mt-4 px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth btn-modern">
           配置 WebDAV
         </button>
       </div>
@@ -180,7 +180,7 @@
                 <% end %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <%= link_to "下载", download_backup_path(backup[:id]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+                <%= link_to "下载", download_backup_path(backup[:id]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
                 <% if @webdav_configured && backup[:webdav_url].blank? %>
                   <%= link_to "上传", webdav_upload_backup_path(backup[:id]), method: :post, class: "px-2 py-1 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern ml-2" %>
                 <% end %>

@@ -146,7 +146,7 @@
             <span class="font-semibold text-primary dark:text-primary-dark shrink-0"><%= format_currency(item[:balance]) %></span>
           </div>
         <% end %>
-        <div class="pt-3 mt-3 border-t border-border dark:border-border-dark flex justify-between items-center">
+        <div class="pt-3 mt-3 border-t border-border dark:border-border dark:border-border-dark-dark flex justify-between items-center">
           <span class="font-medium text-primary dark:text-primary-dark">总资产</span>
           <span class="text-xl font-bold text-primary dark:text-primary-dark"><%= format_currency(@account_balances.sum { |i| i[:balance] }) %></span>
         </div>

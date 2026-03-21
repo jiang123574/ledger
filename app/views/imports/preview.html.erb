@@ -33,7 +33,7 @@
             <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark">
               <%= header %>
             </label>
-            <select name="field_mapping[<%= header %>]" class="w-full border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
+            <select name="field_mapping[<%= header %>]" class="w-full border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
               <option value="">忽略</option>
               <option value="date" <%= @preview_data[:suggested_mapping][header] == "date" ? "selected" : "" %>>日期</option>
               <option value="type" <%= @preview_data[:suggested_mapping][header] == "type" ? "selected" : "" %>>类型</option>
@@ -87,12 +87,12 @@
     <!-- Account Selection -->
     <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6">
       <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark mb-1">导入到账户（可选）</label>
-      <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+      <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
     </div>
 
     <!-- Actions -->
     <div class="flex justify-between items-center">
-      <%= link_to "重新选择文件", new_import_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+      <%= link_to "重新选择文件", new_import_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
       <%= f.submit "确认导入", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
     </div>
   <% end %>

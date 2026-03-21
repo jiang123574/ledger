@@ -1,5 +1,5 @@
 <section class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs card-hover">
-  <div class="p-4 border-b border-border dark:border-border dark:border-border-dark-dark flex items-center justify-between">
+  <div class="p-4 border-b border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark flex items-center justify-between">
     <h2 class="text-lg font-semibold text-primary dark:text-primary dark:text-primary-dark-dark">货币列表</h2>
     <button class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">+ 添加货币</button>
   </div>
@@ -16,13 +16,13 @@
       </thead>
       <tbody>
         <% @currencies.each do |currency| %>
-          <tr class="border-t border-border dark:border-border dark:border-border-dark-dark">
+          <tr class="border-t border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark">
             <td class="py-3 font-medium text-primary dark:text-primary dark:text-primary-dark-dark"><%= currency.code %></td>
             <td class="py-3 text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= currency.name %></td>
             <td class="py-3 text-primary dark:text-primary dark:text-primary-dark-dark"><%= currency.symbol %></td>
             <td class="py-3 text-secondary dark:text-secondary dark:text-secondary-dark-dark"><%= currency.exchange_rate %></td>
             <td class="py-3 text-right">
-              <button class="px-2 py-1 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">编辑</button>
+              <button class="px-2 py-1 text-sm font-medium rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">编辑</button>
             </td>
           </tr>
         <% end %>
