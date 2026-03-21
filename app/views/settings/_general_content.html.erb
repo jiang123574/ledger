@@ -1,0 +1,78 @@
+<section class="bg-container rounded-lg shadow-border-xs card-hover">
+  <div class="p-4 space-y-4">
+    <div class="flex items-center justify-between py-3 border-b border-border">
+      <div>
+        <h3 class="font-medium text-primary">默认货币</h3>
+        <p class="text-sm text-secondary">新账户的默认货币</p>
+      </div>
+      <select class="px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
+        <option>CNY (¥)</option>
+        <option>USD ($)</option>
+        <option>EUR (€)</option>
+      </select>
+    </div>
+    <div class="flex items-center justify-between py-3 border-b border-border">
+      <div>
+        <h3 class="font-medium text-primary">日期格式</h3>
+        <p class="text-sm text-secondary">选择日期显示格式</p>
+      </div>
+      <select class="px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
+        <option>2024-01-15</option>
+        <option>2024/01/15</option>
+        <option>01-15-2024</option>
+      </select>
+    </div>
+    <div class="flex items-center justify-between py-3 border-b border-border">
+      <div>
+        <h3 class="font-medium text-primary">深色模式</h3>
+        <p class="text-sm text-secondary">切换深色主题外观</p>
+      </div>
+      <button type="button" id="dark_mode_btn" class="px-4 py-2 text-sm font-medium rounded-lg transition-smooth btn-modern border border-border text-primary hover:bg-surface-hover">
+        <span id="dark_mode_text">切换</span>
+      </button>
+    </div>
+    <div class="flex items-center justify-between py-3" data-controller="color-theme">
+      <div>
+        <h3 class="font-medium text-primary">收支颜色</h3>
+        <p class="text-sm text-secondary">自定义收入和支出的显示颜色</p>
+      </div>
+      <select data-color-theme-target="select" data-action="change->color-theme#change" class="px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500">
+        <option value="default">默认 (收入绿/支出红)</option>
+        <option value="reversed">反色 (收入红/支出绿)</option>
+        <option value="blue_orange">蓝/橙</option>
+        <option value="purple_yellow">紫/黄</option>
+        <option value="cyan_pink">青/粉</option>
+        <option value="teal_rose">青绿/玫瑰</option>
+        <option value="indigo_amber">靛蓝/琥珀</option>
+      </select>
+    </div>
+  </div>
+</section>
+
+<script>
+  (function() {
+    const btn = document.getElementById('dark_mode_btn');
+    const text = document.getElementById('dark_mode_text');
+    if (!btn || !text) return;
+    
+    function updateButtonText() {
+      text.textContent = document.documentElement.classList.contains('dark') ? '☀️ 浅色模式' : '🌙 深色模式';
+    }
+    
+    updateButtonText();
+    
+    btn.addEventListener('click', function() {
+      const isDark = document.documentElement.classList.contains('dark');
+      if (isDark) {
+        localStorage.theme = 'light';
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        localStorage.theme = 'dark';
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+      updateButtonText();
+    });
+  })();
+</script>
