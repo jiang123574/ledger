@@ -135,7 +135,7 @@
       
       <!-- Section Content -->
       <div class="divide-y divide-border" data-dashboard-section-target="content">
-        <% @transactions.limit(8).each do |t| %>
+        <% @transactions.first(8).each do |t| %>
           <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface transition-smooth" do %>
             <div class="flex items-center gap-3 min-w-0">
               <div class="w-10 h-10 rounded-full bg-surface-inset flex items-center justify-center shrink-0">
