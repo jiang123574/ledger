@@ -31,6 +31,9 @@ RSpec.configure do |config|
     Rails.root.join("spec/fixtures")
   ]
 
+  # Include FactoryBot methods
+  config.include FactoryBot::Syntax::Methods
+
   # If you're not using ActiveRecord, or you'd prefer not to run each of your
   # examples within a transaction, remove the following line or assign false
   # instead of true.
@@ -59,4 +62,13 @@ RSpec.configure do |config|
   # ViewComponent test helpers
   config.include ViewComponent::TestHelpers, type: :component
   config.include Capybara::RSpecMatchers, type: :component
+end
+
+# Shoulda-matchers configuration
+Shoulda::Matchers.configure do |config|
+  config.integrate do |with|
+    with.test_framework :rspec
+    with.library :active_record
+    with.library :active_model
+  end
 end

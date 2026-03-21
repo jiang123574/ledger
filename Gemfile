@@ -44,6 +44,8 @@ group :development, :test do
   # Testing framework
   gem "rspec-rails"
   gem "capybara"
+  gem "factory_bot_rails"
+  gem "shoulda-matchers"
 
   # Audits gems for known security defects (use config/bundler-audit.yml to ignore issues)
   gem "bundler-audit", require: false

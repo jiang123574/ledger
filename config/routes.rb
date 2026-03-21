@@ -8,8 +8,10 @@ Rails.application.routes.draw do
       post :bulk_destroy
     end
   end
+
   resources :accounts
   resources :categories
+  resources :tags, except: [ :show ]
   resources :budgets, only: [ :index, :create, :update, :destroy ]
   resources :plans
   resources :recurring, controller: "recurring", only: [ :index, :new, :create, :edit, :update, :destroy ] do
@@ -17,6 +19,7 @@ Rails.application.routes.draw do
       post :execute
     end
   end
+
   resources :settings, only: [ :show, :update ]
   get "/settings", to: "settings#show", as: :settings
   post "/settings/export", to: "settings#export_transactions", as: :export_transactions

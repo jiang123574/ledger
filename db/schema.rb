@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2024_01_01_000017) do
+ActiveRecord::Schema[8.1].define(version: 2024_01_01_000021) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -66,12 +66,18 @@ ActiveRecord::Schema[8.1].define(version: 2024_01_01_000017) do
   end
 
   create_table "categories", force: :cascade do |t|
+    t.boolean "active", default: true
+    t.string "color", limit: 7, default: "#6b7280"
+    t.string "icon"
+    t.integer "level", default: 0
     t.string "name", null: false
     t.integer "parent_id"
     t.integer "sort_order", default: 0
     t.string "type"
+    t.index ["active"], name: "index_categories_on_active"
     t.index ["name"], name: "index_categories_on_name", unique: true
     t.index ["parent_id"], name: "index_categories_on_parent_id"
+    t.index ["sort_order"], name: "index_categories_on_sort_order"
     t.index ["type", "sort_order"], name: "index_categories_type_order"
   end
 

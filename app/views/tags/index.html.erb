@@ -1,0 +1,100 @@
+<% content_for :page_title, "标签管理" %>
+
+<div class="max-w-4xl mx-auto space-y-6">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <div>
+      <h1 class="text-2xl font-semibold text-primary">标签管理</h1>
+      <p class="text-sm text-secondary mt-1">创建和管理交易标签，用于分类和筛选</p>
+    </div>
+  </div>
+
+  <!-- New Tag Form -->
+  <%= render(Ds::CardComponent.new) do %>
+    <div class="p-6">
+      <h2 class="text-lg font-medium text-primary mb-4">新建标签</h2>
+      <%= form_with model: @tag, url: tags_path, class: "space-y-4" do |f| %>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <%= f.label :name, "标签名称", class: "block text-sm font-medium text-secondary mb-1" %>
+            <%= f.text_field :name, 
+                class: "w-full px-3 py-2 bg-container border border-border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent",
+                placeholder: "例如：出差、餐饮、交通" %>
+          </div>
+          <div>
+            <%= f.label :color, "颜色", class: "block text-sm font-medium text-secondary mb-1" %>
+            <div class="flex items-center gap-2">
+              <%= f.color_field :color, 
+                  class: "w-12 h-10 rounded cursor-pointer border border-border",
+                  value: @tag.color || "#3498db" %>
+              <span class="text-sm text-secondary" id="color-preview"><%= @tag.color || "#3498db" %></span>
+            </div>
+          </div>
+          <div class="flex items-end">
+            <%= f.submit "创建标签", 
+                class: "px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium" %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <!-- Tags List -->
+  <% if @tags.any? %>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <% @tags.each do |tag| %>
+        <div class="bg-container rounded-xl border border-border p-4 hover:shadow-md transition-shadow">
+          <div class="flex items-start justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-4 h-4 rounded-full" style="background-color: <%= tag.color %>"></div>
+              <div>
+                <h3 class="font-medium text-primary"><%= tag.name %></h3>
+                <p class="text-xs text-secondary mt-1">
+                  <%= tag.transactions.count %> 笔交易
+                </p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1">
+              <%= link_to edit_tag_path(tag), 
+                  class: "p-1.5 text-secondary hover:text-primary hover:bg-surface rounded transition-colors",
+                  title: "编辑" do %>
+                <%= render(Ds::IconComponent.new(name: "pencil", size: :sm)) %>
+              <% end %>
+              <%= button_to tag_path(tag), 
+                  method: :delete,
+                  form: { data: { turbo_confirm: "确定删除此标签？关联的交易将取消关联。" } },
+                  class: "p-1.5 text-secondary hover:text-red-500 hover:bg-red-50 rounded transition-colors",
+                  title: "删除" do %>
+                <%= render(Ds::IconComponent.new(name: "trash-2", size: :sm)) %>
+              <% end %>
+            </div>
+          </div>
+          <% if tag.description.present? %>
+            <p class="text-sm text-secondary mt-3"><%= tag.description %></p>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% else %>
+    <div class="text-center py-12">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-inset flex items-center justify-center">
+        <%= render(Ds::IconComponent.new(name: "tag", size: :lg, color: :secondary)) %>
+      </div>
+      <p class="text-secondary">还没有标签，创建第一个吧！</p>
+    </div>
+  <% end %>
+</div>
+
+<script>
+  // 颜色选择器预览
+  document.addEventListener('DOMContentLoaded', () => {
+    const colorInput = document.querySelector('input[type="color"]')
+    const colorPreview = document.getElementById('color-preview')
+    
+    if (colorInput && colorPreview) {
+      colorInput.addEventListener('input', (e) => {
+        colorPreview.textContent = e.target.value
+      })
+    }
+  })
+</script>
