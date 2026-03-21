@@ -1,68 +1,68 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <div>
-      <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">交易对方</h1>
-      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark text-sm mt-1">管理与你有资金往来的人或机构</p>
+      <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">交易对方</h1>
+      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark text-sm mt-1">管理与你有资金往来的人或机构</p>
     </div>
     <%= link_to "新建交易对方", new_counterparty_path, class: "bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover transition" %>
   </div>
 
   <!-- Stats Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">交易对方总数</div>
-      <div class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= @total_counterparties %></div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">交易对方总数</div>
+      <div class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @total_counterparties %></div>
     </div>
-    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">关联应收款</div>
-      <div class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= @total_receivables %></div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">关联应收款</div>
+      <div class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @total_receivables %></div>
     </div>
-    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow p-4">
-      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">有往来的对象</div>
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-4">
+      <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">有往来的对象</div>
       <div class="text-2xl font-bold text-green-600"><%= @counterparties.select { |c| c.receivables_count > 0 }.size %></div>
     </div>
   </div>
 
   <% if @counterparties.empty? %>
-    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow p-8 text-center">
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-8 text-center">
       <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
         <%= render(Ds::IconComponent.new(name: "user", size: :xl, color: :secondary)) %>
       </div>
-      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">暂无交易对方</p>
-      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark text-sm mt-2">添加常往来的人或机构，方便统计和管理</p>
+      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">暂无交易对方</p>
+      <p class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark text-sm mt-2">添加常往来的人或机构，方便统计和管理</p>
       <%= link_to "添加第一个交易对方", new_counterparty_path, class: "inline-block mt-4 bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover" %>
     </div>
   <% else %>
-    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow overflow-hidden">
+    <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow overflow-hidden">
       <table class="min-w-full divide-y divide-gray-200">
         <thead class="bg-surface dark:bg-surface-dark dark:bg-gray-900">
           <tr>
-            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark uppercase tracking-wider">名称</th>
-            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark uppercase tracking-wider">联系方式</th>
-            <th class="px-6 py-3 text-center text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark uppercase tracking-wider">应收款数</th>
-            <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark uppercase tracking-wider">待收金额</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark uppercase tracking-wider">名称</th>
+            <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark uppercase tracking-wider">联系方式</th>
+            <th class="px-6 py-3 text-center text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark uppercase tracking-wider">应收款数</th>
+            <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark uppercase tracking-wider">待收金额</th>
             <th class="px-6 py-3 actions"></th>
           </tr>
         </thead>
-        <tbody class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark divide-y divide-gray-200">
+        <tbody class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark divide-y divide-gray-200">
           <% @counterparties.each do |counterparty| %>
             <tr class="hover:bg-surface dark:bg-surface-dark dark:bg-gray-900">
               <td class="px-6 py-4 whitespace-nowrap">
-                <div class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= counterparty.name %></div>
+                <div class="font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= counterparty.name %></div>
                 <% if counterparty.note.present? %>
-                  <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= truncate(counterparty.note, length: 50) %></div>
+                  <div class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= truncate(counterparty.note, length: 50) %></div>
                 <% end %>
               </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">
                 <%= counterparty.contact || '-' %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-center">
                 <% if counterparty.receivables_count > 0 %>
-                  <span class="bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark px-2 py-1 rounded-full text-sm">
+                  <span class="bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark px-2 py-1 rounded-full text-sm">
                     <%= counterparty.receivables_count %> 笔
                   </span>
                 <% else %>
-                  <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">-</span>
+                  <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">-</span>
                 <% end %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right">
@@ -70,7 +70,7 @@
                 <% if pending > 0 %>
                   <span class="text-green-600 font-medium"><%= format_currency(pending, 'CNY') %></span>
                 <% else %>
-                  <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">-</span>
+                  <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">-</span>
                 <% end %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm">

@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= t("transactions.title") %></h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= t("transactions.title") %></h1>
     <div class="flex items-center gap-3">
       <% if @search.active_filters? %>
         <%= link_to transactions_path, class: "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border dark:border-border dark:border-border-dark-dark text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" do %>
@@ -17,7 +17,7 @@
   </div>
 
   <!-- Search & Filter -->
-  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
     <div class="p-4">
       <%= form_tag transactions_path, method: :get, class: "space-y-4", data: { controller: "auto-submit-form" } do %>
         <!-- Search Input -->
@@ -28,7 +28,7 @@
                 class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border dark:border-border-dark-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <button type="button" data-action="click->auto-submit-form#submit" 
-                  class="px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">
+                  class="px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">
             搜索
           </button>
         </div>
@@ -36,17 +36,17 @@
         <!-- Filter Row -->
         <div class="flex flex-wrap gap-3 items-end">
           <div class="flex-1 min-w-[140px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">开始日期</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">开始日期</label>
             <%= date_field_tag :start_date, @search.start_date,
                 class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border dark:border-border-dark-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">结束日期</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">结束日期</label>
             <%= date_field_tag :end_date, @search.end_date,
                 class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border dark:border-border-dark-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">类型</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">类型</label>
             <%= select_tag :type, options_for_select([
               ["全部类型", ""],
               ["收入", "INCOME"],
@@ -58,7 +58,7 @@
                 class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border dark:border-border-dark-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">分类</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">分类</label>
             <%= select_tag :category_id, options_for_select(
               [["全部分类", ""]] + @categories.map { |c| [c.full_name, c.id] },
               @search.category_id
@@ -67,7 +67,7 @@
           </div>
           <% if @tags.any? %>
             <div class="flex-1 min-w-[120px]">
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">标签</label>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">标签</label>
               <%= select_tag :tag_id, options_for_select(
                 [["全部标签", ""]] + @tags.pluck(:name, :id),
                 @search.tag_id
@@ -80,19 +80,19 @@
         <!-- Amount Range Filter -->
         <div class="flex flex-wrap gap-3 items-end">
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">最小金额</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">最小金额</label>
             <%= number_field_tag :min_amount, @search.min_amount, step: "0.01",
                 placeholder: "0.00",
                 class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border dark:border-border-dark-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">最大金额</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">最大金额</label>
             <%= number_field_tag :max_amount, @search.max_amount, step: "0.01",
                 placeholder: "不限",
                 class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border dark:border-border-dark-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">排序</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">排序</label>
             <%= select_tag :sort, options_for_select([
               ["日期 ↓", "date_desc"],
               ["日期 ↑", "date_asc"],
@@ -108,10 +108,10 @@
 
       <!-- Active Filter Badges -->
       <% if @search.active_filters? %>
-        <div class="flex flex-wrap gap-2 pt-3 border-t border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark">
+        <div class="flex flex-wrap gap-2 pt-3 border-t border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
           <% @search.active_filters_list.each do |filter| %>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface dark:bg-surface-dark dark:bg-gray-900 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">
-              <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= filter[:label] %>:</span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface dark:bg-surface-dark dark:bg-gray-900 text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">
+              <span class="text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= filter[:label] %>:</span>
               <%= filter[:value] %>
               <%= link_to transactions_path(@search.clear_filter(filter[:key]).merge(account_id: params[:account_id])), 
                   class: "ml-1 hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" do %>
@@ -127,24 +127,24 @@
   <!-- Summary -->
   <% if @transactions.any? %>
     <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
-      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
-        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">总收入</p>
+      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
+        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">总收入</p>
         <p class="text-xl font-semibold text-income"><%= format_currency_with_sign(@summary[:total_income], type: "INCOME") %></p>
       </div>
-      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
-        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">总支出</p>
+      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
+        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">总支出</p>
         <p class="text-xl font-semibold text-expense"><%= format_currency_with_sign(@summary[:total_expense], type: "EXPENSE") %></p>
       </div>
-      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
-        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">净额</p>
+      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
+        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">净额</p>
         <% net_amount = @summary[:total_income] - @summary[:total_expense] %>
         <p class="text-xl font-semibold <%= net_amount >= 0 ? 'text-income' : 'text-expense' %>">
           <%= format_currency_with_sign(net_amount.abs, type: net_amount >= 0 ? "INCOME" : "EXPENSE") %>
         </p>
       </div>
-      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
-        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-1">交易数</p>
-        <p class="text-xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= @summary[:count] %></p>
+      <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs p-4">
+        <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mb-1">交易数</p>
+        <p class="text-xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= @summary[:count] %></p>
       </div>
     </div>
   <% end %>
@@ -152,9 +152,9 @@
   <!-- Three Column Layout: Account List | Transactions | Account Details -->
   <div class="grid grid-cols-12 gap-4" data-controller="bulk-select">
     <!-- Left Column: Account List -->
-    <div class="col-span-12 md:col-span-3 bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
-      <div class="p-3 border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">账户</h2>
+    <div class="col-span-12 md:col-span-3 bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
+      <div class="p-3 border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark flex items-center justify-between">
+        <h2 class="text-sm font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">账户</h2>
         <%= link_to new_account_path, class: "p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded" do %>
           <%= render Ds::IconComponent.new(name: "plus", size: :sm) %>
         <% end %>
@@ -168,9 +168,9 @@
               <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
                 <%= render Ds::IconComponent.new(name: "bars-3", size: :sm, class: "text-primary dark:text-primary dark:text-primary-dark-dark") %>
               </div>
-              <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark text-sm">所有交易</span>
+              <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark text-sm">所有交易</span>
             </div>
-            <span class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= @summary[:count] %></span>
+            <span class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= @summary[:count] %></span>
           </div>
         <% end %>
 
@@ -180,14 +180,14 @@
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-2">
                 <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-                  <span class="text-sm font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= account.name[0] %></span>
+                  <span class="text-sm font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= account.name[0] %></span>
                 </div>
                 <div>
-                  <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark text-sm"><%= account.name %></span>
-                  <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= account.type_name %></p>
+                  <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark text-sm"><%= account.name %></span>
+                  <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= account.type_name %></p>
                 </div>
               </div>
-              <span class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= account.sent_transactions.count %></span>
+              <span class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= account.sent_transactions.count %></span>
             </div>
           <% end %>
         <% end %>
@@ -195,31 +195,31 @@
     </div>
 
     <!-- Middle Column: Selected Account Info -->
-    <div class="col-span-12 md:col-span-3 bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
-      <div class="p-3 border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark">
-        <h2 class="text-sm font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">账户详情</h2>
+    <div class="col-span-12 md:col-span-3 bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
+      <div class="p-3 border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+        <h2 class="text-sm font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">账户详情</h2>
       </div>
       <div class="p-4">
         <% if params[:account_id].present? && (selected_account = @accounts.find { |a| a.id == params[:account_id].to_i }) %>
           <div class="text-center mb-4">
             <div class="w-16 h-16 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center mx-auto mb-2">
-              <span class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= selected_account.name[0] %></span>
+              <span class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= selected_account.name[0] %></span>
             </div>
-            <h3 class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= selected_account.name %></h3>
-            <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= selected_account.type_name %></p>
+            <h3 class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= selected_account.name %></h3>
+            <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= selected_account.type_name %></p>
           </div>
           <div class="space-y-3">
             <div class="flex justify-between items-center p-3 bg-surface dark:bg-surface-dark rounded-lg">
-              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">当前余额</span>
-              <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= format_currency(selected_account.current_balance) %></span>
+              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">当前余额</span>
+              <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= format_currency(selected_account.current_balance) %></span>
             </div>
             <div class="flex justify-between items-center p-3 bg-surface dark:bg-surface-dark rounded-lg">
-              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">货币</span>
-              <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= selected_account.currency.presence || "CNY" %></span>
+              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">货币</span>
+              <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= selected_account.currency.presence || "CNY" %></span>
             </div>
             <div class="flex justify-between items-center p-3 bg-surface dark:bg-surface-dark rounded-lg">
-              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">交易数量</span>
-              <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= selected_account.sent_transactions.count %></span>
+              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">交易数量</span>
+              <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= selected_account.sent_transactions.count %></span>
             </div>
           </div>
           <div class="mt-4">
@@ -232,14 +232,14 @@
             <div class="w-12 h-12 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center mx-auto mb-3">
               <%= render Ds::IconComponent.new(name: "credit-card", class: "text-secondary dark:text-secondary dark:text-secondary-dark-dark") %>
             </div>
-            <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">选择左侧账户查看详情</p>
+            <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">选择左侧账户查看详情</p>
           </div>
         <% end %>
       </div>
     </div>
 
     <!-- Right Column: Transaction List -->
-    <div class="col-span-12 md:col-span-6 bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
+    <div class="col-span-12 md:col-span-6 bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
       <%= render Ds::SelectionBarComponent.new(
         count: 0,
         delete_url: bulk_destroy_transactions_path,
@@ -247,7 +247,7 @@
       ) %>
       <% if @transactions.any? %>
         <!-- Header -->
-        <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark uppercase tracking-wider rounded-t-lg">
+        <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset text-xs font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark uppercase tracking-wider rounded-t-lg">
           <div class="col-span-1"></div>
           <div class="col-span-2">日期</div>
           <div class="col-span-2">分类</div>
@@ -269,7 +269,7 @@
                              value="<%= t.id %>"
                              data-bulk-select-target="checkbox"
                              data-action="change->bulk-select#toggleRowSelection"
-                             class="w-4 h-4 rounded border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark focus:ring-blue-500">
+                             class="w-4 h-4 rounded border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark focus:ring-blue-500">
                     </div>
 
                     <!-- Date & Type -->
@@ -284,11 +284,11 @@
                         <% end %>
                       </div>
                       <div>
-                        <p class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark text-sm"><%= t.date&.strftime("%m/%d") %></p>
+                        <p class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark text-sm"><%= t.date&.strftime("%m/%d") %></p>
                         <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%= 
                           case t.type
                           when 'INCOME' then 'bg-green-100 text-green-700'
-                          when 'TRANSFER' then 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark'
+                          when 'TRANSFER' then 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark'
                           when 'ADVANCE' then 'bg-yellow-100 text-yellow-700'
                           when 'REIMBURSE' then 'bg-purple-100 text-purple-700'
                           else 'bg-red-100 text-red-700'
@@ -301,20 +301,20 @@
 
                     <!-- Category -->
                     <div class="col-span-2 mb-2 md:mb-0">
-                      <p class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark text-sm"><%= t.category&.name || "-" %></p>
+                      <p class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark text-sm"><%= t.category&.name || "-" %></p>
                     </div>
 
                     <!-- Account -->
                     <div class="col-span-2 mb-2 md:mb-0">
-                      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= t.account_name %></p>
+                      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t.account_name %></p>
                       <% if t.target_account_name.present? %>
-                        <p class="text-xs text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">→ <%= t.target_account_name %></p>
+                        <p class="text-xs text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">→ <%= t.target_account_name %></p>
                       <% end %>
                     </div>
 
                     <!-- Note & Tags -->
                     <div class="col-span-3 mb-2 md:mb-0">
-                      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark truncate"><%= t.note || "-" %></p>
+                      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark truncate"><%= t.note || "-" %></p>
                       <% if t.tags.any? %>
                         <div class="flex flex-wrap gap-1 mt-1">
                           <% t.tags.limit(3).each do |tag| %>
@@ -323,7 +323,7 @@
                             </span>
                           <% end %>
                           <% if t.tags.count > 3 %>
-                            <span class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">+<%= t.tags.count - 3 %></span>
+                            <span class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">+<%= t.tags.count - 3 %></span>
                           <% end %>
                         </div>
                       <% end %>
@@ -349,8 +349,8 @@
           <div class="w-12 h-12 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center mx-auto mb-4">
             <%= render Ds::IconComponent.new(name: "inbox", class: "text-secondary dark:text-secondary dark:text-secondary-dark-dark") %>
           </div>
-          <p class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark font-medium mb-1"><%= t("transactions.no_transactions_found") %></p>
-          <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark text-sm mb-4">开始添加您的第一笔交易吧</p>
+          <p class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark font-medium mb-1"><%= t("transactions.no_transactions_found") %></p>
+          <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark text-sm mb-4">开始添加您的第一笔交易吧</p>
           <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
         </div>
       <% end %>

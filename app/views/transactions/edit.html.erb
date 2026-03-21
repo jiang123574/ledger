@@ -3,13 +3,13 @@
     <%= link_to transactions_path, class: "p-2 hover:bg-surface-inset dark:hover:bg-surface-dark-inset rounded-lg transition-smooth" do %>
       <%= render(Ds::IconComponent.new(name: "arrow-left", size: :md)) %>
     <% end %>
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= t("transactions.edit_transaction") %></h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= t("transactions.edit_transaction") %></h1>
   </div>
 
   <%= render(Ds::CardComponent.new) do %>
     <%= form_with model: @transaction, local: true, class: "space-y-6" do |f| %>
       <!-- Transaction Type Tabs -->
-      <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset rounded-lg p-1 flex">
+      <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset rounded-lg p-1 flex">
         <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="EXPENSE">
           <span class="flex items-center justify-center gap-2">
             <%= render(Ds::IconComponent.new(name: "minus-circle", size: :sm, color: :expense)) %>
@@ -27,40 +27,40 @@
 
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark mb-1.5"><%= t("transactions.date") %></label>
+          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark mb-1.5"><%= t("transactions.date") %></label>
           <%= f.date_field :date, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark mb-1.5"><%= t("transactions.amount") %></label>
+          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark mb-1.5"><%= t("transactions.amount") %></label>
           <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">¥</span>
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">¥</span>
             <%= f.number_field :amount, step: "0.01", placeholder: "0.00", class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
           </div>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark mb-1.5"><%= t("transactions.account") %></label>
+          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark mb-1.5"><%= t("transactions.account") %></label>
           <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark mb-1.5"><%= t("transactions.category") %></label>
+          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark mb-1.5"><%= t("transactions.category") %></label>
           <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
         </div>
 
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark mb-1.5">转入账户</label>
+          <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark mb-1.5">转入账户</label>
           <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "无" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
         </div>
       </div>
 
       <div>
-        <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark mb-1.5"><%= t("transactions.note") %></label>
+        <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark mb-1.5"><%= t("transactions.note") %></label>
         <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
       </div>
 
-      <div class="flex justify-end gap-3 pt-4 border-t border-border dark:border-border dark:border-border-dark-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+      <div class="flex justify-end gap-3 pt-4 border-t border-border dark:border-border dark:border-border-dark-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark-dark">
         <%= link_to t("transactions.cancel"), transactions_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
         <%= render(Ds::ButtonComponent.new(type: :submit, variant: :primary)) do %>
           <%= t("transactions.update") %>

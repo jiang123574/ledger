@@ -5,7 +5,7 @@
 
 <% if defined?(pagy) && pagy %>
   <nav class="flex items-center justify-between">
-    <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">
+    <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">
       共 <%= pagy.count %> 条
     </div>
     <div class="flex items-center gap-1">
@@ -21,7 +21,7 @@
           <%= link_to item, pagy_url_for(pagy, item), 
               class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth #{pagy.page == item ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark' : ''}" %>
         <% elsif item == :gap %>
-          <span class="px-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">...</span>
+          <span class="px-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">...</span>
         <% end %>
       <% end %>
 
