@@ -25,7 +25,7 @@
   </div>
 
   <!-- Stats Cards (Always visible, not draggable) -->
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
@@ -61,6 +61,18 @@
         </div>
         <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
+        </div>
+      </div>
+    <% end %>
+
+    <%= render(Ds::CardComponent.new) do %>
+      <div class="flex items-start justify-between">
+        <div>
+          <p class="text-sm font-medium text-secondary">总资产</p>
+          <p class="text-2xl font-semibold text-primary mt-1"><%= format_currency(@total_assets) %></p>
+        </div>
+        <div class="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+          <%= render(Ds::IconComponent.new(name: "wallet", size: :md, color: :primary)) %>
         </div>
       </div>
     <% end %>

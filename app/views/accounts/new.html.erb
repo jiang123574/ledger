@@ -29,7 +29,10 @@
 
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5">货币</label>
-          <%= f.text_field :currency, value: "CNY", maxlength: 3, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.select :currency, 
+            Currency.active.map { |c| ["#{c.code} - #{c.name}", c.code] },
+            { selected: @account.currency || "CNY" },
+            class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
       </div>
 

@@ -14,6 +14,12 @@ Rails.application.routes.draw do
   resources :tags, except: [ :show ]
   resources :budgets, only: [ :index, :create, :update, :destroy ]
   resources :plans
+  resources :receivables do
+    member do
+      get :settle
+      post :settle
+    end
+  end
   resources :recurring, controller: "recurring", only: [ :index, :new, :create, :edit, :update, :destroy ] do
     member do
       post :execute
@@ -30,6 +36,8 @@ Rails.application.routes.draw do
   post "/settings/clear_data", to: "settings#clear_all_data", as: :clear_all_data
 
   get "/reports", to: "reports#show", as: :reports
+  get "/reports/:year", to: "reports#show", as: :report_year
+  get "/reports/:year/:month", to: "reports#show", as: :report_month
   get "/dashboard", to: "dashboard#show", as: :dashboard
 
   namespace :api do
