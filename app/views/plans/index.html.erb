@@ -49,7 +49,7 @@
                         <span><%= t('plans.progress', default: '进度') %>: <%= plan.installments_completed %> / <%= plan.installments_total %> <%= t('plans.periods', default: '期') %></span>
                         <span><%= plan.progress_percentage %>%</span>
                       </div>
-                      <div class="w-full bg-gray-200 rounded-full h-2">
+                      <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
                         <div class="bg-inverse h-2 rounded-full transition-all" style="width: <%= plan.progress_percentage %>%"></div>
                       </div>
                       <div class="text-xs text-secondary dark:text-secondary-dark mt-1">
@@ -86,7 +86,7 @@
                 <div>
                   <div class="flex items-center gap-2">
                     <h3 class="font-semibold text-secondary dark:text-secondary-dark"><%= plan.name %></h3>
-                    <span class="px-2 py-0.5 text-xs rounded-full bg-gray-200 text-secondary dark:text-secondary-dark">
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
                       <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::RECURRING ? t('plans.recurring') : t('plans.one_time')) %>
                     </span>
                     <% if plan.type == Plan::INSTALLMENT && plan.completed? %>

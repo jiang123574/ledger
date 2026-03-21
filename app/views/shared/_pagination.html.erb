@@ -13,7 +13,7 @@
         <%= link_to "上一页", pagy_url_for(pagy, pagy.prev), 
             class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth" %>
       <% else %>
-        <span class="px-3 py-1.5 text-sm rounded-lg text-gray-300 cursor-not-allowed">上一页</span>
+        <span class="px-3 py-1.5 text-sm rounded-lg text-secondary dark:text-secondary-dark cursor-not-allowed">上一页</span>
       <% end %>
 
       <% pagy.series.each do |item| %>
@@ -29,7 +29,7 @@
         <%= link_to "下一页", pagy_url_for(pagy, pagy.next), 
             class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth" %>
       <% else %>
-        <span class="px-3 py-1.5 text-sm rounded-lg text-gray-300 cursor-not-allowed">下一页</span>
+        <span class="px-3 py-1.5 text-sm rounded-lg text-secondary dark:text-secondary-dark cursor-not-allowed">下一页</span>
       <% end %>
     </div>
   </nav>
