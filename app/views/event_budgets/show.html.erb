@@ -1,0 +1,108 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <div class="flex items-center gap-4">
+      <%= link_to t("common.back"), event_budgets_path, class: "text-primary hover:text-inverse" %>
+      <h1 class="text-2xl font-bold text-gray-900"><%= @event_budget.name %></h1>
+      <span class="text-xs px-2 py-0.5 rounded <%= 
+        case @event_budget.status_color
+        when 'red' then 'bg-red-100 text-red-700'
+        when 'yellow' then 'bg-yellow-100 text-yellow-700'
+        else 'bg-surface dark:bg-gray-600 text-primary dark:text-gray-300'
+        end
+      %>"><%= @event_budget.status_text %></span>
+    </div>
+    <div class="flex gap-2">
+      <%= link_to t("event_budgets.edit"), edit_event_budget_path(@event_budget), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+      <% if @event_budget.active? %>
+        <%= button_to t("event_budgets.complete"), event_budget_path(@event_budget, event_budget: { status: "completed" }), method: :patch, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-green-100 text-green-600 hover:bg-green-200 transition-smooth btn-modern" %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("event_budgets.budget") %></h3>
+        <p class="text-2xl font-bold"><%= format_currency(@event_budget.total_amount) %></p>
+      </div>
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("event_budgets.spent") %></h3>
+        <p class="text-2xl font-bold <%= @event_budget.overspent? ? 'text-red-600' : '' %>"><%= format_currency(@event_budget.spent_amount) %></p>
+      </div>
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("event_budgets.remaining") %></h3>
+        <p class="text-2xl font-bold <%= @event_budget.remaining_amount < 0 ? 'text-red-600' : 'text-green-600' %>">
+          <%= @event_budget.overspent? ? "超支 #{format_currency(@event_budget.remaining_amount.abs)}" : format_currency(@event_budget.remaining_amount) %>
+        </p>
+      </div>
+      <div>
+        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("event_budgets.progress") %></h3>
+        <p class="text-2xl font-bold"><%= @event_budget.progress_percentage %>%</p>
+      </div>
+    </div>
+
+    <div class="w-full bg-gray-200 rounded-full h-4 mt-4">
+      <div class="<%= @event_budget.status_color == 'red' ? 'bg-red-500' : (@event_budget.status_color == 'yellow' ? 'bg-yellow-500' : 'bg-inverse') %> h-4 rounded-full transition-all" style="width: <%= [@event_budget.progress_percentage, 100].min %>%"></div>
+    </div>
+
+    <% if @event_budget.description.present? %>
+      <div class="mt-4 pt-4 border-t border-border">
+        <h3 class="text-sm font-medium text-gray-500 mb-1"><%= t("event_budgets.description") %></h3>
+        <p class="text-primary"><%= @event_budget.description %></p>
+      </div>
+    <% end %>
+
+    <div class="mt-4 pt-4 border-t border-border grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("event_budgets.start_date") %></h3>
+        <p class="text-primary"><%= @event_budget.start_date.strftime("%Y-%m-%d") %></p>
+      </div>
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("event_budgets.end_date") %></h3>
+        <p class="text-primary"><%= @event_budget.end_date.present? ? @event_budget.end_date.strftime("%Y-%m-%d") : "-" %></p>
+      </div>
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("event_budgets.days_remaining") %></h3>
+        <p class="text-primary"><%= @event_budget.days_remaining.present? ? "#{@event_budget.days_remaining} 天" : "-" %></p>
+      </div>
+      <div>
+        <h3 class="text-sm font-medium text-gray-500"><%= t("event_budgets.currency") %></h3>
+        <p class="text-primary"><%= @event_budget.currency %></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+    <h3 class="font-medium mb-4"><%= t("event_budgets.related_transactions") %> (<%= @transactions.count %>)</h3>
+    <% if @transactions.any? %>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-border">
+              <th class="text-left py-2 px-3 text-sm font-medium text-gray-500"><%= t("transactions.date") %></th>
+              <th class="text-left py-2 px-3 text-sm font-medium text-gray-500"><%= t("transactions.category") %></th>
+              <th class="text-left py-2 px-3 text-sm font-medium text-gray-500"><%= t("transactions.account") %></th>
+              <th class="text-left py-2 px-3 text-sm font-medium text-gray-500"><%= t("transactions.note") %></th>
+              <th class="text-right py-2 px-3 text-sm font-medium text-gray-500"><%= t("transactions.amount") %></th>
+            </tr>
+          </thead>
+          <tbody>
+            <% @transactions.each do |transaction| %>
+              <tr class="border-b border-border hover:bg-surface-hover">
+                <td class="py-2 px-3 text-sm"><%= transaction.date.strftime("%Y-%m-%d") %></td>
+                <td class="py-2 px-3 text-sm"><%= transaction.category&.name || "-" %></td>
+                <td class="py-2 px-3 text-sm"><%= transaction.account&.name || "-" %></td>
+                <td class="py-2 px-3 text-sm"><%= transaction.note || "-" %></td>
+                <td class="py-2 px-3 text-sm text-right <%= transaction.type == "EXPENSE" ? 'text-red-600' : 'text-green-600' %>">
+                  <%= transaction.type == "EXPENSE" ? "-" : "+" %><%= format_currency(transaction.amount) %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    <% else %>
+      <p class="text-gray-500 text-center py-4"><%= t("event_budgets.no_transactions") %></p>
+    <% end %>
+  </div>
+</div>

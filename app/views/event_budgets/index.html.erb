@@ -1,0 +1,100 @@
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-gray-900"><%= t("event_budgets.title") %></h1>
+    <%= link_to t("event_budgets.new"), new_event_budget_path, class: "px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+  </div>
+
+  <div class="flex items-center space-x-2 mb-4">
+    <%= link_to t("event_budgets.all"), event_budgets_path, class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status].blank? ? 'bg-inverse text-white' : 'border-border text-primary hover:bg-surface-hover'}" %>
+    <%= link_to t("event_budgets.active"), event_budgets_path(status: "active"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'active' ? 'bg-inverse text-white' : 'border-border text-primary hover:bg-surface-hover'}" %>
+    <%= link_to t("event_budgets.completed"), event_budgets_path(status: "completed"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'completed' ? 'bg-inverse text-white' : 'border-border text-primary hover:bg-surface-hover'}" %>
+    <%= link_to t("event_budgets.cancelled"), event_budgets_path(status: "cancelled"), class: "px-3 py-1.5 text-sm font-medium rounded-lg border #{params[:status] == 'cancelled' ? 'bg-inverse text-white' : 'border-border text-primary hover:bg-surface-hover'}" %>
+  </div>
+
+  <% if @total_budget > 0 %>
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-6">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="font-medium"><%= t("event_budgets.total") %></h3>
+        <span class="text-sm <%= (@total_budget - @total_spent) < 0 ? 'text-red-600' : 'text-green-600' %>">
+          <%= (@total_budget - @total_spent) < 0 ? "已超支" : "剩余 #{format_currency(@total_budget - @total_spent)}" %>
+        </span>
+      </div>
+      <div class="flex items-center gap-4">
+        <div class="flex-1">
+          <div class="flex justify-between text-sm mb-1">
+            <span class="text-gray-500">已使用</span>
+            <span class="font-medium"><%= format_currency(@total_spent) %> / <%= format_currency(@total_budget) %></span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-4">
+            <% percentage = @total_budget > 0 ? (@total_spent.to_f / @total_budget * 100).round : 0 %>
+            <div class="<%= percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-inverse') %> h-4 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
+          </div>
+          <div class="flex justify-between text-xs text-gray-400 mt-1">
+            <span>0%</span>
+            <span class="<%= percentage > 100 ? 'text-red-600 font-medium' : '' %>"><%= percentage %>%</span>
+            <span>100%</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="grid gap-4">
+    <% @event_budgets.each do |budget| %>
+      <% percentage = budget.progress_percentage %>
+      <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-4">
+        <div class="flex justify-between items-center mb-2">
+          <div class="flex items-center gap-2">
+            <span class="font-medium"><%= budget.name %></span>
+            <span class="text-xs px-2 py-0.5 rounded <%= 
+              case budget.status_color
+              when 'red' then 'bg-red-100 text-red-700'
+              when 'yellow' then 'bg-yellow-100 text-yellow-700'
+              else 'bg-surface dark:bg-gray-600 text-primary dark:text-gray-300'
+              end
+            %>"><%= budget.status_text %></span>
+          </div>
+          <div class="text-right">
+            <span class="font-medium"><%= format_currency(budget.total_amount) %></span>
+            <span class="text-sm text-gray-500">预算</span>
+          </div>
+        </div>
+        
+        <% if budget.description.present? %>
+          <p class="text-sm text-gray-500 mb-2"><%= budget.description %></p>
+        <% end %>
+        
+        <div class="flex items-center gap-4 text-sm text-gray-500 mb-2">
+          <span><%= budget.start_date.strftime("%Y-%m-%d") %></span>
+          <% if budget.end_date.present? %>
+            <span>~ <%= budget.end_date.strftime("%Y-%m-%d") %></span>
+          <% end %>
+          <% if budget.days_remaining.present? && budget.active? %>
+            <span class="text-blue-600">剩余 <%= budget.days_remaining %> 天</span>
+          <% end %>
+        </div>
+        
+        <div class="w-full bg-gray-200 rounded-full h-3">
+          <div class="<%= budget.status_color == 'red' ? 'bg-red-500' : (budget.status_color == 'yellow' ? 'bg-yellow-500' : 'bg-inverse') %> h-3 rounded-full transition-all" style="width: <%= [percentage, 100].min %>%"></div>
+        </div>
+        <div class="flex justify-between text-sm mt-2">
+          <span class="text-gray-500">已支出: <%= format_currency(budget.spent_amount) %></span>
+          <span class="<%= budget.overspent? ? 'text-red-600 font-medium' : 'text-gray-500' %>">
+            <%= budget.overspent? ? "超支 #{format_currency(budget.remaining_amount.abs)}" : "剩余 #{format_currency(budget.remaining_amount)}" %>
+          </span>
+        </div>
+        <div class="flex justify-end gap-2 mt-2">
+          <%= link_to t("event_budgets.view"), event_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+          <%= link_to t("event_budgets.edit"), edit_event_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-gray-600 text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+          <%= link_to t("event_budgets.delete"), event_budget, method: :delete, data: { confirm: t("event_budgets.are_you_sure") }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @event_budgets.empty? %>
+    <div class="bg-container dark:bg-gray-800 rounded-lg shadow p-8 text-center text-gray-500">
+      <%= t("event_budgets.no_event_budgets") %>
+    </div>
+  <% end %>
+</div>
