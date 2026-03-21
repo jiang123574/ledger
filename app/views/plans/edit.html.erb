@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", plans_path, class: "text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">编辑计划</h1>
+    <%= link_to "← 返回", plans_path, class: "text-secondary dark:text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark">编辑计划</h1>
   </div>
 
   <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6 max-w-2xl">
@@ -18,23 +18,23 @@
 
       <!-- Plan Type -->
       <div>
-        <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mb-2">计划类型</label>
+        <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark mb-2">计划类型</label>
         <div class="grid grid-cols-3 gap-4">
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-border-dark' %>">
             <%= f.radio_button :type, 'ONE_TIME', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">📌</div>
               <div class="font-medium">一次性</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-border-dark' %>">
             <%= f.radio_button :type, 'INSTALLMENT', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">💳</div>
               <div class="font-medium">分期还款</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-gray-700' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border dark:border-border-dark-dark dark:border-border-dark' %>">
             <%= f.radio_button :type, 'RECURRING', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">🔄</div>
@@ -47,13 +47,13 @@
       <!-- Basic Info -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <%= f.label :name, "计划名称", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
-          <%= f.text_field :name, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.label :name, "计划名称", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
+          <%= f.text_field :name, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <div>
-          <%= f.label :account_id, "关联账户", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
-          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户..." }, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.label :account_id, "关联账户", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
+          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户..." }, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
       </div>
 
@@ -61,38 +61,38 @@
       <% if @plan.type == 'INSTALLMENT' %>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div class="md:col-span-2">
-            <%= f.label :total_amount, "总金额", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
+            <%= f.label :total_amount, "总金额", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
             <div class="mt-1 relative">
-              <span class="absolute left-3 top-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">¥</span>
-              <%= f.number_field :total_amount, step: "0.01", class: "block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg pl-8 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500" %>
+              <span class="absolute left-3 top-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">¥</span>
+              <%= f.number_field :total_amount, step: "0.01", class: "block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg pl-8 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500" %>
             </div>
           </div>
 
           <div>
-            <%= f.label :installments_total, "总期数", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
-            <%= f.number_field :installments_total, min: 1, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+            <%= f.label :installments_total, "总期数", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
+            <%= f.number_field :installments_total, min: 1, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <%= f.label :installments_completed, "已完成期数", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
-            <%= f.number_field :installments_completed, min: 0, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+            <%= f.label :installments_completed, "已完成期数", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
+            <%= f.number_field :installments_completed, min: 0, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           
           <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">每期金额</label>
-            <div class="mt-1 p-2 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-lg text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark">每期金额</label>
+            <div class="mt-1 p-2 bg-surface dark:bg-surface-dark dark:bg-surface-dark rounded-lg text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark">
               ¥<%= (@plan.total_amount.to_f / [@plan.installments_total, 1].max).round(2) %>
             </div>
           </div>
         </div>
       <% else %>
         <div>
-          <%= f.label :amount, "金额", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
+          <%= f.label :amount, "金额", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
           <div class="mt-1 relative">
-            <span class="absolute left-3 top-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">¥</span>
-            <%= f.number_field :amount, step: "0.01", class: "block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg pl-8 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500" %>
+            <span class="absolute left-3 top-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">¥</span>
+            <%= f.number_field :amount, step: "0.01", class: "block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg pl-8 pr-3 py-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
       <% end %>
@@ -100,24 +100,24 @@
       <!-- Day of Month -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <%= f.label :day_of_month, "每月还款日", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
-          <%= f.select :day_of_month, (1..31).to_a.map { |d| [ "#{d}日", d ] }, {}, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.label :day_of_month, "每月还款日", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
+          <%= f.select :day_of_month, (1..31).to_a.map { |d| [ "#{d}日", d ] }, {}, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <div>
-          <%= f.label :currency, "货币", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
-          <%= f.select :currency, [ 'CNY', 'USD', 'EUR', 'JPY', 'GBP' ], {}, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-gray-600 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.label :currency, "货币", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
+          <%= f.select :currency, [ 'CNY', 'USD', 'EUR', 'JPY', 'GBP' ], {}, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
       </div>
 
       <!-- Active Status -->
       <div class="flex items-center">
-        <%= f.check_box :active, class: "h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark dark:border-gray-600 rounded" %>
-        <%= f.label :active, "启用计划", class: "ml-2 text-sm text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark-dark" %>
+        <%= f.check_box :active, class: "h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark dark:border-border-dark rounded" %>
+        <%= f.label :active, "启用计划", class: "ml-2 text-sm text-primary dark:text-primary dark:text-primary-dark dark:text-secondary dark:text-secondary-dark" %>
       </div>
 
       <% if @plan.last_generated.present? %>
-        <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
+        <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark">
           上次执行: <%= l(@plan.last_generated, format: :short) %>
         </div>
       <% end %>

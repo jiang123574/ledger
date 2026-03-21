@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">新建交易对方</h1>
+    <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary dark:text-primary-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark">新建交易对方</h1>
   </div>
 
   <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-lg shadow p-6 max-w-xl">
@@ -17,17 +17,17 @@
       <% end %>
 
       <div>
-        <%= f.label :name, "名称", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark" %>
+        <%= f.label :name, "名称", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
         <%= f.text_field :name, placeholder: "例如: 张三、某公司", class: "mt-1 block w-full border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <div>
-        <%= f.label :contact, "联系方式", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark" %>
+        <%= f.label :contact, "联系方式", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
         <%= f.text_field :contact, placeholder: "手机号、微信等", class: "mt-1 block w-full border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <div>
-        <%= f.label :note, "备注", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark" %>
+        <%= f.label :note, "备注", class: "block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark" %>
         <%= f.text_area :note, rows: 3, placeholder: "可选备注信息...", class: "mt-1 block w-full border border-border dark:border-border dark:border-border-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
