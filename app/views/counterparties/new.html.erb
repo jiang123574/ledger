@@ -1,10 +1,10 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
     <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">新建交易对方</h1>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">新建交易对方</h1>
   </div>
 
-  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6 max-w-xl">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow p-6 max-w-xl">
     <%= form_with model: @counterparty, local: true, class: "space-y-4" do |f| %>
       <% if @counterparty.errors.any? %>
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">

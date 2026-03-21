@@ -1,10 +1,10 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
     <%= link_to "← 返回", plans_path, class: "text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">新建计划</h1>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">新建计划</h1>
   </div>
 
-  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg shadow p-6 max-w-2xl">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg shadow p-6 max-w-2xl">
     <%= form_with model: @plan, local: true, class: "space-y-6" do |f| %>
       <% if @plan.errors.any? %>
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -18,30 +18,30 @@
 
       <!-- Plan Type -->
       <div>
-        <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mb-2">计划类型</label>
+        <label class="block text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mb-2">计划类型</label>
         <div class="grid grid-cols-3 gap-4">
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark' %>">
             <%= f.radio_button :type, 'ONE_TIME', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">📌</div>
               <div class="font-medium">一次性</div>
-              <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">单次支出计划</div>
+              <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">单次支出计划</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark' %>">
             <%= f.radio_button :type, 'INSTALLMENT', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">💳</div>
               <div class="font-medium">分期还款</div>
-              <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">信用卡分期等</div>
+              <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">信用卡分期等</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark' %>">
             <%= f.radio_button :type, 'RECURRING', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">🔄</div>
               <div class="font-medium">周期支出</div>
-              <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">房租、订阅等</div>
+              <div class="text-xs text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">房租、订阅等</div>
             </div>
           </label>
         </div>
@@ -67,7 +67,7 @@
             <div class="md:col-span-2">
               <%= f.label :total_amount, "总金额", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
               <div class="mt-1 relative">
-                <span class="absolute left-3 top-2.5 text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">¥</span>
+                <span class="absolute left-3 top-2.5 text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">¥</span>
                 <%= f.number_field :total_amount, step: "0.01", placeholder: "0.00", class: "block w-full border border-border dark:border-border dark:border-border-dark-dark rounded-lg pl-8 pr-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
               </div>
             </div>
@@ -78,7 +78,7 @@
             </div>
           </div>
 
-          <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-lg p-3 text-sm text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">
+          <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg p-3 text-sm text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">
             💡 每期还款: <span id="per-installment" class="font-semibold">¥0.00</span>
           </div>
 
@@ -87,7 +87,7 @@
           <div>
             <%= f.label :amount, "金额", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark" %>
             <div class="mt-1 relative">
-              <span class="absolute left-3 top-2.5 text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">¥</span>
+              <span class="absolute left-3 top-2.5 text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">¥</span>
               <%= f.number_field :amount, step: "0.01", placeholder: "0.00", class: "block w-full border border-border dark:border-border dark:border-border-dark-dark rounded-lg pl-8 pr-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
             </div>
           </div>

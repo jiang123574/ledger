@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= t("accounts.title") %></h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= t("accounts.title") %></h1>
     <%= render(Ds::ButtonComponent.new(href: new_account_path, icon: "plus", variant: :primary)) do %>
       <%= t("accounts.new_account") %>
     <% end %>
@@ -16,10 +16,10 @@
             <div class="flex items-start justify-between mb-4">
               <div class="flex items-center gap-3">
                 <div class="w-12 h-12 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-                  <span class="text-lg font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= account.name[0] %></span>
+                  <span class="text-lg font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= account.name[0] %></span>
                 </div>
                 <div>
-                  <h3 class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= account.name %></h3>
+                  <h3 class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= account.name %></h3>
                   <%= render(Ds::BadgeComponent.new(variant: :default, size: :xs)) do %>
                     <%= account.type_name %>
                   <% end %>
@@ -29,18 +29,18 @@
 
             <div class="space-y-2">
               <div class="flex justify-between items-center">
-                <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark"><%= t("accounts.balance") %></span>
-                <span class="text-xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">¥<%= account.current_balance.to_s("%.2f") %></span>
+                <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark"><%= t("accounts.balance") %></span>
+                <span class="text-xl font-bold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">¥<%= account.current_balance.to_s("%.2f") %></span>
               </div>
               <% if account.currency.present? %>
                 <div class="flex justify-between items-center text-sm">
-                  <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">货币</span>
-                  <span class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= account.currency %></span>
+                  <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">货币</span>
+                  <span class="text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= account.currency %></span>
                 </div>
               <% end %>
             </div>
           </div>
-          <div class="px-4 py-3 bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset rounded-b-xl flex justify-end">
+          <div class="px-4 py-3 bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset rounded-b-xl flex justify-end">
             <%= link_to edit_account_path(account), class: "text-sm text-primary dark:text-primary dark:text-primary-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark font-medium" do %>
               <%= t("common.edit") %>
             <% end %>

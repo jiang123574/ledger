@@ -4,15 +4,15 @@
   <!-- Header -->
   <div class="flex items-center justify-between">
     <div>
-      <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark">标签管理</h1>
-      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mt-1">创建和管理交易标签，用于分类和筛选</p>
+      <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark">标签管理</h1>
+      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mt-1">创建和管理交易标签，用于分类和筛选</p>
     </div>
   </div>
 
   <!-- New Tag Form -->
   <%= render(Ds::CardComponent.new) do %>
     <div class="p-6">
-      <h2 class="text-lg font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark mb-4">新建标签</h2>
+      <h2 class="text-lg font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark mb-4">新建标签</h2>
       <%= form_with model: @tag, url: tags_path, class: "space-y-4" do |f| %>
         <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
@@ -27,7 +27,7 @@
               <%= f.color_field :color, 
                   class: "w-12 h-10 rounded cursor-pointer border border-border dark:border-border dark:border-border-dark-dark",
                   value: @tag.color || "#3498db" %>
-              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark" id="color-preview"><%= @tag.color || "#3498db" %></span>
+              <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark" id="color-preview"><%= @tag.color || "#3498db" %></span>
             </div>
           </div>
           <div class="flex items-end">
@@ -43,13 +43,13 @@
   <% if @tags.any? %>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <% @tags.each do |tag| %>
-        <div class="bg-container dark:bg-container dark:bg-container-dark-dark rounded-xl border border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark p-4 hover:shadow-md transition-shadow">
+        <div class="bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark rounded-xl border border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark p-4 hover:shadow-md transition-shadow">
           <div class="flex items-start justify-between">
             <div class="flex items-center gap-3">
               <div class="w-4 h-4 rounded-full" style="background-color: <%= tag.color %>"></div>
               <div>
-                <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark"><%= tag.name %></h3>
-                <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mt-1">
+                <h3 class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark"><%= tag.name %></h3>
+                <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mt-1">
                   <%= tag.transactions.count %> 笔交易
                 </p>
               </div>
@@ -70,17 +70,17 @@
             </div>
           </div>
           <% if tag.description.present? %>
-            <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark mt-3"><%= tag.description %></p>
+            <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark mt-3"><%= tag.description %></p>
           <% end %>
         </div>
       <% end %>
     </div>
   <% else %>
     <div class="text-center py-12">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
         <%= render(Ds::IconComponent.new(name: "tag", size: :lg, color: :secondary)) %>
       </div>
-      <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark">还没有标签，创建第一个吧！</p>
+      <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark">还没有标签，创建第一个吧！</p>
     </div>
   <% end %>
 </div>
