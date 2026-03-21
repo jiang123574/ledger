@@ -30,7 +30,7 @@
       <div class="flex items-start justify-between">
         <div>
           <p class="text-sm font-medium text-secondary"><%= t("dashboard.income") %></p>
-          <p class="text-2xl font-semibold text-income mt-1">¥<%= @total_income.to_s("%.2f") %></p>
+          <p class="text-2xl font-semibold text-income mt-1"><%= format_currency(@total_income) %></p>
         </div>
         <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "arrow-right", size: :md, color: :income)) %>
@@ -42,7 +42,7 @@
       <div class="flex items-start justify-between">
         <div>
           <p class="text-sm font-medium text-secondary"><%= t("dashboard.expense") %></p>
-          <p class="text-2xl font-semibold text-expense mt-1">¥<%= @total_expense.to_s("%.2f") %></p>
+          <p class="text-2xl font-semibold text-expense mt-1"><%= format_currency(@total_expense) %></p>
         </div>
         <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "arrow-left", size: :md, color: :expense)) %>
@@ -56,7 +56,7 @@
           <p class="text-sm font-medium text-secondary"><%= t("dashboard.balance") %></p>
           <% balance = @total_income - @total_expense %>
           <p class="text-2xl font-semibold mt-1 <%= balance >= 0 ? 'text-income' : 'text-expense' %>">
-            ¥<%= balance.to_s("%.2f") %>
+            <%= format_currency(balance.abs, unit: balance >= 0 ? '+¥' : '-¥') %>
           </p>
         </div>
         <div class="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
@@ -135,7 +135,7 @@
               </div>
             </div>
             <span class="font-medium <%= t.type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
-              <%= t.type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
+              <%= format_currency_with_sign(t.amount, type: t.type) %>
             </span>
           <% end %>
         <% end %>
@@ -210,7 +210,7 @@
                 <p class="text-xs text-secondary"><%= account.type_name %></p>
               </div>
             </div>
-            <span class="font-semibold text-primary">¥<%= account.current_balance.to_s("%.2f") %></span>
+            <span class="font-semibold text-primary"><%= format_currency(account.current_balance) %></span>
           <% end %>
         <% end %>
         <% if @accounts.empty? %>
@@ -276,7 +276,7 @@
               <div>
                 <div class="flex justify-between text-sm mb-1.5">
                   <span class="font-medium text-primary"><%= category || t("dashboard.uncategorized") %></span>
-                  <span class="text-expense font-medium">¥<%= amount.to_s("%.2f") %></span>
+                  <span class="text-expense font-medium"><%= format_currency(amount) %></span>
                 </div>
                 <div class="w-full bg-surface rounded-full h-2">
                   <div class="bg-expense h-2 rounded-full transition-all" style="width: <%= percentage %>%"></div>
@@ -344,7 +344,7 @@
           <div class="space-y-4">
             <div class="flex justify-between items-center pb-4 border-b border-border">
               <span class="font-medium text-primary"><%= t("dashboard.total_budget") %></span>
-              <span class="font-semibold text-primary">¥<%= @total_budget.to_s("%.2f") %></span>
+              <span class="font-semibold text-primary"><%= format_currency(@total_budget) %></span>
             </div>
             <% if @total_budget > 0 %>
               <% budget_percentage = (@total_spent / @total_budget * 100).round %>
@@ -353,14 +353,14 @@
                 <div class="flex justify-between text-sm mb-1.5">
                   <span class="text-secondary"><%= t("dashboard.spent") %></span>
                   <span class="<%= budget_percentage > 100 ? 'text-expense' : 'text-primary' %> font-medium">
-                    ¥<%= @total_spent.to_s("%.2f") %> (<%= budget_percentage %>%)
+                    <%= format_currency(@total_spent) %> (<%= budget_percentage %>%)
                   </span>
                 </div>
                 <div class="w-full bg-surface rounded-full h-3">
                   <div class="<%= budget_color %> h-3 rounded-full transition-all" style="width: <%= [budget_percentage, 100].min %>%"></div>
                 </div>
                 <p class="text-sm text-secondary mt-2">
-                  <%= t("dashboard.remaining") %>: ¥<%= (@total_budget - @total_spent).to_s("%.2f") %>
+                  <%= t("dashboard.remaining") %>: <%= format_currency(@total_budget - @total_spent) %>
                 </p>
               </div>
             <% end %>

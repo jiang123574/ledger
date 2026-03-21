@@ -1,4 +1,18 @@
 module ApplicationHelper
+  # Currency formatting helper
+  # Uses Rails' number_to_currency with sensible defaults for CNY
+  def format_currency(amount, unit: "¥", precision: 2)
+    return format_currency(0, unit: unit, precision: precision) if amount.nil?
+    number_to_currency(amount, unit: unit, precision: precision, format: "%u%n")
+  end
+
+  # Format currency with sign (for income/expense display)
+  def format_currency_with_sign(amount, type:, unit: "¥", precision: 2)
+    return format_currency(0, unit: unit, precision: precision) if amount.nil?
+    sign = type == "INCOME" ? "+" : "-"
+    "#{sign}#{format_currency(amount.abs, unit: unit, precision: precision)}"
+  end
+
   def nav_item(key, label, path, icon)
     is_active = current_page?(path) || (controller_name == key.to_s && action_name == "show" && key != :dashboard)
 
