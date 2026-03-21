@@ -83,27 +83,31 @@
       <h2 class="text-lg font-semibold text-primary mb-4">
         <%= @report_type == :yearly ? "月度趋势" : "周趋势" %>
       </h2>
-      <div class="space-y-4 overflow-x-auto">
+      <div class="space-y-3 overflow-x-auto">
         <% @monthly_trend.each do |period| %>
-          <div class="flex items-center gap-2 min-w-0">
-            <span class="shrink-0 w-10 text-xs text-secondary truncate"><%= period[:label] %></span>
-            <div class="flex-1 min-w-0 space-y-1">
-              <% max_value = [period[:income], period[:expense]].max %>
-              <% next if max_value == 0 %>
-              <div class="flex items-center gap-1 min-w-0">
-                <span class="shrink-0 text-xs text-income w-12 truncate">+<%= format_currency(period[:income]) %></span>
-                <div class="flex-1 min-w-0 bg-surface rounded-full h-2">
-                  <div class="bg-income h-2 rounded-full" style="width: <%= period[:income] > 0 ? (period[:income].to_f / max_value * 100).round : 0 %>%"></div>
+          <% max_value = [period[:income], period[:expense]].max %>
+          <% if max_value > 0 %>
+            <div class="flex items-center gap-2 min-w-0 py-1">
+              <span class="shrink-0 w-12 text-sm text-primary font-medium"><%= period[:label] %></span>
+              <div class="flex-1 min-w-0 space-y-1">
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="shrink-0 text-xs text-income w-16 text-right">+<%= format_currency(period[:income]) %></span>
+                  <div class="flex-1 min-w-0 bg-surface dark:bg-gray-700 rounded-full h-2">
+                    <div class="bg-income h-2 rounded-full transition-all" style="width: <%= period[:income] > 0 ? (period[:income].to_f / max_value * 100).round : 0 %>%"></div>
+                  </div>
                 </div>
-              </div>
-              <div class="flex items-center gap-1 min-w-0">
-                <span class="shrink-0 text-xs text-expense w-12 truncate">-<%= format_currency(period[:expense]) %></span>
-                <div class="flex-1 min-w-0 bg-surface rounded-full h-2">
-                  <div class="bg-expense h-2 rounded-full" style="width: <%= period[:expense] > 0 ? (period[:expense].to_f / max_value * 100).round : 0 %>%"></div>
+                <div class="flex items-center gap-2 min-w-0">
+                  <span class="shrink-0 text-xs text-expense w-16 text-right">-<%= format_currency(period[:expense]) %></span>
+                  <div class="flex-1 min-w-0 bg-surface dark:bg-gray-700 rounded-full h-2">
+                    <div class="bg-expense h-2 rounded-full transition-all" style="width: <%= period[:expense] > 0 ? (period[:expense].to_f / max_value * 100).round : 0 %>%"></div>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          <% end %>
+        <% end %>
+        <% if @monthly_trend.all? { |p| [p[:income], p[:expense]].max == 0 } %>
+          <p class="text-secondary text-center py-8">暂无数据</p>
         <% end %>
       </div>
     <% end %>
