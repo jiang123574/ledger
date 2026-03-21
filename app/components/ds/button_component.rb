@@ -8,11 +8,15 @@ module Ds
         icon: "text-white"
       },
       secondary: {
-        container: "bg-gray-200 text-primary hover:bg-gray-300",
+        container: "border border-border text-primary hover:bg-surface-hover",
         icon: "text-primary"
       },
       destructive: {
-        container: "bg-destructive text-white hover:bg-destructive-hover",
+        container: "bg-red-100 text-red-600 hover:bg-red-200",
+        icon: "text-red-600"
+      },
+      inverse: {
+        container: "bg-inverse text-white hover:bg-inverse-hover",
         icon: "text-white"
       },
       outline: {
@@ -30,10 +34,10 @@ module Ds
     }.freeze
 
     SIZES = {
-      xs: "px-2 py-1 text-xs rounded-sm",
-      sm: "px-3 py-1.5 text-sm rounded",
-      md: "px-4 py-2 text-sm rounded-lg",
-      lg: "px-5 py-3 text-base rounded-xl"
+      xs: "px-2 py-1 text-xs rounded-lg",
+      sm: "px-3 py-1.5 text-sm rounded-lg",
+      md: "px-4 py-1.5 text-sm rounded-lg",
+      lg: "px-5 py-2 text-base rounded-lg"
     }.freeze
 
     def initialize(
@@ -61,11 +65,11 @@ module Ds
     def call
       if @href.present? && !@disabled
         link_to(@href, **link_options) do
-          content
+          button_content
         end
       else
         button_tag(**button_options) do
-          content
+          button_content
         end
       end
     end
@@ -81,7 +85,7 @@ module Ds
     end
 
     def base_classes
-      "inline-flex items-center justify-center gap-2 font-medium transition-smooth focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+      "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
     end
 
     def container_classes
@@ -102,8 +106,18 @@ module Ds
         disabled: @disabled || @loading,
         class: [ container_classes, @options[:class] ].compact.join(" ")
       }
-      opts[:data] = { disable_with: "..." }.merge(@options[:data] || {}) if @loading
+      opts[:data] = (@options[:data] || {})
+      opts[:data] = opts[:data].merge(loading: @loading) if @loading
       opts
+    end
+
+    def button_content
+      icon = @loading ? tag.span(class: "btn-spinner", aria: { hidden: true }) : render_icon
+      label = content if content.present?
+
+      return icon || label unless icon && label
+
+      @icon_position == :right ? safe_join([ label, icon ]) : safe_join([ icon, label ])
     end
 
     def render_icon

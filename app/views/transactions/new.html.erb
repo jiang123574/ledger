@@ -17,7 +17,7 @@
           { type: "ADVANCE", icon: "wallet", label: "预支", color: :warning },
           { type: "REIMBURSE", icon: "receipt", label: "报销", color: :info }
         ].each do |t| %>
-          <button type="button" class="flex-1 px-3 py-2 text-sm font-medium rounded-md transition-smooth type-tab <%= 'bg-container shadow-sm' if @transaction.type == t[:type] %>" data-type="<%= t[:type] %>">
+          <button type="button" class="flex-1 px-3 py-2 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= 'bg-container shadow-sm' if @transaction.type == t[:type] %>" data-type="<%= t[:type] %>">
             <span class="flex items-center justify-center gap-1.5">
               <%= render(Ds::IconComponent.new(name: t[:icon], size: :sm, color: t[:color])) %>
               <span class="hidden sm:inline"><%= t[:label] %></span>
@@ -31,7 +31,7 @@
         <!-- 日期 -->
         <div>
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.date") %></label>
-          <%= f.date_field :date, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.date_field :date, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- 金额 -->
@@ -52,19 +52,19 @@
         <!-- 账户 -->
         <div id="account_field">
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.account") %></label>
-          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- 转入账户 (转账时显示) -->
         <div id="target_account_field" class="<%= 'hidden' unless @transaction.transfer? %>">
           <label class="block text-sm font-medium text-primary mb-1.5">转入账户</label>
-          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "选择目标账户" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "选择目标账户" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- 分类 -->
         <div id="category_field" class="<%= 'hidden' if @transaction.transfer? %>">
           <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.category") %></label>
-          <%= f.collection_select :category_id, @categories, :id, :full_name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.collection_select :category_id, @categories, :id, :full_name, { include_blank: "选择分类" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- 标签 -->
@@ -80,7 +80,7 @@
               </label>
             <% end %>
             <% if @tags.empty? %>
-              <span class="text-sm text-secondary">暂无标签，<%= link_to "创建标签", tags_path, class: "text-blue-600 hover:text-blue-700" %></span>
+              <span class="text-sm text-secondary">暂无标签，<%= link_to "创建标签", tags_path, class: "text-primary hover:text-gray-700" %></span>
             <% end %>
           </div>
         </div>
@@ -89,13 +89,13 @@
       <!-- 备注 -->
       <div>
         <label class="block text-sm font-medium text-primary mb-1.5"><%= t("transactions.note") %></label>
-        <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-2 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
+        <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <!-- 附件 -->
       <div>
         <label class="block text-sm font-medium text-primary mb-1.5">附件</label>
-        <div class="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-blue-500 transition-smooth cursor-pointer" onclick="document.getElementById('file_input').click()">
+        <div class="border-2 border-dashed border-border rounded-lg p-6 text-center hover:border-inverse transition-smooth cursor-pointer" onclick="document.getElementById('file_input').click()">
           <%= render(Ds::IconComponent.new(name: "upload", size: :lg, color: :secondary)) %>
           <p class="text-sm text-secondary mt-2">点击或拖拽上传附件</p>
           <p class="text-xs text-secondary mt-1">支持图片、PDF、发票等</p>
@@ -105,7 +105,7 @@
       </div>
 
       <div class="flex justify-end gap-3 pt-4 border-t border-border">
-        <%= link_to t("transactions.cancel"), transactions_path, class: "px-4 py-2 text-sm font-medium text-secondary hover:bg-surface-inset rounded-lg transition-smooth" %>
+        <%= link_to t("transactions.cancel"), transactions_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
         <%= render(Ds::ButtonComponent.new(type: :submit, variant: :primary)) do %>
           <%= t("transactions.create") %>
         <% end %>

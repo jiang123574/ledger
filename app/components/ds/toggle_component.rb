@@ -77,7 +77,7 @@ module Ds
         "after:top-0.5 after:left-0.5 after:w-4 after:h-4",
         "after:transition-transform after:duration-300 after:ease-in-out",
         # Checked state
-        "peer-checked:bg-blue-600 peer-checked:after:translate-x-4",
+        "peer-checked:bg-inverse peer-checked:after:translate-x-4",
         # Disabled state
         "peer-disabled:opacity-70 peer-disabled:cursor-not-allowed",
         # Hover

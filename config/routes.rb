@@ -1,4 +1,8 @@
 Rails.application.routes.draw do
+  # PWA manifest
+  get "manifest" => "pwa#manifest", as: :pwa_manifest
+  get "manifest.json" => "pwa#manifest"
+
   get "up" => "rails/health#show", as: :rails_health_check
 
   root "dashboard#show"

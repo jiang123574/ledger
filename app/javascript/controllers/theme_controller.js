@@ -4,6 +4,7 @@ export default class extends Controller {
   static values = {
     theme: String
   }
+  static targets = ["toggle"]
 
   connect() {
     this.updateThemeClass()
@@ -18,9 +19,11 @@ export default class extends Controller {
     if (isDark) {
       localStorage.theme = "dark"
       document.documentElement.classList.add("dark")
+      document.documentElement.setAttribute("data-theme", "dark")
     } else {
       localStorage.theme = "light"
       document.documentElement.classList.remove("dark")
+      document.documentElement.setAttribute("data-theme", "light")
     }
     this.updateIcon()
   }
@@ -31,8 +34,10 @@ export default class extends Controller {
 
     if (stored === "dark" || (!stored && prefersDark)) {
       document.documentElement.classList.add("dark")
+      document.documentElement.setAttribute("data-theme", "dark")
     } else {
       document.documentElement.classList.remove("dark")
+      document.documentElement.setAttribute("data-theme", "light")
     }
     this.updateIcon()
   }
@@ -44,5 +49,6 @@ export default class extends Controller {
 
     if (sunIcon) sunIcon.classList.toggle("hidden", !isDark)
     if (moonIcon) moonIcon.classList.toggle("hidden", isDark)
+    if (this.hasToggleTarget) this.toggleTarget.checked = isDark
   }
 }

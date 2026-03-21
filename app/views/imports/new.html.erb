@@ -10,7 +10,7 @@
       <div class="text-sm text-gray-500">支持的格式</div>
       <div class="mt-1 flex flex-wrap gap-2">
         <% @supported_formats.each do |format| %>
-          <span class="px-2 py-1 bg-blue-100 text-blue-700 rounded text-sm uppercase"><%= format %></span>
+          <span class="px-2 py-1 bg-gray-100 text-gray-700 rounded text-sm uppercase"><%= format %></span>
         <% end %>
       </div>
     </div>
@@ -30,7 +30,7 @@
     
     <%= form_with url: preview_imports_path, local: true, multipart: true, id: "upload-form" do |f| %>
       <div class="space-y-4">
-        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-500 transition" id="drop-zone">
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-inverse transition" id="drop-zone">
           <div class="text-gray-500">
             <svg class="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48">
               <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
@@ -41,29 +41,29 @@
           <%= f.file_field :file, accept: ".csv,.xlsx,.xls,.ofx,.qif", class: "hidden", id: "file-input" %>
         </div>
 
-        <div id="file-info" class="hidden bg-blue-50 rounded-lg p-4">
+        <div id="file-info" class="hidden bg-gray-50 rounded-lg p-4">
           <div class="flex items-center justify-between">
             <div class="flex items-center gap-3">
-              <div class="text-blue-500">📄</div>
+              <div class="text-gray-500">📄</div>
               <div>
                 <div id="file-name" class="font-medium text-gray-900"></div>
                 <div id="file-size" class="text-sm text-gray-500"></div>
               </div>
             </div>
-            <button type="button" id="remove-file" class="text-red-600 hover:text-red-800">移除</button>
+            <button type="button" id="remove-file" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern">移除</button>
           </div>
         </div>
 
         <!-- Account Selection -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">导入到账户（可选）</label>
-          <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500" %>
+          <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
         </div>
 
         <!-- Template Selection -->
         <div>
           <label class="block text-sm font-medium text-gray-700 mb-1">字段映射模板</label>
-          <select id="template-select" class="border border-gray-300 rounded-lg px-3 py-2 focus:ring-blue-500 focus:border-blue-500">
+          <select id="template-select" class="border border-gray-300 rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500">
             <option value="">自动检测</option>
             <% @templates.each do |template| %>
               <option value="<%= template[:mapping].to_json %>"><%= template[:name] %></option>
@@ -72,7 +72,7 @@
         </div>
 
         <div class="flex justify-end">
-          <%= f.submit "预览导入", class: "bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700" %>
+          <%= f.submit "预览导入", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
         </div>
       </div>
     <% end %>
@@ -109,16 +109,16 @@ document.addEventListener('DOMContentLoaded', function() {
   // Drag and drop
   dropZone.addEventListener('dragover', (e) => {
     e.preventDefault();
-    dropZone.classList.add('border-blue-500', 'bg-blue-50');
+    dropZone.classList.add('border-inverse', 'bg-gray-50');
   });
 
   dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    dropZone.classList.remove('border-inverse', 'bg-gray-50');
   });
 
   dropZone.addEventListener('drop', (e) => {
     e.preventDefault();
-    dropZone.classList.remove('border-blue-500', 'bg-blue-50');
+    dropZone.classList.remove('border-inverse', 'bg-gray-50');
     
     const files = e.dataTransfer.files;
     if (files.length > 0) {
