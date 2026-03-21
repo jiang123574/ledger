@@ -45,6 +45,34 @@ class ReportsController < ApplicationController
 
     # 预算进度
     load_budget_data if @report_type == :monthly
+
+    # 图表数据
+    load_chart_data
+  end
+
+  def load_chart_data
+    # 收支趋势图表数据
+    @trend_chart_data = {
+      labels: @monthly_trend.map { |p| p[:label] },
+      income: @monthly_trend.map { |p| p[:income] },
+      expense: @monthly_trend.map { |p| p[:expense] }
+    }
+
+    # 支出分类图表数据
+    @expense_chart_data = @expense_by_category.first(10).map do |category, amount|
+      {
+        label: category || "未分类",
+        value: amount
+      }
+    end
+
+    # 收入分类图表数据
+    @income_chart_data = @income_by_category.first(10).map do |category, amount|
+      {
+        label: category || "未分类",
+        value: amount
+      }
+    end
   end
 
   def load_monthly_trend

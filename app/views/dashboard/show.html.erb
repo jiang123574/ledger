@@ -353,27 +353,43 @@
       <!-- Section Content -->
       <div class="p-4" data-dashboard-section-target="content">
         <% if @budgets.any? || @total_budget > 0 %>
-          <div class="space-y-4">
-            <div class="flex justify-between items-center pb-4 border-b border-border">
-              <span class="font-medium text-primary"><%= t("dashboard.total_budget") %></span>
-              <span class="font-semibold text-primary"><%= format_currency(@total_budget) %></span>
-            </div>
+          <div class="flex flex-col sm:flex-row items-center gap-6">
             <% if @total_budget > 0 %>
               <% budget_percentage = (@total_spent / @total_budget * 100).round %>
-              <% budget_color = budget_percentage > 100 ? "bg-red-500" : (budget_percentage > 80 ? "bg-yellow-500" : "bg-gray-500") %>
-              <div>
-                <div class="flex justify-between text-sm mb-1.5">
+              <div data-controller="budget-gauge"
+                   data-budget-gauge-percentage-value="<%= budget_percentage %>"
+                   data-budget-gauge-spent-value="<%= @total_spent %>"
+                   data-budget-gauge-total-value="<%= @total_budget %>"
+                   class="flex flex-col items-center">
+                <svg data-budget-gauge-target="gauge" width="120" height="120" class="shrink-0"></svg>
+                <div class="text-center mt-2">
+                  <p data-budget-gauge-target="percentage" class="text-2xl font-bold"></p>
+                </div>
+              </div>
+              <div class="flex-1 space-y-3">
+                <div class="flex justify-between items-center pb-3 border-b border-border">
+                  <span class="font-medium text-primary"><%= t("dashboard.total_budget") %></span>
+                  <span class="font-semibold text-primary"><%= format_currency(@total_budget) %></span>
+                </div>
+                <div class="flex justify-between items-center">
                   <span class="text-secondary"><%= t("dashboard.spent") %></span>
                   <span class="<%= budget_percentage > 100 ? 'text-expense' : 'text-primary' %> font-medium">
-                    <%= format_currency(@total_spent) %> (<%= budget_percentage %>%)
+                    <%= format_currency(@total_spent) %>
                   </span>
                 </div>
-                <div class="w-full bg-surface rounded-full h-3">
-                  <div class="<%= budget_color %> h-3 rounded-full transition-all" style="width: <%= [budget_percentage, 100].min %>%"></div>
+                <div class="flex justify-between items-center">
+                  <span class="text-secondary"><%= t("dashboard.remaining") %></span>
+                  <span class="font-medium <%= (@total_budget - @total_spent) >= 0 ? 'text-income' : 'text-expense' %>">
+                    <%= format_currency(@total_budget - @total_spent) %>
+                  </span>
                 </div>
-                <p class="text-sm text-secondary mt-2">
-                  <%= t("dashboard.remaining") %>: <%= format_currency(@total_budget - @total_spent) %>
-                </p>
+              </div>
+            <% else %>
+              <div class="flex-1 text-center">
+                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset flex items-center justify-center">
+                  <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
+                </div>
+                <p class="text-secondary"><%= t("dashboard.no_budgets_set") %></p>
               </div>
             <% end %>
           </div>

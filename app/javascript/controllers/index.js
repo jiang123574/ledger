@@ -18,6 +18,9 @@ import PageSkeletonController from "controllers/page_skeleton_controller"
 import PageTransitionController from "controllers/page_transition_controller"
 import SankeyChartController from "controllers/sankey_chart_controller"
 import SelectController from "controllers/select_controller"
+import BudgetGaugeController from "controllers/budget_gauge_controller"
+import CategoryDonutChartController from "controllers/category_donut_chart_controller"
+import TrendLineChartController from "controllers/trend_line_chart_controller"
 import SparklineChartController from "controllers/sparkline_chart_controller"
 import StaggerListController from "controllers/stagger_list_controller"
 import ThemeController from "controllers/theme_controller"
@@ -41,6 +44,9 @@ application.register("page-skeleton", PageSkeletonController)
 application.register("page-transition", PageTransitionController)
 application.register("sankey-chart", SankeyChartController)
 application.register("select", SelectController)
+application.register("budget-gauge", BudgetGaugeController)
+application.register("category-donut-chart", CategoryDonutChartController)
+application.register("trend-line-chart", TrendLineChartController)
 application.register("sparkline-chart", SparklineChartController)
 application.register("stagger-list", StaggerListController)
 application.register("theme", ThemeController)
