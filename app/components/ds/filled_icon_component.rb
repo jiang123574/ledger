@@ -40,7 +40,7 @@ module Ds
     private
 
     def container_classes
-      classes = ["flex items-center justify-center rounded-full shrink-0"]
+      classes = [ "flex items-center justify-center rounded-full shrink-0" ]
       classes << COLORS[@color] || COLORS[:blue]
       classes << size_class
       classes << @options[:class]

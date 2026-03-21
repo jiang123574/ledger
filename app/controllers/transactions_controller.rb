@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: [:show, :edit, :update, :destroy]
-  before_action :load_lookups, only: [:new, :edit, :create, :update]
+  before_action :set_transaction, only: [ :show, :edit, :update, :destroy ]
+  before_action :load_lookups, only: [ :new, :edit, :create, :update ]
 
   def index
     @search = TransactionSearch.new(params)

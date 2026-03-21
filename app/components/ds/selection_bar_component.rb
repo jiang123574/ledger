@@ -28,12 +28,12 @@ module Ds
                 if @edit_url
                   link_to("批量编辑", @edit_url, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-gray-200 text-primary hover:bg-gray-300 transition-smooth")
                 end,
-                button_to("删除", @delete_url, 
+                button_to("删除", @delete_url,
                   method: :delete,
                   data: { turbo_confirm: "确定要删除选中的交易吗？" },
                   class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-smooth"
                 ),
-                link_to("取消选择", "#", 
+                link_to("取消选择", "#",
                   class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-secondary hover:bg-surface transition-smooth",
                   data: { action: "click->bulk-select#clearSelection" }
                 )

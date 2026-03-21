@@ -23,16 +23,16 @@ module Ds
     attr_reader :options
 
     def summary_classes
-      classes = ["cursor-pointer flex items-center justify-between", base_summary_class]
+      classes = [ "cursor-pointer flex items-center justify-between", base_summary_class ]
 
       classes << case @rounded
-                 when :sm then "rounded-sm"
-                 when :md then "rounded"
-                 when :lg then "rounded-lg"
-                 when :xl then "rounded-xl"
-                 when :none then ""
-                 else "rounded-lg"
-                 end
+      when :sm then "rounded-sm"
+      when :md then "rounded"
+      when :lg then "rounded-lg"
+      when :xl then "rounded-xl"
+      when :none then ""
+      else "rounded-lg"
+      end
 
       classes.join(" ")
     end

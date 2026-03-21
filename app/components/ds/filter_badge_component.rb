@@ -16,7 +16,7 @@ module Ds
           content_tag(:span, @value),
           if @remove_url
             link_to(@remove_url, class: "ml-1 hover:text-income") do
-              render(IconComponent.new("x-mark", size: "xs"))
+              render(Ds::IconComponent.new(name: "x", size: :xs))
             end
           end
         ])
