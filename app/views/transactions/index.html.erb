@@ -25,10 +25,10 @@
           <div class="flex-1">
             <%= text_field_tag :search, @search.search,
                 placeholder: "搜索备注、分类...",
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <button type="button" data-action="click->auto-submit-form#submit" 
-                  class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern">
+                  class="px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern">
             搜索
           </button>
         </div>
@@ -36,17 +36,17 @@
         <!-- Filter Row -->
         <div class="flex flex-wrap gap-3 items-end">
           <div class="flex-1 min-w-[140px]">
-            <label class="block text-xs font-medium text-secondary mb-1">开始日期</label>
+            <label class="block text-sm font-medium text-secondary mb-1">开始日期</label>
             <%= date_field_tag :start_date, @search.start_date,
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
-            <label class="block text-xs font-medium text-secondary mb-1">结束日期</label>
+            <label class="block text-sm font-medium text-secondary mb-1">结束日期</label>
             <%= date_field_tag :end_date, @search.end_date,
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-xs font-medium text-secondary mb-1">类型</label>
+            <label class="block text-sm font-medium text-secondary mb-1">类型</label>
             <%= select_tag :type, options_for_select([
               ["全部类型", ""],
               ["收入", "INCOME"],
@@ -55,24 +55,24 @@
               ["预支", "ADVANCE"],
               ["报销", "REIMBURSE"]
             ], @search.type),
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
-            <label class="block text-xs font-medium text-secondary mb-1">分类</label>
+            <label class="block text-sm font-medium text-secondary mb-1">分类</label>
             <%= select_tag :category_id, options_for_select(
               [["全部分类", ""]] + @categories.map { |c| [c.full_name, c.id] },
               @search.category_id
             ),
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <% if @tags.any? %>
             <div class="flex-1 min-w-[120px]">
-              <label class="block text-xs font-medium text-secondary mb-1">标签</label>
+              <label class="block text-sm font-medium text-secondary mb-1">标签</label>
               <%= select_tag :tag_id, options_for_select(
                 [["全部标签", ""]] + @tags.pluck(:name, :id),
                 @search.tag_id
               ),
-                  class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                  class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
             </div>
           <% end %>
         </div>
@@ -80,26 +80,26 @@
         <!-- Amount Range Filter -->
         <div class="flex flex-wrap gap-3 items-end">
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-xs font-medium text-secondary mb-1">最小金额</label>
+            <label class="block text-sm font-medium text-secondary mb-1">最小金额</label>
             <%= number_field_tag :min_amount, @search.min_amount, step: "0.01",
                 placeholder: "0.00",
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-xs font-medium text-secondary mb-1">最大金额</label>
+            <label class="block text-sm font-medium text-secondary mb-1">最大金额</label>
             <%= number_field_tag :max_amount, @search.max_amount, step: "0.01",
                 placeholder: "不限",
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
-            <label class="block text-xs font-medium text-secondary mb-1">排序</label>
+            <label class="block text-sm font-medium text-secondary mb-1">排序</label>
             <%= select_tag :sort, options_for_select([
               ["日期 ↓", "date_desc"],
               ["日期 ↑", "date_asc"],
               ["金额 ↓", "amount_desc"],
               ["金额 ↑", "amount_asc"]
             ], @search.sort),
-                class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
 

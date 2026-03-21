@@ -3,8 +3,8 @@
     <h1 class="text-2xl font-bold text-gray-900"><%= t("budgets.title") %></h1>
     <div class="flex items-center space-x-2">
       <%= form_tag budgets_path, method: :get do %>
-        <%= month_field_tag :month, @month, class: "border rounded px-2 py-1" %>
-        <%= submit_tag "Go", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
+        <%= month_field_tag :month, @month, class: "border rounded-lg px-3 py-2.5 text-base" %>
+        <%= submit_tag "Go", class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border text-primary hover:bg-surface-hover transition-smooth btn-modern" %>
       <% end %>
     </div>
   </div>
