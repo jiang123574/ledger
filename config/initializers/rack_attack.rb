@@ -37,6 +37,6 @@ Rack::Attack.throttled_responder = lambda do |request|
   [
     429,
     { "Content-Type" => "application/json", "Retry-After" => retry_after.to_s },
-    [{ error: "请求过于频繁，请稍后再试", retry_after: retry_after }.to_json]
+    [ { error: "请求过于频繁，请稍后再试", retry_after: retry_after }.to_json ]
   ]
 end

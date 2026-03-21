@@ -18,7 +18,7 @@ class PwaController < ApplicationController
       description: "个人记账应用 - 管理您的财务",
       theme_color: "#1a1a1a",
       background_color: "#f8f9fa",
-      categories: ["finance", "productivity"]
+      categories: [ "finance", "productivity" ]
     }
   end
 end

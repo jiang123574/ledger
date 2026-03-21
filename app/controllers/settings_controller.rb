@@ -35,9 +35,9 @@ class SettingsController < ApplicationController
     @counterparties = Counterparty.all.order(:name).map do |cp|
       cp.define_singleton_method(:receivables_count) { Receivable.where(counterparty: cp.name).count }
       cp
-    end.sort_by { |cp| [-cp.receivables_count, cp.name] }
+    end.sort_by { |cp| [ -cp.receivables_count, cp.name ] }
     @total_counterparties = Counterparty.count
-    @total_receivables = Receivable.where.not(counterparty: [nil, ""]).count
+    @total_receivables = Receivable.where.not(counterparty: [ nil, "" ]).count
   end
 
   def default_shortcuts
