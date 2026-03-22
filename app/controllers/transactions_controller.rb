@@ -17,10 +17,8 @@ class TransactionsController < ApplicationController
   end
 
   def new
-    @transaction = Transaction.new(
-      date: Date.today,
-      type: params[:type] || "EXPENSE"
-    )
+    # 重定向到 transactions#index，使用模态框添加交易
+    redirect_to transactions_path
   end
 
   def edit
