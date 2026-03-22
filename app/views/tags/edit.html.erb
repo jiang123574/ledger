@@ -3,8 +3,8 @@
 <div class="max-w-xl mx-auto space-y-6">
   <!-- Header -->
   <div>
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary-dark">编辑标签</h1>
-    <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary-dark mt-1">修改标签信息</p>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark">编辑标签</h1>
+    <p class="text-sm text-secondary dark:text-secondary-dark mt-1">修改标签信息</p>
   </div>
 
   <!-- Form -->
@@ -22,7 +22,7 @@
           <div class="flex items-center gap-2">
             <%= f.color_field :color, 
                 class: "w-12 h-10 rounded cursor-pointer border border-border dark:border-border-dark bg-white dark:bg-container-dark" %>
-            <span class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary-dark" id="color-preview"><%= @tag.color %></span>
+            <span class="text-sm text-secondary dark:text-secondary-dark" id="color-preview"><%= @tag.color %></span>
           </div>
         </div>
 

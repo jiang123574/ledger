@@ -110,8 +110,8 @@
       <% if @search.active_filters? %>
         <div class="flex flex-wrap gap-2 pt-3 border-t border-border dark:border-border-dark">
           <% @search.active_filters_list.each do |filter| %>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface dark:bg-surface-dark dark:bg-gray-900 text-primary dark:text-primary-dark dark:text-primary-dark">
-              <span class="text-secondary dark:text-secondary-dark dark:text-secondary-dark"><%= filter[:label] %>:</span>
+            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface dark:bg-surface-dark dark:bg-gray-900 text-primary dark:text-primary-dark">
+              <span class="text-secondary dark:text-secondary-dark"><%= filter[:label] %>:</span>
               <%= filter[:value] %>
               <%= link_to transactions_path(@search.clear_filter(filter[:key]).merge(account_id: params[:account_id])), 
                   class: "ml-1 hover:text-primary dark:text-primary-dark" do %>
@@ -247,7 +247,7 @@
       ) %>
       <% if @transactions.any? %>
         <!-- Header -->
-        <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider rounded-t-lg">
+        <div class="hidden md:grid grid-cols-12 gap-4 px-4 py-3 bg-surface-inset dark:bg-surface-dark-inset text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider rounded-t-lg">
           <div class="col-span-1"></div>
           <div class="col-span-2">日期</div>
           <div class="col-span-2">分类</div>

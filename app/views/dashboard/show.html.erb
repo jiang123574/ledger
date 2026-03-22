@@ -138,7 +138,7 @@
         <% @transactions.first(8).each do |t| %>
           <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface dark:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center shrink-0">
+              <div class="w-10 h-10 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center shrink-0">
                 <%= render(Ds::IconComponent.new(name: t.type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: t.type == "INCOME" ? :income : :expense)) %>
               </div>
               <div class="min-w-0">
@@ -153,7 +153,7 @@
         <% end %>
         <% if @transactions.empty? %>
           <div class="p-8 text-center" data-dashboard-section-target="content">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "receipt", size: :lg, color: :secondary)) %>
             </div>
             <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_transactions_yet") %></p>
@@ -227,7 +227,7 @@
         <% end %>
         <% if @accounts.empty? %>
           <div class="p-8 text-center">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "wallet", size: :lg, color: :secondary)) %>
             </div>
             <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_accounts_yet") %></p>
@@ -298,7 +298,7 @@
           </div>
         <% else %>
           <div class="text-center py-6">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "pie-chart", size: :lg, color: :secondary)) %>
             </div>
             <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_expenses_this_month") %></p>
@@ -386,7 +386,7 @@
               </div>
             <% else %>
               <div class="flex-1 text-center">
-                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
+                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
                   <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
                 </div>
                 <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_budgets_set") %></p>
@@ -395,7 +395,7 @@
           </div>
         <% else %>
           <div class="text-center py-6">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
+            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
             </div>
             <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_budgets_set") %></p>

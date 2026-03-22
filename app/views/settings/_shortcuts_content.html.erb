@@ -7,7 +7,7 @@
   </div>
   
   <div class="p-4">
-    <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset border border-border dark:border-border-dark rounded-lg p-3 mb-4">
+    <div class="bg-surface-inset dark:bg-surface-dark-inset border border-border dark:border-border-dark rounded-lg p-3 mb-4">
       <div class="flex items-center gap-2">
         <span class="text-secondary dark:text-secondary-dark">⌨️</span>
         <p class="text-sm text-primary dark:text-primary-dark">按 <kbd class="bg-surface dark:bg-surface-dark px-2 py-0.5 rounded text-xs">?</kbd> 随时查看快捷键帮助</p>
@@ -17,7 +17,7 @@
     <% @shortcuts.group_by { |s| s[:group] }.each do |group, shortcuts| %>
       <div class="mb-4">
         <h3 class="font-medium text-primary dark:text-primary-dark mb-2"><%= group %></h3>
-        <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset rounded-lg overflow-hidden">
+        <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg overflow-hidden">
           <table class="min-w-full">
             <tbody class="divide-y divide-border dark:divide-border-dark">
               <% shortcuts.each do |shortcut| %>
