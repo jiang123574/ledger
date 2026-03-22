@@ -49,7 +49,7 @@
       <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-4">
           <h3 class="font-medium dark:text-white"><%= t("single_budgets.total") %></h3>
-          <span class="text-sm <%= (@single_total_budget - @single_total_spent) < 0 ? 'text-red-600' : 'text-green-600' %>">
+          <span class="text-sm <%= (@single_total_budget - @single_total_spent) < 0 ? 'text-expense' : 'text-income' %>">
             <%= (@single_total_budget - @single_total_spent) < 0 ? "已超支" : "剩余 #{format_currency(@single_total_budget - @single_total_spent)}" %>
           </span>
         </div>
@@ -65,7 +65,7 @@
             </div>
             <div class="flex justify-between text-xs text-secondary dark:text-secondary-dark mt-1">
               <span>0%</span>
-              <span class="<%= percentage > 100 ? 'text-red-600 font-medium' : '' %>"><%= percentage %>%</span>
+              <span class="<%= percentage > 100 ? 'text-expense font-medium' : '' %>"><%= percentage %>%</span>
               <span>100%</span>
             </div>
           </div>
@@ -82,9 +82,9 @@
               <span class="font-medium dark:text-white"><%= budget.name %></span>
               <span class="text-xs px-2 py-0.5 rounded <%= 
                 case budget.status_color
-                when 'red' then 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                when 'red' then 'bg-expense/10 text-expense dark:bg-red-900 dark:text-red-300'
                 when 'yellow' then 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                when 'green' then 'bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300'
+                when 'green' then 'bg-income/10 text-green-700 dark:bg-green-900 dark:text-green-300'
                 else 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark'
                 end
               %>"><%= budget.status_text %></span>
@@ -114,14 +114,14 @@
           </div>
           <div class="flex justify-between text-sm mt-2">
             <span class="text-secondary dark:text-secondary-dark"><%= t("single_budgets.spent") %>: <%= format_currency(budget.spent_amount) %></span>
-            <span class="<%= budget.overspent? ? 'text-red-600 font-medium' : 'text-secondary dark:text-secondary-dark' %>">
+            <span class="<%= budget.overspent? ? 'text-expense font-medium' : 'text-secondary dark:text-secondary-dark' %>">
               <%= budget.overspent? ? t("single_budgets.overspent", amount: format_currency(budget.remaining_amount.abs)) : t("single_budgets.remaining", amount: format_currency(budget.remaining_amount)) %>
             </span>
           </div>
           <div class="flex justify-end gap-2 mt-2">
             <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary-dark" %>
             <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary-dark" %>
-            <%= button_to t("single_budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { submitDeleteForm(this, '/budgets/' + ' + budget.id) }", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
+            <%= button_to t("single_budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { submitDeleteForm(this, '/budgets/' + ' + budget.id) }", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense/10 text-expense hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
           </div>
         </div>
       <% end %>
@@ -148,7 +148,7 @@
       <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
         <div class="flex justify-between items-center mb-4">
           <h3 class="font-medium dark:text-white"><%= t("budgets.total") %></h3>
-          <span class="text-sm <%= (@total_budget - @total_spent) < 0 ? 'text-red-600' : 'text-green-600' %>">
+          <span class="text-sm <%= (@total_budget - @total_spent) < 0 ? 'text-expense' : 'text-income' %>">
             <%= (@total_budget - @total_spent) < 0 ? "已超支" : "剩余 ¥#{@total_budget - @total_spent}" %>
           </span>
         </div>
@@ -164,7 +164,7 @@
             </div>
             <div class="flex justify-between text-xs text-secondary dark:text-secondary-dark mt-1">
               <span>0%</span>
-              <span class="<%= percentage > 100 ? 'text-red-600 font-medium' : '' %>"><%= percentage %>%</span>
+              <span class="<%= percentage > 100 ? 'text-expense font-medium' : '' %>"><%= percentage %>%</span>
               <span>100%</span>
             </div>
           </div>
@@ -182,7 +182,7 @@
               <span class="font-medium dark:text-white"><%= budget.category&.name || t("budgets.total") %></span>
               <span class="text-xs px-2 py-0.5 rounded <%= 
                 case budget.status_color
-                when 'red' then 'bg-red-100 text-red-700'
+                when 'red' then 'bg-expense/10 text-expense'
                 when 'yellow' then 'bg-yellow-100 text-yellow-700'
                 else 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark'
                 end
@@ -198,12 +198,12 @@
           </div>
           <div class="flex justify-between text-sm mt-2">
             <span class="text-secondary dark:text-secondary-dark">已支出: <%= format_currency(spent) %></span>
-            <span class="<%= budget.overspent? ? 'text-red-600 font-medium' : 'text-secondary dark:text-secondary-dark' %>">
+            <span class="<%= budget.overspent? ? 'text-expense font-medium' : 'text-secondary dark:text-secondary-dark' %>">
               <%= budget.overspent? ? "超支 #{format_currency(budget.remaining_amount.abs)}" : "剩余 #{format_currency(budget.remaining_amount)}" %>
             </span>
           </div>
           <div class="flex justify-end mt-2">
-            <%= button_to t("budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { this.nextElementSibling.submit() }" form: { style: "display:inline" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
+            <%= button_to t("budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { this.nextElementSibling.submit() }" form: { style: "display:inline" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense/10 text-expense hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
           </div>
         </div>
       <% end %>

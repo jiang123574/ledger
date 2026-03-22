@@ -18,7 +18,7 @@
       </div>
       <div>
         <div class="text-sm text-secondary dark:text-secondary-dark">待收金额</div>
-        <div class="text-lg font-medium text-green-600"><%= format_currency(@pending_amount, 'CNY') %></div>
+        <div class="text-lg font-medium text-income"><%= format_currency(@pending_amount, 'CNY') %></div>
       </div>
     </div>
     <% if @counterparty.note.present? %>
@@ -41,7 +41,7 @@
     </div>
     <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">待收金额</div>
-      <div class="text-2xl font-bold text-green-600"><%= format_currency(@pending_amount, 'CNY') %></div>
+      <div class="text-2xl font-bold text-income"><%= format_currency(@pending_amount, 'CNY') %></div>
     </div>
   </div>
 
@@ -80,7 +80,7 @@
                 <% if r.settled_at %>
                   <span class="px-2 py-1 rounded text-xs bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark">已结算</span>
                 <% else %>
-                  <span class="px-2 py-1 rounded text-xs bg-green-100 text-green-700">待收</span>
+                  <span class="px-2 py-1 rounded text-xs bg-income/10 text-green-700">待收</span>
                 <% end %>
               </td>
             </tr>

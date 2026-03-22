@@ -42,7 +42,7 @@
       <% @transactions.each do |t| %>
         <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center <%= t.type == "INCOME" ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30" %>">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center <%= t.type == "INCOME" ? "bg-income/10 dark:bg-income/10" : "bg-expense/10 dark:bg-expense/10" %>">
               <% if t.type == "INCOME" %>
                 <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
               <% else %>
@@ -54,7 +54,7 @@
               <p class="text-xs text-secondary dark:text-secondary-dark truncate"><%= t.note || t.account_name %></p>
             </div>
             <div class="text-right">
-              <p class="text-sm font-medium <%= t.type == "INCOME" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400" %>">
+              <p class="text-sm font-medium <%= t.type == "INCOME" ? "text-income" : "text-expense" %>">
                 <%= format_currency_with_sign(t.amount, type: t.type) %>
               </p>
               <p class="text-xs text-secondary dark:text-secondary-dark"><%= t.date&.strftime("%m/%d") %></p>
