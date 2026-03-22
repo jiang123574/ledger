@@ -124,4 +124,19 @@ function openEditCategoryModal(id, name, type, parentId) {
   document.getElementById('edit_category_parent_id').value = parentId || '';
   document.getElementById('edit-category-modal').classList.remove('hidden');
 }
+
+function openDeleteCategoryModal(id, name, hasChildren) {
+  const message = hasChildren 
+    ? '此分类有子分类，确定删除？删除后子分类将变为顶级分类。'
+    : '确定删除分类 "' + name + '"？';
+  if (confirm(message)) {
+    // 创建表单并提交删除请求
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/categories/' + id;
+    form.innerHTML = '<input type="hidden" name="_method" value="delete">';
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
 </script>
