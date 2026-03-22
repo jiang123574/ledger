@@ -6,13 +6,15 @@ class ReceivablesController < ApplicationController
       .order(date: :desc)
     @unsettled = @receivables.where(settled_at: nil)
     @settled = @receivables.where.not(settled_at: nil)
+    @receivable = Receivable.new(date: Date.today)
   end
 
   def show
   end
 
   def new
-    @receivable = Receivable.new(date: Date.current)
+    # 重定向到 receivables#index，使用模态框添加
+    redirect_to receivables_path
   end
 
   def create
