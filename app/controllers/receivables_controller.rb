@@ -8,7 +8,7 @@ class ReceivablesController < ApplicationController
     @settled = @receivables.where.not(settled_at: nil)
     @receivable = Receivable.new(date: Date.today)
     @accounts = Account.visible.order(:name)
-    @counterparties = Counterparty.alphabetically
+    @counterparties = Counterparty.ordered
   end
 
   def show
