@@ -17,6 +17,11 @@
         <%= f.select :type, options_for_select([["支出", "EXPENSE"], ["收入", "INCOME"]]), {}, 
             class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
       </div>
+      <div class="w-48">
+        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">父分类</label>
+        <%= f.select :parent_id, options_for_select([["无（顶级分类）", ""]] + @categories.select(&:root?).map { |c| [c.name, c.id] }), {}, 
+            class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
+      </div>
       <div>
         <%= submit_tag t("categories.add"), class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern" %>
       </div>
@@ -25,28 +30,35 @@
 
   <!-- Categories List -->
   <% if @categories.any? %>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      <% @categories.each do |category| %>
-        <div class="group">
-          <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs">
-            <div class="p-4 flex items-center justify-between">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full <%= category.type == "INCOME" ? "bg-income/10" : "bg-expense/10" %> flex items-center justify-center">
-                  <svg class="w-5 h-5 <%= category.type == "INCOME" ? "text-income dark:text-income" : "text-expense dark:text-expense" %>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                </div>
-                <div>
-                  <h3 class="font-medium text-primary dark:text-primary-dark"><%= category.name %></h3>
-                  <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= category.type == "INCOME" ? "bg-income/10 text-income" : "bg-expense/10 text-expense" %>">
-                    <%= category.type == "INCOME" ? "收入" : "支出" %>
-                  </span>
-                </div>
-              </div>
-              <%= button_to category, method: :delete, 
-                  data: { confirm: t("categories.are_you_sure") },
-                  class: "opacity-0 group-hover:opacity-100 p-2 rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/30 transition-smooth btn-modern" do %>
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-              <% end %>
-            </div>
+    <div class="space-y-6">
+      <!-- 支出分类 -->
+      <% expense_roots = @categories.select { |c| c.root? && c.type == "EXPENSE" } %>
+      <% if expense_roots.any? %>
+        <div>
+          <h2 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-expense"></span>
+            支出分类
+          </h2>
+          <div class="space-y-2">
+            <% expense_roots.each do |category| %>
+              <%= render partial: "categories/category_tree", locals: { category: category, level: 0 } %>
+            <% end %>
+          </div>
+        </div>
+      <% end %>
+      
+      <!-- 收入分类 -->
+      <% income_roots = @categories.select { |c| c.root? && c.type == "INCOME" } %>
+      <% if income_roots.any? %>
+        <div>
+          <h2 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-income"></span>
+            收入分类
+          </h2>
+          <div class="space-y-2">
+            <% income_roots.each do |category| %>
+              <%= render partial: "categories/category_tree", locals: { category: category, level: 0 } %>
+            <% end %>
           </div>
         </div>
       <% end %>
@@ -59,3 +71,57 @@
     </div>
   <% end %>
 </div>
+
+<!-- Edit Category Modal -->
+<div id="edit-category-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-category-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑分类</h3>
+        <button type="button" onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <form id="edit-category-form" method="post">
+        <input type="hidden" name="_method" value="patch">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">分类名称</label>
+            <input type="text" name="category[name]" id="edit_category_name" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">类型</label>
+            <select name="category[type]" id="edit_category_type" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <option value="EXPENSE">支出</option>
+              <option value="INCOME">收入</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">父分类</label>
+            <select name="category[parent_id]" id="edit_category_parent_id" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <option value="">无（顶级分类）</option>
+              <% @categories.select(&:root?).each do |c| %>
+                <option value="<%= c.id %>"><%= c.name %></option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+function openEditCategoryModal(id, name, type, parentId) {
+  document.getElementById('edit-category-form').action = '/categories/' + id;
+  document.getElementById('edit_category_name').value = name;
+  document.getElementById('edit_category_type').value = type;
+  document.getElementById('edit_category_parent_id').value = parentId || '';
+  document.getElementById('edit-category-modal').classList.remove('hidden');
+}
+</script>
