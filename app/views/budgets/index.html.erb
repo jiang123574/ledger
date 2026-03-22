@@ -82,9 +82,9 @@
               <span class="font-medium dark:text-white"><%= budget.name %></span>
               <span class="text-xs px-2 py-0.5 rounded <%= 
                 case budget.status_color
-                when 'red' then 'bg-expense/10 text-expense dark:bg-red-900 dark:text-red-300'
+                when 'red' then 'bg-expense-light text-expense dark:bg-red-900 dark:text-red-300'
                 when 'yellow' then 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-300'
-                when 'green' then 'bg-income/10 text-green-700 dark:bg-green-900 dark:text-green-300'
+                when 'green' then 'bg-income-light text-green-700 dark:bg-green-900 dark:text-green-300'
                 else 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark'
                 end
               %>"><%= budget.status_text %></span>
@@ -121,7 +121,7 @@
           <div class="flex justify-end gap-2 mt-2">
             <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary-dark" %>
             <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary-dark" %>
-            <%= button_to t("single_budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { submitDeleteForm(this, '/budgets/' + ' + budget.id) }", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense/10 text-expense hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
+            <%= button_to t("single_budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { submitDeleteForm(this, '/budgets/' + ' + budget.id) }", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense-light text-expense hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
           </div>
         </div>
       <% end %>
@@ -182,7 +182,7 @@
               <span class="font-medium dark:text-white"><%= budget.category&.name || t("budgets.total") %></span>
               <span class="text-xs px-2 py-0.5 rounded <%= 
                 case budget.status_color
-                when 'red' then 'bg-expense/10 text-expense'
+                when 'red' then 'bg-expense-light text-expense'
                 when 'yellow' then 'bg-yellow-100 text-yellow-700'
                 else 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark'
                 end
@@ -203,7 +203,7 @@
             </span>
           </div>
           <div class="flex justify-end mt-2">
-            <%= button_to t("budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { this.nextElementSibling.submit() }" form: { style: "display:inline" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense/10 text-expense hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
+            <%= button_to t("budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { this.nextElementSibling.submit() }" form: { style: "display:inline" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense-light text-expense hover:bg-red-200 transition-smooth btn-modern" %>
           </div>
         </div>
       <% end %>
