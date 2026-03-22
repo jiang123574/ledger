@@ -1,13 +1,13 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", plans_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-secondary-dark" %>
+    <%= link_to "← 返回", plans_path, class: "text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark" %>
     <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">新建计划</h1>
   </div>
 
   <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6 max-w-2xl">
     <%= form_with model: @plan, local: true, class: "space-y-6" do |f| %>
       <% if @plan.errors.any? %>
-        <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 px-4 py-3 rounded">
           <ul class="list-disc list-inside">
             <% @plan.errors.full_messages.each do |msg| %>
               <li><%= msg %></li>
@@ -18,29 +18,29 @@
 
       <!-- Plan Type -->
       <div>
-        <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-2">计划类型</label>
+        <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-2">计划类型</label>
         <div class="grid grid-cols-3 gap-4">
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark' : 'border-border dark:border-border-dark' %>">
             <%= f.radio_button :type, 'ONE_TIME', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">📌</div>
-              <div class="font-medium">一次性</div>
+              <div class="font-medium text-primary dark:text-primary-dark">一次性</div>
               <div class="text-xs text-secondary dark:text-secondary-dark">单次支出计划</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark' : 'border-border dark:border-border-dark' %>">
             <%= f.radio_button :type, 'INSTALLMENT', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">💳</div>
-              <div class="font-medium">分期还款</div>
+              <div class="font-medium text-primary dark:text-primary-dark">分期还款</div>
               <div class="text-xs text-secondary dark:text-secondary-dark">信用卡分期等</div>
             </div>
           </label>
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:bg-surface-dark-inset dark:hover:bg-gray-700 <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-surface-dark dark:bg-gray-900' : 'border-border dark:border-border-dark' %>">
+          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset <%= @plan.type == 'RECURRING' ? 'border-inverse bg-surface dark:bg-surface-dark' : 'border-border dark:border-border-dark' %>">
             <%= f.radio_button :type, 'RECURRING', class: "sr-only" %>
             <div class="text-center">
               <div class="text-2xl mb-1">🔄</div>
-              <div class="font-medium">周期支出</div>
+              <div class="font-medium text-primary dark:text-primary-dark">周期支出</div>
               <div class="text-xs text-secondary dark:text-secondary-dark">房租、订阅等</div>
             </div>
           </label>
@@ -50,13 +50,15 @@
       <!-- Basic Info -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <%= f.label :name, "计划名称", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-          <%= f.text_field :name, placeholder: "例如: 花呗分期", class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">计划名称</label>
+          <%= render Ds::InputComponent.new(form: f, field: :name, placeholder: "例如: 花呗分期") %>
         </div>
 
         <div>
-          <%= f.label :account_id, "关联账户", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户..." }, class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">关联账户</label>
+          <%= render Ds::InputComponent.new(form: f, field: :account_id, type: :select, 
+                choices: @accounts.map { |a| [a.name, a.id] },
+                include_blank: "选择账户...") %>
         </div>
       </div>
 
@@ -65,31 +67,27 @@
         <% if @plan.type == 'INSTALLMENT' %>
           <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div class="md:col-span-2">
-              <%= f.label :total_amount, "总金额", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-              <div class="mt-1 relative">
-                <span class="absolute left-3 top-2.5 text-secondary dark:text-secondary-dark">¥</span>
-                <%= f.number_field :total_amount, step: "0.01", placeholder: "0.00", class: "block w-full border border-border dark:border-border-dark rounded-lg pl-8 pr-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
-              </div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">总金额</label>
+              <%= render Ds::InputComponent.new(form: f, field: :total_amount, type: :number, 
+                    placeholder: "0.00", prefix: "¥") %>
             </div>
 
             <div>
-              <%= f.label :installments_total, "期数", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-              <%= f.number_field :installments_total, min: 1, placeholder: "12", class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">期数</label>
+              <%= render Ds::InputComponent.new(form: f, field: :installments_total, type: :number, placeholder: "12") %>
             </div>
           </div>
 
-          <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-container-dark rounded-lg p-3 text-sm text-primary dark:text-primary-dark dark:text-secondary-dark">
+          <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
             💡 每期还款: <span id="per-installment" class="font-semibold">¥0.00</span>
           </div>
 
           <%= f.hidden_field :amount %>
         <% else %>
           <div>
-            <%= f.label :amount, "金额", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-            <div class="mt-1 relative">
-              <span class="absolute left-3 top-2.5 text-secondary dark:text-secondary-dark">¥</span>
-              <%= f.number_field :amount, step: "0.01", placeholder: "0.00", class: "block w-full border border-border dark:border-border-dark rounded-lg pl-8 pr-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
-            </div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">金额</label>
+            <%= render Ds::InputComponent.new(form: f, field: :amount, type: :number, 
+                  placeholder: "0.00", prefix: "¥") %>
           </div>
         <% end %>
       </div>
@@ -97,25 +95,29 @@
       <!-- Day of Month -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <%= f.label :day_of_month, "每月还款日", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-          <%= f.select :day_of_month, (1..31).to_a.map { |d| [ "#{d}日", d ] }, {}, class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">每月还款日</label>
+          <%= render Ds::InputComponent.new(form: f, field: :day_of_month, type: :select,
+                choices: (1..31).to_a.map { |d| ["#{d}日", d] },
+                include_blank: false) %>
         </div>
 
         <div>
-          <%= f.label :currency, "货币", class: "block text-base font-medium text-primary dark:text-primary-dark dark:text-secondary-dark" %>
-          <%= f.select :currency, [ 'CNY', 'USD', 'EUR', 'JPY', 'GBP' ], {}, class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2.5 text-base focus:ring-blue-500 focus:border-blue-500" %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">货币</label>
+          <%= render Ds::InputComponent.new(form: f, field: :currency, type: :select,
+                choices: ['CNY', 'USD', 'EUR', 'JPY', 'GBP'],
+                include_blank: false) %>
         </div>
       </div>
 
       <!-- Active Status -->
-      <div class="flex items-center">
+      <div class="flex items-center gap-2">
         <%= f.check_box :active, class: "h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded" %>
-        <%= f.label :active, "启用计划", class: "ml-2 text-sm text-primary dark:text-primary-dark dark:text-secondary-dark" %>
+        <%= f.label :active, "启用计划", class: "text-sm text-primary dark:text-primary-dark" %>
       </div>
 
-      <div class="flex justify-end space-x-4 pt-4 border-t">
-        <%= link_to "取消", plans_path, class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
-        <%= f.submit "创建计划", class: "px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+      <div class="flex justify-end gap-3 pt-4 border-t border-border dark:border-border-dark">
+        <%= link_to "取消", plans_path, class: "px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+        <%= f.submit "创建计划", class: "px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern" %>
       </div>
     <% end %>
   </div>
