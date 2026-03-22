@@ -20,7 +20,11 @@ class TransactionsController < ApplicationController
   end
 
   def edit
+    @transaction = Transaction.find(params[:id])
+    @accounts = Account.visible.order(:name)
+    @categories = Category.active.by_sort_order
   end
+
 
   def create
     @transaction = build_transaction
