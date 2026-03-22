@@ -3,6 +3,16 @@ class AccountsController < ApplicationController
 
   def index
     @accounts = Account.order(:sort_order, :name)
+    @transactions = Transaction.includes(:account, :category)
+                             .order(date: :desc, created_at: :desc)
+                             .limit(50)
+    
+    # 本月统计
+    start_of_month = Date.today.beginning_of_month
+    end_of_month = Date.today.end_of_month
+    @monthly_income = Transaction.where(type: "INCOME", date: start_of_month..end_of_month).sum(:amount)
+    @monthly_expense = Transaction.where(type: "EXPENSE", date: start_of_month..end_of_month).sum(:amount)
+    @monthly_balance = @monthly_income - @monthly_expense
   end
 
   def show
