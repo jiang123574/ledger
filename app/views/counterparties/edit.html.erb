@@ -1,10 +1,10 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
-    <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark-dark">编辑交易对方</h1>
+    <%= link_to "← 返回", counterparties_path, class: "text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark-dark" %>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark-dark dark:text-primary-dark-dark-dark-dark-dark-dark">编辑交易对方</h1>
   </div>
 
-  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark-dark rounded-lg shadow p-6 max-w-xl">
+  <div class="bg-container dark:bg-container-dark-dark-dark-dark-dark-dark rounded-lg shadow p-6 max-w-xl">
     <%= form_with model: @counterparty, local: true, class: "space-y-4" do |f| %>
       <% if @counterparty.errors.any? %>
         <div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
@@ -17,22 +17,22 @@
       <% end %>
 
       <div>
-        <%= f.label :name, "名称", class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
-        <%= f.text_field :name, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+        <%= f.label :name, "名称", class: "block text-sm font-medium text-primary dark:text-primary-dark-dark" %>
+        <%= f.text_field :name, class: "mt-1 block w-full border border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <div>
-        <%= f.label :contact, "联系方式", class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
-        <%= f.text_field :contact, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+        <%= f.label :contact, "联系方式", class: "block text-sm font-medium text-primary dark:text-primary-dark-dark" %>
+        <%= f.text_field :contact, class: "mt-1 block w-full border border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <div>
-        <%= f.label :note, "备注", class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark" %>
-        <%= f.text_area :note, rows: 3, class: "mt-1 block w-full border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
+        <%= f.label :note, "备注", class: "block text-sm font-medium text-primary dark:text-primary-dark-dark" %>
+        <%= f.text_area :note, rows: 3, class: "mt-1 block w-full border border-border dark:border-border-dark-dark-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
       </div>
 
       <div class="flex justify-end space-x-4 pt-4 border-t">
-        <%= link_to "取消", counterparties_path, class: "px-4 py-2 border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark rounded-lg hover:bg-surface dark:bg-surface-dark dark:hover:bg-gray-700" %>
+        <%= link_to "取消", counterparties_path, class: "px-4 py-2 border border-border dark:border-border-dark-dark-dark rounded-lg hover:bg-surface dark:bg-surface-dark dark:hover:bg-gray-700" %>
         <%= f.submit "保存", class: "bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover" %>
       </div>
     <% end %>

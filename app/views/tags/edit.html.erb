@@ -3,8 +3,8 @@
 <div class="max-w-xl mx-auto space-y-6">
   <!-- Header -->
   <div>
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark-dark">编辑标签</h1>
-    <p class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark-dark mt-1">修改标签信息</p>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark-dark dark:text-primary-dark-dark-dark-dark-dark-dark">编辑标签</h1>
+    <p class="text-sm text-secondary dark:text-secondary-dark-dark dark:text-secondary-dark-dark-dark-dark-dark-dark mt-1">修改标签信息</p>
   </div>
 
   <!-- Form -->
@@ -12,25 +12,25 @@
     <div class="p-6">
       <%= form_with model: @tag, url: tag_path(@tag), class: "space-y-4" do |f| %>
         <div>
-          <%= f.label :name, "标签名称", class: "block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+          <%= f.label :name, "标签名称", class: "block text-sm font-medium text-secondary dark:text-secondary-dark-dark mb-1" %>
           <%= f.text_field :name, 
-              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
+              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent" %>
         </div>
 
         <div>
-          <%= f.label :color, "颜色", class: "block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+          <%= f.label :color, "颜色", class: "block text-sm font-medium text-secondary dark:text-secondary-dark-dark mb-1" %>
           <div class="flex items-center gap-2">
             <%= f.color_field :color, 
-                class: "w-12 h-10 rounded cursor-pointer border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark" %>
-            <span class="text-sm text-secondary dark:text-secondary dark:text-secondary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark-dark" id="color-preview"><%= @tag.color %></span>
+                class: "w-12 h-10 rounded cursor-pointer border border-border dark:border-border-dark-dark-dark bg-white dark:bg-container-dark" %>
+            <span class="text-sm text-secondary dark:text-secondary-dark-dark dark:text-secondary-dark-dark-dark-dark-dark-dark" id="color-preview"><%= @tag.color %></span>
           </div>
         </div>
 
         <div>
-          <%= f.label :description, "描述", class: "block text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark mb-1" %>
+          <%= f.label :description, "描述", class: "block text-sm font-medium text-secondary dark:text-secondary-dark-dark mb-1" %>
           <%= f.text_area :description, 
               rows: 3,
-              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent",
+              class: "w-full px-3 py-2 bg-container dark:bg-container-dark border border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark-dark rounded-lg focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent",
               placeholder: "可选：添加标签描述" %>
         </div>
 
@@ -38,7 +38,7 @@
           <%= f.submit "保存", 
               class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern" %>
           <%= link_to "取消", tags_path, 
-              class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+              class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark-dark-dark text-primary dark:text-primary-dark-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
         </div>
       <% end %>
     </div>
