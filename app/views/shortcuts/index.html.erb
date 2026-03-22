@@ -1,7 +1,7 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">快捷键设置</h1>
-    <%= link_to "恢复默认", reset_shortcuts_path, method: :post, data: { turbo_confirm: "确定恢复默认快捷键？" }, class: "text-red-600 hover:text-red-800" %>
+    <%= link_to "恢复默认", reset_shortcuts_path, method: :post, onclick: "if(confirm('确定恢复默认快捷键？')) { this.click() }", class: "text-red-600 hover:text-red-800" %>
   </div>
 
   <div class="bg-surface dark:bg-surface-dark dark:bg-gray-900 border border-border dark:border-border-dark rounded-lg p-4">

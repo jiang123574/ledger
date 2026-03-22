@@ -142,9 +142,9 @@
                     <%= link_to "javascript:void(0)", onclick: "openEditModal(#{t.id}, '#{j t.date&.strftime("%Y-%m-%d")}', '#{t.amount}', '#{t.account_id}', '#{t.category_id}', '#{j t.note || ''}', '#{t.type}')", class: "p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark" do %>
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                     <% end %>
-                    <%= button_to transaction_path(t), method: :delete, data: { turbo_confirm: "确定删除此交易？" }, class: "p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-smooth text-secondary dark:text-secondary-dark hover:text-red-600 dark:hover:text-red-400" do %>
+                    <button type="button" onclick="confirmDeleteTransaction(<%= t.id %>, '<%= j t.category&.name || t.display_type %>')" class="p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-smooth text-secondary dark:text-secondary-dark hover:text-red-600 dark:hover:text-red-400">
                       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <% end %>
+                    </button>
                   </div>
                 </td>
               </tr>
@@ -243,6 +243,18 @@ function openEditModal(id, date, amount, accountId, categoryId, note, type) {
   document.getElementById('edit_transaction_note').value = note;
   document.getElementById('edit-transaction-modal').classList.remove('hidden');
 }
+
+function confirmDeleteTransaction(id, name) {
+  if (confirm('确定删除交易 "' + name + '"？')) {
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/transactions/' + id;
+    form.innerHTML = '<input type="hidden" name="_method" value="delete">';
+    document.body.appendChild(form);
+    form.submit();
+  }
+}
+
 function applyFilters() {
   const params = new URLSearchParams();
   const search = document.getElementById('search-input').value;

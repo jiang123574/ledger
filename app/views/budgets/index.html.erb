@@ -121,7 +121,7 @@
           <div class="flex justify-end gap-2 mt-2">
             <%= link_to t("single_budgets.view"), single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary-dark" %>
             <%= link_to t("single_budgets.edit"), edit_single_budget_path(budget), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:text-secondary-dark" %>
-            <%= button_to t("single_budgets.delete"), budget, method: :delete, data: { turbo_confirm: t("single_budgets.are_you_sure") }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
+            <%= button_to t("single_budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { submitDeleteForm(this, '/budgets/' + ' + budget.id) }", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
           </div>
         </div>
       <% end %>
@@ -203,7 +203,7 @@
             </span>
           </div>
           <div class="flex justify-end mt-2">
-            <%= button_to t("budgets.delete"), budget, method: :delete, data: { turbo_confirm: t("budgets.are_you_sure") }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
+            <%= button_to t("budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { this.nextElementSibling.submit() }" form: { style: "display:inline" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern dark:bg-red-900 dark:text-red-300" %>
           </div>
         </div>
       <% end %>

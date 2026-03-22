@@ -112,7 +112,7 @@
                 <td class="py-2 px-3 text-sm text-right">
                   <div class="flex justify-end gap-1">
                     <%= link_to t("common.edit"), edit_single_budget_budget_item_path(@single_budget, item), class: "px-2 py-1 text-xs font-medium rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
-                    <%= link_to t("common.delete"), [@single_budget, item], method: :delete, data: { turbo_confirm: t("single_budgets.are_you_sure") }, class: "px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-600 hover:bg-red-200 transition-smooth dark:bg-red-900 dark:text-red-300" %>
+                    <%= link_to t("common.delete"), [@single_budget, item], method: :delete, onclick: "if(confirm('确定删除？')) { this.click() }", class: "px-2 py-1 text-xs font-medium rounded bg-red-100 text-red-600 hover:bg-red-200 transition-smooth dark:bg-red-900 dark:text-red-300" %>
                   </div>
                 </td>
               </tr>
