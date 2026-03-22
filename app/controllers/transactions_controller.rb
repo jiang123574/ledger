@@ -5,12 +5,8 @@ class TransactionsController < ApplicationController
   before_action :load_lookups, only: [ :new, :edit, :create, :update, :index ]
 
   def index
-    @search = TransactionSearch.new(params)
-    @transactions = @search.apply(Transaction.includes(:account, :category, :tags))
-                           .reverse_chronological
-
-    @summary = calculate_summary(@transactions)
-    @quick_transaction = Transaction.new(currency: "CNY", date: Date.today)
+    # 重定向到账户页面（已合并三栏布局）
+    redirect_to accounts_path
   end
 
   def show
