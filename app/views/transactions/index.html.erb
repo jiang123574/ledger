@@ -14,7 +14,7 @@
         快速记账
       </button>
       <%= link_to new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" do %>
-        <%= render Ds::IconComponent.new(name: "document-text", size: :sm) %>
+        <%= render Ds::IconComponent.new(name: "file-text", size: :sm) %>
         <%= t("transactions.new_transaction") %>
       <% end %>
     </div>
