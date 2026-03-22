@@ -105,6 +105,7 @@
               <th class="px-4 py-2 text-left text-xs font-medium text-secondary dark:text-secondary-dark">账户</th>
               <th class="px-4 py-2 text-left text-xs font-medium text-secondary dark:text-secondary-dark">备注</th>
               <th class="px-4 py-2 text-right text-xs font-medium text-secondary dark:text-secondary-dark">金额</th>
+              <th class="px-4 py-2 text-center text-xs font-medium text-secondary dark:text-secondary-dark">操作</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-border dark:divide-border-dark">
@@ -135,6 +136,16 @@
                 </td>
                 <td class="px-4 py-3 text-sm font-medium text-right whitespace-nowrap <%= t.type == 'INCOME' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' %>">
                   <%= format_currency_with_sign(t.amount, type: t.type) %>
+                </td>
+                <td class="px-4 py-3 text-center">
+                  <div class="flex items-center justify-center gap-2">
+                    <%= link_to edit_transaction_path(t), class: "p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark" do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    <% end %>
+                    <%= button_to transaction_path(t), method: :delete, data: { turbo_confirm: "确定删除此交易？" }, class: "p-1.5 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/30 transition-smooth text-secondary dark:text-secondary-dark hover:text-red-600 dark:hover:text-red-400" do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <% end %>
+                  </div>
                 </td>
               </tr>
             <% end %>
