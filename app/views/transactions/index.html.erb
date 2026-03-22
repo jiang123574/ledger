@@ -9,8 +9,12 @@
           清除筛选
         <% end %>
       <% end %>
-      <%= link_to new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" do %>
+      <button type="button" onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">
         <%= render Ds::IconComponent.new(name: "plus", size: :sm) %>
+        快速记账
+      </button>
+      <%= link_to new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" do %>
+        <%= render Ds::IconComponent.new(name: "document-text", size: :sm) %>
         <%= t("transactions.new_transaction") %>
       <% end %>
     </div>
@@ -357,3 +361,86 @@
     </div>
   </div>
 </div>
+
+<!-- Add Transaction Modal -->
+<div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">快速记账</h3>
+        <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <%= render Ds::IconComponent.new(name: "x-mark", size: :md) %>
+        </button>
+      </div>
+      
+      <%= form_with model: Transaction.new, url: transactions_path, method: :post, local: true, id: "quick-transaction-form" do |f| %>
+        <!-- Transaction Type Tabs -->
+        <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-1 flex mb-4">
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="EXPENSE">
+            <span class="flex items-center justify-center gap-2">
+              <%= render Ds::IconComponent.new(name: "minus-circle", size: :sm, color: :expense) %>
+              支出
+            </span>
+          </button>
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="INCOME">
+            <span class="flex items-center justify-center gap-2">
+              <%= render Ds::IconComponent.new(name: "plus-circle", size: :sm, color: :income) %>
+              收入
+            </span>
+          </button>
+        </div>
+        <%= f.hidden_field :type, id: "transaction_type", value: "EXPENSE" %>
+
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, 
+                  class: "w-full pl-8 pr-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户</label>
+            <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, required: true,
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类</label>
+            <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" },
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
+            <%= f.text_field :note, placeholder: "添加备注...",
+                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth">保存</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Type tab switching
+  document.querySelectorAll('#add-transaction-modal .type-tab').forEach(function(tab) {
+    tab.addEventListener('click', function() {
+      document.querySelectorAll('#add-transaction-modal .type-tab').forEach(function(t) {
+        t.classList.remove('bg-container', 'shadow-sm', 'dark:bg-container-dark');
+      });
+      tab.classList.add('bg-container', 'dark:bg-container-dark', 'shadow-sm');
+      document.getElementById('transaction_type').value = tab.dataset.type;
+    });
+  });
+  // Initialize first tab as selected
+  document.querySelector('#add-transaction-modal .type-tab[data-type="EXPENSE"]').classList.add('bg-container', 'dark:bg-container-dark', 'shadow-sm');
+</script>
