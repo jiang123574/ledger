@@ -1,8 +1,9 @@
 <div class="space-y-6">
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark">应收款</h1>
-    <%= render(Ds::ButtonComponent.new(href: new_receivable_path, icon: "plus", variant: :primary)) do %>
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">应收款</h1>
+    <%= link_to new_receivable_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover" do %>
+      <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
       新建应收款
     <% end %>
   </div>
@@ -10,47 +11,48 @@
   <!-- Unsettled Section -->
   <% if @unsettled.any? %>
     <div class="space-y-4">
-      <h2 class="text-lg font-medium text-primary dark:text-primary-dark">待报销</h2>
+      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">待报销</h2>
       <div class="grid gap-4">
         <% @unsettled.each do |receivable| %>
-          <%= render(Ds::CardComponent.new, padding: false) do %>
-            <div class="p-4">
-              <div class="flex items-start justify-between">
+          <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4 border-l-4 border-orange-500">
+            <div class="flex justify-between items-start">
+              <div class="flex-1">
                 <div class="flex items-center gap-3">
-                  <div class="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center">
+                  <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
                     <span class="text-lg font-bold text-orange-600 dark:text-orange-400">¥</span>
                   </div>
                   <div>
                     <h3 class="font-semibold text-primary dark:text-primary-dark"><%= receivable.description %></h3>
-                    <p class="text-sm text-secondary dark:text-secondary-dark"><%= receivable.date&.strftime("%Y-%m-%d") %></p>
-                    <% if receivable.category.present? %>
-                      <%= render(Ds::BadgeComponent.new(variant: :default, size: :xs)) do %>
-                        <%= receivable.category %>
+                    <div class="flex items-center gap-2 mt-1">
+                      <span class="text-sm text-secondary dark:text-secondary-dark"><%= receivable.date&.strftime("%Y-%m-%d") %></span>
+                      <% if receivable.category.present? %>
+                        <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark">
+                          <%= receivable.category %>
+                        </span>
                       <% end %>
-                    <% end %>
+                    </div>
                   </div>
                 </div>
-                <div class="text-right">
-                  <p class="text-xl font-bold text-orange-600 dark:text-orange-400"><%= format_currency(receivable.remaining_amount) %></p>
-                  <p class="text-sm text-secondary dark:text-secondary-dark">剩余 / <%= format_currency(receivable.original_amount) %> 总额</p>
-                </div>
-              </div>
 
-              <!-- Progress Bar -->
-              <div class="mt-4">
+                <!-- Progress Bar -->
                 <% progress = receivable.original_amount > 0 ? (receivable.remaining_amount.to_f / receivable.original_amount.to_f * 100).round : 0 %>
-                <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
-                  <div class="bg-orange-500 dark:bg-orange-400 h-2 rounded-full" style="width: <%= progress %>"></div>
+                <div class="mt-3">
+                  <div class="flex justify-between text-sm text-secondary dark:text-secondary-dark mb-1">
+                    <span>剩余 <%= format_currency(receivable.remaining_amount) %> / <%= format_currency(receivable.original_amount) %> 总额</span>
+                    <span><%= progress %>%</span>
+                  </div>
+                  <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
+                    <div class="bg-orange-500 dark:bg-orange-400 h-2 rounded-full transition-all" style="width: <%= progress %>"></div>
+                  </div>
                 </div>
               </div>
 
-              <!-- Actions -->
-              <div class="mt-4 flex justify-end gap-2">
+              <div class="flex items-center gap-2 ml-4">
                 <%= link_to "报销", settle_receivable_path(receivable), class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600 transition-smooth btn-modern" %>
                 <%= link_to "编辑", edit_receivable_path(receivable), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
               </div>
             </div>
-          <% end %>
+          </div>
         <% end %>
       </div>
     </div>
@@ -59,25 +61,23 @@
   <!-- Settled Section -->
   <% if @settled.any? %>
     <div class="space-y-4">
-      <h2 class="text-lg font-medium text-primary dark:text-primary-dark">已完成</h2>
+      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">已完成</h2>
       <div class="grid gap-4">
         <% @settled.each do |receivable| %>
-          <%= render(Ds::CardComponent.new, padding: false) do %>
-            <div class="p-4 opacity-60">
-              <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
-                    <%= render(Ds::IconComponent.new(name: "check", size: :md, color: :success)) %>
-                  </div>
-                  <div>
-                    <h3 class="font-medium text-primary dark:text-primary-dark"><%= receivable.description %></h3>
-                    <p class="text-sm text-secondary dark:text-secondary-dark">完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></p>
-                  </div>
+          <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4 border-l-4 border-green-500 opacity-75">
+            <div class="flex justify-between items-center">
+              <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center shrink-0">
+                  <%= render(Ds::IconComponent.new(name: "check", size: :md, color: :success)) %>
                 </div>
-                <span class="font-medium text-secondary dark:text-secondary-dark"><%= format_currency(receivable.original_amount) %></span>
+                <div>
+                  <h3 class="font-medium text-primary dark:text-primary-dark"><%= receivable.description %></h3>
+                  <p class="text-sm text-secondary dark:text-secondary-dark">完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></p>
+                </div>
               </div>
+              <span class="font-medium text-secondary dark:text-secondary-dark"><%= format_currency(receivable.original_amount) %></span>
             </div>
-          <% end %>
+          </div>
         <% end %>
       </div>
     </div>
@@ -85,14 +85,13 @@
 
   <!-- Empty State -->
   <% if @receivables.empty? %>
-    <%= render(Ds::CardComponent.new) do %>
-      <%= render(Ds::EmptyStateComponent.new(
-        icon: "receipt",
-        title: "暂无应收款",
-        description: "添加应收款来追踪待报销的费用",
-        action: new_receivable_path,
-        action_label: "新建应收款"
-      )) %>
-    <% end %>
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-8 text-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
+        <%= render(Ds::IconComponent.new(name: "receipt", size: :xl, color: :secondary)) %>
+      </div>
+      <p class="text-secondary dark:text-secondary-dark">暂无应收款</p>
+      <p class="text-secondary dark:text-secondary-dark text-sm mt-2">添加应收款来追踪待报销的费用</p>
+      <%= link_to "新建应收款", new_receivable_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover mt-4" %>
+    </div>
   <% end %>
 </div>
