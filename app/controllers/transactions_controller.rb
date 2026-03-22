@@ -10,6 +10,7 @@ class TransactionsController < ApplicationController
                            .reverse_chronological
 
     @summary = calculate_summary(@transactions)
+    @quick_transaction = Transaction.new(currency: "CNY", date: Date.today)
   end
 
   def show

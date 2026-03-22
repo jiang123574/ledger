@@ -374,7 +374,8 @@
         </button>
       </div>
       
-      <%= form_with model: Transaction.new, url: transactions_path, method: :post, local: true, id: "quick-transaction-form" do |f| %>
+      <%= form_with model: @quick_transaction || Transaction.new, url: transactions_path, method: :post, local: true, id: "quick-transaction-form" do |f| %>
+        
         <!-- Transaction Type Tabs -->
         <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-1 flex mb-4">
           <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="EXPENSE">
