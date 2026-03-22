@@ -1,6 +1,6 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark-dark"><%= t('plans.title') %></h1>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark"><%= t('plans.title') %></h1>
     <%= link_to new_plan_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover" do %>
       <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
       <%= t('plans.new_plan') %>
@@ -8,36 +8,36 @@
   </div>
 
   <% if @plans.empty? %>
-    <div class="bg-container dark:bg-container-dark-dark rounded-lg shadow p-8 text-center">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-8 text-center">
       <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
         <%= render(Ds::IconComponent.new(name: "calendar", size: :xl, color: :secondary)) %>
       </div>
-      <p class="text-secondary dark:text-secondary-dark-dark"><%= t('plans.no_plans_yet') %></p>
-      <p class="text-secondary dark:text-secondary-dark-dark text-sm mt-2"><%= t('plans.create_first_hint', default: '创建计划来管理分期还款、定期支出等') %></p>
+      <p class="text-secondary dark:text-secondary-dark"><%= t('plans.no_plans_yet') %></p>
+      <p class="text-secondary dark:text-secondary-dark text-sm mt-2"><%= t('plans.create_first_hint', default: '创建计划来管理分期还款、定期支出等') %></p>
       <%= link_to t('plans.new_plan'), new_plan_path, class: "inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover" %>
     </div>
   <% else %>
     <!-- Active Plans -->
     <% if @active_plans.any? %>
       <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark-dark dark:text-secondary-dark-dark"><%= t('plans.in_progress', default: '进行中的计划') %></h2>
+        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark dark:text-secondary-dark"><%= t('plans.in_progress', default: '进行中的计划') %></h2>
         <div class="grid gap-4">
           <% @active_plans.each do |plan| %>
-            <div class="bg-container dark:bg-container-dark-dark rounded-lg shadow p-4 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-inverse' : 'border-green-500' %>">
+            <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-inverse' : 'border-green-500' %>">
               <div class="flex justify-between items-start">
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
-                    <h3 class="font-semibold text-primary dark:text-primary-dark-dark"><%= plan.name %></h3>
-                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark-dark dark:text-secondary-dark-dark' : 'bg-green-100 text-green-700' %>">
+                    <h3 class="font-semibold text-primary dark:text-primary-dark"><%= plan.name %></h3>
+                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark' : 'bg-green-100 text-green-700' %>">
                       <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::RECURRING ? t('plans.recurring') : t('plans.one_time')) %>
                     </span>
                   </div>
 
-                  <div class="mt-2 text-sm text-secondary dark:text-secondary-dark-dark">
+                  <div class="mt-2 text-sm text-secondary dark:text-secondary-dark">
                     <span class="font-medium"><%= t('plans.amount') %>:</span>
                     <%= format_currency(plan.amount, plan.currency || 'CNY') %>
                     <% if plan.type == Plan::INSTALLMENT %>
-                      <span class="text-secondary dark:text-secondary-dark-dark">/期 (<%= t('plans.total', default: '总') %>: <%= format_currency(plan.total_amount, plan.currency || 'CNY') %>)</span>
+                      <span class="text-secondary dark:text-secondary-dark">/期 (<%= t('plans.total', default: '总') %>: <%= format_currency(plan.total_amount, plan.currency || 'CNY') %>)</span>
                     <% end %>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.account') %>:</span> <%= plan.account&.name || '-' %></span>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.day_of_month') %>:</span> <%= plan.day_of_month %><%= t('plans.day', default: '日') %></span>
@@ -45,14 +45,14 @@
 
                   <% if plan.type == Plan::INSTALLMENT %>
                     <div class="mt-3">
-                      <div class="flex justify-between text-sm text-secondary dark:text-secondary-dark-dark mb-1">
+                      <div class="flex justify-between text-sm text-secondary dark:text-secondary-dark mb-1">
                         <span><%= t('plans.progress', default: '进度') %>: <%= plan.installments_completed %> / <%= plan.installments_total %> <%= t('plans.periods', default: '期') %></span>
                         <span><%= plan.progress_percentage %>%</span>
                       </div>
                       <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
                         <div class="bg-inverse h-2 rounded-full transition-all" style="width: <%= plan.progress_percentage %>%"></div>
                       </div>
-                      <div class="text-xs text-secondary dark:text-secondary-dark-dark mt-1">
+                      <div class="text-xs text-secondary dark:text-secondary-dark mt-1">
                         <%= t('plans.remaining_periods', default: '剩余') %> <%= plan.installments_remaining %> <%= t('plans.periods', default: '期') %>，<%= t('plans.about', default: '约') %> <%= format_currency(plan.amount * plan.installments_remaining, plan.currency || 'CNY') %>
                       </div>
                     </div>
@@ -78,22 +78,22 @@
     <!-- Completed Plans -->
     <% if @completed_plans.any? %>
       <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-secondary dark:text-secondary-dark-dark"><%= t('plans.completed_inactive', default: '已完成/已停用') %></h2>
+        <h2 class="text-lg font-semibold text-secondary dark:text-secondary-dark"><%= t('plans.completed_inactive', default: '已完成/已停用') %></h2>
         <div class="grid gap-4">
           <% @completed_plans.each do |plan| %>
-            <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-container-dark-dark rounded-lg p-4 border-l-4 border-border dark:border-border-dark-dark opacity-75">
+            <div class="bg-surface-inset dark:bg-surface-dark-inset dark:bg-container-dark rounded-lg p-4 border-l-4 border-border dark:border-border-dark opacity-75">
               <div class="flex justify-between items-center">
                 <div>
                   <div class="flex items-center gap-2">
-                    <h3 class="font-semibold text-secondary dark:text-secondary-dark-dark"><%= plan.name %></h3>
-                    <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark-dark">
+                    <h3 class="font-semibold text-secondary dark:text-secondary-dark"><%= plan.name %></h3>
+                    <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
                       <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::RECURRING ? t('plans.recurring') : t('plans.one_time')) %>
                     </span>
                     <% if plan.type == Plan::INSTALLMENT && plan.completed? %>
                       <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">✓ <%= t('plans.completed', default: '已完成') %></span>
                     <% end %>
                   </div>
-                  <div class="mt-1 text-sm text-secondary dark:text-secondary-dark-dark">
+                  <div class="mt-1 text-sm text-secondary dark:text-secondary-dark">
                     <%= format_currency(plan.amount, plan.currency || 'CNY') %> - <%= plan.account&.name || '-' %>
                   </div>
                 </div>

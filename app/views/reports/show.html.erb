@@ -3,7 +3,7 @@
 <div class="space-y-6">
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark-dark"><%= year_label %>财务报表</h1>
+    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark"><%= year_label %>财务报表</h1>
     <div class="flex items-center gap-2">
       <% if @report_type == :monthly %>
         <%= link_to "年度报表", reports_path(year: @year), class: "btn btn-ghost btn-sm" %>
@@ -20,7 +20,7 @@
       <%= link_to report_year_path(@year - 1), class: "p-2 rounded-lg hover:bg-surface-inset dark:hover:bg-surface-dark-inset dark:bg-surface-dark-inset" do %>
         ← <%= @year - 1 %>年
       <% end %>
-      <span class="px-4 py-2 bg-container dark:bg-container-dark-dark rounded-lg font-medium"><%= @year %>年</span>
+      <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium"><%= @year %>年</span>
       <%= link_to report_year_path(@year + 1), class: "p-2 rounded-lg hover:bg-surface-inset dark:hover:bg-surface-dark-inset dark:bg-surface-dark-inset" do %>
         <%= @year + 1 %>年 →
       <% end %>
@@ -28,7 +28,7 @@
       <%= link_to report_month_path(@year, @month - 1), class: "p-2 rounded-lg hover:bg-surface-inset dark:hover:bg-surface-dark-inset dark:bg-surface-dark-inset" do %>
         ← 上月
       <% end %>
-      <span class="px-4 py-2 bg-container dark:bg-container-dark-dark rounded-lg font-medium"><%= @year %>年<%= @month %>月</span>
+      <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium"><%= @year %>年<%= @month %>月</span>
       <%= link_to report_month_path(@year, @month + 1), class: "p-2 rounded-lg hover:bg-surface-inset dark:hover:bg-surface-dark-inset dark:bg-surface-dark-inset" do %>
         下月 →
       <% end %>
@@ -40,7 +40,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark-dark">总收入</p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary-dark">总收入</p>
           <p class="text-2xl font-semibold text-income mt-1"><%= format_currency(@total_income) %></p>
         </div>
         <div class="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
@@ -52,7 +52,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark-dark">总支出</p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary-dark">总支出</p>
           <p class="text-2xl font-semibold text-expense mt-1"><%= format_currency(@total_expense) %></p>
         </div>
         <div class="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
@@ -64,7 +64,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark-dark">结余</p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary-dark">结余</p>
           <% balance_info = format_balance(@net_balance) %>
           <p class="text-2xl font-semibold mt-1 <%= balance_info[:css_class] %>">
             <%= balance_info[:amount] %>
@@ -80,7 +80,7 @@
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     <!-- Income/Expense Trend Chart -->
     <%= render(Ds::CardComponent.new) do %>
-      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark-dark mb-4">
+      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark mb-4">
         <%= @report_type == :yearly ? "月度趋势" : "周趋势" %>
       </h2>
       <% has_trend_data = @trend_chart_data[:income].any? { |v| v > 0 } || @trend_chart_data[:expense].any? { |v| v > 0 } %>
@@ -94,14 +94,14 @@
         </div>
       <% else %>
         <div class="h-64 flex items-center justify-center">
-          <p class="text-secondary dark:text-secondary-dark-dark">暂无数据</p>
+          <p class="text-secondary dark:text-secondary-dark">暂无数据</p>
         </div>
       <% end %>
     <% end %>
 
     <!-- Expense by Category Chart -->
     <%= render(Ds::CardComponent.new) do %>
-      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark-dark mb-4">支出分类</h2>
+      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark mb-4">支出分类</h2>
       <% if @expense_chart_data.any? %>
         <div data-controller="category-donut-chart"
              data-category-donut-chart-data-value="<%= @expense_chart_data.to_json %>"
@@ -110,14 +110,14 @@
         </div>
       <% else %>
         <div class="h-64 flex items-center justify-center">
-          <p class="text-secondary dark:text-secondary-dark-dark">暂无数据</p>
+          <p class="text-secondary dark:text-secondary-dark">暂无数据</p>
         </div>
       <% end %>
     <% end %>
 
     <!-- Income by Category Chart -->
     <%= render(Ds::CardComponent.new) do %>
-      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark-dark mb-4">收入分类</h2>
+      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark mb-4">收入分类</h2>
       <% if @income_chart_data.any? %>
         <div data-controller="category-donut-chart"
              data-category-donut-chart-data-value="<%= @income_chart_data.to_json %>"
@@ -126,29 +126,29 @@
         </div>
       <% else %>
         <div class="h-64 flex items-center justify-center">
-          <p class="text-secondary dark:text-secondary-dark-dark">暂无数据</p>
+          <p class="text-secondary dark:text-secondary-dark">暂无数据</p>
         </div>
       <% end %>
     <% end %>
 
     <!-- Account Balances -->
     <%= render(Ds::CardComponent.new) do %>
-      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark-dark mb-4">账户余额</h2>
+      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark mb-4">账户余额</h2>
       <div class="space-y-3">
         <% @account_balances.each do |item| %>
           <div class="flex justify-between items-center gap-2 min-w-0">
             <div class="flex items-center gap-2 min-w-0">
               <div class="w-8 h-8 shrink-0 rounded-full bg-gray-100 dark:bg-surface-dark flex items-center justify-center">
-                <span class="text-xs font-semibold text-primary dark:text-primary-dark-dark"><%= item[:account].name[0] %></span>
+                <span class="text-xs font-semibold text-primary dark:text-primary-dark"><%= item[:account].name[0] %></span>
               </div>
-              <span class="text-primary dark:text-primary-dark-dark truncate"><%= item[:account].name %></span>
+              <span class="text-primary dark:text-primary-dark truncate"><%= item[:account].name %></span>
             </div>
-            <span class="font-semibold text-primary dark:text-primary-dark-dark shrink-0"><%= format_currency(item[:balance]) %></span>
+            <span class="font-semibold text-primary dark:text-primary-dark shrink-0"><%= format_currency(item[:balance]) %></span>
           </div>
         <% end %>
         <div class="pt-3 mt-3 border-t border-border dark:border-border-dark flex justify-between items-center">
-          <span class="font-medium text-primary dark:text-primary-dark-dark">总资产</span>
-          <span class="text-xl font-bold text-primary dark:text-primary-dark-dark"><%= format_currency(@account_balances.sum { |i| i[:balance] }) %></span>
+          <span class="font-medium text-primary dark:text-primary-dark">总资产</span>
+          <span class="text-xl font-bold text-primary dark:text-primary-dark"><%= format_currency(@account_balances.sum { |i| i[:balance] }) %></span>
         </div>
       </div>
     <% end %>
@@ -156,20 +156,20 @@
     <!-- Budget Progress (Monthly only) -->
     <% if @report_type == :monthly && @budget_progress&.any? %>
       <%= render(Ds::CardComponent.new) do %>
-        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark-dark mb-4">预算进度</h2>
+        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark mb-4">预算进度</h2>
         <div class="space-y-4">
           <% @budget_progress.each do |item| %>
             <div class="min-w-0">
               <div class="flex justify-between text-sm mb-1.5 gap-2">
-                <span class="text-primary dark:text-primary-dark-dark truncate"><%= item[:budget].category&.name || "未知分类" %></span>
-                <span class="<%= item[:percentage] > 100 ? 'text-expense' : 'text-primary dark:text-primary-dark-dark' %> shrink-0">
+                <span class="text-primary dark:text-primary-dark truncate"><%= item[:budget].category&.name || "未知分类" %></span>
+                <span class="<%= item[:percentage] > 100 ? 'text-expense' : 'text-primary dark:text-primary-dark' %> shrink-0">
                   <%= format_currency(item[:spent]) %> / <%= format_currency(item[:budget].amount) %>
                 </span>
               </div>
               <div class="w-full bg-surface rounded-full h-3">
                 <div class="<%= item[:percentage] > 100 ? 'bg-red-500' : (item[:percentage] > 80 ? 'bg-yellow-500' : 'bg-gray-500') %> h-3 rounded-full" style="width: <%= [item[:percentage], 100].min %>%"></div>
               </div>
-              <p class="text-xs text-secondary dark:text-secondary-dark-dark mt-1"><%= item[:percentage] %>% 已使用</p>
+              <p class="text-xs text-secondary dark:text-secondary-dark mt-1"><%= item[:percentage] %>% 已使用</p>
             </div>
           <% end %>
         </div>
