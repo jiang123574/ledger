@@ -4,26 +4,28 @@
       <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">联系人管理</h2>
       <p class="text-sm text-secondary dark:text-secondary-dark mt-1">管理与你有资金往来的人或机构</p>
     </div>
-    <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">+ 新建联系人</button>
+    <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">+ 新建联系人</button>
   </div>
   
   <!-- Stats -->
-  <div class="p-4 border-b border-border dark:border-border-dark">
-    <div class="grid grid-cols-3 gap-4">
-      <div class="text-center">
-        <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= @counterparties.size %></div>
-        <div class="text-xs text-secondary dark:text-secondary-dark">联系人总数</div>
-      </div>
-      <div class="text-center">
-        <div class="text-2xl font-bold text-inverse dark:text-inverse-dark"><%= @counterparties.select { |c| c.respond_to?(:receivables_count) && c.receivables_count > 0 }.size %></div>
-        <div class="text-xs text-secondary dark:text-secondary-dark">关联应收款</div>
-      </div>
-      <div class="text-center">
-        <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= @counterparties.select { |c| c.respond_to?(:receivables_count) && c.receivables_count > 0 }.size %></div>
-        <div class="text-xs text-secondary dark:text-secondary-dark">有往来对象</div>
+  <% if @counterparties.any? %>
+    <div class="p-4 border-b border-border dark:border-border-dark">
+      <div class="grid grid-cols-3 gap-4">
+        <div class="text-center">
+          <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= @counterparties.size %></div>
+          <div class="text-xs text-secondary dark:text-secondary-dark">联系人总数</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= @counterparties.select { |c| c.respond_to?(:receivables_count) && c.receivables_count > 0 }.size %></div>
+          <div class="text-xs text-secondary dark:text-secondary-dark">关联应收款</div>
+        </div>
+        <div class="text-center">
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= @counterparties.select { |c| c.respond_to?(:receivables_count) && c.receivables_count > 0 }.size %></div>
+          <div class="text-xs text-secondary dark:text-secondary-dark">有往来对象</div>
+        </div>
       </div>
     </div>
-  </div>
+  <% end %>
 
   <% if @counterparties.empty? %>
     <div class="p-8 text-center">
@@ -32,7 +34,7 @@
       </div>
       <p class="text-secondary dark:text-secondary-dark">暂无联系人</p>
       <p class="text-sm text-secondary dark:text-secondary-dark mt-1">添加常往来的人或机构，方便统计和管理</p>
-      <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="inline-block mt-4 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">添加第一个联系人</button>
+      <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="inline-block mt-4 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">添加第一个联系人</button>
     </div>
   <% else %>
     <div class="overflow-x-auto">
@@ -86,20 +88,25 @@
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-counterparty-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
-      <h3 class="text-lg font-semibold text-primary dark:text-primary-dark mb-4">新建联系人</h3>
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建联系人</h3>
+        <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
       <%= form_with model: Counterparty.new, url: counterparties_path, method: :post, local: true do |f| %>
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">名称 *</label>
-            <%= f.text_field :name, placeholder: "输入联系人名称", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400", required: true %>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">名称 *</label>
+            <%= render Ds::InputComponent.new(form: f, field: :name, placeholder: "输入联系人名称", required: true) %>
           </div>
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系方式</label>
-            <%= f.text_field :contact, placeholder: "电话或邮箱", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">联系方式</label>
+            <%= render Ds::InputComponent.new(form: f, field: :contact, placeholder: "电话或邮箱") %>
           </div>
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <%= f.text_area :note, placeholder: "备注信息", rows: 3, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
+            <%= render Ds::InputComponent.new(form: f, field: :note, type: :textarea, placeholder: "备注信息") %>
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
