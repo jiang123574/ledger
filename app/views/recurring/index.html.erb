@@ -27,7 +27,7 @@
                 <%= r.transaction_type == "INCOME" ? t("transactions.income") : t("transactions.expense") %>
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap font-medium">¥<%= format_currency(r.amount) %></td>
+            <td class="px-6 py-4 whitespace-nowrap font-medium"><%= format_currency(r.amount) %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.category&.name || "-" %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.account&.name || "-" %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm capitalize"><%= t("recurring.#{r.frequency}") %></td>
