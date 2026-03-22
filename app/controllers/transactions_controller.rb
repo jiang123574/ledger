@@ -14,7 +14,9 @@ class TransactionsController < ApplicationController
   end
 
   def show
+    redirect_to transactions_path
   end
+
 
   def new
     # 重定向到 transactions#index，使用模态框添加交易
