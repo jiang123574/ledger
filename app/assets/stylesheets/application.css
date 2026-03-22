@@ -115,6 +115,15 @@
   border-color: var(--color-expense, #ef4444) !important;
 }
 
+/* Lighter variants for badges */
+.bg-income-light {
+  background-color: color-mix(in srgb, var(--color-income, #22c55e) 15%, transparent) !important;
+}
+
+.bg-expense-light {
+  background-color: color-mix(in srgb, var(--color-expense, #ef4444) 15%, transparent) !important;
+}
+
 /* Additional dark mode fixes for hardcoded colors */
 .dark .bg-white,
 [data-theme="dark"] .bg-white {
