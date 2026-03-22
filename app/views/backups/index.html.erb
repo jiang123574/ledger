@@ -184,8 +184,8 @@
                 <% if @webdav_configured && backup[:webdav_url].blank? %>
                   <%= link_to "上传", webdav_upload_backup_path(backup[:id]), method: :post, class: "px-2 py-1 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern ml-2" %>
                 <% end %>
-                <%= button_to "恢复", restore_backup_path(backup[:id]), method: :post, onclick: "if(confirm('确定要恢复该备份？当前数据将被覆盖。')) { this.nextElementSibling.submit() }" form_html: { style: "display:inline" }, class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern ml-2 inline" %>
-                <%= button_to "删除", backup_path(backup[:id]), method: :delete, onclick: "if(confirm('确定删除该备份？')) { this.nextElementSibling.submit() }" form_html: { style: "display:inline" }, class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern ml-2 inline" %>
+                <%= button_to "恢复", restore_backup_path(backup[:id]), method: :post, onclick: "if(confirm('确定要恢复该备份？当前数据将被覆盖。')) { this.nextElementSibling.submit() }", class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern ml-2 inline", form_html: { style: "display:inline" } %>
+                <%= button_to "删除", backup_path(backup[:id]), method: :delete, onclick: "if(confirm('确定删除该备份？')) { this.nextElementSibling.submit() }", class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern ml-2 inline", form_html: { style: "display:inline" } %>
               </td>
             </tr>
           <% end %>

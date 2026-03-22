@@ -203,7 +203,7 @@
             </span>
           </div>
           <div class="flex justify-end mt-2">
-            <%= button_to t("budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { this.nextElementSibling.submit() }" form_html: { style: "display:inline" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense-light text-expense hover:bg-red-200 transition-smooth btn-modern" %>
+            <%= button_to t("budgets.delete"), budget, method: :delete, onclick: "if(confirm('确定删除此预算？')) { this.nextElementSibling.submit() }", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-expense-light text-expense hover:bg-red-200 transition-smooth btn-modern", form_html: { style: "display:inline" } %>
           </div>
         </div>
       <% end %>
