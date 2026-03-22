@@ -24,6 +24,16 @@ class ReceivablesController < ApplicationController
     @receivable.remaining_amount = @receivable.original_amount
 
     if @receivable.save
+      # 自动创建支出交易（费用）
+      Transaction.create!(
+        type: "EXPENSE",
+        account_id: @receivable.account_id,
+        amount: @receivable.original_amount,
+        currency: "CNY",
+        date: @receivable.date,
+        note: "[待报销] #{@receivable.description}",
+        category_id: @receivable.category_id
+      )
       redirect_to receivables_path, notice: "应收款已创建"
     else
       render :new
@@ -56,14 +66,14 @@ class ReceivablesController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
-      # 创建报销交易
-      transaction = Transaction.create!(
-        type: "REIMBURSE",
+      # 创建收入交易（报销款到账）
+      Transaction.create!(
+        type: "INCOME",
         account_id: @account_id,
         amount: @settle_amount,
         currency: "CNY",
         date: Date.current,
-        note: "报销: #{@receivable.description}",
+        note: "[报销] #{@receivable.description}",
         receivable: @receivable
       )
 
