@@ -8,29 +8,31 @@
     <%= form_with model: [@single_budget, @budget_item], url: single_budget_budget_item_path(@single_budget, @budget_item), local: true, class: "space-y-4" do |f| %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <%= f.label :name, t("single_budgets.item_name"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1" %>
-          <%= f.text_field :name, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white", required: true %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("single_budgets.item_name") %></label>
+          <%= render Ds::InputComponent.new(form: f, field: :name, required: true) %>
         </div>
         <div>
-          <%= f.label :category, t("single_budgets.category"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1" %>
-          <%= f.text_field :category, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("single_budgets.category") %></label>
+          <%= render Ds::InputComponent.new(form: f, field: :category) %>
         </div>
         <div>
-          <%= f.label :amount, t("single_budgets.amount"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1" %>
-          <%= f.number_field :amount, step: "0.01", class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white", required: true %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("single_budgets.amount") %></label>
+          <%= render Ds::InputComponent.new(form: f, field: :amount, type: :number, placeholder: "0.00", prefix: "¥", required: true) %>
         </div>
         <div>
-          <%= f.label :spent_amount, t("single_budgets.spent"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1" %>
-          <%= f.number_field :spent_amount, step: "0.01", class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("single_budgets.spent") %></label>
+          <%= render Ds::InputComponent.new(form: f, field: :spent_amount, type: :number, placeholder: "0.00", prefix: "¥") %>
         </div>
       </div>
       <div>
-        <%= f.label :notes, t("single_budgets.notes"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1" %>
-        <%= f.text_area :notes, rows: 3, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
+        <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("single_budgets.notes") %></label>
+        <%= render Ds::InputComponent.new(form: f, field: :notes, type: :textarea) %>
       </div>
-      <div class="flex justify-end gap-2">
-        <%= link_to t("common.cancel"), @single_budget, class: "px-4 py-2.5 text-base font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern dark:border-border-dark dark:text-secondary-dark" %>
-        <%= f.submit t("common.update"), class: "px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+      <div class="flex justify-end gap-3">
+        <%= link_to t("common.cancel"), @single_budget, class: "px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+        <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">
+          <%= t("common.update") %>
+        </button>
       </div>
     <% end %>
   </div>
