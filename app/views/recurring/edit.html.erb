@@ -1,7 +1,7 @@
 <div class="space-y-6">
-  <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= t("recurring.edit_recurring") %></h1>
+  <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark-dark"><%= t("recurring.edit_recurring") %></h1>
 
-  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark-dark rounded-lg shadow p-6">
     <%= form_with model: @recurring, url: recurring_path(@recurring), method: :patch, local: true, class: "space-y-4" do |f| %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
@@ -37,7 +37,7 @@
         <div>
           <%= f.label :is_active, class: "flex items-center mt-6" do %>
             <%= f.check_box :is_active, class: "mr-2" %>
-            <span class="text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= t("recurring.active") %></span>
+            <span class="text-sm font-medium text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark-dark"><%= t("recurring.active") %></span>
           <% end %>
         </div>
       </div>

@@ -6,19 +6,19 @@
   <!-- Header -->
   <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
     <div>
-      <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= t("dashboard.title") %></h1>
-      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark mt-1"><%= t("dashboard.subtitle") %></p>
+      <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark"><%= t("dashboard.title") %></h1>
+      <p class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark mt-1"><%= t("dashboard.subtitle") %></p>
     </div>
     <div class="flex items-center gap-2">
       <%= link_to dashboard_path(month: current_date.prev_month.strftime("%Y-%m")), 
-          class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth" do %>
+          class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark-dark transition-smooth" do %>
         <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
       <% end %>
-      <span class="px-4 py-2 bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs">
+      <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs">
         <%= display_month %>
       </span>
       <%= link_to dashboard_path(month: current_date.next_month.strftime("%Y-%m")), 
-          class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth" do %>
+          class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary-dark-dark transition-smooth" do %>
         <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
       <% end %>
     </div>
@@ -29,7 +29,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.income") %></p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.income") %></p>
           <p class="text-2xl font-semibold text-income mt-1"><%= format_currency(@total_income) %></p>
         </div>
         <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
@@ -41,7 +41,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.expense") %></p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.expense") %></p>
           <p class="text-2xl font-semibold text-expense mt-1"><%= format_currency(@total_expense) %></p>
         </div>
         <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
@@ -53,7 +53,7 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.balance") %></p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.balance") %></p>
           <% balance_info = format_balance(@total_income - @total_expense) %>
           <p class="text-2xl font-semibold mt-1 <%= balance_info[:css_class] %>">
             <%= balance_info[:amount] %>
@@ -68,8 +68,8 @@
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex items-start justify-between">
         <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">总资产</p>
-          <p class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark mt-1"><%= format_currency(@total_assets) %></p>
+          <p class="text-sm font-medium text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark">总资产</p>
+          <p class="text-2xl font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark mt-1"><%= format_currency(@total_assets) %></p>
         </div>
         <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "wallet", size: :md, color: :primary)) %>
@@ -88,7 +88,7 @@
     
     <!-- Recent Transactions Section -->
     <section
-      class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-section-key="recent_transactions"
       data-controller="dashboard-section"
@@ -106,27 +106,27 @@
         keydown->dashboard-sortable#handleKeyDown">
       
       <!-- Section Header -->
-      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border-dark dark:border-border-dark">
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5"
+            class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5"
             data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
             data-dashboard-section-target="button"
             aria-label="<%= t('dashboard.toggle_section') %>"
             aria-expanded="true">
             <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
           </button>
-          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark">
             <%= t("dashboard.recent_transactions") %>
           </h2>
         </div>
         <div class="flex items-center gap-2">
           <%= link_to t("dashboard.view_all"), transactions_path, 
-              class: "text-sm text-primary dark:text-primary dark:text-primary-dark-dark hover:text-secondary dark:text-secondary dark:text-secondary-dark-dark font-medium" %>
+              class: "text-sm text-primary dark:text-primary-dark-dark hover:text-secondary dark:text-secondary-dark-dark font-medium" %>
           <button
             type="button"
-            class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+            class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
             aria-label="<%= t('dashboard.drag_to_reorder') %>">
             <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
           </button>
@@ -142,8 +142,8 @@
                 <%= render(Ds::IconComponent.new(name: t.type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: t.type == "INCOME" ? :income : :expense)) %>
               </div>
               <div class="min-w-0">
-                <p class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark truncate"><%= t.category&.name || t("dashboard.uncategorized") %></p>
-                <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t.date&.strftime("%Y-%m-%d") %> · <%= t.account_name %></p>
+                <p class="font-medium text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark truncate"><%= t.category&.name || t("dashboard.uncategorized") %></p>
+                <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t.date&.strftime("%Y-%m-%d") %> · <%= t.account_name %></p>
               </div>
             </div>
             <span class="font-medium <%= t.type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
@@ -156,7 +156,7 @@
             <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "receipt", size: :lg, color: :secondary)) %>
             </div>
-            <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.no_transactions_yet") %></p>
+            <p class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.no_transactions_yet") %></p>
           </div>
         <% end %>
       </div>
@@ -164,7 +164,7 @@
 
     <!-- Account Balances Section -->
     <section
-      class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-section-key="account_balances"
       data-controller="dashboard-section"
@@ -182,27 +182,27 @@
         keydown->dashboard-sortable#handleKeyDown">
       
       <!-- Section Header -->
-      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border-dark dark:border-border-dark">
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5"
+            class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5"
             data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
             data-dashboard-section-target="button"
             aria-label="<%= t('dashboard.toggle_section') %>"
             aria-expanded="true">
             <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
           </button>
-          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark">
             <%= t("dashboard.account_balances") %>
           </h2>
         </div>
         <div class="flex items-center gap-2">
           <%= link_to t("dashboard.manage_accounts"), accounts_path, 
-              class: "text-sm text-primary dark:text-primary dark:text-primary-dark-dark hover:text-secondary dark:text-secondary dark:text-secondary-dark-dark font-medium" %>
+              class: "text-sm text-primary dark:text-primary-dark-dark hover:text-secondary dark:text-secondary-dark-dark font-medium" %>
           <button
             type="button"
-            class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+            class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
             aria-label="<%= t('dashboard.drag_to_reorder') %>">
             <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
           </button>
@@ -215,14 +215,14 @@
           <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface dark:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0">
-                <span class="text-sm font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= account.name[0] %></span>
+                <span class="text-sm font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark"><%= account.name[0] %></span>
               </div>
               <div>
-                <p class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= account.name %></p>
-                <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= account.type_name %></p>
+                <p class="font-medium text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark"><%= account.name %></p>
+                <p class="text-xs text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= account.type_name %></p>
               </div>
             </div>
-            <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= format_currency(account.current_balance) %></span>
+            <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark"><%= format_currency(account.current_balance) %></span>
           <% end %>
         <% end %>
         <% if @accounts.empty? %>
@@ -230,7 +230,7 @@
             <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "wallet", size: :lg, color: :secondary)) %>
             </div>
-            <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.no_accounts_yet") %></p>
+            <p class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.no_accounts_yet") %></p>
           </div>
         <% end %>
       </div>
@@ -238,7 +238,7 @@
 
     <!-- Expenses by Category Section -->
     <section
-      class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-section-key="expenses_by_category"
       data-controller="dashboard-section"
@@ -256,24 +256,24 @@
         keydown->dashboard-sortable#handleKeyDown">
       
       <!-- Section Header -->
-      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border-dark dark:border-border-dark">
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5"
+            class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5"
             data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
             data-dashboard-section-target="button"
             aria-label="<%= t('dashboard.toggle_section') %>"
             aria-expanded="true">
             <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
           </button>
-          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark">
             <%= t("dashboard.expenses_by_category") %>
           </h2>
         </div>
         <button
           type="button"
-          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
           aria-label="<%= t('dashboard.drag_to_reorder') %>">
           <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
         </button>
@@ -287,7 +287,7 @@
               <% percentage = @total_expense > 0 ? (amount / @total_expense * 100).round : 0 %>
               <div>
                 <div class="flex justify-between text-sm mb-1.5">
-                  <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= category || t("dashboard.uncategorized") %></span>
+                  <span class="font-medium text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark"><%= category || t("dashboard.uncategorized") %></span>
                   <span class="text-expense font-medium"><%= format_currency(amount) %></span>
                 </div>
                 <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
@@ -301,7 +301,7 @@
             <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "pie-chart", size: :lg, color: :secondary)) %>
             </div>
-            <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.no_expenses_this_month") %></p>
+            <p class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.no_expenses_this_month") %></p>
           </div>
         <% end %>
       </div>
@@ -309,7 +309,7 @@
 
     <!-- Budget Status Section -->
     <section
-      class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-section-key="budget_status"
       data-controller="dashboard-section"
@@ -327,24 +327,24 @@
         keydown->dashboard-sortable#handleKeyDown">
       
       <!-- Section Header -->
-      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark dark:border-border-dark dark:border-border-dark">
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5"
+            class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5"
             data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
             data-dashboard-section-target="button"
             aria-label="<%= t('dashboard.toggle_section') %>"
             aria-expanded="true">
             <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
           </button>
-          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark">
             <%= t("dashboard.budget_status") %>
           </h2>
         </div>
         <button
           type="button"
-          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark hover:text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
           aria-label="<%= t('dashboard.drag_to_reorder') %>">
           <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
         </button>
@@ -367,18 +367,18 @@
                 </div>
               </div>
               <div class="flex-1 space-y-3">
-                <div class="flex justify-between items-center pb-3 border-b border-border dark:border-border-dark dark:border-border dark:border-border-dark dark:border-border dark:border-border dark:border-border dark:border-border dark:border-border-dark-dark-dark-dark-dark-dark">
-                  <span class="font-medium text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= t("dashboard.total_budget") %></span>
-                  <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= format_currency(@total_budget) %></span>
+                <div class="flex justify-between items-center pb-3 border-b border-border dark:border-border-dark dark:border-border-dark dark:border-border-dark">
+                  <span class="font-medium text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark"><%= t("dashboard.total_budget") %></span>
+                  <span class="font-semibold text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark"><%= format_currency(@total_budget) %></span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.spent") %></span>
-                  <span class="<%= budget_percentage > 100 ? 'text-expense' : 'text-primary dark:text-primary-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark' %> font-medium">
+                  <span class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.spent") %></span>
+                  <span class="<%= budget_percentage > 100 ? 'text-expense' : 'text-primary dark:text-primary-dark dark:text-primary-dark dark:text-primary-dark' %> font-medium">
                     <%= format_currency(@total_spent) %>
                   </span>
                 </div>
                 <div class="flex justify-between items-center">
-                  <span class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.remaining") %></span>
+                  <span class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.remaining") %></span>
                   <span class="font-medium <%= (@total_budget - @total_spent) >= 0 ? 'text-income' : 'text-expense' %>">
                     <%= format_currency(@total_budget - @total_spent) %>
                   </span>
@@ -389,7 +389,7 @@
                 <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
                   <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
                 </div>
-                <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.no_budgets_set") %></p>
+                <p class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.no_budgets_set") %></p>
               </div>
             <% end %>
           </div>
@@ -398,7 +398,7 @@
             <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
             </div>
-            <p class="text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark"><%= t("dashboard.no_budgets_set") %></p>
+            <p class="text-secondary dark:text-secondary-dark dark:text-secondary-dark dark:text-secondary-dark"><%= t("dashboard.no_budgets_set") %></p>
           </div>
         <% end %>
       </div>

@@ -5,7 +5,7 @@
 
 <% if defined?(pagy) && pagy %>
   <nav class="flex items-center justify-between">
-    <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">
+    <div class="text-sm text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark-dark">
       共 <%= pagy.count %> 条
     </div>
     <div class="flex items-center gap-1">
@@ -13,7 +13,7 @@
         <%= link_to "上一页", pagy_url_for(pagy, pagy.prev), 
             class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth" %>
       <% else %>
-        <span class="px-3 py-1.5 text-sm rounded-lg text-secondary dark:text-secondary-dark cursor-not-allowed">上一页</span>
+        <span class="px-3 py-1.5 text-sm rounded-lg text-secondary dark:text-secondary dark:text-secondary-dark-dark cursor-not-allowed">上一页</span>
       <% end %>
 
       <% pagy.series.each do |item| %>
@@ -21,7 +21,7 @@
           <%= link_to item, pagy_url_for(pagy, item), 
               class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth #{pagy.page == item ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary dark:text-primary-dark-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark' : ''}" %>
         <% elsif item == :gap %>
-          <span class="px-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark">...</span>
+          <span class="px-2 text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary-dark dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary dark:text-secondary-dark-dark-dark-dark-dark-dark">...</span>
         <% end %>
       <% end %>
 
@@ -29,7 +29,7 @@
         <%= link_to "下一页", pagy_url_for(pagy, pagy.next), 
             class: "px-3 py-1.5 text-sm rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary dark:text-secondary-dark-dark hover:text-primary dark:text-primary dark:text-primary-dark-dark transition-smooth" %>
       <% else %>
-        <span class="px-3 py-1.5 text-sm rounded-lg text-secondary dark:text-secondary-dark cursor-not-allowed">下一页</span>
+        <span class="px-3 py-1.5 text-sm rounded-lg text-secondary dark:text-secondary dark:text-secondary-dark-dark cursor-not-allowed">下一页</span>
       <% end %>
     </div>
   </nav>

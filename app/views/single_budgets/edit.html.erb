@@ -1,10 +1,10 @@
 <div class="space-y-6">
   <div class="flex items-center gap-4">
     <%= link_to t("common.back"), single_budgets_path, class: "text-primary dark:text-primary dark:text-primary-dark-dark hover:text-inverse" %>
-    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark"><%= t("single_budgets.edit_title") %></h1>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary dark:text-primary-dark-dark dark:text-primary dark:text-primary-dark dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary dark:text-primary-dark-dark-dark-dark-dark-dark"><%= t("single_budgets.edit_title") %></h1>
   </div>
 
-  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container dark:bg-container-dark-dark-dark-dark-dark-dark rounded-lg shadow p-6">
     <%= form_with model: @single_budget, url: single_budget_path(@single_budget), local: true, class: "space-y-4" do |f| %>
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
