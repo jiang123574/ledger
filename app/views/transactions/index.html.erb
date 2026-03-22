@@ -25,10 +25,10 @@
           <div class="flex-1">
             <%= text_field_tag :search, @search.search,
                 placeholder: "搜索备注、分类...",
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <button type="button" data-action="click->auto-submit-form#submit" 
-                  class="px-4 py-2.5 text-base font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">
+                  class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern">
             搜索
           </button>
         </div>
@@ -38,12 +38,12 @@
           <div class="flex-1 min-w-[140px]">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">开始日期</label>
             <%= date_field_tag :start_date, @search.start_date,
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">结束日期</label>
             <%= date_field_tag :end_date, @search.end_date,
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类型</label>
@@ -55,7 +55,7 @@
               ["预支", "ADVANCE"],
               ["报销", "REIMBURSE"]
             ], @search.type),
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[140px]">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类</label>
@@ -63,7 +63,7 @@
               [["全部分类", ""]] + @categories.map { |c| [c.full_name, c.id] },
               @search.category_id
             ),
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <% if @tags.any? %>
             <div class="flex-1 min-w-[120px]">
@@ -72,7 +72,7 @@
                 [["全部标签", ""]] + @tags.pluck(:name, :id),
                 @search.tag_id
               ),
-                  class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                  class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
             </div>
           <% end %>
         </div>
@@ -83,13 +83,13 @@
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">最小金额</label>
             <%= number_field_tag :min_amount, @search.min_amount, step: "0.01",
                 placeholder: "0.00",
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">最大金额</label>
             <%= number_field_tag :max_amount, @search.max_amount, step: "0.01",
                 placeholder: "不限",
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
           <div class="flex-1 min-w-[120px]">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">排序</label>
@@ -99,7 +99,7 @@
               ["金额 ↓", "amount_desc"],
               ["金额 ↑", "amount_asc"]
             ], @search.sort),
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
           </div>
         </div>
 
@@ -394,14 +394,14 @@
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期</label>
               <%= f.date_field :date, 
-                  class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+                  class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
                 <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, 
-                    class: "w-full pl-8 pr-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+                    class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
               </div>
             </div>
           </div>
@@ -409,25 +409,25 @@
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户 *</label>
             <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, required: true,
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类</label>
             <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" },
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">转入账户</label>
             <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "无" },
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
             <%= f.text_field :note, placeholder: "添加备注...",
-                class: "w-full px-3 py-2.5 text-base rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
           </div>
         </div>
 
