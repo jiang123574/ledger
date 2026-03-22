@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
   get "up" => "rails/health#show", as: :rails_health_check
 
-  root "dashboard#show"
+  root to: redirect("/accounts")
 
   resources :transactions do
     collection do
@@ -97,3 +97,6 @@ Rails.application.routes.draw do
     post "vitals", to: "vitals#create"
   end
 end
+
+# 合并交易记录到账户页面
+get "transactions" => "accounts#index", as: :transactions
