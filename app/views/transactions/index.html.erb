@@ -42,11 +42,11 @@
       <% @transactions.each do |t| %>
         <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center <%= t.type == "INCOME" ? "bg-income/10 dark:bg-income/10" : "bg-expense/10 dark:bg-expense/10" %>">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center <%= t.type == "INCOME" ? "bg-income dark:bg-income/10" : "bg-expense dark:bg-expense/10" %>">
               <% if t.type == "INCOME" %>
-                <svg class="w-4 h-4 text-income" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
               <% else %>
-                <svg class="w-4 h-4 text-expense" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
+                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
               <% end %>
             </div>
             <div class="flex-1 min-w-0">
