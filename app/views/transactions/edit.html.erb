@@ -28,36 +28,39 @@
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
           <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("transactions.date") %></label>
-          <%= f.date_field :date, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
+          <%= render Ds::InputComponent.new(form: f, field: :date, type: :text) %>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("transactions.amount") %></label>
-          <div class="relative">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-            <%= f.number_field :amount, step: "0.01", placeholder: "0.00", class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
-          </div>
+          <%= render Ds::InputComponent.new(form: f, field: :amount, type: :number, placeholder: "0.00", prefix: "¥") %>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("transactions.account") %></label>
-          <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
+          <%= render Ds::InputComponent.new(form: f, field: :account_id, type: :select, 
+                choices: @accounts.map { |a| [a.name, a.id] },
+                include_blank: "选择账户") %>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("transactions.category") %></label>
-          <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
+          <%= render Ds::InputComponent.new(form: f, field: :category_id, type: :select,
+                choices: @categories.map { |c| [c.name, c.id] },
+                include_blank: "选择分类") %>
         </div>
 
         <div>
           <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">转入账户</label>
-          <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "无" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
+          <%= render Ds::InputComponent.new(form: f, field: :target_account_id, type: :select,
+                choices: @accounts.map { |a| [a.name, a.id] },
+                include_blank: "无") %>
         </div>
       </div>
 
       <div>
         <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5"><%= t("transactions.note") %></label>
-        <%= f.text_area :note, rows: 3, placeholder: "添加备注...", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-500" %>
+        <%= render Ds::InputComponent.new(form: f, field: :note, type: :textarea, placeholder: "添加备注...") %>
       </div>
 
       <div class="flex justify-end gap-3 pt-4 border-t border-border dark:border-border-dark">
