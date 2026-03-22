@@ -2,11 +2,15 @@
 
 class TransactionsController < ApplicationController
   before_action :set_transaction, only: [ :show, :edit, :update, :destroy ]
-  before_action :load_lookups, only: [ :new, :edit, :create, :update, :index ]
+  before_action :load_lookups, only: [ :new, :edit, :create, :update ]
 
   def index
-    # 重定向到账户页面（已合并三栏布局）
-    redirect_to accounts_path
+    @transactions = Transaction.includes(:account, :category)
+                             .order(date: :desc, created_at: :desc)
+                             .limit(100)
+    @accounts = Account.visible.order(:name)
+    @categories = Category.active.by_sort_order
+    @transaction = Transaction.new(currency: "CNY", date: Date.today)
   end
 
   def show

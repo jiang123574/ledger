@@ -1,456 +1,116 @@
 <div class="space-y-4">
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
-    <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark"><%= t("transactions.title") %></h1>
-    <div class="flex items-center gap-3">
-      <% if @search.active_filters? %>
-        <%= link_to transactions_path, class: "inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" do %>
-          <%= render Ds::IconComponent.new(name: "x-mark", size: :xs) %>
-          清除筛选
-        <% end %>
-      <% end %>
-      <button type="button" onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">
-        <%= render Ds::IconComponent.new(name: "plus", size: :xs) %>
-        <%= t("transactions.new_transaction") %>
-      </button>
+  <div class="flex items-center justify-between">
+    <h1 class="text-lg font-semibold text-primary dark:text-primary-dark">交易记录</h1>
+    <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern">
+      + 新建
+    </button>
+  </div>
+
+  <!-- 搜索筛选 -->
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-3">
+    <div class="flex flex-wrap gap-3 items-end">
+      <div class="flex-1 min-w-[140px]">
+        <label class="block text-xs font-medium text-secondary dark:text-secondary-dark mb-1">开始日期</label>
+        <input type="date" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+      </div>
+      <div class="flex-1 min-w-[140px]">
+        <label class="block text-xs font-medium text-secondary dark:text-secondary-dark mb-1">结束日期</label>
+        <input type="date" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+      </div>
+      <div class="flex-1 min-w-[100px]">
+        <label class="block text-xs font-medium text-secondary dark:text-secondary-dark mb-1">类型</label>
+        <select class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+          <option value="">全部</option>
+          <option>收入</option>
+          <option>支出</option>
+          <option>转账</option>
+        </select>
+      </div>
+      <div class="flex-1 min-w-[120px]">
+        <label class="block text-xs font-medium text-secondary dark:text-secondary-dark mb-1">账户</label>
+        <select class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+          <option value="">全部</option>
+        </select>
+      </div>
     </div>
   </div>
 
-  <!-- Search & Filter -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs">
-    <div class="p-3">
-      <%= form_tag transactions_path, method: :get, class: "space-y-4", data: { controller: "auto-submit-form" } do %>
-        <!-- Search Input -->
-        <div class="flex gap-3">
-          <div class="flex-1">
-            <%= text_field_tag :search, @search.search,
-                placeholder: "搜索备注、分类...",
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-          <button type="button" data-action="click->auto-submit-form#submit" 
-                  class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern">
-            搜索
-          </button>
-        </div>
-
-        <!-- Filter Row -->
-        <div class="flex flex-wrap gap-3 items-end">
-          <div class="flex-1 min-w-[140px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">开始日期</label>
-            <%= date_field_tag :start_date, @search.start_date,
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-          <div class="flex-1 min-w-[140px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">结束日期</label>
-            <%= date_field_tag :end_date, @search.end_date,
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-          <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类型</label>
-            <%= select_tag :type, options_for_select([
-              ["全部类型", ""],
-              ["收入", "INCOME"],
-              ["支出", "EXPENSE"],
-              ["转账", "TRANSFER"],
-              ["预支", "ADVANCE"],
-              ["报销", "REIMBURSE"]
-            ], @search.type),
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-          <div class="flex-1 min-w-[140px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类</label>
-            <%= select_tag :category_id, options_for_select(
-              [["全部分类", ""]] + @categories.map { |c| [c.full_name, c.id] },
-              @search.category_id
-            ),
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-          <% if @tags.any? %>
-            <div class="flex-1 min-w-[120px]">
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">标签</label>
-              <%= select_tag :tag_id, options_for_select(
-                [["全部标签", ""]] + @tags.pluck(:name, :id),
-                @search.tag_id
-              ),
-                  class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-            </div>
-          <% end %>
-        </div>
-
-        <!-- Amount Range Filter -->
-        <div class="flex flex-wrap gap-3 items-end">
-          <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">最小金额</label>
-            <%= number_field_tag :min_amount, @search.min_amount, step: "0.01",
-                placeholder: "0.00",
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-          <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">最大金额</label>
-            <%= number_field_tag :max_amount, @search.max_amount, step: "0.01",
-                placeholder: "不限",
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-          <div class="flex-1 min-w-[120px]">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">排序</label>
-            <%= select_tag :sort, options_for_select([
-              ["日期 ↓", "date_desc"],
-              ["日期 ↑", "date_asc"],
-              ["金额 ↓", "amount_desc"],
-              ["金额 ↑", "amount_asc"]
-            ], @search.sort),
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-          </div>
-        </div>
-
-        <%= hidden_field_tag :account_id, params[:account_id] if params[:account_id].present? %>
-      <% end %>
-
-      <!-- Active Filter Badges -->
-      <% if @search.active_filters? %>
-        <div class="flex flex-wrap gap-2 pt-3 border-t border-border dark:border-border-dark">
-          <% @search.active_filters_list.each do |filter| %>
-            <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium bg-surface dark:bg-surface-dark dark:bg-gray-900 text-primary dark:text-primary-dark">
-              <span class="text-secondary dark:text-secondary-dark"><%= filter[:label] %>:</span>
-              <%= filter[:value] %>
-              <%= link_to transactions_path(@search.clear_filter(filter[:key]).merge(account_id: params[:account_id])), 
-                  class: "ml-1 hover:text-primary dark:text-primary-dark" do %>
-                <%= render Ds::IconComponent.new(name: "x-mark", size: :xs) %>
-              <% end %>
-            </span>
-          <% end %>
-        </div>
-      <% end %>
-    </div>
-  </div>
-
-  <!-- Summary -->
-  <% if @transactions.any? %>
-    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs p-3">
-        <p class="text-sm text-secondary dark:text-secondary-dark mb-1">总收入</p>
-        <p class="text-lg font-semibold text-income"><%= format_currency_with_sign(@summary[:total_income], type: "INCOME") %></p>
-      </div>
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs p-3">
-        <p class="text-sm text-secondary dark:text-secondary-dark mb-1">总支出</p>
-        <p class="text-lg font-semibold text-expense"><%= format_currency_with_sign(@summary[:total_expense], type: "EXPENSE") %></p>
-      </div>
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs p-3">
-        <p class="text-sm text-secondary dark:text-secondary-dark mb-1">净额</p>
-        <% net_amount = @summary[:total_income] - @summary[:total_expense] %>
-        <p class="text-lg font-semibold <%= net_amount >= 0 ? 'text-income' : 'text-expense' %>">
-          <%= format_currency_with_sign(net_amount.abs, type: net_amount >= 0 ? "INCOME" : "EXPENSE") %>
-        </p>
-      </div>
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs p-3">
-        <p class="text-sm text-secondary dark:text-secondary-dark mb-1">交易数</p>
-        <p class="text-lg font-semibold text-primary dark:text-primary-dark"><%= @summary[:count] %></p>
-      </div>
-    </div>
-  <% end %>
-
-  <!-- Three Column Layout: Account List | Transactions | Account Details -->
-  <div class="grid grid-cols-12 gap-3" data-controller="bulk-select">
-    <!-- Left Column: Account List -->
-    <div class="col-span-12 md:col-span-3 bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs">
-      <div class="p-3 border-b border-border dark:border-border-dark flex items-center justify-between">
-        <h2 class="text-sm font-semibold text-primary dark:text-primary-dark">账户</h2>
-        <%= link_to new_account_path, class: "p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded" do %>
-          <%= render Ds::IconComponent.new(name: "plus", size: :xs) %>
-        <% end %>
-      </div>
-      <div class="divide-y divide-border max-h-[500px] overflow-y-auto">
-        <!-- All Transactions -->
-        <%= link_to transactions_path(@search.to_params.except(:account_id)),
-            class: "block p-2 hover:bg-surface dark:bg-surface-dark transition-smooth #{params[:account_id].blank? ? 'bg-surface-inset' : ''}" do %>
-          <div class="flex items-center justify-between">
-            <div class="flex items-center gap-2">
-              <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-                <%= render Ds::IconComponent.new(name: "bars-3", size: :xs, class: "text-primary dark:text-primary-dark") %>
-              </div>
-              <span class="font-medium text-primary dark:text-primary-dark text-sm">所有交易</span>
-            </div>
-            <span class="text-xs text-secondary dark:text-secondary-dark"><%= @summary[:count] %></span>
-          </div>
-        <% end %>
-
-        <% @accounts.each do |account| %>
-          <%= link_to transactions_path(@search.to_params.merge(account_id: account.id)),
-              class: "block p-2 hover:bg-surface dark:bg-surface-dark transition-smooth #{params[:account_id].to_i == account.id ? 'bg-surface-inset' : ''}" do %>
-            <div class="flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-                  <span class="text-sm font-bold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
-                </div>
-                <div>
-                  <span class="font-medium text-primary dark:text-primary-dark text-sm"><%= account.name %></span>
-                  <p class="text-xs text-secondary dark:text-secondary-dark"><%= account.type_name %></p>
-                </div>
-              </div>
-              <span class="text-xs text-secondary dark:text-secondary-dark"><%= account.sent_transactions.count %></span>
-            </div>
-          <% end %>
-        <% end %>
-      </div>
-    </div>
-
-    <!-- Middle Column: Selected Account Info -->
-    <div class="col-span-12 md:col-span-3 bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs">
-      <div class="p-3 border-b border-border dark:border-border-dark">
-        <h2 class="text-sm font-semibold text-primary dark:text-primary-dark">账户详情</h2>
-      </div>
-      <div class="p-3">
-        <% if params[:account_id].present? && (selected_account = @accounts.find { |a| a.id == params[:account_id].to_i }) %>
-          <div class="text-center mb-4">
-            <div class="w-16 h-16 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center mx-auto mb-2">
-              <span class="text-2xl font-bold text-primary dark:text-primary-dark"><%= selected_account.name[0] %></span>
-            </div>
-            <h3 class="font-semibold text-primary dark:text-primary-dark"><%= selected_account.name %></h3>
-            <p class="text-sm text-secondary dark:text-secondary-dark"><%= selected_account.type_name %></p>
-          </div>
-          <div class="space-y-3">
-            <div class="flex justify-between items-center p-3 bg-surface dark:bg-surface-dark rounded-lg">
-              <span class="text-sm text-secondary dark:text-secondary-dark">当前余额</span>
-              <span class="font-semibold text-primary dark:text-primary-dark"><%= format_currency(selected_account.current_balance) %></span>
-            </div>
-            <div class="flex justify-between items-center p-3 bg-surface dark:bg-surface-dark rounded-lg">
-              <span class="text-sm text-secondary dark:text-secondary-dark">货币</span>
-              <span class="font-medium text-primary dark:text-primary-dark"><%= selected_account.currency.presence || "CNY" %></span>
-            </div>
-            <div class="flex justify-between items-center p-3 bg-surface dark:bg-surface-dark rounded-lg">
-              <span class="text-sm text-secondary dark:text-secondary-dark">交易数量</span>
-              <span class="font-medium text-primary dark:text-primary-dark"><%= selected_account.sent_transactions.count %></span>
-            </div>
-          </div>
-          <div class="mt-4">
-            <%= link_to edit_account_path(selected_account), class: "block w-full text-center px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" do %>
-              编辑账户
-            <% end %>
-          </div>
-        <% else %>
-          <div class="text-center py-8">
-            <div class="w-12 h-12 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center mx-auto mb-3">
-              <%= render Ds::IconComponent.new(name: "credit-card", class: "text-secondary dark:text-secondary-dark") %>
-            </div>
-            <p class="text-sm text-secondary dark:text-secondary-dark">选择左侧账户查看详情</p>
-          </div>
-        <% end %>
-      </div>
-    </div>
-
-    <!-- Right Column: Transaction List -->
-    <div class="col-span-12 md:col-span-6 bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs">
-      <%= render Ds::SelectionBarComponent.new(
-        count: 0,
-        delete_url: bulk_destroy_transactions_path,
-        edit_url: nil
-      ) %>
-      <% if @transactions.any? %>
-        <!-- Header -->
-        <div class="hidden md:grid grid-cols-12 gap-3 px-4 py-3 bg-surface-inset dark:bg-surface-dark-inset text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider rounded-t-lg">
-          <div class="col-span-1"></div>
-          <div class="col-span-2">日期</div>
-          <div class="col-span-2">分类</div>
-          <div class="col-span-2">账户</div>
-          <div class="col-span-3">备注/标签</div>
-          <div class="col-span-2 text-right">金额</div>
-        </div>
-
-        <!-- Transactions -->
-        <div class="divide-y divide-border max-h-[600px] overflow-y-auto">
-          <% @transactions.each do |t| %>
-            <div class="group relative">
-              <%= link_to edit_transaction_path(t), class: "block" do %>
-                <div class="p-2 hover:bg-surface dark:bg-surface-dark transition-smooth">
-                  <div class="md:grid md:grid-cols-12 md:gap-2 md:items-center">
-                    <!-- Checkbox -->
-                    <div class="col-span-1 mb-2 md:mb-0">
-                      <input type="checkbox"
-                             value="<%= t.id %>"
-                             data-bulk-select-target="checkbox"
-                             data-action="change->bulk-select#toggleRowSelection"
-                             class="w-4 h-4 rounded border-border dark:border-border-dark text-primary dark:text-primary-dark focus:ring-blue-500">
-                    </div>
-
-                    <!-- Date & Type -->
-                    <div class="col-span-2 flex items-center gap-3 mb-2 md:mb-0">
-                      <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 <%= t.type == "INCOME" ? "bg-green-100" : "bg-red-100" %>">
-                        <% if t.type == "INCOME" %>
-                          <%= render Ds::IconComponent.new(name: "arrow-up-right", size: :xs, class: "text-green-600") %>
-                        <% elsif t.type == "TRANSFER" %>
-                          <%= render Ds::IconComponent.new(name: "arrow-right-left", size: :xs, class: "text-primary dark:text-primary-dark") %>
-                        <% else %>
-                          <%= render Ds::IconComponent.new(name: "arrow-down-right", size: :xs, class: "text-red-600") %>
-                        <% end %>
-                      </div>
-                      <div>
-                        <p class="font-medium text-primary dark:text-primary-dark text-sm"><%= t.date&.strftime("%m/%d") %></p>
-                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%= 
-                          case t.type
-                          when 'INCOME' then 'bg-green-100 text-green-700'
-                          when 'TRANSFER' then 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark'
-                          when 'ADVANCE' then 'bg-yellow-100 text-yellow-700'
-                          when 'REIMBURSE' then 'bg-purple-100 text-purple-700'
-                          else 'bg-red-100 text-red-700'
-                          end
-                        %>">
-                          <%= t.display_type %>
-                        </span>
-                      </div>
-                    </div>
-
-                    <!-- Category -->
-                    <div class="col-span-2 mb-2 md:mb-0">
-                      <p class="font-medium text-primary dark:text-primary-dark text-sm"><%= t.category&.name || "-" %></p>
-                    </div>
-
-                    <!-- Account -->
-                    <div class="col-span-2 mb-2 md:mb-0">
-                      <p class="text-sm text-secondary dark:text-secondary-dark"><%= t.account_name %></p>
-                      <% if t.target_account_name.present? %>
-                        <p class="text-xs text-primary dark:text-primary-dark">→ <%= t.target_account_name %></p>
-                      <% end %>
-                    </div>
-
-                    <!-- Note & Tags -->
-                    <div class="col-span-3 mb-2 md:mb-0">
-                      <p class="text-sm text-secondary dark:text-secondary-dark truncate"><%= t.note || "-" %></p>
-                      <% if t.tags.any? %>
-                        <div class="flex flex-wrap gap-1 mt-1">
-                          <% t.tags.limit(3).each do |tag| %>
-                            <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium text-white" style="background-color: <%= tag.color %>">
-                              <%= tag.name %>
-                            </span>
-                          <% end %>
-                          <% if t.tags.count > 3 %>
-                            <span class="text-xs text-secondary dark:text-secondary-dark">+<%= t.tags.count - 3 %></span>
-                          <% end %>
-                        </div>
-                      <% end %>
-                    </div>
-
-                    <!-- Amount -->
-                    <div class="col-span-2 flex items-center justify-between md:justify-end">
-                      <span class="font-semibold <%= t.type == "INCOME" ? "text-income" : "text-expense" %>">
-                        <%= format_currency_with_sign(t.amount, type: t.type) %>
-                      </span>
-                      <div class="md:hidden opacity-0 group-hover:opacity-100 transition-opacity">
-                        <%= render Ds::IconComponent.new(name: "chevron-right", size: :xs, class: "text-secondary dark:text-secondary-dark") %>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+  <!-- 交易列表 -->
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+    <% if @transactions.any? %>
+      <% @transactions.each do |t| %>
+        <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center <%= t.type == "INCOME" ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30" %>">
+              <% if t.type == "INCOME" %>
+                <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
+              <% else %>
+                <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
               <% end %>
             </div>
-          <% end %>
-        </div>
-      <% else %>
-        <div class="p-12 text-center">
-          <div class="w-12 h-12 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center mx-auto mb-4">
-            <%= render Ds::IconComponent.new(name: "inbox", class: "text-secondary dark:text-secondary-dark") %>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= t.category&.name || t.display_type %></p>
+              <p class="text-xs text-secondary dark:text-secondary-dark truncate"><%= t.note || t.account_name %></p>
+            </div>
+            <div class="text-right">
+              <p class="text-sm font-medium <%= t.type == "INCOME" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400" %>">
+                <%= t.type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
+              </p>
+              <p class="text-xs text-secondary dark:text-secondary-dark"><%= t.date&.strftime("%m/%d") %></p>
+            </div>
           </div>
-          <p class="text-primary dark:text-primary-dark font-medium mb-1"><%= t("transactions.no_transactions_found") %></p>
-          <p class="text-secondary dark:text-secondary-dark text-sm mb-4">开始添加您的第一笔交易吧</p>
-          <%= link_to t("transactions.new_transaction"), new_transaction_path, class: "inline-flex items-center justify-center gap-2 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
         </div>
       <% end %>
-    </div>
+    <% else %>
+      <div class="p-8 text-center">
+        <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
+          <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+        </div>
+        <p class="text-secondary dark:text-secondary-dark text-sm">暂无交易记录</p>
+      </div>
+    <% end %>
   </div>
 </div>
 
-<!-- Add Transaction Modal -->
+<!-- Quick Transaction Modal -->
 <div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-  <div class="flex min-h-screen items-center justify-center p-3">
+  <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-lg p-6">
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建交易</h3>
         <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
-          <%= render Ds::IconComponent.new(name: "x-mark", size: :sm) %>
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      
-      <%= form_with model: @quick_transaction, url: transactions_path, method: :post, local: true, id: "quick-transaction-form" do |f| %>
-        
-        <!-- Transaction Type Tabs -->
-        <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-1 flex mb-4">
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="EXPENSE">
-            <span class="flex items-center justify-center gap-2">
-              <%= render Ds::IconComponent.new(name: "minus-circle", size: :xs, color: :expense) %>
-              支出
-            </span>
-          </button>
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="INCOME">
-            <span class="flex items-center justify-center gap-2">
-              <%= render Ds::IconComponent.new(name: "plus-circle", size: :xs, color: :income) %>
-              收入
-            </span>
-          </button>
-        </div>
-        <%= f.hidden_field :type, id: "transaction_type", value: "EXPENSE" %>
-
+      <%= form_with model: @transaction, url: transactions_path, method: :post, local: true do |f| %>
         <div class="space-y-4">
-          <div class="grid grid-cols-2 gap-3">
-            <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期</label>
-              <%= f.date_field :date, 
-                  class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, 
-                    class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
-              </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">金额 *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
           </div>
-
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户 *</label>
-            <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, required: true,
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
+            <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
-
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类</label>
-            <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" },
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">分类</label>
+            <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
-
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">转入账户</label>
-            <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "无" },
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <%= f.text_field :note, placeholder: "添加备注...",
-                class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400" %>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
+            <%= f.text_field :note, placeholder: "添加备注", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
         </div>
-
         <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth">保存</button>
+          <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       <% end %>
     </div>
   </div>
 </div>
-
-<script>
-  // Type tab switching
-  document.querySelectorAll('#add-transaction-modal .type-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('#add-transaction-modal .type-tab').forEach(function(t) {
-        t.classList.remove('bg-container', 'shadow-sm', 'dark:bg-container-dark');
-      });
-      tab.classList.add('bg-container', 'dark:bg-container-dark', 'shadow-sm');
-      document.getElementById('transaction_type').value = tab.dataset.type;
-    });
-  });
-  // Initialize first tab as selected
-  document.querySelector('#add-transaction-modal .type-tab[data-type="EXPENSE"]').classList.add('bg-container', 'dark:bg-container-dark', 'shadow-sm');
-</script>
