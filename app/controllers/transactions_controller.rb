@@ -5,12 +5,8 @@ class TransactionsController < ApplicationController
   before_action :load_lookups, only: [ :new, :edit, :create, :update ]
 
   def index
-    @transactions = Transaction.includes(:account, :category)
-                             .order(date: :desc, created_at: :desc)
-                             .limit(100)
-    @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order
-    @transaction = Transaction.new(currency: "CNY", date: Date.today)
+    # 重定向到账户页面
+    redirect_to accounts_path
   end
 
   def show

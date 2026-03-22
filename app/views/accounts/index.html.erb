@@ -1,9 +1,9 @@
-<div class="flex h-[calc(100vh-8rem)] gap-4">
+<div class="flex gap-4" style="height: calc(100vh - 8rem);">
   <!-- 左侧栏 - 账户管理 -->
-  <div class="w-72 shrink-0 flex flex-col bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
-    <div class="p-3 border-b border-border dark:border-border-dark">
+  <div class="w-80 shrink-0 flex flex-col bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+    <div class="p-4 border-b border-border dark:border-border-dark">
       <div class="flex items-center justify-between mb-2">
-        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">账户</h2>
+        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">账户管理</h2>
         <button onclick="document.getElementById('add-account-modal').classList.remove('hidden')" class="p-1.5 rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         </button>
@@ -16,17 +16,19 @@
     <!-- 账户列表 -->
     <div class="flex-1 overflow-y-auto">
       <% @accounts.each do |account| %>
-        <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-pointer" data-account-id="<%= account.id %>">
+        <div class="p-4 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-pointer <%= params[:account_id].to_i == account.id ? 'bg-surface-inset dark:bg-surface-dark-inset' : '' %>" 
+             data-account-id="<%= account.id %>"
+             onclick="filterByAccount(<%= account.id %>)">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-              <span class="text-sm font-bold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
+            <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
+              <span class="text-base font-bold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
             </div>
             <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= account.name %></p>
+              <p class="font-medium text-primary dark:text-primary-dark"><%= account.name %></p>
               <p class="text-xs text-secondary dark:text-secondary-dark"><%= account.type_name %></p>
             </div>
             <div class="text-right">
-              <p class="text-sm font-medium text-primary dark:text-primary-dark">¥<%= account.current_balance.to_s("%.2f") %></p>
+              <p class="font-medium text-primary dark:text-primary-dark">¥<%= account.current_balance.to_s("%.2f") %></p>
             </div>
           </div>
         </div>
@@ -39,128 +41,169 @@
     </div>
   </div>
 
-  <!-- 中间栏 - 交易记录 -->
+  <!-- 右侧栏 - 交易记录 -->
   <div class="flex-1 flex flex-col bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
     <!-- Header -->
-    <div class="p-3 border-b border-border dark:border-border-dark">
+    <div class="p-4 border-b border-border dark:border-border-dark">
       <div class="flex items-center justify-between mb-3">
-        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">交易记录</h2>
+        <div class="flex items-center gap-2">
+          <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">交易记录</h2>
+          <% if params[:account_id] %>
+            <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
+              <%= @accounts.find(params[:account_id])&.name || '未知账户' %>
+              <button onclick="clearAccountFilter()" class="ml-1 hover:text-primary">×</button>
+            </span>
+          <% end %>
+        </div>
         <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern">
           + 新建
         </button>
       </div>
       
       <!-- 搜索筛选 -->
-      <div class="space-y-2">
-        <div class="flex gap-2">
-          <input type="text" placeholder="搜索交易..." class="flex-1 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-          <button class="px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">筛选</button>
+      <div class="flex flex-wrap gap-3 items-end">
+        <div class="flex-1 min-w-[200px]">
+          <input type="text" id="search-input" placeholder="搜索备注、分类..." value="<%= params[:search] %>" 
+                 class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
         </div>
+        <div class="w-32">
+          <select id="type-filter" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+            <option value="">全部类型</option>
+            <option value="INCOME" <%= params[:type] == 'INCOME' ? 'selected' : '' %>>收入</option>
+            <option value="EXPENSE" <%= params[:type] == 'EXPENSE' ? 'selected' : '' %>>支出</option>
+            <option value="TRANSFER" <%= params[:type] == 'TRANSFER' ? 'selected' : '' %>>转账</option>
+          </select>
+        </div>
+        <div class="w-28">
+          <input type="date" id="start-date" value="<%= params[:start_date] %>" 
+                 class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+        </div>
+        <div class="w-28">
+          <input type="date" id="end-date" value="<%= params[:end_date] %>" 
+                 class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+        </div>
+        <button onclick="applyFilters()" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
+          筛选
+        </button>
+        <% if params[:search] || params[:type] || params[:start_date] || params[:end_date] || params[:account_id] %>
+          <button onclick="clearFilters()" class="px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">
+            清除
+          </button>
+        <% end %>
       </div>
     </div>
 
     <!-- 交易列表 -->
     <div class="flex-1 overflow-y-auto">
       <% if @transactions.any? %>
-        <% @transactions.each do |t| %>
-          <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-8 rounded-full flex items-center justify-center <%= t.type == "INCOME" ? "bg-green-100 dark:bg-green-900/30" : "bg-red-100 dark:bg-red-900/30" %>">
-                <% if t.type == "INCOME" %>
-                  <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
-                <% else %>
-                  <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
-                <% end %>
-              </div>
-              <div class="flex-1 min-w-0">
-                <p class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= t.category&.name || t.display_type %></p>
-                <p class="text-xs text-secondary dark:text-secondary-dark truncate"><%= t.note || t.account_name %></p>
-              </div>
-              <div class="text-right">
-                <p class="text-sm font-medium <%= t.type == "INCOME" ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400" %>">
-                  <%= t.type == "INCOME" ? "+" : "-" %>¥<%= t.amount.to_s("%.2f") %>
-                </p>
-                <p class="text-xs text-secondary dark:text-secondary-dark"><%= t.date&.strftime("%m/%d") %></p>
-              </div>
-            </div>
-          </div>
-        <% end %>
+        <table class="min-w-full">
+          <thead class="bg-surface-inset dark:bg-surface-dark-inset sticky top-0">
+            <tr>
+              <th class="px-4 py-2 text-left text-xs font-medium text-secondary dark:text-secondary-dark">日期</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-secondary dark:text-secondary-dark">类型</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-secondary dark:text-secondary-dark">账户</th>
+              <th class="px-4 py-2 text-left text-xs font-medium text-secondary dark:text-secondary-dark">备注</th>
+              <th class="px-4 py-2 text-right text-xs font-medium text-secondary dark:text-secondary-dark">金额</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border dark:divide-border-dark">
+            <% @transactions.each do |t| %>
+              <tr class="hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+                <td class="px-4 py-3 text-sm text-primary dark:text-primary-dark whitespace-nowrap">
+                  <%= t.date&.strftime("%Y-%m-%d") %>
+                </td>
+                <td class="px-4 py-3">
+                  <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium <%= 
+                    case t.type
+                    when 'INCOME' then 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                    when 'EXPENSE' then 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                    when 'TRANSFER' then 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                    else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                    end %>">
+                    <%= t.display_type %>
+                  </span>
+                </td>
+                <td class="px-4 py-3 text-sm text-primary dark:text-primary-dark">
+                  <%= t.category&.name || '-' %>
+                </td>
+                <td class="px-4 py-3 text-sm text-secondary dark:text-secondary-dark">
+                  <%= t.account_name %>
+                </td>
+                <td class="px-4 py-3 text-sm text-secondary dark:text-secondary-dark truncate max-w-[200px]">
+                  <%= t.note || '-' %>
+                </td>
+                <td class="px-4 py-3 text-sm font-medium text-right whitespace-nowrap <%= t.type == 'INCOME' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400' %>">
+                  <%= t.type == 'INCOME' ? '+' : '-' %>¥<%= t.amount.to_s("%.2f") %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
       <% else %>
         <div class="p-8 text-center">
           <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
             <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
           </div>
           <p class="text-secondary dark:text-secondary-dark text-sm">暂无交易记录</p>
+          <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="mt-3 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
+            新建第一笔交易
+          </button>
         </div>
       <% end %>
     </div>
   </div>
-
-  <!-- 右侧栏 - 统计概览 -->
-  <div class="w-72 shrink-0 flex flex-col bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
-    <div class="p-3 border-b border-border dark:border-border-dark">
-      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">统计概览</h2>
-    </div>
-    
-    <div class="flex-1 overflow-y-auto p-3 space-y-4">
-      <!-- 本月收入支出 -->
-      <div class="bg-surface dark:bg-surface-dark rounded-lg p-3">
-        <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-2">本月收支</h3>
-        <div class="space-y-2">
-          <div class="flex justify-between items-center">
-            <span class="text-sm text-green-600 dark:text-green-400">收入</span>
-            <span class="text-sm font-medium text-green-600 dark:text-green-400">+¥<%= @monthly_income.to_s("%.2f") %></span>
-          </div>
-          <div class="flex justify-between items-center">
-            <span class="text-sm text-red-600 dark:text-red-400">支出</span>
-            <span class="text-sm font-medium text-red-600 dark:text-red-400">-¥<%= @monthly_expense.to_s("%.2f") %></span>
-          </div>
-          <div class="border-t border-border dark:border-border-dark pt-2">
-            <div class="flex justify-between items-center">
-              <span class="text-sm font-medium text-primary dark:text-primary-dark">结余</span>
-              <span class="text-sm font-medium <%= @monthly_balance >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400" %>">
-                ¥<%= @monthly_balance.to_s("%.2f") %>
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- 账户分布 -->
-      <div class="bg-surface dark:bg-surface-dark rounded-lg p-3">
-        <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-2">账户分布</h3>
-        <% @accounts.first(5).each do |account| %>
-          <% total = @accounts.sum(&:current_balance) %>
-          <% pct = total > 0 ? (account.current_balance / total * 100).round : 0 %>
-          <div class="mb-2">
-            <div class="flex justify-between text-xs mb-1">
-              <span class="text-primary dark:text-primary-dark"><%= account.name %></span>
-              <span class="text-secondary dark:text-secondary-dark"><%= pct %>%</span>
-            </div>
-            <div class="w-full bg-surface-inset dark:bg-surface-dark-inset rounded-full h-1.5">
-              <div class="bg-inverse dark:bg-inverse-dark h-1.5 rounded-full" style="width: <%= pct %>%"></div>
-            </div>
-          </div>
-        <% end %>
-      </div>
-
-      <!-- 快速操作 -->
-      <div class="bg-surface dark:bg-surface-dark rounded-lg p-3">
-        <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-2">快速操作</h3>
-        <div class="space-y-1">
-          <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth text-primary dark:text-primary-dark">
-            + 记一笔
-          </button>
-          <button onclick="document.getElementById('add-receivable-modal').classList.remove('hidden')" class="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth text-primary dark:text-primary-dark">
-            + 待报销
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
 </div>
 
-<!-- Add Account Modal (简化版) -->
+<script>
+// 筛选功能
+function applyFilters() {
+  const params = new URLSearchParams();
+  const search = document.getElementById('search-input').value;
+  const type = document.getElementById('type-filter').value;
+  const startDate = document.getElementById('start-date').value;
+  const endDate = document.getElementById('end-date').value;
+  const accountId = '<%= params[:account_id] %>';
+  
+  if (search) params.append('search', search);
+  if (type) params.append('type', type);
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  if (accountId) params.append('account_id', accountId);
+  
+  window.location.href = '/accounts?' + params.toString();
+}
+
+function clearFilters() {
+  const accountId = '<%= params[:account_id] %>';
+  if (accountId) {
+    window.location.href = '/accounts?account_id=' + accountId;
+  } else {
+    window.location.href = '/accounts';
+  }
+}
+
+function filterByAccount(id) {
+  const params = new URLSearchParams(window.location.search);
+  params.set('account_id', id);
+  window.location.href = '/accounts?' + params.toString();
+}
+
+function clearAccountFilter() {
+  const params = new URLSearchParams(window.location.search);
+  params.delete('account_id');
+  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+}
+
+// 回车搜索
+document.getElementById('search-input')?.addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    applyFilters();
+  }
+});
+</script>
+
+<!-- Add Account Modal -->
 <div id="add-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-account-modal').classList.add('hidden')"></div>
@@ -198,9 +241,44 @@
   </div>
 </div>
 
-<style>
-/* 固定高度滚动 */
-.h-\[calc\(100vh-8rem\)\] {
-  max-height: calc(100vh - 8rem);
-}
-</style>
+<!-- Add Transaction Modal -->
+<div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建交易</h3>
+        <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <%= form_with model: @transaction, url: transactions_path, method: :post, local: true do |f| %>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">金额 *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
+            <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">分类</label>
+            <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
+            <%= f.text_field :note, placeholder: "添加备注", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>

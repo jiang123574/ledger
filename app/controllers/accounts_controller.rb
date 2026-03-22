@@ -3,16 +3,37 @@ class AccountsController < ApplicationController
 
   def index
     @accounts = Account.order(:sort_order, :name)
-    @transactions = Transaction.includes(:account, :category)
-                             .order(date: :desc, created_at: :desc)
-                             .limit(50)
+    @categories = Category.active.by_sort_order
     
-    # 本月统计
-    start_of_month = Date.today.beginning_of_month
-    end_of_month = Date.today.end_of_month
-    @monthly_income = Transaction.where(type: "INCOME", date: start_of_month..end_of_month).sum(:amount)
-    @monthly_expense = Transaction.where(type: "EXPENSE", date: start_of_month..end_of_month).sum(:amount)
-    @monthly_balance = @monthly_income - @monthly_expense
+    # 支持筛选的交易查询
+    @transactions = Transaction.includes(:account, :category, :tags)
+    
+    # 按账户筛选
+    if params[:account_id].present?
+      @transactions = @transactions.where(account_id: params[:account_id])
+    end
+    
+    # 按类型筛选
+    if params[:type].present?
+      @transactions = @transactions.where(type: params[:type])
+    end
+    
+    # 按日期筛选
+    if params[:start_date].present?
+      @transactions = @transactions.where("date >= ?", params[:start_date])
+    end
+    if params[:end_date].present?
+      @transactions = @transactions.where("date <= ?", params[:end_date])
+    end
+    
+    # 按关键词搜索
+    if params[:search].present?
+      @transactions = @transactions.where("note LIKE ?", "%#{params[:search]}%")
+    end
+    
+    @transactions = @transactions.order(date: :desc, created_at: :desc).limit(200)
+    
+    @transaction = Transaction.new(currency: "CNY", date: Date.today)
   end
 
   def show
