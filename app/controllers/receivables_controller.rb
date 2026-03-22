@@ -2,11 +2,13 @@ class ReceivablesController < ApplicationController
   before_action :set_receivable, only: %i[show edit update destroy settle]
 
   def index
-    @receivables = Receivable.includes(:source_transaction)
+    @receivables = Receivable.includes(:source_transaction, :counterparty, :account)
       .order(date: :desc)
     @unsettled = @receivables.where(settled_at: nil)
     @settled = @receivables.where.not(settled_at: nil)
     @receivable = Receivable.new(date: Date.today)
+    @accounts = Account.visible.order(:name)
+    @counterparties = Counterparty.alphabetically
   end
 
   def show
@@ -85,7 +87,8 @@ class ReceivablesController < ApplicationController
   def receivable_params
     params.require(:receivable).permit(
       :date, :description, :original_amount,
-      :source_transaction_id, :note, :category
+      :source_transaction_id, :note, :category,
+      :counterparty_id, :account_id
     )
   end
 end

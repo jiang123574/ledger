@@ -1,5 +1,7 @@
 class Receivable < ApplicationRecord
   belongs_to :source_transaction, class_name: "Transaction", foreign_key: "source_transaction_id", optional: true
+  belongs_to :counterparty, optional: true
+  belongs_to :account, optional: true
   has_many :reimbursement_transactions, class_name: "Transaction", foreign_key: "receivable_id", dependent: :nullify
 
   validates :description, presence: true
