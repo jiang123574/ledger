@@ -2,6 +2,7 @@ class SingleBudget < ApplicationRecord
   STATUSES = %w[planning active completed cancelled].freeze
 
   has_many :budget_items, dependent: :destroy
+  belongs_to :category, class_name: "Category", optional: true
 
   validates :name, presence: true, length: { maximum: 100 }
   validates :total_amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
@@ -14,6 +15,18 @@ class SingleBudget < ApplicationRecord
   scope :active, -> { where(status: "active") }
   scope :completed, -> { where(status: "completed") }
   scope :cancelled, -> { where(status: "cancelled") }
+
+  def recalculate_spent_amount
+    if category && start_date && end_date
+      category_ids = category.self_and_descendants.select(:id)
+      end_date_val = end_date || start_date
+      transactions = Transaction.where(category_id: category_ids)
+                                 .where("date >= ? AND date <= ?", start_date, end_date_val)
+      update(spent_amount: transactions.sum(:amount))
+    else
+      update(spent_amount: budget_items.sum(:spent_amount))
+    end
+  end
 
   def remaining_amount
     total_amount.to_d - spent_amount.to_d
@@ -80,9 +93,5 @@ class SingleBudget < ApplicationRecord
 
   def cancel!
     update(status: "cancelled")
-  end
-
-  def recalculate_spent_amount
-    update(spent_amount: budget_items.sum(:spent_amount))
   end
 end

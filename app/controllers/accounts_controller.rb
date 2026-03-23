@@ -68,6 +68,20 @@ class AccountsController < ApplicationController
     redirect_to accounts_url, notice: "账户已删除"
   end
 
+  def reorder
+    @account = Account.find(params[:id])
+    target_account = Account.find(params[:target_id])
+    
+    # 交换 sort_order
+    current_order = @account.sort_order
+    target_order = target_account.sort_order
+    
+    @account.update!(sort_order: target_order)
+    target_account.update!(sort_order: current_order)
+    
+    head :ok
+  end
+
   private
 
   def set_account
@@ -76,8 +90,9 @@ class AccountsController < ApplicationController
 
   def account_params
     params.require(:account).permit(
-      :name, :account_type, :initial_balance, :currency,
+      :name, :type, :initial_balance, :currency,
       :billing_day, :due_day, :credit_limit,
+      :billing_day_mode, :due_day_mode, :due_day_offset,
       :include_in_total, :hidden, :sort_order
     )
   end

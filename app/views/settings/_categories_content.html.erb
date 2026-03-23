@@ -5,28 +5,98 @@
   </div>
   <div class="p-4">
     <% if @categories.any? %>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        <% @categories.each do |category| %>
-          <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full <%= category.type == "INCOME" ? "bg-emerald-100 dark:bg-emerald-900/50" : "bg-rose-100 dark:bg-rose-900/50" %> flex items-center justify-center">
-                <svg class="w-5 h-5 <%= category.type == "INCOME" ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400" %>" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+      <div class="space-y-8">
+        <div>
+          <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-3 uppercase tracking-wide">支出</h3>
+          <div class="space-y-4">
+            <% Category.roots.expense.order(:sort_order, :name).each do |root| %>
+              <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-primary dark:text-primary-dark text-lg"><%= root.name %></h4>
+                    </div>
+                  </div>
+                  <%= button_to category_path(root), method: :delete, 
+                      onclick: "if(confirm('确定删除该分类？')) { this.nextElementSibling.submit() }",
+                      class: "p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
+                      form_html: { style: "display:inline" } do %>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  <% end %>
+                </div>
+                <% if root.children.any? %>
+                  <div class="mt-4 pl-4 space-y-2 border-l-2 border-rose-500/30 dark:border-rose-500/40 ml-6">
+                    <% root.children.order(:sort_order, :name).each do |child| %>
+                      <div class="flex items-center justify-between py-2 px-3 bg-surface dark:bg-surface-dark rounded-lg">
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 rounded-lg bg-rose-500/10 dark:bg-rose-500/20 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-rose-500 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                          </div>
+                          <span class="font-medium text-primary dark:text-primary-dark"><%= child.name %></span>
+                        </div>
+                        <%= button_to category_path(child), method: :delete, 
+                            onclick: "if(confirm('确定删除该分类？')) { this.nextElementSibling.submit() }",
+                            class: "p-1.5 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
+                            form_html: { style: "display:inline" } do %>
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
               </div>
-              <div>
-                <h3 class="font-medium text-primary dark:text-primary-dark"><%= category.name %></h3>
-                <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium <%= category.type == "INCOME" ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300" : "bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300" %>">
-                  <%= category.type == "INCOME" ? "收入" : "支出" %>
-                </span>
-              </div>
-            </div>
-            <%= button_to category_path(category), method: :delete, 
-                onclick: "if(confirm('确定删除该分类？')) { this.nextElementSibling.submit() }",
-                class: "p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
-                form_html: { style: "display:inline" } do %>
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             <% end %>
           </div>
-        <% end %>
+        </div>
+
+        <div>
+          <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-3 uppercase tracking-wide">收入</h3>
+          <div class="space-y-4">
+            <% Category.roots.income.order(:sort_order, :name).each do |root| %>
+              <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-xl p-4">
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
+                      <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    </div>
+                    <div>
+                      <h4 class="font-semibold text-primary dark:text-primary-dark text-lg"><%= root.name %></h4>
+                    </div>
+                  </div>
+                  <%= button_to category_path(root), method: :delete, 
+                      onclick: "if(confirm('确定删除该分类？')) { this.nextElementSibling.submit() }",
+                      class: "p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
+                      form_html: { style: "display:inline" } do %>
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  <% end %>
+                </div>
+                <% if root.children.any? %>
+                  <div class="mt-4 pl-4 space-y-2 border-l-2 border-emerald-500/30 dark:border-emerald-500/40 ml-6">
+                    <% root.children.order(:sort_order, :name).each do |child| %>
+                      <div class="flex items-center justify-between py-2 px-3 bg-surface dark:bg-surface-dark rounded-lg">
+                        <div class="flex items-center gap-3">
+                          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
+                            <svg class="w-4 h-4 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                          </div>
+                          <span class="font-medium text-primary dark:text-primary-dark"><%= child.name %></span>
+                        </div>
+                        <%= button_to category_path(child), method: :delete, 
+                            onclick: "if(confirm('确定删除该分类？')) { this.nextElementSibling.submit() }",
+                            class: "p-1.5 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
+                            form_html: { style: "display:inline" } do %>
+                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                        <% end %>
+                      </div>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
+        </div>
       </div>
     <% else %>
       <div class="text-center py-8">
@@ -54,9 +124,17 @@
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类型</label>
-            <%= render Ds::InputComponent.new(form: f, field: :type, type: :select, 
+            <%= render Ds::InputComponent.new(form: f, field: :category_type, type: :select, 
                   choices: [["支出", "EXPENSE"], ["收入", "INCOME"]],
-                  include_blank: false) %>
+                  include_blank: false,
+                  html_class: "category-type-select") %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">父分类（可选）</label>
+            <%= render Ds::InputComponent.new(form: f, field: :parent_id, type: :select, 
+                  choices: [["无", ""]] + Category.roots.expense.order(:sort_order, :name).pluck(:name, :id),
+                  include_blank: false,
+                  html_class: "parent-category-select") %>
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
@@ -67,3 +145,26 @@
     </div>
   </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const typeSelect = document.querySelector('.category-type-select select');
+  const parentSelect = document.querySelector('.parent-category-select select');
+  
+  const expenseParents = <%= raw Category.roots.expense.order(:sort_order, :name).pluck(:name, :id).to_json %>;
+  const incomeParents = <%= raw Category.roots.income.order(:sort_order, :name).pluck(:name, :id).to_json %>;
+  
+  function updateParentOptions() {
+    const selectedType = typeSelect.value;
+    const parents = selectedType === 'INCOME' ? incomeParents : expenseParents;
+    const options = [['无', ''], ...parents];
+    
+    parentSelect.innerHTML = options.map(o => `<option value="${o[1]}">${o[0]}</option>`).join('');
+  }
+  
+  if (typeSelect && parentSelect) {
+    typeSelect.addEventListener('change', updateParentOptions);
+    updateParentOptions();
+  }
+});
+</script>

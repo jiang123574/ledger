@@ -13,6 +13,7 @@ pin "controllers/bulk_select_controller", to: "controllers/bulk_select_controlle
 pin "controllers/budget_gauge_controller", to: "controllers/budget_gauge_controller.js"
 pin "controllers/category_donut_chart_controller", to: "controllers/category_donut_chart_controller.js"
 pin "controllers/color_theme_controller", to: "controllers/color_theme_controller.js"
+pin "controllers/credit_card_form_controller", to: "controllers/credit_card_form_controller.js"
 pin "controllers/dashboard_section_controller", to: "controllers/dashboard_section_controller.js"
 pin "controllers/dashboard_sortable_controller", to: "controllers/dashboard_sortable_controller.js"
 pin "controllers/donut_chart_controller", to: "controllers/donut_chart_controller.js"
@@ -31,6 +32,7 @@ pin "controllers/stagger_list_controller", to: "controllers/stagger_list_control
 pin "controllers/theme_controller", to: "controllers/theme_controller.js"
 pin "controllers/time_series_chart_controller", to: "controllers/time_series_chart_controller.js"
 pin "controllers/tooltip_controller", to: "controllers/tooltip_controller.js"
+pin "controllers/account_sort_controller", to: "controllers/account_sort_controller.js"
 pin "controllers/trend_line_chart_controller", to: "controllers/trend_line_chart_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 

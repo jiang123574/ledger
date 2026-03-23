@@ -13,7 +13,11 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :accounts
+  resources :accounts do
+    member do
+      patch :reorder
+    end
+  end
   resources :categories
   resources :tags, only: [ :index, :create, :update, :destroy ]
   resources :counterparties
@@ -97,6 +101,3 @@ Rails.application.routes.draw do
     post "vitals", to: "vitals#create"
   end
 end
-
-# 合并交易记录到账户页面
-get "transactions" => "accounts#index", as: :transactions

@@ -14,22 +14,53 @@
     </div>
     
     <!-- 账户列表 -->
-    <div class="flex-1 overflow-y-auto">
-      <% @accounts.each do |account| %>
-        <div class="p-4 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-pointer <%= params[:account_id].to_i == account.id ? 'bg-surface-inset dark:bg-surface-dark-inset' : '' %>" 
-             data-account-id="<%= account.id %>"
-             onclick="filterByAccount(<%= account.id %>)">
-          <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-              <span class="text-base font-bold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="font-medium text-primary dark:text-primary-dark"><%= account.name %></p>
-              <p class="text-xs text-secondary dark:text-secondary-dark"><%= account.type_name %></p>
-            </div>
-            <div class="text-right">
-              <p class="font-medium text-primary dark:text-primary-dark"><%= format_currency(account.current_balance) %></p>
-            </div>
+    <div class="flex-1 overflow-y-auto" data-controller="account-sort">
+      <% accounts_by_type = @accounts.group_by { |a| [a.type, a.type_name] }.sort_by { |(type, _), _| Account::ACCOUNT_TYPES.keys.index(type) || 999 } %>
+      <% accounts_by_type.each do |(type, type_name), accounts| %>
+        <div class="border-b border-border dark:border-border-dark">
+          <!-- 类型标题 -->
+          <div class="px-4 py-2 bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-between">
+            <span class="text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wide"><%= type_name || '未分类' %></span>
+            <span class="text-xs text-secondary dark:text-secondary-dark"><%= format_currency(accounts.sum(&:current_balance)) %></span>
+          </div>
+          <!-- 该类型的账户列表 -->
+          <div class="account-group" data-account-type="<%= type %>">
+            <% accounts.sort_by(&:sort_order).each do |account| %>
+              <div class="p-3 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth group cursor-grab active:cursor-grabbing <%= params[:account_id].to_i == account.id ? 'bg-surface-inset dark:bg-surface-dark-inset' : '' %>" 
+                   data-account-id="<%= account.id %>"
+                   draggable="true"
+                   data-action="dragstart->account-sort#start dragover->account-sort#over drop->account-sort#drop dragend->account-sort#end">
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0" onclick="filterByAccount(<%= account.id %>)">
+                    <span class="text-sm font-bold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
+                  </div>
+                  <div class="flex-1 min-w-0" onclick="filterByAccount(<%= account.id %>)">
+                    <p class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= account.name %></p>
+                    <% if account.type == 'CREDIT' && account.credit_limit %>
+                      <p class="text-xs text-secondary dark:text-secondary-dark">额度 <%= format_currency(account.credit_limit) %></p>
+                    <% end %>
+                  </div>
+                  <div class="flex items-center gap-1">
+                    <p class="font-medium text-sm text-primary dark:text-primary-dark" onclick="filterByAccount(<%= account.id %>)"><%= format_currency(account.current_balance) %></p>
+                    <button onclick="event.stopPropagation(); openEditAccountModal(this)" 
+                            data-id="<%= account.id %>"
+                            data-name="<%= account.name %>"
+                            data-type="<%= account.type %>"
+                            data-initial-balance="<%= account.initial_balance || 0 %>"
+                            data-currency="<%= account.currency %>"
+                            data-credit-limit="<%= account.credit_limit || '' %>"
+                            data-billing-day="<%= account.billing_day || '' %>"
+                            data-billing-day-mode="<%= account.billing_day_mode || 'current' %>"
+                            data-due-day-mode="<%= account.due_day_mode || 'fixed' %>"
+                            data-due-day="<%= account.due_day || '' %>"
+                            data-due-day-offset="<%= account.due_day_offset || '' %>"
+                            class="p-1 rounded opacity-0 group-hover:opacity-100 hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth">
+                      <svg class="w-3.5 h-3.5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            <% end %>
           </div>
         </div>
       <% end %>
@@ -126,7 +157,7 @@
                   </span>
                 </td>
                 <td class="px-4 py-3 text-sm text-primary dark:text-primary-dark">
-                  <%= t.category&.name || '-' %>
+                  <%= t.category&.full_name(separator: ' > ') || '-' %>
                 </td>
                 <td class="px-4 py-3 text-sm text-secondary dark:text-secondary-dark">
                   <%= t.account_name %>
@@ -211,10 +242,7 @@
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">分类</label>
             <select name="transaction[category_id]" id="edit_transaction_category_id" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">选择分类</option>
-              <% @categories.each do |c| %>
-                <option value="<%= c.id %>"><%= c.name %></option>
-              <% end %>
+              <%= category_options_for_select(@categories) %>
             </select>
           </div>
           <div>
@@ -232,6 +260,56 @@
 </div>
 
 <script>
+// Edit account modal
+function openEditAccountModal(btn) {
+  const id = btn.dataset.id;
+  const name = btn.dataset.name;
+  const type = btn.dataset.type;
+  const initialBalance = btn.dataset.initialBalance;
+  const currency = btn.dataset.currency;
+  const creditLimit = btn.dataset.creditLimit;
+  const billingDay = btn.dataset.billingDay;
+  const billingDayMode = btn.dataset.billingDayMode;
+  const dueDayMode = btn.dataset.dueDayMode;
+  const dueDay = btn.dataset.dueDay;
+  const dueDayOffset = btn.dataset.dueDayOffset;
+  
+  document.getElementById('edit-account-form').action = '/accounts/' + id;
+  document.getElementById('edit_account_name').value = name;
+  document.getElementById('edit_account_type').value = type;
+  document.getElementById('edit_account_initial_balance').value = initialBalance;
+  document.getElementById('edit_account_currency').value = currency;
+  
+  // 信用卡字段
+  const isCreditCard = type === 'CREDIT';
+  const creditCardFields = document.querySelector('#edit-account-modal [data-credit-card-form-target="creditCardFields"]');
+  if (creditCardFields) {
+    creditCardFields.classList.toggle('hidden', !isCreditCard);
+  }
+  
+  if (isCreditCard) {
+    if (creditLimit) document.getElementById('edit_account_credit_limit').value = creditLimit;
+    if (billingDay) document.getElementById('edit_account_billing_day').value = billingDay;
+    document.getElementById('edit_account_billing_day_mode').value = billingDayMode || 'current';
+    document.getElementById('edit_account_due_day_mode').value = dueDayMode || 'fixed';
+    
+    // 根据还款日类型显示对应字段
+    const dueDayFixed = document.querySelector('#edit-account-modal [data-credit-card-form-target="dueDayFixed"]');
+    const dueDayRelative = document.querySelector('#edit-account-modal [data-credit-card-form-target="dueDayRelative"]');
+    if (dueDayMode === 'relative') {
+      if (dueDayFixed) dueDayFixed.classList.add('hidden');
+      if (dueDayRelative) dueDayRelative.classList.remove('hidden');
+      if (dueDayOffset) document.getElementById('edit_account_due_day_offset').value = dueDayOffset;
+    } else {
+      if (dueDayFixed) dueDayFixed.classList.remove('hidden');
+      if (dueDayRelative) dueDayRelative.classList.add('hidden');
+      if (dueDay) document.getElementById('edit_account_due_day').value = dueDay;
+    }
+  }
+  
+  document.getElementById('edit-account-modal').classList.remove('hidden');
+}
+
 // Edit transaction modal
 function openEditModal(id, date, amount, accountId, categoryId, note, type) {
   document.getElementById('edit-transaction-form').action = '/transactions/' + id;
@@ -305,7 +383,7 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
 <div id="add-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-account-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto" data-controller="credit-card-form">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建账户</h3>
         <button type="button" onclick="document.getElementById('add-account-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
@@ -313,28 +391,167 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
         </button>
       </div>
       <%= form_with model: Account.new, url: accounts_path, method: :post, local: true do |f| %>
-        <div class="space-y-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户名称</label>
-            <%= f.text_field :name, placeholder: "例如：我的银行卡", required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账户名称</label>
+            <%= f.text_field :name, placeholder: "例如：我的银行卡", required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户类型</label>
-            <%= f.select :type, Account::ACCOUNT_TYPES.map { |k, v| [v, k] }, { prompt: "选择类型" }, required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账户类型</label>
+            <%= f.select :type, Account::ACCOUNT_TYPES.map { |k, v| [v, k] }, { prompt: "选择类型" }, required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500", data: { action: "change->credit-card-form#toggleCreditCardFields" } %>
           </div>
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">初始余额</label>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">初始余额</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <%= f.number_field :initial_balance, step: "0.01", value: "0.00", class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+              <%= f.number_field :initial_balance, step: "0.01", value: "0.00", class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">货币</label>
+            <%= f.select :currency, Currency.active.map { |c| ["#{c.code} - #{c.name}", c.code] }, { selected: "CNY" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+        </div>
+
+        <!-- 信用卡专属字段 -->
+        <div data-credit-card-form-target="creditCardFields" class="hidden mt-6 pt-4 border-t border-border dark:border-border-dark">
+          <h4 class="text-base font-medium text-primary dark:text-primary-dark mb-4">信用卡设置</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">信用额度</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+                <%= f.number_field :credit_limit, step: "0.01", placeholder: "0.00", class: "w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日</label>
+              <%= f.select :billing_day, (1..28).map { |d| ["每月#{d}日", d] }, { selected: 1 }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日交易计入</label>
+              <%= f.select :billing_day_mode, [["本期账单", "current"], ["下期账单", "next"]], { selected: "current" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">还款日类型</label>
+              <%= f.select :due_day_mode, [["固定日期", "fixed"], ["账单日后N天", "relative"]], { selected: "fixed" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500", data: { "credit-card-form-target": "dueDayModeSelect", action: "change->credit-card-form#toggleDueDayMode" } %>
+            </div>
+            <div data-credit-card-form-target="dueDayFixed">
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">还款日（固定）</label>
+              <%= f.select :due_day, (1..28).map { |d| ["每月#{d}日", d] }, { selected: 1 }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+            <div data-credit-card-form-target="dueDayRelative" class="hidden">
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日后天数</label>
+              <%= f.number_field :due_day_offset, min: 1, max: 28, placeholder: "1-28", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6">
+
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
           <button type="button" onclick="document.getElementById('add-account-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
           <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Account Modal -->
+<div id="edit-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-account-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto" data-controller="credit-card-form">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑账户</h3>
+        <button type="button" onclick="document.getElementById('edit-account-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <form id="edit-account-form" method="post">
+        <input type="hidden" name="_method" value="patch">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账户名称</label>
+            <input type="text" name="account[name]" id="edit_account_name" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账户类型</label>
+            <select name="account[type]" id="edit_account_type" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" data-action="change->credit-card-form#toggleCreditCardFields">
+              <% Account::ACCOUNT_TYPES.each do |k, v| %>
+                <option value="<%= k %>"><%= v %></option>
+              <% end %>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">初始余额</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <input type="number" name="account[initial_balance]" id="edit_account_initial_balance" step="0.01" class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">货币</label>
+            <select name="account[currency]" id="edit_account_currency" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <% Currency.active.each do |c| %>
+                <option value="<%= c.code %>"><%= c.code %> - <%= c.name %></option>
+              <% end %>
+            </select>
+          </div>
+        </div>
+
+        <!-- 信用卡专属字段 -->
+        <div data-credit-card-form-target="creditCardFields" class="hidden mt-6 pt-4 border-t border-border dark:border-border-dark">
+          <h4 class="text-base font-medium text-primary dark:text-primary-dark mb-4">信用卡设置</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">信用额度</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+                <input type="number" name="account[credit_limit]" id="edit_account_credit_limit" step="0.01" placeholder="0.00" class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日</label>
+              <select name="account[billing_day]" id="edit_account_billing_day" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <% (1..28).each do |d| %>
+                  <option value="<%= d %>">每月<%= d %>日</option>
+                <% end %>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日交易计入</label>
+              <select name="account[billing_day_mode]" id="edit_account_billing_day_mode" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value="current">本期账单</option>
+                <option value="next">下期账单</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">还款日类型</label>
+              <select name="account[due_day_mode]" id="edit_account_due_day_mode" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" data-credit-card-form-target="dueDayModeSelect" data-action="change->credit-card-form#toggleDueDayMode">
+                <option value="fixed">固定日期</option>
+                <option value="relative">账单日后N天</option>
+              </select>
+            </div>
+            <div data-credit-card-form-target="dueDayFixed">
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">还款日（固定）</label>
+              <select name="account[due_day]" id="edit_account_due_day" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <% (1..28).each do |d| %>
+                  <option value="<%= d %>">每月<%= d %>日</option>
+                <% end %>
+              </select>
+            </div>
+            <div data-credit-card-form-target="dueDayRelative" class="hidden">
+              <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日后天数</label>
+              <input type="number" name="account[due_day_offset]" id="edit_account_due_day_offset" min="1" max="28" placeholder="1-28" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
+          <button type="button" onclick="document.getElementById('edit-account-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -377,7 +594,9 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">分类</label>
-            <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <select name="transaction[category_id]" id="transaction_category_id" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <%= category_options_for_select(@categories) %>
+            </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>

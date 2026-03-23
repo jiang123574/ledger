@@ -51,7 +51,7 @@
         <%= button_to t("common.delete"), recurring_path(@recurring), method: :delete, onclick: "if(confirm('确定删除？')) { this.nextElementSibling.submit() }", class: "text-red-600 hover:text-red-900", form_html: { style: "display:inline" } %>
         <div class="flex space-x-4">
           <%= link_to t("common.cancel"), recurring_index_path, class: "px-4 py-2 border rounded-md hover:bg-surface dark:bg-surface-dark dark:hover:bg-gray-700" %>
-          <%= f.submit t("common.update"), class: "bg-inverse text-white px-4 py-2 rounded hover:bg-inverse-hover" %>
+          <%= f.submit t("common.update"), class: "bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover" %>
         </div>
       </div>
     <% end %>
