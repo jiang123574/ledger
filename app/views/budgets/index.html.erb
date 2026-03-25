@@ -250,9 +250,9 @@
   window.openEditItemModal = function(itemId, name, amount, category, notes) {
     var form = document.getElementById('edit-item-form');
     form.action = '/single_budgets/' + window.currentBudgetId + '/budget_items/' + itemId;
-    document.getElementById('edit-item-name').value = name;
-    document.getElementById('edit-item-amount').value = amount;
     document.getElementById('edit-item-category').value = category || '';
+    document.getElementById('edit-item-name').value = category || '';
+    document.getElementById('edit-item-amount').value = amount;
     document.getElementById('edit-item-notes').value = notes || '';
     document.getElementById('edit-item-modal').classList.remove('hidden');
   };
@@ -505,17 +505,14 @@
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">项目名称 *</label>
-            <input type="text" name="budget_item[name]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="例如：水电改造">
-          </div>
-          <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
-            <select name="budget_item[category]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="budget_item[category]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" onchange="this.nextElementSibling.value = this.value">
               <option value="">选择分类</option>
               <% Category.expense.each do |cat| %>
                 <option value="<%= cat.name %>"><%= cat.full_name %></option>
               <% end %>
             </select>
+            <input type="hidden" name="budget_item[name]" value="">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>
@@ -554,10 +551,6 @@
         <input type="hidden" name="_method" value="patch">
         <div class="space-y-4">
           <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">项目名称 *</label>
-            <input type="text" id="edit-item-name" name="budget_item[name]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-          </div>
-          <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
             <select id="edit-item-category" name="budget_item[category]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择分类</option>
@@ -565,6 +558,7 @@
                 <option value="<%= cat.name %>"><%= cat.full_name %></option>
               <% end %>
             </select>
+            <input type="hidden" name="budget_item[name]" id="edit-item-name" value="">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>
