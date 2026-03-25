@@ -14,6 +14,37 @@ class BudgetsController < ApplicationController
     @single_budgets = @single_budgets.order(start_date: :desc)
     @single_total_budget = @single_budgets.sum(:total_amount)
     @single_total_spent = @single_budgets.sum(:spent_amount)
+
+    @selected_budget = if params[:selected_id].present?
+      @single_budgets.find_by(id: params[:selected_id])
+    elsif @single_budgets.any?
+      @single_budgets.first
+    end
+  end
+
+  def data
+    budget = SingleBudget.find(params[:id])
+    items = budget.budget_items.map do |item|
+      {
+        id: item.id,
+        name: item.name,
+        amount: item.amount.to_f,
+        spent_amount: item.spent_amount.to_f,
+        formatted_amount: format_currency(item.amount),
+        formatted_spent: format_currency(item.spent_amount),
+        currency_symbol: '¥'
+      }
+    end
+    render json: {
+      id: budget.id,
+      name: budget.name,
+      total_amount: budget.total_amount.to_f,
+      spent_amount: budget.spent_amount.to_f,
+      formatted_total: format_currency(budget.total_amount),
+      formatted_spent: format_currency(budget.spent_amount),
+      currency_symbol: '¥',
+      items: items
+    }
   end
 
   def create

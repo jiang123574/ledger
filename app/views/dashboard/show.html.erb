@@ -2,12 +2,12 @@
 <% display_month = "2026-03" unless display_month =~ /\A\d{4}-\d{2}\z/ %>
 <% current_date = Date.new(display_month[0..3].to_i, display_month[5..6].to_i, 1) %>
 
-<div class="space-y-6">
+<div class="space-y-4 sm:space-y-6">
   <!-- Header -->
-  <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
+  <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
     <div>
-      <h1 class="text-2xl font-semibold text-primary dark:text-primary-dark"><%= t("dashboard.title") %></h1>
-      <p class="text-sm text-secondary dark:text-secondary-dark mt-1"><%= t("dashboard.subtitle") %></p>
+      <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark"><%= t("dashboard.title") %></h1>
+      <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark mt-0.5 sm:mt-1"><%= t("dashboard.subtitle") %></p>
     </div>
     <div class="flex items-center gap-2">
       <%= link_to dashboard_path(month: current_date.prev_month.strftime("%Y-%m")), 
@@ -25,26 +25,26 @@
   </div>
 
   <!-- Stats Cards (Always visible, not draggable) -->
-  <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
     <%= render(Ds::CardComponent.new) do %>
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.income") %></p>
-          <p class="text-2xl font-semibold text-income mt-1"><%= format_currency(@total_income) %></p>
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+        <div class="flex-1">
+          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.income") %></p>
+          <p class="text-lg sm:text-2xl font-semibold text-income mt-0.5 sm:mt-1"><%= format_currency(@total_income) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "trending-up", size: :md, color: :income)) %>
         </div>
       </div>
     <% end %>
 
     <%= render(Ds::CardComponent.new) do %>
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.expense") %></p>
-          <p class="text-2xl font-semibold text-expense mt-1"><%= format_currency(@total_expense) %></p>
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+        <div class="flex-1">
+          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.expense") %></p>
+          <p class="text-lg sm:text-2xl font-semibold text-expense mt-0.5 sm:mt-1"><%= format_currency(@total_expense) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "trending-down", size: :md, color: :expense)) %>
         </div>
       </div>
