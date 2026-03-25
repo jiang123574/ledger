@@ -33,8 +33,15 @@ Rails.application.routes.draw do
       patch :start
       patch :complete
       patch :cancel
+      patch :update
+      delete :destroy
     end
-    resources :budget_items
+    resources :budget_items do
+      member do
+        patch :update
+        delete :destroy
+      end
+    end
   end
   resources :plans do
     member do
