@@ -1,9 +1,27 @@
-<%# Mobile Bottom Navigation with Safe Area support %>
-<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-container dark:bg-container-dark border-t border-border dark:border-border-dark">
-  <div class="flex items-center justify-around min-h-[60px] pt-1 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+<%# Mobile Bottom Navigation with Safe Area support and touch optimization %>
+<nav class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-container dark:bg-container-dark border-t border-border dark:border-border-dark safe-area-bottom">
+  <%# Subtle top border glow %>
+  <div class="h-px bg-gradient-to-r from-transparent via-border dark:via-border-dark to-transparent"></div>
+  
+  <div class="flex items-stretch justify-around min-h-[64px] pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
     <%= mobile_nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
-    <%= mobile_nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
     <%= mobile_nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
+    <%= mobile_nav_item(:budgets, "预算", budgets_path, "map") %>
     <%= mobile_nav_item(:settings, t("nav.settings"), settings_path, "cog") %>
   </div>
 </nav>
+
+<style>
+/* Ensure touch targets are at least 44px */
+nav a, nav button {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Safe area padding for notched devices */
+@supports (padding-bottom: env(safe-area-inset-bottom)) {
+  .safe-area-bottom {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
+</style>

@@ -19,7 +19,7 @@
     </div>
     <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">有往来的对象</div>
-      <div class="text-2xl font-bold text-green-600"><%= @counterparties.select { |c| c.receivables_count > 0 }.size %></div>
+      <div class="text-2xl font-bold text-income"><%= @counterparties.select { |c| c.receivables_count > 0 }.size %></div>
     </div>
   </div>
 
@@ -68,7 +68,7 @@
               <td class="px-6 py-4 whitespace-nowrap text-right">
                 <% pending = counterparty.pending_receivable_amount %>
                 <% if pending > 0 %>
-                  <span class="text-green-600 font-medium"><%= format_currency(pending, 'CNY') %></span>
+                  <span class="text-income font-medium"><%= format_currency(pending, 'CNY') %></span>
                 <% else %>
                   <span class="text-secondary dark:text-secondary-dark">-</span>
                 <% end %>
@@ -76,7 +76,6 @@
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                 <%= link_to "查看", counterparty_path(counterparty), class: "text-primary dark:text-primary-dark hover:text-primary dark:text-primary-dark" %>
                 <%= link_to "编辑", edit_counterparty_path(counterparty), class: "text-primary dark:text-primary-dark hover:text-primary dark:text-primary-dark ml-3" %>
-                <%= button_to "删除", counterparty_path(counterparty), method: :delete, onclick: "if(confirm('确定删除该交易对方？')) { this.nextElementSibling.submit() }" form: { style: "display:inline" }, class: "text-red-600 hover:text-red-900 ml-3" %>
               </td>
             </tr>
           <% end %>

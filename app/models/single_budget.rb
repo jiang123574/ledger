@@ -2,18 +2,41 @@ class SingleBudget < ApplicationRecord
   STATUSES = %w[planning active completed cancelled].freeze
 
   has_many :budget_items, dependent: :destroy
+  belongs_to :category, class_name: "Category", optional: true
 
   validates :name, presence: true, length: { maximum: 100 }
-  validates :total_amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
+  validates :total_amount, numericality: { greater_than_or_equal_to: 0 }, allow_nil: true
   validates :spent_amount, numericality: { greater_than_or_equal_to: 0 }
   validates :start_date, presence: true
   validates :status, presence: true, inclusion: { in: STATUSES }
+
+  before_save :calculate_total_from_items, if: :budget_items_changed?
+
+  def calculate_total_from_items
+    self.total_amount = budget_items.sum(:amount)
+  end
+
+  def budget_items_changed?
+    budget_items.any?
+  end
 
   scope :by_status, ->(status) { where(status: status) if status.present? }
   scope :planning, -> { where(status: "planning") }
   scope :active, -> { where(status: "active") }
   scope :completed, -> { where(status: "completed") }
   scope :cancelled, -> { where(status: "cancelled") }
+
+  def recalculate_spent_amount
+    if category && start_date && end_date
+      category_ids = category.self_and_descendants.select(:id)
+      end_date_val = end_date || start_date
+      transactions = Transaction.where(category_id: category_ids)
+                                 .where("date >= ? AND date <= ?", start_date, end_date_val)
+      update(spent_amount: transactions.sum(:amount))
+    else
+      update(spent_amount: budget_items.sum(:spent_amount))
+    end
+  end
 
   def remaining_amount
     total_amount.to_d - spent_amount.to_d
@@ -80,9 +103,5 @@ class SingleBudget < ApplicationRecord
 
   def cancel!
     update(status: "cancelled")
-  end
-
-  def recalculate_spent_amount
-    update(spent_amount: budget_items.sum(:spent_amount))
   end
 end

@@ -13,18 +13,36 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :accounts
+  resources :accounts do
+    member do
+      patch :reorder
+    end
+  end
   resources :categories
   resources :tags, only: [ :index, :create, :update, :destroy ]
   resources :counterparties
-  resources :budgets, only: [ :index, :create, :update, :destroy ]
-  resources :single_budgets do
+  resources :budgets, only: [ :index, :create, :update, :destroy ] do
     member do
+      get :data
+    end
+  end
+  # 单次预算功能已合并到预算管理 /budgets
+  get "single_budgets" => redirect("/budgets")
+  resources :single_budgets, only: [] do
+    member do
+      get :edit
       patch :start
       patch :complete
       patch :cancel
+      patch :update
+      delete :destroy
     end
-    resources :budget_items
+    resources :budget_items do
+      member do
+        patch :update
+        delete :destroy
+      end
+    end
   end
   resources :plans do
     member do
@@ -97,6 +115,3 @@ Rails.application.routes.draw do
     post "vitals", to: "vitals#create"
   end
 end
-
-# 合并交易记录到账户页面
-get "transactions" => "accounts#index", as: :transactions

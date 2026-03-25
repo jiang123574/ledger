@@ -33,7 +33,7 @@ class TransactionRowComponent < ViewComponent::Base
 
   def amount_class
     base = "font-medium"
-    @transaction.income? ? "#{base} text-green-600" : "#{base} text-red-600"
+    @transaction.income? ? "#{base} text-income" : "#{base} text-expense"
   end
 
   def details_text

@@ -20,6 +20,7 @@ class SingleBudgetsController < ApplicationController
   def create
     @single_budget = SingleBudget.new(single_budget_params)
     if @single_budget.save
+      @single_budget.recalculate_spent_amount
       redirect_to single_budgets_path, notice: "单次预算已创建"
     else
       render :new, alert: @single_budget.errors.full_messages.join(", ")
@@ -31,6 +32,7 @@ class SingleBudgetsController < ApplicationController
 
   def update
     if @single_budget.update(single_budget_params)
+      @single_budget.recalculate_spent_amount
       redirect_to single_budgets_path, notice: "单次预算已更新"
     else
       render :edit, alert: @single_budget.errors.full_messages.join(", ")
@@ -64,6 +66,6 @@ class SingleBudgetsController < ApplicationController
   end
 
   def single_budget_params
-    params.require(:single_budget).permit(:name, :description, :total_amount, :start_date, :end_date, :status, :currency)
+    params.require(:single_budget).permit(:name, :description, :total_amount, :start_date, :end_date, :status, :currency, :category_id)
   end
 end

@@ -12,6 +12,10 @@
           <%= f.text_field :name, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white", required: true %>
         </div>
         <div>
+          <%= f.label :category_id, "分类", class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1" %>
+          <%= f.collection_select :category_id, Category.all, :id, :full_name, { include_blank: "全部分类" }, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
+        </div>
+        <div>
           <%= f.label :currency, t("single_budgets.currency"), class: "block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1" %>
           <%= f.select :currency, ["CNY", "USD", "EUR", "GBP", "JPY"], {}, class: "w-full border rounded-lg px-3 py-2.5 text-base dark:bg-surface-dark dark:border-border-dark dark:text-white" %>
         </div>

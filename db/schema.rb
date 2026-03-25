@@ -10,15 +10,18 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_22_124325) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_22_150000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
   create_table "accounts", force: :cascade do |t|
     t.integer "billing_day"
+    t.string "billing_day_mode", default: "current"
     t.decimal "credit_limit", precision: 10, scale: 2
     t.string "currency", limit: 3, default: "CNY"
     t.integer "due_day"
+    t.string "due_day_mode", default: "fixed"
+    t.integer "due_day_offset"
     t.integer "hidden", default: 0
     t.integer "include_in_total", default: 1
     t.decimal "initial_balance", precision: 10, scale: 2, default: "0.0"
@@ -233,6 +236,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_22_124325) do
   end
 
   create_table "single_budgets", force: :cascade do |t|
+    t.bigint "category_id"
     t.datetime "created_at", null: false
     t.string "currency", limit: 3, default: "CNY"
     t.text "description"
@@ -243,6 +247,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_22_124325) do
     t.string "status", limit: 20, default: "planning", null: false
     t.decimal "total_amount", precision: 10, scale: 2, null: false
     t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "index_single_budgets_on_category_id"
     t.index ["end_date"], name: "index_single_budgets_on_end_date"
     t.index ["start_date"], name: "index_single_budgets_on_start_date"
     t.index ["status"], name: "index_single_budgets_on_status"
@@ -309,6 +314,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_22_124325) do
   add_foreign_key "receivables", "transactions", column: "source_transaction_id"
   add_foreign_key "recurring_transactions", "accounts"
   add_foreign_key "recurring_transactions", "categories"
+  add_foreign_key "single_budgets", "categories"
   add_foreign_key "transaction_tags", "tags", on_delete: :cascade
   add_foreign_key "transaction_tags", "transactions", on_delete: :cascade
   add_foreign_key "transactions", "accounts"

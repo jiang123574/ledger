@@ -3,7 +3,7 @@ class SettingsController < ApplicationController
     @currencies = Currency.order(:code)
     @backups = BackupService.list_backups.take(10)
     @shortcuts = default_shortcuts
-    @categories = Category.all
+    @categories = Category.includes(:children).order(:sort_order, :name)
     @counterparties = Counterparty.all.order(:name).map do |cp|
       cp.define_singleton_method(:receivables_count) { Receivable.where(counterparty: cp.name).count }
       cp

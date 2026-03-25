@@ -2,13 +2,14 @@
 
 module Ds
   class InputComponent < ViewComponent::Base
-    def initialize(form:, field:, type: :text, placeholder: nil, required: false, prefix: nil, **options)
+    def initialize(form:, field:, type: :text, placeholder: nil, required: false, prefix: nil, html_class: nil, **options)
       @form = form
       @field = field
       @type = type
       @placeholder = placeholder
       @required = required
       @prefix = prefix
+      @html_class = html_class
       @options = options
     end
 
@@ -27,7 +28,8 @@ module Ds
 
     def base_classes
       prefix_class = @prefix ? "pl-8 pr-3 py-2" : "px-3 py-2"
-      "w-full #{prefix_class} text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
+      custom_class = @html_class ? "#{@html_class} " : ""
+      "#{custom_class}w-full #{prefix_class} text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
     end
 
     def text_field_or_select

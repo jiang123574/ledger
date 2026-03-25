@@ -2,7 +2,7 @@
   <h1 class="text-2xl font-bold text-primary dark:text-primary-dark"><%= t("recurring.title") %></h1>
 
   <div class="flex justify-end">
-    <%= link_to t("recurring.new_recurring"), new_recurring_path, class: "bg-inverse text-white px-4 py-2 rounded hover:bg-inverse-hover" %>
+    <%= link_to t("recurring.new_recurring"), new_recurring_path, class: "bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover" %>
   </div>
 
   <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
@@ -23,7 +23,7 @@
         <% @recurring.each do |r| %>
           <tr>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 rounded text-xs <%= r.transaction_type == "INCOME" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800" %>">
+              <span class="px-2 py-1 rounded text-xs <%= r.transaction_type == "INCOME" ? "bg-income-light text-income" : "bg-expense-light text-expense" %>">
                 <%= r.transaction_type == "INCOME" ? t("transactions.income") : t("transactions.expense") %>
               </span>
             </td>
@@ -33,12 +33,12 @@
             <td class="px-6 py-4 whitespace-nowrap text-sm capitalize"><%= t("recurring.#{r.frequency}") %></td>
             <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.next_date.strftime("%Y-%m-%d") if r.next_date %></td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 rounded text-xs <%= r.active? ? "bg-green-100 text-green-800" : "bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark" %>">
+              <span class="px-2 py-1 rounded text-xs <%= r.active? ? "bg-income-light text-income" : "bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark" %>">
                 <%= r.active? ? t("recurring.active") : t("recurring.paused") %>
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-              <%= button_to t("recurring.execute"), execute_recurring_path(r), method: :post, class: "text-green-600 hover:text-green-900" %>
+              <%= button_to t("recurring.execute"), execute_recurring_path(r), method: :post, class: "text-income hover:text-income/80" %>
               <%= link_to t("common.edit"), edit_recurring_path(r), class: "text-primary dark:text-primary-dark hover:text-primary dark:text-primary-dark" %>
             </td>
           </tr>

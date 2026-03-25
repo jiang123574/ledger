@@ -1,4 +1,4 @@
-<div class="space-y-6">
+<div class="space-y-6" data-controller="credit-card-form">
   <div class="flex items-center gap-4">
     <%= link_to accounts_path, class: "p-2 hover:bg-surface-inset dark:hover:bg-surface-dark-inset rounded-lg transition-smooth" do %>
       <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
@@ -32,6 +32,52 @@
           <%= render Ds::InputComponent.new(form: f, field: :currency, type: :select,
                 choices: Currency.active.map { |c| ["#{c.code} - #{c.name}", c.code] },
                 include_blank: false) %>
+        </div>
+      </div>
+
+      <div data-credit-card-form-target="creditCardFields" class="hidden">
+        <h3 class="text-lg font-medium text-primary dark:text-primary-dark mb-4">信用卡设置</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">信用额度</label>
+            <%= render Ds::InputComponent.new(form: f, field: :credit_limit, type: :number, 
+                  placeholder: "0.00", prefix: "¥") %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日</label>
+            <%= render Ds::InputComponent.new(form: f, field: :billing_day, type: :select,
+                  choices: (1..28).map { |d| ["每月#{d}日", d] },
+                  include_blank: false) %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日交易计入</label>
+            <%= render Ds::InputComponent.new(form: f, field: :billing_day_mode, type: :select,
+                  choices: [["本期账单", "current"], ["下期账单", "next"]],
+                  include_blank: false) %>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">还款日类型</label>
+            <%= render Ds::InputComponent.new(form: f, field: :due_day_mode, type: :select,
+                  choices: [["固定日期", "fixed"], ["账单日后N天", "relative"]],
+                  include_blank: false,
+                  data: { "credit-card-form-target": "dueDayModeSelect", action: "change->credit-card-form#toggleDueDayMode" }) %>
+          </div>
+
+          <div data-credit-card-form-target="dueDayFixed">
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">还款日（固定）</label>
+            <%= render Ds::InputComponent.new(form: f, field: :due_day, type: :select,
+                  choices: (1..28).map { |d| ["每月#{d}日", d] },
+                  include_blank: false) %>
+          </div>
+
+          <div data-credit-card-form-target="dueDayRelative" class="hidden">
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账单日后天数</label>
+            <%= render Ds::InputComponent.new(form: f, field: :due_day_offset, type: :number, 
+                  placeholder: "1-28", min: 1, max: 28) %>
+          </div>
         </div>
       </div>
 

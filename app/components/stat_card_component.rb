@@ -27,7 +27,7 @@ class StatCardComponent < ViewComponent::Base
   end
 
   def trend_html
-    direction_class = @trend_direction == :up ? "text-green-600" : "text-red-600"
+    direction_class = @trend_direction == :up ? "text-income" : "text-expense"
     arrow = @trend_direction == :up ? "↑" : "↓"
     content_tag(:span, "#{arrow} #{@trend}", class: direction_class)
   end

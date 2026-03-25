@@ -115,6 +115,15 @@
   border-color: var(--color-expense, #ef4444) !important;
 }
 
+/* Lighter variants for badges */
+.bg-income-light {
+  background-color: color-mix(in srgb, var(--color-income, #22c55e) 15%, transparent) !important;
+}
+
+.bg-expense-light {
+  background-color: color-mix(in srgb, var(--color-expense, #ef4444) 15%, transparent) !important;
+}
+
 /* Additional dark mode fixes for hardcoded colors */
 .dark .bg-white,
 [data-theme="dark"] .bg-white {
@@ -352,8 +361,14 @@ samp {
 }
 
 /* Button, card, and page animations */
+/* 
+ * 按钮高度规范（统一使用 Tailwind 类）：
+ * - 小按钮：text-sm + py-1.5（删除、编辑等操作按钮）
+ * - 标准按钮：text-sm + py-2（表单提交、取消等）
+ * - 大按钮：text-base + py-2.5（主要操作按钮）
+ * border-radius 统一使用 rounded-lg（8px）
+ */
 .btn-modern {
-  border-radius: 0.75rem;
   box-shadow: 0 1px 2px rgba(11, 11, 11, 0.08), 0 6px 12px rgba(11, 11, 11, 0.06);
   transform: translateZ(0);
   transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
@@ -659,12 +674,11 @@ li:hover,
    Global Button Styles
    ======================================== */
 
-/* Primary buttons (blue) */
+/* Primary buttons (blue) - border-radius 由 rounded-lg 类控制 */
 button[class*="bg-blue-600"],
 input[type="submit"][class*="bg-blue-600"],
 a[class*="bg-blue-600"]:not([class*="btn-modern"]),
 .button-primary {
-  border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3), 0 4px 8px rgba(59, 130, 246, 0.2);
   transition: all 150ms ease;
 }
@@ -676,11 +690,10 @@ a[class*="bg-blue-600"]:not([class*="btn-modern"]):hover {
   box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4), 0 8px 16px rgba(59, 130, 246, 0.3);
 }
 
-/* Secondary buttons (gray) */
+/* Secondary buttons (gray) - border-radius 由 rounded-lg 类控制 */
 button[class*="bg-gray-200"],
 input[type="submit"][class*="bg-gray-200"],
 button_to input[class*="bg-gray-200"] {
-  border-radius: 0.75rem;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
   transition: all 150ms ease;
 }
@@ -691,11 +704,10 @@ input[type="submit"][class*="bg-gray-200"]:hover:not(:disabled) {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Danger buttons (red) */
+/* Danger buttons (red) - border-radius 由 rounded-lg 类控制 */
 button[class*="bg-red-"],
 button[class*="text-red-600"]:hover,
 input[type="submit"][class*="bg-red-"] {
-  border-radius: 0.75rem;
   transition: all 150ms ease;
 }
 
@@ -704,10 +716,9 @@ input[type="submit"][class*="bg-red-"]:hover:not(:disabled) {
   transform: scale(1.02);
 }
 
-/* Success buttons (green) */
+/* Success buttons (green) - border-radius 由 rounded-lg 类控制 */
 button[class*="bg-green-"],
 input[type="submit"][class*="bg-green-"] {
-  border-radius: 0.75rem;
   box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
   transition: all 150ms ease;
 }

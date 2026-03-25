@@ -3,9 +3,9 @@ class Account < ApplicationRecord
 
   ACCOUNT_TYPES = {
     "CASH" => "现金",
-    "BANK" => "银行账户",
+    "BANK" => "储蓄卡",
     "CREDIT" => "信用卡",
-    "INVESTMENT" => "投资账户",
+    "INVESTMENT" => "网络账户",
     "LOAN" => "贷款",
     "DEBT" => "欠款"
   }.freeze
