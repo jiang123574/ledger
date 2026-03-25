@@ -168,6 +168,9 @@
                       <td class="py-3 px-2">
                         <div class="flex items-center gap-2">
                           <span class="font-medium text-primary dark:text-primary-dark"><%= item.name %></span>
+                          <% if item.category %>
+                            <span class="text-xs px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= item.category %></span>
+                          <% end %>
                         </div>
                       </td>
                       <td class="py-3 px-2 text-right font-medium text-primary dark:text-primary-dark"><%= format_currency(item.amount) %></td>
@@ -179,6 +182,16 @@
                             <div class="h-full rounded-full <%= item_percentage > 100 ? 'bg-red-500' : (item_percentage > 80 ? 'bg-yellow-500' : 'bg-blue-500') %>" style="width: <%= [item_percentage, 100].min %>%"></div>
                           </div>
                           <span class="text-xs <%= item_percentage > 100 ? 'text-red-500' : (item_percentage > 80 ? 'text-yellow-500' : 'text-secondary dark:text-secondary-dark') %>"><%= item_percentage %>%</span>
+                          <button onclick="openEditItemModal(<%= item.id %>, '<%= j item.name %>', <%= item.amount %>, '<%= j(item.category || '') %>', '<%= j(item.notes || '') %>')" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                          </button>
+                          <form action="/single_budgets/<%= @selected_budget.id %>/budget_items/<%= item.id %>" method="post" style="display:inline" onsubmit="if(!confirm('确定删除此项目？')) return false">
+                            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                            <input type="hidden" name="_method" value="delete">
+                            <button type="submit" class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-secondary dark:text-secondary-dark hover:text-red-600 dark:hover:text-red-400 transition-smooth" title="删除">
+                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                            </button>
+                          </form>
                         </div>
                       </td>
                     </tr>
@@ -232,6 +245,16 @@
     var form = document.getElementById('new-item-form');
     form.action = '/single_budgets/' + budgetId + '/budget_items';
     document.getElementById('new-item-modal').classList.remove('hidden');
+  };
+
+  window.openEditItemModal = function(itemId, name, amount, category, notes) {
+    var form = document.getElementById('edit-item-form');
+    form.action = '/single_budgets/' + window.currentBudgetId + '/budget_items/' + itemId;
+    document.getElementById('edit-item-name').value = name;
+    document.getElementById('edit-item-amount').value = amount;
+    document.getElementById('edit-item-category').value = category || '';
+    document.getElementById('edit-item-notes').value = notes || '';
+    document.getElementById('edit-item-modal').classList.remove('hidden');
   };
 
   function updateBudgetOverview(data) {
@@ -420,15 +443,6 @@
             <input type="text" name="single_budget[name]" value="<%= @selected_budget.name %>" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类</label>
-            <select name="single_budget[category_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">全部分类</option>
-              <% Category.expense.each do |cat| %>
-                <option value="<%= cat.id %>" <%= @selected_budget.category_id == cat.id ? 'selected' : '' %>><%= cat.full_name %></option>
-              <% end %>
-            </select>
-          </div>
-          <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算总额 *</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
@@ -495,6 +509,15 @@
             <input type="text" name="budget_item[name]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="例如：水电改造">
           </div>
           <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
+            <select name="budget_item[category]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <option value="">选择分类</option>
+              <% Category.expense.each do |cat| %>
+                <option value="<%= cat.name %>"><%= cat.full_name %></option>
+              <% end %>
+            </select>
+          </div>
+          <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
@@ -509,6 +532,55 @@
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('new-item-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
           <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">添加</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑预算项弹窗 -->
+<div id="edit-item-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-item-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑项目</h3>
+        <button type="button" onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <form id="edit-item-form" method="post">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <input type="hidden" name="_method" value="patch">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">项目名称 *</label>
+            <input type="text" id="edit-item-name" name="budget_item[name]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
+            <select id="edit-item-category" name="budget_item[category]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <option value="">选择分类</option>
+              <% Category.expense.each do |cat| %>
+                <option value="<%= cat.name %>"><%= cat.full_name %></option>
+              <% end %>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <input type="number" id="edit-item-amount" name="budget_item[amount]" step="0.01" required class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">备注</label>
+            <input type="text" id="edit-item-notes" name="budget_item[notes]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存修改</button>
         </div>
       </form>
     </div>
