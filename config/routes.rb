@@ -26,7 +26,9 @@ Rails.application.routes.draw do
       get :data
     end
   end
-  resources :single_budgets do
+  # 单次预算功能已合并到预算管理 /budgets
+  # get "single_budgets" => redirect("/budgets")
+  # resources :single_budgets do...
     member do
       patch :start
       patch :complete
