@@ -30,18 +30,18 @@ class BudgetsController < ApplicationController
         name: item.name,
         amount: item.amount.to_f,
         spent_amount: item.spent_amount.to_f,
-        formatted_amount: format_currency(item.amount),
-        formatted_spent: format_currency(item.spent_amount),
+        formatted_amount: "¥#{item.amount.to_f.round(2)}",
+        formatted_spent: "¥#{item.spent_amount.to_f.round(2)}",
         currency_symbol: '¥'
       }
     end
     render json: {
       id: budget.id,
       name: budget.name,
-      total_amount: budget.total_amount.to_f,
+      total_amount: budget.budget_items.sum(:amount).to_f,
       spent_amount: budget.spent_amount.to_f,
-      formatted_total: format_currency(budget.total_amount),
-      formatted_spent: format_currency(budget.spent_amount),
+      formatted_total: "¥#{budget.budget_items.sum(:amount).to_f.round(2)}",
+      formatted_spent: "¥#{budget.spent_amount.to_f.round(2)}",
       currency_symbol: '¥',
       items: items
     }

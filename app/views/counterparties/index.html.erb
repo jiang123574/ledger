@@ -76,7 +76,6 @@
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
                 <%= link_to "查看", counterparty_path(counterparty), class: "text-primary dark:text-primary-dark hover:text-primary dark:text-primary-dark" %>
                 <%= link_to "编辑", edit_counterparty_path(counterparty), class: "text-primary dark:text-primary-dark hover:text-primary dark:text-primary-dark ml-3" %>
-                <%= button_to "删除", counterparty_path(counterparty), method: :delete, onclick: "if(confirm('确定删除该交易对方？')) { this.nextElementSibling.submit() }", class: "text-expense hover:text-red-900 ml-3", form_html: { style: "display:inline" } %>
               </td>
             </tr>
           <% end %>
