@@ -30,6 +30,7 @@ Rails.application.routes.draw do
   get "single_budgets" => redirect("/budgets")
   resources :single_budgets, only: [] do
     member do
+      get :edit
       patch :start
       patch :complete
       patch :cancel
