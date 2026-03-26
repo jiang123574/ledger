@@ -31,12 +31,15 @@ Rails.application.routes.draw do
   resources :single_budgets, only: [] do
     member do
       get :edit
-      patch :start
-      patch :complete
-      patch :cancel
       patch :update
       delete :destroy
     end
+    collection do
+      post :create
+    end
+    patch :start
+    patch :complete
+    patch :cancel
     resources :budget_items do
       member do
         patch :update
