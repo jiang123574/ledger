@@ -356,10 +356,18 @@
   document.addEventListener('DOMContentLoaded', function() {
     var select = document.getElementById('budget-select');
     if (select) {
+      // 页面加载时检查是否有选中的预算
+      if (select.value) {
+        document.getElementById('add-item-btn').classList.remove('hidden');
+      }
+      
       select.addEventListener('change', function() {
         var id = this.value;
         if (id) {
           window.selectBudget(parseInt(id));
+          document.getElementById('add-item-btn').classList.remove('hidden');
+        } else {
+          document.getElementById('add-item-btn').classList.add('hidden');
         }
       });
     }
