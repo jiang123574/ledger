@@ -14,9 +14,8 @@ class RecurringController < ApplicationController
     if @recurring.save
       redirect_to recurring_index_path, notice: "定期交易已创建"
     else
-      @accounts = Account.order(:name)
-      @categories = Category.order(:name)
-      render :new
+      redirect_to recurring_index_path, alert: @recurring.errors.full_messages.join(", ")
+    end
     end
   end
 
@@ -31,9 +30,7 @@ class RecurringController < ApplicationController
     if @recurring.update(recurring_params)
       redirect_to recurring_index_path, notice: "定期交易已更新"
     else
-      @accounts = Account.order(:name)
-      @categories = Category.order(:name)
-      render :edit
+      redirect_to recurring_index_path, alert: @recurring.errors.full_messages.join(", ")
     end
   end
 

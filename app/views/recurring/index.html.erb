@@ -1,13 +1,16 @@
-<div class="space-y-6">
-  <h1 class="text-2xl font-bold text-primary dark:text-primary-dark"><%= t("recurring.title") %></h1>
+<% content_for :page_title, t("recurring.title") %>
 
-  <div class="flex justify-end">
-    <%= link_to t("recurring.new_recurring"), new_recurring_path, class: "bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover" %>
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark"><%= t("recurring.title") %></h1>
+    <button onclick="document.getElementById('new-recurring-modal').classList.remove('hidden')" class="bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover btn-modern">
+      <%= t("recurring.new_recurring") %>
+    </button>
   </div>
 
   <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
     <table class="min-w-full divide-y divide-gray-200">
-      <thead class="bg-surface dark:bg-surface-dark dark:bg-gray-900">
+      <thead class="bg-surface dark:bg-surface-dark">
         <tr>
           <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase"><%= t("transactions.type") %></th>
           <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase"><%= t("transactions.amount") %></th>
@@ -21,25 +24,30 @@
       </thead>
       <tbody class="bg-container dark:bg-container-dark divide-y divide-gray-200">
         <% @recurring.each do |r| %>
-          <tr>
+          <tr class="hover:bg-surface dark:hover:bg-surface-dark">
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="px-2 py-1 rounded text-xs <%= r.transaction_type == "INCOME" ? "bg-income-light text-income" : "bg-expense-light text-expense" %>">
                 <%= r.transaction_type == "INCOME" ? t("transactions.income") : t("transactions.expense") %>
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap font-medium"><%= format_currency(r.amount) %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.category&.name || "-" %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.account&.name || "-" %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm capitalize"><%= t("recurring.#{r.frequency}") %></td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm"><%= r.next_date.strftime("%Y-%m-%d") if r.next_date %></td>
+            <td class="px-6 py-4 whitespace-nowrap font-medium text-primary dark:text-primary-dark"><%= format_currency(r.amount) %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark"><%= r.category&.name || "-" %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark"><%= r.account&.name || "-" %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark capitalize"><%= t("recurring.#{r.frequency}") %></td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark"><%= r.next_date.strftime("%Y-%m-%d") if r.next_date %></td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <span class="px-2 py-1 rounded text-xs <%= r.active? ? "bg-income-light text-income" : "bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark dark:text-secondary-dark" %>">
+              <span class="px-2 py-1 rounded text-xs <%= r.active? ? "bg-income-light text-income" : "bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark" %>">
                 <%= r.active? ? t("recurring.active") : t("recurring.paused") %>
               </span>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm space-x-2">
-              <%= button_to t("recurring.execute"), execute_recurring_path(r), method: :post, class: "text-income hover:text-income/80" %>
-              <%= link_to t("common.edit"), edit_recurring_path(r), class: "text-primary dark:text-primary-dark hover:text-primary dark:text-primary-dark" %>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
+              <div class="flex items-center justify-end gap-2">
+                <%= button_to t("recurring.execute"), execute_recurring_path(r), method: :post, class: "text-income hover:text-income/80" %>
+                <button onclick="openEditRecurringModal(<%= r.id %>, '<%= r.transaction_type %>', '<%= r.amount %>', '<%= r.frequency %>', '<%= r.next_date&.strftime('%Y-%m-%d') %>', '<%= r.account_id %>', '<%= r.category_id %>', '<%= j(r.note || '') %>')" class="text-primary dark:text-primary-dark hover:text-secondary dark:hover:text-secondary-dark">
+                  <%= t("common.edit") %>
+                </button>
+                <%= button_to t("common.delete"), recurring_path(r), method: :delete, onclick: "if(!confirm('确定删除此周期交易？')) return false", class: "text-red-600 hover:text-red-800" %>
+              </div>
             </td>
           </tr>
         <% end %>
@@ -53,3 +61,177 @@
     <% end %>
   </div>
 </div>
+
+<!-- 新建周期交易弹窗 -->
+<div id="new-recurring-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('new-recurring-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark"><%= t("recurring.new_recurring") %></h3>
+        <button type="button" onclick="document.getElementById('new-recurring-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <form id="new-recurring-form" method="post" action="<%= recurring_index_path %>">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.type") %></label>
+              <select name="recurring[transaction_type]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value="EXPENSE">支出</option>
+                <option value="INCOME">收入</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.amount") %></label>
+              <input type="number" name="recurring[amount]" step="0.01" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("recurring.frequency") %></label>
+              <select name="recurring[frequency]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value="daily"><%= t("recurring.daily") %></option>
+                <option value="weekly"><%= t("recurring.weekly") %></option>
+                <option value="monthly" selected><%= t("recurring.monthly") %></option>
+                <option value="yearly"><%= t("recurring.yearly") %></option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("recurring.next_date") %></label>
+              <input type="date" name="recurring[next_date]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.account") %></label>
+              <select name="recurring[account_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value=""><%= t("common.select") %></option>
+                <% @accounts.each do |account| %>
+                  <option value="<%= account.id %>"><%= account.name %></option>
+                <% end %>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.category") %></label>
+              <select name="recurring[category_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value=""><%= t("common.select") %></option>
+                <% @categories.each do |category| %>
+                  <option value="<%= category.id %>"><%= category.name %></option>
+                <% end %>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.note") %></label>
+            <textarea name="recurring[note]" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="备注"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('new-recurring-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"><%= t("common.cancel") %></button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth"><%= t("common.create") %></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑周期交易弹窗 -->
+<div id="edit-recurring-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-recurring-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-lg p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark"><%= t("common.edit") %></h3>
+        <button type="button" onclick="document.getElementById('edit-recurring-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <form id="edit-recurring-form" method="post">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <input type="hidden" name="_method" value="patch">
+        <div class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.type") %></label>
+              <select id="edit-recurring-type" name="recurring[transaction_type]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value="EXPENSE">支出</option>
+                <option value="INCOME">收入</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.amount") %></label>
+              <input type="number" id="edit-recurring-amount" name="recurring[amount]" step="0.01" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("recurring.frequency") %></label>
+              <select id="edit-recurring-frequency" name="recurring[frequency]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value="daily"><%= t("recurring.daily") %></option>
+                <option value="weekly"><%= t("recurring.weekly") %></option>
+                <option value="monthly"><%= t("recurring.monthly") %></option>
+                <option value="yearly"><%= t("recurring.yearly") %></option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("recurring.next_date") %></label>
+              <input type="date" id="edit-recurring-next-date" name="recurring[next_date]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.account") %></label>
+              <select id="edit-recurring-account" name="recurring[account_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value=""><%= t("common.select") %></option>
+                <% @accounts.each do |account| %>
+                  <option value="<%= account.id %>"><%= account.name %></option>
+                <% end %>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.category") %></label>
+              <select id="edit-recurring-category" name="recurring[category_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <option value=""><%= t("common.select") %></option>
+                <% @categories.each do |category| %>
+                  <option value="<%= category.id %>"><%= category.name %></option>
+                <% end %>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1"><%= t("transactions.note") %></label>
+            <textarea id="edit-recurring-note" name="recurring[note]" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('edit-recurring-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"><%= t("common.cancel") %></button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth"><%= t("common.save") %></button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  function openEditRecurringModal(id, type, amount, frequency, nextDate, accountId, categoryId, note) {
+    const form = document.getElementById('edit-recurring-form')
+    form.action = '/recurring/' + id
+    document.getElementById('edit-recurring-type').value = type
+    document.getElementById('edit-recurring-amount').value = amount
+    document.getElementById('edit-recurring-frequency').value = frequency
+    document.getElementById('edit-recurring-next-date').value = nextDate
+    document.getElementById('edit-recurring-account').value = accountId
+    document.getElementById('edit-recurring-category').value = categoryId
+    document.getElementById('edit-recurring-note').value = note
+    document.getElementById('edit-recurring-modal').classList.remove('hidden')
+  }
+</script>
