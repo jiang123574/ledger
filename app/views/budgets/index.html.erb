@@ -144,7 +144,7 @@
         <div id="budget-items-table">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold text-primary dark:text-primary-dark">预算明细</h3>
-            <button id="add-item-btn" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-colors flex items-center gap-1">
+            <button id="add-item-btn" data-budget-id="" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-colors flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
               添加明细
             </button>
@@ -231,7 +231,11 @@
     var select = document.getElementById('budget-select');
     if (select) select.value = budgetId;
     window.currentBudgetId = budgetId;
-    document.getElementById('add-item-btn').classList.remove('hidden');
+    var addBtn = document.getElementById('add-item-btn');
+    if (addBtn) {
+      addBtn.classList.remove('hidden');
+      addBtn.dataset.budgetId = budgetId;
+    }
     fetch('/budgets/' + budgetId + '/data')
       .then(function(response) { return response.json(); })
       .then(function(data) {
@@ -296,8 +300,17 @@
   function updateBudgetItems(items) {
     var container = document.getElementById('budget-items-table');
     if (!container) return;
+    
+    // 保存添加按钮的引用
+    var addBtn = document.getElementById('add-item-btn');
+    var addBtnContainer = addBtn ? addBtn.parentElement : null;
+    
     if (!items || items.length === 0) {
       container.innerHTML = 
+        '<div class="flex justify-between items-center mb-4">' +
+          '<h3 class="font-semibold text-primary dark:text-primary-dark">预算明细</h3>' +
+          (addBtn ? addBtn.outerHTML : '') +
+        '</div>' +
         '<div class="overflow-x-auto">' +
           '<table class="w-full">' +
             '<thead>' +
@@ -337,6 +350,10 @@
       '</tr>';
     }).join('');
     container.innerHTML = 
+      '<div class="flex justify-between items-center mb-4">' +
+        '<h3 class="font-semibold text-primary dark:text-primary-dark">预算明细</h3>' +
+        (addBtn ? addBtn.outerHTML : '') +
+      '</div>' +
       '<div class="overflow-x-auto">' +
         '<table class="w-full">' +
           '<thead>' +
