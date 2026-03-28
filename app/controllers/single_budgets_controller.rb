@@ -23,7 +23,7 @@ class SingleBudgetsController < ApplicationController
       @single_budget.recalculate_spent_amount
       redirect_to single_budgets_path, notice: "单次预算已创建"
     else
-      render :new, alert: @single_budget.errors.full_messages.join(", ")
+      redirect_to single_budgets_path, alert: @single_budget.errors.full_messages.join(", ")
     end
   end
 
@@ -35,7 +35,7 @@ class SingleBudgetsController < ApplicationController
       @single_budget.recalculate_spent_amount
       redirect_to single_budgets_path, notice: "单次预算已更新"
     else
-      render :edit, alert: @single_budget.errors.full_messages.join(", ")
+      redirect_to single_budgets_path, alert: @single_budget.errors.full_messages.join(", ")
     end
   end
 
