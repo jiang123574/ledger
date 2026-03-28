@@ -76,7 +76,10 @@
                   <p class="text-sm text-secondary dark:text-secondary-dark">完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></p>
                 </div>
               </div>
-              <span class="font-medium text-secondary dark:text-secondary-dark"><%= format_currency(receivable.original_amount) %></span>
+              <div class="flex items-center gap-3">
+                <span class="font-medium text-secondary dark:text-secondary-dark"><%= format_currency(receivable.original_amount) %></span>
+                <%= button_to "撤销", revert_receivable_path(receivable), method: :post, onclick: "if(!confirm('确定撤销此报销？撤销后可重新报销')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+              </div>
             </div>
           </div>
         <% end %>

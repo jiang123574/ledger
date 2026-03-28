@@ -56,6 +56,7 @@ Rails.application.routes.draw do
     member do
       get :settle
       post :settle
+      post :revert
     end
   end
   resources :recurring, controller: "recurring", only: [ :index, :new, :create, :edit, :update, :destroy ] do

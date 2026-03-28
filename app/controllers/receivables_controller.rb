@@ -1,5 +1,5 @@
 class ReceivablesController < ApplicationController
-  before_action :set_receivable, only: %i[show edit update destroy settle]
+  before_action :set_receivable, only: %i[show edit update destroy settle revert]
   before_action :check_not_settled, only: %i[edit update destroy]
 
   def index
@@ -87,6 +87,21 @@ class ReceivablesController < ApplicationController
     end
 
     redirect_to receivables_path, notice: "报销成功"
+  end
+
+  def revert
+    ActiveRecord::Base.transaction do
+      # 删除相关的报销收入交易
+      @receivable.reimbursement_transactions.destroy_all
+      
+      # 恢复应收款状态
+      @receivable.update!(
+        remaining_amount: @receivable.original_amount,
+        settled_at: nil
+      )
+    end
+
+    redirect_to receivables_path, notice: "报销已撤销"
   end
 
   private
