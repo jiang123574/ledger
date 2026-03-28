@@ -55,14 +55,14 @@
               </div>
             </div>
             <div class="flex items-center gap-1">
-              <%= link_to edit_tag_path(tag), 
-                  class: "p-2 rounded-lg border border-border dark:border-border-dark bg-container dark:bg-container-dark text-primary dark:text-primary-dark hover:bg-gray-300 transition-smooth btn-modern",
-                  title: "编辑" do %>
+              <button type="button" onclick="openEditTagModal(<%= tag.id %>, '<%= j tag.name %>', '<%= tag.color %>', '<%= j(tag.description || '') %>')" 
+                  class="p-2 rounded-lg border border-border dark:border-border-dark bg-container dark:bg-container-dark text-primary dark:text-primary-dark hover:bg-gray-300 transition-smooth btn-modern"
+                  title="编辑">
                 <%= render(Ds::IconComponent.new(name: "pencil", size: :sm)) %>
-              <% end %>
+              </button>
               <%= button_to tag_path(tag), 
                   method: :delete,
-                  form: { onclick: "if(confirm('确定删除此标签？关联的交易将取消关联。')) { this.submit() }", style: "display:inline" },
+                  onclick: "if(!confirm('确定删除此标签？关联的交易将取消关联。')) return false",
                   class: "p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern",
                   title: "删除" do %>
                 <%= render(Ds::IconComponent.new(name: "trash-2", size: :sm)) %>
@@ -85,6 +85,46 @@
   <% end %>
 </div>
 
+<!-- 编辑标签弹窗 -->
+<div id="edit-tag-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-tag-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-6">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑标签</h3>
+        <button type="button" onclick="document.getElementById('edit-tag-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <form id="edit-tag-form" method="post">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <input type="hidden" name="_method" value="patch">
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">标签名称</label>
+            <input type="text" id="edit-tag-name" name="tag[name]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">颜色</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="edit-tag-color" name="tag[color]" class="w-12 h-10 rounded cursor-pointer border border-border dark:border-border-dark">
+              <span class="text-sm text-secondary dark:text-secondary-dark" id="edit-color-preview"></span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述</label>
+            <textarea id="edit-tag-description" name="tag[description]" rows="3" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="可选：添加标签描述"></textarea>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('edit-tag-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <script>
   // 颜色选择器预览
   document.addEventListener('DOMContentLoaded', () => {
@@ -96,5 +136,25 @@
         colorPreview.textContent = e.target.value
       })
     }
+    
+    // 编辑弹窗颜色预览
+    const editColorInput = document.getElementById('edit-tag-color')
+    const editColorPreview = document.getElementById('edit-color-preview')
+    
+    if (editColorInput && editColorPreview) {
+      editColorInput.addEventListener('input', (e) => {
+        editColorPreview.textContent = e.target.value
+      })
+    }
   })
+
+  function openEditTagModal(id, name, color, description) {
+    const form = document.getElementById('edit-tag-form')
+    form.action = '/tags/' + id
+    document.getElementById('edit-tag-name').value = name
+    document.getElementById('edit-tag-color').value = color
+    document.getElementById('edit-color-preview').textContent = color
+    document.getElementById('edit-tag-description').value = description
+    document.getElementById('edit-tag-modal').classList.remove('hidden')
+  }
 </script>

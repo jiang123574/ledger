@@ -25,7 +25,7 @@ class TagsController < ApplicationController
     if @tag.update(tag_params)
       redirect_to tags_path, notice: "标签已更新"
     else
-      render :edit, status: :unprocessable_entity
+      redirect_to tags_path, alert: @tag.errors.full_messages.join(", ")
     end
   end
 
