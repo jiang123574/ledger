@@ -33,9 +33,9 @@ class CounterpartiesController < ApplicationController
     @counterparty = Counterparty.new(counterparty_params)
 
     if @counterparty.save
-      redirect_back_or_to settings_path(anchor: "contacts"), notice: "联系人已创建"
+      redirect_to counterparties_path, notice: "交易对方已创建"
     else
-      render :new, status: :unprocessable_content
+      redirect_to counterparties_path, alert: @counterparty.errors.full_messages.join(", ")
     end
   end
 
@@ -46,7 +46,7 @@ class CounterpartiesController < ApplicationController
     if @counterparty.update(counterparty_params)
       redirect_to counterparties_path, notice: "交易对方已更新"
     else
-      render :edit, status: :unprocessable_content
+      redirect_to counterparties_path, alert: @counterparty.errors.full_messages.join(", ")
     end
   end
 
