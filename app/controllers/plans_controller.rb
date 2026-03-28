@@ -5,6 +5,7 @@ class PlansController < ApplicationController
     @plans = Plan.includes(:account).order(:name)
     @active_plans = @plans.select(&:active?)
     @completed_plans = @plans.reject(&:active?)
+    @accounts = Account.order(:name)
   end
 
   def show
