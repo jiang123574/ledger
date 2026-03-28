@@ -51,7 +51,7 @@ class AccountsController < ApplicationController
     if @account.save
       redirect_to accounts_path, notice: "账户已创建"
     else
-      render :new
+      redirect_to accounts_path, alert: @account.errors.full_messages.join(", ")
     end
   end
 
@@ -59,7 +59,7 @@ class AccountsController < ApplicationController
     if @account.update(account_params)
       redirect_to accounts_path, notice: "账户已更新"
     else
-      render :edit
+      redirect_to accounts_path, alert: @account.errors.full_messages.join(", ")
     end
   end
 

@@ -32,7 +32,7 @@ class TransactionsController < ApplicationController
     if @transaction.save
       handle_successful_save("交易已创建")
     else
-      render :new, status: :unprocessable_entity
+      redirect_to transactions_path, alert: @transaction.errors.full_messages.join(", ")
     end
   end
 
@@ -40,7 +40,7 @@ class TransactionsController < ApplicationController
     if @transaction.update(transaction_params)
       handle_successful_save("交易已更新")
     else
-      render :edit, status: :unprocessable_entity
+      redirect_to transactions_path, alert: @transaction.errors.full_messages.join(", ")
     end
   end
 
