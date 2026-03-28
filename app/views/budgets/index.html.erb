@@ -143,13 +143,11 @@
 
         <div id="budget-items-table">
           <div class="flex justify-between items-center mb-4">
-            <h3 class="font-semibold text-primary dark:text-primary-dark">预算项目</h3>
-            <% if @selected_budget %>
-              <button onclick="openAddItemModal(<%= @selected_budget.id %>)" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-colors flex items-center gap-1">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                添加项目
-              </button>
-            <% end %>
+            <h3 class="font-semibold text-primary dark:text-primary-dark">预算明细</h3>
+            <button id="add-item-btn" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-colors flex items-center gap-1">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+              添加明细
+            </button>
           </div>
           <div class="overflow-x-auto">
             <table class="w-full">
@@ -233,6 +231,7 @@
     var select = document.getElementById('budget-select');
     if (select) select.value = budgetId;
     window.currentBudgetId = budgetId;
+    document.getElementById('add-item-btn').classList.remove('hidden');
     fetch('/budgets/' + budgetId + '/data')
       .then(function(response) { return response.json(); })
       .then(function(data) {
@@ -495,7 +494,7 @@
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('new-item-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-6">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">添加预算项</h3>
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">添加明细</h3>
         <button type="button" onclick="document.getElementById('new-item-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
