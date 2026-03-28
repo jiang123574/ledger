@@ -34,8 +34,9 @@ class PlansController < ApplicationController
     if @plan.save
       redirect_to plans_path, notice: t("plans.created")
     else
-      @accounts = Account.order(:name)
-      render :new, status: :unprocessable_content
+      redirect_to plans_path, alert: @plan.errors.full_messages.join(", ")
+    end
+  end
     end
   end
 
@@ -52,9 +53,9 @@ class PlansController < ApplicationController
 
       redirect_to plans_path, notice: t("plans.updated")
     else
-      @accounts = Account.order(:name)
-      render :edit, status: :unprocessable_content
+      redirect_to plans_path, alert: @plan.errors.full_messages.join(", ")
     end
+  end
   end
 
   def destroy
