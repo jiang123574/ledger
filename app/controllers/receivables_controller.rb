@@ -1,5 +1,6 @@
 class ReceivablesController < ApplicationController
   before_action :set_receivable, only: %i[show edit update destroy settle]
+  before_action :check_not_settled, only: %i[edit update destroy]
 
   def index
     @receivables = Receivable.includes(:source_transaction, :counterparty, :account)
@@ -92,6 +93,12 @@ class ReceivablesController < ApplicationController
 
   def set_receivable
     @receivable = Receivable.find(params[:id])
+  end
+
+  def check_not_settled
+    if @receivable.settled?
+      redirect_to receivables_path, alert: "已完成的报销无法修改或删除"
+    end
   end
 
   def receivable_params

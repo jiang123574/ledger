@@ -50,6 +50,7 @@
               <div class="flex items-center gap-2 ml-4">
                 <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600 transition-smooth btn-modern">报销</button>
                 <%= link_to "编辑", edit_receivable_path(receivable), class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+                <%= button_to "删除", receivable, method: :delete, onclick: "if(!confirm('确定删除此报销记录？')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/40 transition-smooth btn-modern" %>
               </div>
             </div>
           </div>
