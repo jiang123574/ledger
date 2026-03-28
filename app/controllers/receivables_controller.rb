@@ -37,7 +37,7 @@ class ReceivablesController < ApplicationController
       )
       redirect_to receivables_path, notice: "应收款已创建"
     else
-      render :new
+      redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
     end
   end
 
@@ -48,7 +48,7 @@ class ReceivablesController < ApplicationController
     if @receivable.update(receivable_params)
       redirect_to receivables_path, notice: "应收款已更新"
     else
-      render :edit
+      redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
     end
   end
 
