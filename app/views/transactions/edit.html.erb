@@ -22,6 +22,12 @@
             收入
           </span>
         </button>
+        <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="TRANSFER">
+          <span class="flex items-center justify-center gap-2">
+            <%= render(Ds::IconComponent.new(name: "arrow-right-left", size: :sm)) %>
+            转账
+          </span>
+        </button>
       </div>
       <%= f.hidden_field :type, id: "transaction_type", value: @transaction.type %>
 
