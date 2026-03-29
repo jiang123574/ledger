@@ -157,9 +157,10 @@ zh-CN:
     executed: "计划已执行，交易已创建"
     execute_failed: "计划执行失败"
     need_account: "计划需要关联账户才能执行"
-    already_completed: "该分期计划已完成"
+    already_completed: "该计划已完成"
     one_time: "一次性"
     installment: "分期还款"
+    mortgage: "房贷"
     recurring: "周期支出"
 
   recurring:
