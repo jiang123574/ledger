@@ -231,7 +231,10 @@
     fetch('<%= pixiu_upload_imports_path %>', {
       method: 'POST',
       body: formData,
-      headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'text/html'
+      }
     })
     .then(res => {
       if (res.redirected) {
