@@ -1,25 +1,12 @@
-<!-- 交易编辑弹窗 -->
-<div id="transaction-edit-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
-  <div class="fixed inset-0 bg-black/50" onclick="closeTransactionModal()"></div>
-  
-  <div class="flex items-center justify-center min-h-screen p-4">
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8">
-      <!-- 关闭按钮 -->
-      <button type="button" onclick="closeTransactionModal()" class="absolute top-4 right-4 p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-colors">
-        <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
+<!-- 交易编辑弹窗内容 -->
+<div class="mb-6">
+  <h2 class="text-2xl font-bold text-primary dark:text-primary-dark mb-2">
+    编辑交易
+  </h2>
+</div>
 
-      <!-- 标题 -->
-      <div class="mb-6">
-        <h2 class="text-2xl font-bold text-primary dark:text-primary-dark mb-2">
-          编辑交易
-        </h2>
-      </div>
-
-      <!-- 表单 -->
-      <%= form_with model: @transaction, local: true, id: "transaction-edit-form", class: "space-y-6" do |f| %>
+<!-- 表单 -->
+<%= form_with model: @transaction, local: false, id: "transaction-edit-form", class: "space-y-6" do |f| %>
         <!-- Transaction Type Tabs -->
         <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-1 flex">
           <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="EXPENSE">
@@ -82,7 +69,7 @@
         </div>
 
         <div class="flex justify-end gap-3 pt-4 border-t border-border dark:border-border-dark">
-          <button type="button" onclick="closeTransactionModal()" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
+          <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
             取消
           </button>
           <%= render(Ds::ButtonComponent.new(type: :submit, variant: :primary)) do %>
@@ -90,19 +77,8 @@
           <% end %>
         </div>
       <% end %>
-    </div>
-  </div>
-</div>
 
 <script>
-  function closeTransactionModal() {
-    document.getElementById('transaction-edit-modal').classList.add('hidden');
-  }
-
-  function openTransactionModal() {
-    document.getElementById('transaction-edit-modal').classList.remove('hidden');
-  }
-
   document.querySelectorAll('.type-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
       document.querySelectorAll('.type-tab').forEach(function(t) {
@@ -133,4 +109,28 @@
     document.getElementById('category-field').classList.add('hidden');
     document.getElementById('target-account-field').classList.remove('hidden');
   }
+  
+  // 表单提交后刷新页面
+  document.getElementById('transaction-edit-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = this;
+    const formData = new FormData(form);
+    
+    fetch(form.action, {
+      method: 'PATCH',
+      body: formData,
+      headers: { 'Accept': 'text/html' }
+    })
+    .then(res => {
+      if (res.ok) {
+        document.getElementById('edit-transaction-modal').classList.add('hidden');
+        window.location.reload();
+      } else {
+        return res.text().then(html => {
+          document.getElementById('edit-transaction-content').innerHTML = html;
+        });
+      }
+    })
+    .catch(err => console.error('Error saving transaction:', err));
+  });
 </script>

@@ -146,6 +146,22 @@
   </div>
 </div>
 
+<!-- 编辑交易弹窗 -->
+<div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')"></div>
+  
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8">
+      <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-colors">
+        <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div id="edit-transaction-content"></div>
+    </div>
+  </div>
+</div>
+
 <script>
 const expenseCategoryOptions = <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
 const incomeCategoryOptions = <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
@@ -232,27 +248,13 @@ document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 
 // 编辑交易弹窗
 function editTransaction(transactionId) {
-  // 通过 AJAX 获取交易数据并打开编辑弹窗
   fetch(`/transactions/${transactionId}/edit`, {
-    headers: { 'Accept': 'text/html' }
+    headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' }
   })
   .then(res => res.text())
   .then(html => {
-    // 创建临时容器来解析 HTML
-    const temp = document.createElement('div');
-    temp.innerHTML = html;
-    
-    // 找到编辑弹窗并显示
-    const modal = temp.querySelector('#transaction-edit-modal');
-    if (modal) {
-      // 替换现有的弹窗或添加新的
-      const existingModal = document.getElementById('transaction-edit-modal');
-      if (existingModal) {
-        existingModal.remove();
-      }
-      document.body.appendChild(modal);
-      modal.classList.remove('hidden');
-    }
+    document.getElementById('edit-transaction-content').innerHTML = html;
+    document.getElementById('edit-transaction-modal').classList.remove('hidden');
   })
   .catch(err => console.error('Error loading transaction:', err));
 }
