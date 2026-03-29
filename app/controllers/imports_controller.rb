@@ -8,14 +8,14 @@ class ImportsController < ApplicationController
     when 2
       # Preview step
       if session[:pixiu_file_path].blank?
-        redirect_to imports_pixiu_path(step: 1), alert: "请先上传文件"
+        redirect_to pixiu_imports_path(step: 1), alert: "请先上传文件"
         return
       end
       load_preview_data
     when 3
       # Configure mapping
       if session[:pixiu_file_path].blank?
-        redirect_to imports_pixiu_path(step: 1), alert: "请先上传文件"
+        redirect_to pixiu_imports_path(step: 1), alert: "请先上传文件"
         return
       end
       load_mapping_data
@@ -29,13 +29,13 @@ class ImportsController < ApplicationController
     file = params[:file]
     
     unless file.present?
-      redirect_to imports_pixiu_path(step: 1), alert: "请选择文件"
+      redirect_to pixiu_imports_path(step: 1), alert: "请选择文件"
       return
     end
 
     # Validate file
     unless file.content_type == 'text/csv' || file.original_filename.end_with?('.csv')
-      redirect_to imports_pixiu_path(step: 1), alert: "请上传 CSV 文件"
+      redirect_to pixiu_imports_path(step: 1), alert: "请上传 CSV 文件"
       return
     end
 
@@ -46,14 +46,14 @@ class ImportsController < ApplicationController
     session[:pixiu_file_path] = temp_path.to_s
     session[:pixiu_file_name] = file.original_filename
 
-    redirect_to imports_pixiu_path(step: 2)
+    redirect_to pixiu_imports_path(step: 2)
   end
 
   def pixiu_confirm
     file_path = session[:pixiu_file_path]
     
     unless file_path.present? && File.exist?(file_path)
-      redirect_to imports_pixiu_path(step: 1), alert: "文件已过期，请重新上传"
+      redirect_to pixiu_imports_path(step: 1), alert: "文件已过期，请重新上传"
       return
     end
 
@@ -71,7 +71,7 @@ class ImportsController < ApplicationController
     # Clean up temp file
     File.delete(file_path) if File.exist?(file_path)
 
-    redirect_to imports_pixiu_path(step: 4)
+    redirect_to pixiu_imports_path(step: 4)
   end
 
   private
