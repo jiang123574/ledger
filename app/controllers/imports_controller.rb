@@ -146,7 +146,18 @@ class ImportsController < ApplicationController
 
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       next if row['日期'].blank?
-      accounts_set << row['资金账户'].strip if row['资金账户'].present?
+      
+      account_str = row['资金账户'].strip if row['资金账户'].present?
+      
+      # 处理转账：分离出两个账户
+      if account_str && account_str.include?('→')
+        parts = account_str.split('→').map(&:strip)
+        accounts_set << parts[0]
+        accounts_set << parts[1]
+      elsif account_str
+        accounts_set << account_str
+      end
+      
       categories_set << row['收支大类'].strip if row['收支大类'].present?
     end
 
