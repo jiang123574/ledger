@@ -461,8 +461,7 @@ function syncPeriodInputType() {
   // 处理"全部"选项
   if (periodType === 'all') {
     if (periodValueContainer) periodValueContainer.style.display = 'none';
-    applyFilters();
-    return;
+    return; // 不调用 applyFilters，让 change 事件处理
   } else {
     if (periodValueContainer) periodValueContainer.style.display = '';
   }
