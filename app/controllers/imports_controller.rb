@@ -145,7 +145,8 @@ class ImportsController < ApplicationController
     
     # Collect all unique account and category names
     accounts_set = Set.new
-    categories_set = Set.new
+    parent_categories_set = Set.new
+    child_categories_map = {}  # { parent_name => [child_names] }
 
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       next if row['日期'].blank?
@@ -162,7 +163,17 @@ class ImportsController < ApplicationController
       end
       
       # 收支大类 = 父分类
-      categories_set << row['收支大类'].strip if row['收支大类'].present?
+      parent_name = row['收支大类']&.strip
+      if parent_name.present?
+        parent_categories_set << parent_name
+        
+        # 交易类型 = 子分类
+        child_name = row['交易类型']&.strip
+        if child_name.present?
+          child_categories_map[parent_name] ||= Set.new
+          child_categories_map[parent_name] << child_name
+        end
+      end
     end
 
     # Create default mappings
@@ -173,9 +184,16 @@ class ImportsController < ApplicationController
     end
 
     @categories_map = {}
-    categories_set.each do |name|
-      category = Category.find_or_create_by(name: name, category_type: 'EXPENSE') { |c| c.active = true }
-      @categories_map[name] = category
+    parent_categories_set.each do |parent_name|
+      parent_category = Category.find_or_create_by(name: parent_name, parent_id: nil, category_type: 'EXPENSE') { |c| c.active = true }
+      @categories_map[parent_name] = parent_category
+      
+      # 创建子分类
+      if child_categories_map[parent_name]
+        child_categories_map[parent_name].each do |child_name|
+          Category.find_or_create_by(name: child_name, parent_id: parent_category.id, category_type: 'EXPENSE') { |c| c.active = true }
+        end
+      end
     end
   end
 
@@ -287,9 +305,19 @@ class ImportsController < ApplicationController
           next
         end
 
-        category_name = row['收支大类'].strip
-        category_name = '其他' if category_name.blank?
-        category = categories_map[category_name]
+        # 使用子分类（交易类型）作为分类
+        parent_name = row['收支大类']&.strip
+        child_name = row['交易类型']&.strip
+        
+        # 优先使用子分类，如果没有则使用父分类
+        if child_name.present? && parent_name.present?
+          parent_category = categories_map[parent_name]
+          child_category = parent_category&.children&.find_by(name: child_name)
+          category = child_category || parent_category
+        else
+          parent_name = parent_name.presence || '其他'
+          category = categories_map[parent_name]
+        end
 
         unless category
           result[:skipped] += 1
