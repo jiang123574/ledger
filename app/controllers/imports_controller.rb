@@ -194,9 +194,15 @@ class ImportsController < ApplicationController
       # 创建子分类
       if child_categories_map[parent_name]
         child_categories_map[parent_name].each do |child_name|
-          Category.find_or_create_by(name: child_name, parent_id: parent_category.id) do |c|
-            c.type = 'EXPENSE'
-            c.active = true
+          # 先查询，如果不存在再创建
+          child_category = Category.find_by(name: child_name, parent_id: parent_category.id)
+          unless child_category
+            child_category = Category.create!(
+              name: child_name,
+              parent_id: parent_category.id,
+              type: 'EXPENSE',
+              active: true
+            )
           end
         end
       end
