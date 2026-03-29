@@ -282,6 +282,7 @@
           <!-- Plan Type (readonly display) -->
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-2">计划类型</label>
+            <input type="hidden" id="edit-plan-type" name="plan[type]">
             <div id="edit-plan-type-display" class="p-4 border border-border dark:border-border-dark rounded-lg bg-surface-inset dark:bg-surface-dark-inset text-primary dark:text-primary-dark"></div>
           </div>
 
@@ -506,6 +507,7 @@
     // Set type display
     const typeLabels = { 'INSTALLMENT': '💳 分期还款', 'MORTGAGE': '🏠 房贷', 'RECURRING': '🔄 周期支出', 'ONE_TIME': '🔄 周期支出' }
     document.getElementById('edit-plan-type-display').textContent = typeLabels[type] || type
+    document.getElementById('edit-plan-type').value = type
     
     // Set fields
     document.getElementById('edit-plan-name').value = name
