@@ -78,7 +78,7 @@ module ApplicationHelper
   def icon_container_classes(is_active)
     [
       "w-8 h-8 flex items-center justify-center rounded-lg",
-      is_active ? "bg-blue-100 text-blue-600" : ""
+      is_active ? "bg-gray-200 dark:bg-surface-dark-hover text-primary dark:text-primary-dark" : "bg-gray-100 dark:bg-surface-dark-inset"
     ].join(" ")
   end
 

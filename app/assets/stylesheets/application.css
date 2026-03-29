@@ -124,6 +124,51 @@
   background-color: color-mix(in srgb, var(--color-expense, #ef4444) 15%, transparent) !important;
 }
 
+.bg-income-soft {
+  background-color: color-mix(in srgb, var(--color-income, #22c55e) 10%, transparent) !important;
+}
+
+.bg-expense-soft {
+  background-color: color-mix(in srgb, var(--color-expense, #ef4444) 10%, transparent) !important;
+}
+
+.border-income-soft {
+  border-color: color-mix(in srgb, var(--color-income, #22c55e) 35%, transparent) !important;
+}
+
+.border-expense-soft {
+  border-color: color-mix(in srgb, var(--color-expense, #ef4444) 35%, transparent) !important;
+}
+
+/* Unified income/expense icon chips */
+.ie-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.ie-icon-chip-sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.ie-icon-chip-md {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.ie-icon-income {
+  background-color: color-mix(in srgb, var(--color-income, #22c55e) 14%, transparent) !important;
+  color: var(--color-income, #22c55e) !important;
+}
+
+.ie-icon-expense {
+  background-color: color-mix(in srgb, var(--color-expense, #ef4444) 14%, transparent) !important;
+  color: var(--color-expense, #ef4444) !important;
+}
+
 /* Additional dark mode fixes for hardcoded colors */
 .dark .bg-white,
 [data-theme="dark"] .bg-white {

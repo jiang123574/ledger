@@ -1,8 +1,8 @@
 <% content_for :page_title, t('plans.title') %>
 
-<div class="space-y-6">
+<div class="space-y-4">
   <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark"><%= t('plans.title') %></h1>
+    <h1 class="text-xl font-semibold text-primary dark:text-primary-dark"><%= t('plans.title') %></h1>
     <button onclick="openNewPlanModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover">
       <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
       <%= t('plans.new_plan') %>
@@ -23,17 +23,17 @@
   <% else %>
     <!-- Active Plans -->
     <% if @active_plans.any? %>
-      <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-primary dark:text-primary-dark"><%= t('plans.in_progress', default: '进行中的计划') %></h2>
-        <div class="grid gap-4">
+      <div class="space-y-3">
+        <h2 class="text-base font-semibold text-primary dark:text-primary-dark"><%= t('plans.in_progress', default: '进行中的计划') %></h2>
+        <div class="grid gap-3">
           <% @active_plans.each do |plan| %>
-            <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-inverse' : 'border-green-500' %>">
+            <div class="bg-container dark:bg-container-dark rounded-lg shadow p-3 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-inverse' : 'border-green-500' %>">
               <div class="flex justify-between items-start">
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <h3 class="font-semibold text-primary dark:text-primary-dark"><%= plan.name %></h3>
                     <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark' : 'bg-green-100 text-green-700' %>">
-                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::RECURRING ? t('plans.recurring') : t('plans.one_time')) %>
+                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : t('plans.recurring') %>
                     </span>
                   </div>
 
@@ -83,17 +83,17 @@
 
     <!-- Completed Plans -->
     <% if @completed_plans.any? %>
-      <div class="space-y-4">
-        <h2 class="text-lg font-semibold text-secondary dark:text-secondary-dark"><%= t('plans.completed_inactive', default: '已完成/已停用') %></h2>
-        <div class="grid gap-4">
+      <div class="space-y-3">
+        <h2 class="text-base font-semibold text-secondary dark:text-secondary-dark"><%= t('plans.completed_inactive', default: '已完成/已停用') %></h2>
+        <div class="grid gap-3">
           <% @completed_plans.each do |plan| %>
-            <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4 border-l-4 border-border dark:border-border-dark opacity-75">
+            <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 border-l-4 border-border dark:border-border-dark opacity-75">
               <div class="flex justify-between items-center">
                 <div>
                   <div class="flex items-center gap-2">
                     <h3 class="font-semibold text-secondary dark:text-secondary-dark"><%= plan.name %></h3>
                     <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
-                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::RECURRING ? t('plans.recurring') : t('plans.one_time')) %>
+                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : t('plans.recurring') %>
                     </span>
                     <% if plan.type == Plan::INSTALLMENT && plan.completed? %>
                       <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">✓ <%= t('plans.completed', default: '已完成') %></span>
@@ -120,28 +120,20 @@
 <div id="new-plan-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('new-plan-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建计划</h3>
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建计划</h3>
         <button type="button" onclick="document.getElementById('new-plan-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
       <form id="new-plan-form" method="post" action="<%= plans_path %>">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-        <div class="space-y-6">
+        <div class="space-y-5">
           <!-- Plan Type -->
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-2">计划类型</label>
-            <div class="grid grid-cols-3 gap-4">
-              <label class="plan-type-label relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset border-border dark:border-border-dark" data-type="ONE_TIME">
-                <input type="radio" name="plan[type]" value="ONE_TIME" class="sr-only">
-                <div class="text-center">
-                  <div class="text-2xl mb-1">📌</div>
-                  <div class="font-medium text-primary dark:text-primary-dark text-sm">一次性</div>
-                  <div class="text-xs text-secondary dark:text-secondary-dark">单次支出计划</div>
-                </div>
-              </label>
+            <div class="grid grid-cols-2 gap-4">
               <label class="plan-type-label relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset border-border dark:border-border-dark" data-type="INSTALLMENT">
                 <input type="radio" name="plan[type]" value="INSTALLMENT" class="sr-only">
                 <div class="text-center">
@@ -150,8 +142,8 @@
                   <div class="text-xs text-secondary dark:text-secondary-dark">信用卡分期等</div>
                 </div>
               </label>
-              <label class="plan-type-label relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset border-border dark:border-border-dark" data-type="RECURRING">
-                <input type="radio" name="plan[type]" value="RECURRING" class="sr-only">
+              <label class="plan-type-label relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset border-inverse bg-surface dark:bg-surface-dark" data-type="RECURRING">
+                <input type="radio" name="plan[type]" value="RECURRING" class="sr-only" checked>
                 <div class="text-center">
                   <div class="text-2xl mb-1">🔄</div>
                   <div class="font-medium text-primary dark:text-primary-dark text-sm">周期支出</div>
@@ -165,11 +157,11 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">计划名称</label>
-              <input type="text" name="plan[name]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="例如: 花呗分期">
+              <input type="text" name="plan[name]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="例如: 花呗分期">
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">关联账户</label>
-              <select name="plan[account_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <select name="plan[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
                 <option value="">选择账户...</option>
                 <% @accounts.each do |account| %>
                   <option value="<%= account.id %>"><%= account.name %></option>
@@ -185,12 +177,12 @@
                 <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">总金额</label>
                 <div class="relative">
                   <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                  <input type="number" id="new-plan-total-amount" name="plan[total_amount]" step="0.01" class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                  <input type="number" id="new-plan-total-amount" name="plan[total_amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
                 </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">期数</label>
-                <input type="number" id="new-plan-installments" name="plan[installments_total]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="12">
+                <input type="number" id="new-plan-installments" name="plan[installments_total]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="12">
               </div>
             </div>
             <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
@@ -203,15 +195,15 @@
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <input type="number" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+              <input type="number" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
             </div>
           </div>
 
           <!-- Day of Month -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">每月还款日</label>
-              <select name="plan[day_of_month]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">每月执行日</label>
+              <select name="plan[day_of_month]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
                 <% (1..31).each do |d| %>
                   <option value="<%= d %>"><%= d %>日</option>
                 <% end %>
@@ -219,7 +211,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">货币</label>
-              <select name="plan[currency]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <select name="plan[currency]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
                 <option value="CNY">CNY</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -235,9 +227,9 @@
             <label for="new-plan-active" class="text-sm text-primary dark:text-primary-dark">启用计划</label>
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
-          <button type="button" onclick="document.getElementById('new-plan-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">创建计划</button>
+        <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-border dark:border-border-dark">
+          <button type="button" onclick="document.getElementById('new-plan-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">创建计划</button>
         </div>
       </form>
     </div>
@@ -248,9 +240,9 @@
 <div id="edit-plan-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-plan-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑计划</h3>
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">编辑计划</h3>
         <button type="button" onclick="document.getElementById('edit-plan-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
@@ -258,7 +250,7 @@
       <form id="edit-plan-form" method="post">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <input type="hidden" name="_method" value="patch">
-        <div class="space-y-6">
+        <div class="space-y-5">
           <!-- Plan Type (readonly display) -->
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-2">计划类型</label>
@@ -269,11 +261,11 @@
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">计划名称</label>
-              <input type="text" id="edit-plan-name" name="plan[name]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="text" id="edit-plan-name" name="plan[name]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">关联账户</label>
-              <select id="edit-plan-account" name="plan[account_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <select id="edit-plan-account" name="plan[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
                 <option value="">选择账户...</option>
                 <% @accounts.each do |account| %>
                   <option value="<%= account.id %>"><%= account.name %></option>
@@ -289,12 +281,12 @@
                 <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">总金额</label>
                 <div class="relative">
                   <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                  <input type="number" id="edit-plan-total-amount" name="plan[total_amount]" step="0.01" class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                  <input type="number" id="edit-plan-total-amount" name="plan[total_amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
                 </div>
               </div>
               <div>
                 <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">期数</label>
-                <input type="number" id="edit-plan-installments" name="plan[installments_total]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <input type="number" id="edit-plan-installments" name="plan[installments_total]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               </div>
             </div>
             <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
@@ -307,15 +299,15 @@
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <input type="number" id="edit-plan-amount" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="number" id="edit-plan-amount" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
           </div>
 
           <!-- Day of Month -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">每月还款日</label>
-              <select id="edit-plan-day" name="plan[day_of_month]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">每月执行日</label>
+              <select id="edit-plan-day" name="plan[day_of_month]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
                 <% (1..31).each do |d| %>
                   <option value="<%= d %>"><%= d %>日</option>
                 <% end %>
@@ -323,7 +315,7 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">货币</label>
-              <select id="edit-plan-currency" name="plan[currency]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <select id="edit-plan-currency" name="plan[currency]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
                 <option value="CNY">CNY</option>
                 <option value="USD">USD</option>
                 <option value="EUR">EUR</option>
@@ -340,8 +332,8 @@
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
-          <button type="button" onclick="document.getElementById('edit-plan-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+          <button type="button" onclick="document.getElementById('edit-plan-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       </form>
     </div>
@@ -409,7 +401,7 @@
     form.action = '/plans/' + id
     
     // Set type display
-    const typeLabels = { 'ONE_TIME': '📌 一次性', 'INSTALLMENT': '💳 分期还款', 'RECURRING': '🔄 周期支出' }
+    const typeLabels = { 'INSTALLMENT': '💳 分期还款', 'RECURRING': '🔄 周期支出', 'ONE_TIME': '🔄 周期支出' }
     document.getElementById('edit-plan-type-display').textContent = typeLabels[type] || type
     
     // Set fields

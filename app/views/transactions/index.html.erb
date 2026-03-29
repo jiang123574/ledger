@@ -42,11 +42,11 @@
       <% @transactions.each do |t| %>
         <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
           <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-full flex items-center justify-center <%= t.type == "INCOME" ? "bg-income dark:bg-income-light" : "bg-expense dark:bg-expense-light" %>">
+            <div class="ie-icon-chip ie-icon-chip-sm <%= t.type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
               <% if t.type == "INCOME" %>
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
               <% else %>
-                <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
               <% end %>
             </div>
             <div class="flex-1 min-w-0">
@@ -74,6 +74,9 @@
 </div>
 
 <!-- Quick Transaction Modal -->
+<% expense_transaction_categories = @categories.select { |c| c.category_type == "EXPENSE" || c.type == "EXPENSE" } %>
+<% income_transaction_categories = @categories.select { |c| c.category_type == "INCOME" || c.type == "INCOME" } %>
+<% funding_source_accounts = @accounts %>
 <div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
@@ -85,7 +88,21 @@
         </button>
       </div>
       <%= form_with model: @transaction, url: transactions_path, method: :post, local: true do |f| %>
+        <%= f.hidden_field :currency, value: "CNY" %>
+        <%= f.hidden_field :type, value: (@transaction.type.presence || "EXPENSE"), id: "transaction-type-input" %>
         <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">类型 *</label>
+            <div class="grid grid-cols-3 gap-2" id="transaction-type-cards">
+              <button type="button" data-transaction-type="EXPENSE" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">支出</button>
+              <button type="button" data-transaction-type="INCOME" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">收入</button>
+              <button type="button" data-transaction-type="TRANSFER" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">转账</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">日期 *</label>
+            <%= f.date_field :date, value: Date.current, required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">金额 *</label>
             <div class="relative">
@@ -97,9 +114,22 @@
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
             <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">分类</label>
-            <%= f.collection_select :category_id, @categories, :id, :name, { include_blank: "选择分类" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          <div id="funding-account-field">
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">实际资金来源（可选）</label>
+            <%= select_tag :funding_account_id,
+                  options_for_select(funding_source_accounts.map { |a| [a.name, a.id] }),
+                  include_blank: "不补记资金来源",
+                  id: "funding-account-select",
+                  class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">选择后会自动创建“来源账户 → 当前账户”的转账，再记录这笔支出。</p>
+          </div>
+          <div id="target-account-field" class="hidden">
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">转入账户 *</label>
+            <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "选择转入账户" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div id="transaction-category-field">
+            <label id="transaction-category-label" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">支出分类</label>
+            <%= f.select :category_id, options_for_select(expense_transaction_categories.map { |c| [c.name, c.id] }), { include_blank: "选择支出分类" }, id: "transaction-category-select", class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
@@ -108,9 +138,95 @@
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="submit" name="continue_entry" value="1" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">保存并继续</button>
           <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       <% end %>
     </div>
   </div>
 </div>
+
+<script>
+const expenseCategoryOptions = <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
+const incomeCategoryOptions = <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
+const transactionTypeInput = document.getElementById('transaction-type-input');
+const transactionTypeCards = document.querySelectorAll('#transaction-type-cards .transaction-type-card');
+const targetAccountField = document.getElementById('target-account-field');
+const targetAccountInput = document.querySelector('#add-transaction-modal select[name="transaction[target_account_id]"]');
+const fundingAccountField = document.getElementById('funding-account-field');
+const fundingAccountSelect = document.getElementById('funding-account-select');
+const categoryField = document.getElementById('transaction-category-field');
+const categoryLabel = document.getElementById('transaction-category-label');
+const categorySelect = document.getElementById('transaction-category-select');
+
+function setCategoryOptions(options, placeholder) {
+  if (!categorySelect) return;
+  categorySelect.innerHTML = '';
+  const blankOption = document.createElement('option');
+  blankOption.value = '';
+  blankOption.textContent = placeholder;
+  categorySelect.appendChild(blankOption);
+
+  options.forEach((option) => {
+    const el = document.createElement('option');
+    el.value = option.id;
+    el.textContent = option.name;
+    categorySelect.appendChild(el);
+  });
+}
+
+function applyTransactionTypeUI() {
+  const type = transactionTypeInput?.value || 'EXPENSE';
+  const isTransfer = type === 'TRANSFER';
+  const isIncome = type === 'INCOME';
+
+  transactionTypeCards.forEach((card) => {
+    const active = card.dataset.transactionType === type;
+    card.className = active
+      ? 'transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth bg-surface-inset dark:bg-surface-dark-inset border-border dark:border-border-dark text-primary dark:text-primary-dark'
+      : 'transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth bg-white dark:bg-surface-dark border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover';
+  });
+
+  if (targetAccountField && targetAccountInput) {
+    targetAccountField.classList.toggle('hidden', !isTransfer);
+    targetAccountInput.required = isTransfer;
+    if (!isTransfer) targetAccountInput.value = '';
+  }
+
+  if (fundingAccountField && fundingAccountSelect) {
+    const showFunding = type === 'EXPENSE';
+    fundingAccountField.classList.toggle('hidden', !showFunding);
+    if (!showFunding) fundingAccountSelect.value = '';
+  }
+
+  if (categoryField && categorySelect && categoryLabel) {
+    categoryField.classList.toggle('hidden', isTransfer);
+    if (isTransfer) {
+      categorySelect.required = false;
+      categorySelect.value = '';
+    } else if (isIncome) {
+      categoryLabel.textContent = '收入分类';
+      setCategoryOptions(incomeCategoryOptions, '选择收入分类');
+      categorySelect.required = true;
+    } else {
+      categoryLabel.textContent = '支出分类';
+      setCategoryOptions(expenseCategoryOptions, '选择支出分类');
+      categorySelect.required = true;
+    }
+  }
+}
+
+transactionTypeCards.forEach((card) => {
+  card.addEventListener('click', function() {
+    if (!transactionTypeInput) return;
+    transactionTypeInput.value = this.dataset.transactionType;
+    applyTransactionTypeUI();
+  });
+});
+
+applyTransactionTypeUI();
+
+<% if params[:open_new_transaction] == "1" %>
+document.getElementById('add-transaction-modal')?.classList.remove('hidden');
+<% end %>
+</script>

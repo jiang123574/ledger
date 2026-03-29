@@ -1,21 +1,27 @@
-<div class="flex flex-col lg:flex-row gap-6">
+<div class="space-y-4 sm:space-y-6">
+  <div class="flex flex-col gap-1">
+    <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark">预算管理</h1>
+    <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark">查看预算执行进度，按项目精细控制支出</p>
+  </div>
+
+<div class="flex flex-col lg:flex-row gap-5">
   <aside class="w-full lg:w-72 flex-shrink-0">
-    <div class="bg-container dark:bg-container-dark rounded-xl shadow-sm border border-border dark:border-border-dark sticky top-20">
-      <div class="p-4 border-b border-border dark:border-border-dark">
+    <div class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs border border-border dark:border-border-dark overflow-hidden sticky top-20">
+      <div class="p-3 border-b border-border dark:border-border-dark">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-semibold text-primary dark:text-primary-dark"><%= t("single_budgets.title") %></h2>
-          <button onclick="document.getElementById('new-budget-modal').classList.remove('hidden')" class="p-2 rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-colors" title="<%= t('single_budgets.new') %>">
+          <button onclick="document.getElementById('new-budget-modal').classList.remove('hidden')" class="p-2 rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" title="<%= t('single_budgets.new') %>">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
           </button>
         </div>
         <div class="flex flex-wrap gap-1">
-          <%= link_to budgets_path(month: @month), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status].blank? ? 'bg-inverse text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover'}" do %>
+          <%= link_to budgets_path(month: @month), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status].blank? ? 'bg-inverse text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface dark:hover:bg-surface-dark'} transition-smooth" do %>
             <%= t("single_budgets.all") %>
           <% end %>
           <% SingleBudget::STATUSES.each do |status| %>
-            <%= link_to budgets_path(month: @month, status: status), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status] == status ? 'bg-inverse text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover'}" do %>
+            <%= link_to budgets_path(month: @month, status: status), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status] == status ? 'bg-inverse text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface dark:hover:bg-surface-dark'} transition-smooth" do %>
               <%= case status when 'planning' then '规划' when 'active' then '进行' when 'completed' then '完成' when 'cancelled' then '取消' end %>
             <% end %>
           <% end %>
@@ -26,16 +32,16 @@
           <button
             type="button"
             data-budget-id="<%= budget.id %>"
-            class="budget-nav-item w-full p-4 text-left border-b border-border dark:border-border-dark last:border-b-0 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors <%= @selected_budget&.id == budget.id ? 'bg-surface dark:bg-surface-dark' : '' %>"
+            class="budget-nav-item w-full p-3 text-left border-b border-border dark:border-border-dark last:border-b-0 hover:bg-surface dark:hover:bg-surface-dark transition-smooth <%= @selected_budget&.id == budget.id ? 'bg-surface dark:bg-surface-dark' : '' %>"
             onclick="window.selectBudget(<%= budget.id %>)">
             <div class="flex justify-between items-start mb-1">
               <span class="font-medium text-primary dark:text-primary-dark truncate"><%= budget.name %></span>
               <span class="text-xs px-1.5 py-0.5 rounded flex-shrink-0 <%= 
                 case budget.status
                 when 'planning' then 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
-                when 'active' then 'bg-blue-100 text-blue-700 dark:bg-blue-900/50 dark:text-blue-400'
-                when 'completed' then 'bg-green-100 text-green-700 dark:bg-green-900/50 dark:text-green-400'
-                when 'cancelled' then 'bg-red-100 text-red-700 dark:bg-red-900/50 dark:text-red-400'
+                when 'active' then 'bg-income-soft text-income'
+                when 'completed' then 'bg-income-light text-income'
+                when 'cancelled' then 'bg-expense-light text-expense'
                 end
               %>">
                 <%= budget.status_text %>
@@ -48,7 +54,7 @@
             </div>
             <% percentage = budget.progress_percentage %>
             <div class="mt-2 h-1.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
-              <div class="h-full rounded-full <%= percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-blue-500') %>" style="width: <%= [percentage, 100].min %>%"></div>
+              <div class="h-full rounded-full <%= percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income') %>" style="width: <%= [percentage, 100].min %>%"></div>
             </div>
           </button>
         <% end %>
@@ -62,20 +68,19 @@
   </aside>
 
   <div class="flex-1 min-w-0">
-    <div class="bg-container dark:bg-container-dark rounded-xl shadow-sm border border-border dark:border-border-dark">
-      <div class="p-4 border-b border-border dark:border-border-dark flex flex-wrap items-center gap-3">
+    <div class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs border border-border dark:border-border-dark overflow-hidden">
+      <div class="p-3 border-b border-border dark:border-border-dark flex flex-wrap items-center gap-2.5">
         <div class="flex items-center gap-2">
-          <select id="budget-select" class="border border-border dark:border-border-dark rounded-lg px-3 py-2 text-sm bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-            <option value=""><%= t("single_budgets.all") %></option>
-            <% @single_budgets.each do |budget| %>
-              <option value="<%= budget.id %>"><%= budget.name %></option>
+          <select id="budget-select" class="border border-border dark:border-border-dark rounded-lg px-3 py-1.5 text-sm bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <% @single_budgets.each_with_index do |budget, index| %>
+              <option value="<%= budget.id %>" <%= (@selected_budget&.id == budget.id || (@selected_budget.blank? && index == 0)) ? 'selected' : '' %>><%= budget.name %></option>
             <% end %>
           </select>
           <% if @selected_budget %>
-            <button onclick="document.getElementById('edit-budget-modal').classList.remove('hidden')" class="p-2 rounded-lg border border-border dark:border-border-dark bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" title="编辑">
+            <button onclick="document.getElementById('edit-budget-modal').classList.remove('hidden')" class="p-2 rounded-lg border border-border dark:border-border-dark bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth" title="编辑">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
             </button>
-            <button onclick="if(confirm('确定删除此预算？')) { document.getElementById('delete-budget-form').submit() }" class="p-2 rounded-lg border border-border dark:border-border-dark bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-red-100 dark:hover:bg-red-900/30 hover:text-red-600 dark:hover:text-red-400 transition-colors" title="删除">
+            <button onclick="if(confirm('确定删除此预算？')) { document.getElementById('delete-budget-form').submit() }" class="p-2 rounded-lg border border-border dark:border-border-dark bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth" title="删除">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
             </button>
             <form action="<%= single_budget_path(@selected_budget) %>" method="post" id="delete-budget-form" style="display:none">
@@ -86,24 +91,14 @@
         </div>
         <div class="flex-1"></div>
         <div class="flex items-center gap-2">
-          <%= form_tag budgets_path, method: :get, class: "flex items-center gap-2" do %>
-            <%= month_field_tag :month, @month, class: "border border-border dark:border-border-dark rounded-lg px-3 py-2 text-sm bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500" %>
-            <%= hidden_field_tag :status, params[:status] if params[:status].present? %>
-            <%= submit_tag "跳转", class: "px-3 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" %>
-          <% end %>
           <label class="flex items-center gap-2 text-sm text-secondary dark:text-secondary-dark cursor-pointer">
-            <input type="checkbox" id="hide-zero" class="w-4 h-4 rounded border-border dark:border-border-dark text-blue-600 focus:ring-blue-500" <%= params[:hide_zero] == '1' ? 'checked' : '' %>>
+            <input type="checkbox" id="hide-zero" class="w-4 h-4 rounded border-border dark:border-border-dark text-secondary focus:ring-gray-400" <%= params[:hide_zero] == '1' ? 'checked' : '' %>>
             <span>隐藏零金额</span>
           </label>
-          <button type="button" class="p-2 rounded-lg border border-border dark:border-border-dark bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" title="导出">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-          </button>
         </div>
       </div>
 
-      <div class="p-4">
+      <div class="p-3">
         <div id="budget-overview" class="mb-6">
           <% budget = @selected_budget || @single_budgets.first %>
           <% if budget %>
@@ -111,27 +106,27 @@
             <% spent_amount = budget.spent_amount %>
             <% remaining = budget.remaining_amount %>
             <% percentage = budget.progress_percentage %>
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl p-4">
-                <div class="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">预算总额</div>
-                <div class="text-2xl font-bold text-blue-700 dark:text-blue-300"><%= format_currency(total_amount) %></div>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div class="bg-surface dark:bg-surface-dark rounded-xl p-3 border border-border dark:border-border-dark">
+                <div class="text-xs font-medium text-secondary dark:text-secondary-dark mb-1">预算总额</div>
+                <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= format_currency(total_amount) %></div>
               </div>
-              <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded-xl p-4">
-                <div class="text-xs font-medium text-orange-600 dark:text-orange-400 mb-1">已支出</div>
-                <div class="text-2xl font-bold text-orange-700 dark:text-orange-300"><%= format_currency(spent_amount) %></div>
+              <div class="bg-expense-soft rounded-xl p-3 border border-expense-soft">
+                <div class="text-xs font-medium text-expense mb-1">已支出</div>
+                <div class="text-2xl font-bold text-expense"><%= format_currency(spent_amount) %></div>
               </div>
-              <div class="bg-gradient-to-br <%= remaining >= 0 ? 'from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30' : 'from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30' %> rounded-xl p-4">
-                <div class="text-xs font-medium <%= remaining >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400' %> mb-1">剩余</div>
-                <div class="text-2xl font-bold <%= remaining >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300' %>"><%= format_currency(remaining.abs) %></div>
+              <div class="<%= remaining >= 0 ? 'bg-income-soft border-income-soft' : 'bg-expense-soft border-expense-soft' %> rounded-xl p-3 border">
+                <div class="text-xs font-medium <%= remaining >= 0 ? 'text-income' : 'text-expense' %> mb-1">剩余</div>
+                <div class="text-2xl font-bold <%= remaining >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(remaining.abs) %></div>
               </div>
             </div>
             <div class="mt-4">
               <div class="flex justify-between text-sm mb-2">
                 <span class="text-secondary dark:text-secondary-dark">执行进度</span>
-                <span class="font-medium <%= percentage > 100 ? 'text-red-500' : (percentage > 80 ? 'text-yellow-500' : 'text-blue-500') %>"><%= percentage %>%</span>
+                <span class="font-medium <%= percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-income') %>"><%= percentage %>%</span>
               </div>
               <div class="h-4 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
-                <div class="h-full rounded-full <%= percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-blue-500') %> transition-all" style="width: <%= [percentage, 100].min %>%"></div>
+                <div class="h-full rounded-full <%= percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income') %> transition-all" style="width: <%= [percentage, 100].min %>%"></div>
               </div>
             </div>
           <% else %>
@@ -144,7 +139,7 @@
         <div id="budget-items-table">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold text-primary dark:text-primary-dark">预算明细</h3>
-            <button id="add-item-btn" data-budget-id="" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-colors flex items-center gap-1">
+            <button id="add-item-btn" data-budget-id="" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
               添加明细
             </button>
@@ -153,11 +148,11 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border dark:border-border-dark">
-                  <th class="text-left py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">名称</th>
-                  <th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>
-                  <th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>
-                  <th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>
-                  <th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">进度</th>
+                  <th class="text-left py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">名称</th>
+                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>
+                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>
+                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>
+                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">进度</th>
                 </tr>
               </thead>
               <tbody>
@@ -165,8 +160,8 @@
                   <% @selected_budget.budget_items.each do |item| %>
                     <% item_percentage = item.progress_percentage %>
                     <% item_remaining = item.remaining_amount %>
-                    <tr class="border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors">
-                      <td class="py-3 px-2">
+                    <tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+                      <td class="py-2.5 px-2">
                         <div class="flex items-center gap-2">
                           <span class="font-medium text-primary dark:text-primary-dark"><%= item.name %></span>
                           <% if item.category %>
@@ -174,22 +169,22 @@
                           <% end %>
                         </div>
                       </td>
-                      <td class="py-3 px-2 text-right font-medium text-primary dark:text-primary-dark"><%= format_currency(item.amount) %></td>
-                      <td class="py-3 px-2 text-right text-secondary dark:text-secondary-dark"><%= format_currency(item.spent_amount) %></td>
-                      <td class="py-3 px-2 text-right font-medium <%= item_remaining >= 0 ? 'text-blue-500' : 'text-red-500' %>"><%= format_currency(item_remaining.abs) %></td>
-                      <td class="py-3 px-2">
+                      <td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark"><%= format_currency(item.amount) %></td>
+                      <td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark"><%= format_currency(item.spent_amount) %></td>
+                      <td class="py-2.5 px-2 text-right font-medium <%= item_remaining >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(item_remaining.abs) %></td>
+                      <td class="py-2.5 px-2">
                         <div class="flex items-center gap-2 justify-end">
                           <div class="w-20 h-2 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
-                            <div class="h-full rounded-full <%= item_percentage > 100 ? 'bg-red-500' : (item_percentage > 80 ? 'bg-yellow-500' : 'bg-blue-500') %>" style="width: <%= [item_percentage, 100].min %>%"></div>
+                            <div class="h-full rounded-full <%= item_percentage > 100 ? 'bg-expense' : (item_percentage > 80 ? 'bg-expense-soft' : 'bg-income') %>" style="width: <%= [item_percentage, 100].min %>%"></div>
                           </div>
-                          <span class="text-xs <%= item_percentage > 100 ? 'text-red-500' : (item_percentage > 80 ? 'text-yellow-500' : 'text-secondary dark:text-secondary-dark') %>"><%= item_percentage %>%</span>
-                          <button onclick="openEditItemModal(<%= item.id %>, '<%= j item.name %>', <%= item.amount %>, '<%= j(item.category || '') %>', '<%= j(item.notes || '') %>')" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">
+                          <span class="text-xs <%= item_percentage > 100 ? 'text-expense' : (item_percentage > 80 ? 'text-expense' : 'text-secondary dark:text-secondary-dark') %>"><%= item_percentage %>%</span>
+                          <button onclick="openEditItemModal(<%= item.id %>, '<%= j item.name %>', <%= item.amount %>, '<%= j(item.category || '') %>', '<%= j(item.notes || '') %>')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                           </button>
                           <form action="/single_budgets/<%= @selected_budget.id %>/budget_items/<%= item.id %>" method="post" style="display:inline" onsubmit="if(!confirm('确定删除此项目？')) return false">
                             <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                             <input type="hidden" name="_method" value="delete">
-                            <button type="submit" class="p-1 rounded hover:bg-red-100 dark:hover:bg-red-900/30 text-secondary dark:text-secondary-dark hover:text-red-600 dark:hover:text-red-400 transition-smooth" title="删除">
+                            <button type="submit" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth" title="删除">
                               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                             </button>
                           </form>
@@ -217,6 +212,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 
 <script>
@@ -257,7 +253,7 @@
     var form = document.getElementById('edit-item-form');
     form.action = '/single_budgets/' + window.currentBudgetId + '/budget_items/' + itemId;
     document.getElementById('edit-item-category').value = category || '';
-    document.getElementById('edit-item-name').value = category || '';
+    document.getElementById('edit-item-name').value = name || '';
     document.getElementById('edit-item-amount').value = amount;
     document.getElementById('edit-item-notes').value = notes || '';
     document.getElementById('edit-item-modal').classList.remove('hidden');
@@ -268,20 +264,21 @@
     if (!container || !data) return;
     var remaining = data.total_amount - data.spent_amount;
     var percentage = data.total_amount > 0 ? (data.spent_amount / data.total_amount * 100).toFixed(1) : 0;
-    var colorClass = percentage > 100 ? 'from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/30' : 
-                     (percentage > 80 ? 'from-yellow-50 to-yellow-100 dark:from-yellow-900/30 dark:to-yellow-800/30' : 'from-emerald-50 to-emerald-100 dark:from-emerald-900/30 dark:to-emerald-800/30');
-    var remainingColor = remaining >= 0 ? 'text-emerald-700 dark:text-emerald-300' : 'text-red-700 dark:text-red-300';
+    var remainingCardClass = remaining >= 0 ? 'bg-income-soft border border-income-soft' : 'bg-expense-soft border border-expense-soft';
+    var remainingColor = remaining >= 0 ? 'text-income' : 'text-expense';
+    var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income');
+    var progressTextColor = percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-income');
     container.innerHTML = 
-      '<div class="grid grid-cols-1 sm:grid-cols-3 gap-4">' +
-        '<div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/30 rounded-xl p-4">' +
-          '<div class="text-xs font-medium text-blue-600 dark:text-blue-400 mb-1">预算总额</div>' +
-          '<div class="text-2xl font-bold text-blue-700 dark:text-blue-300">' + data.formatted_total + '</div>' +
+      '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' +
+        '<div class="bg-surface dark:bg-surface-dark rounded-xl p-3 border border-border dark:border-border-dark">' +
+          '<div class="text-xs font-medium text-secondary dark:text-secondary-dark mb-1">预算总额</div>' +
+          '<div class="text-2xl font-bold text-primary dark:text-primary-dark">' + data.formatted_total + '</div>' +
         '</div>' +
-        '<div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/30 dark:to-orange-800/30 rounded-xl p-4">' +
-          '<div class="text-xs font-medium text-orange-600 dark:text-orange-400 mb-1">已支出</div>' +
-          '<div class="text-2xl font-bold text-orange-700 dark:text-orange-300">' + data.formatted_spent + '</div>' +
+        '<div class="bg-expense-soft rounded-xl p-3 border border-expense-soft">' +
+          '<div class="text-xs font-medium text-expense mb-1">已支出</div>' +
+          '<div class="text-2xl font-bold text-expense">' + data.formatted_spent + '</div>' +
         '</div>' +
-        '<div class="bg-gradient-to-br ' + colorClass + ' rounded-xl p-4">' +
+        '<div class="' + remainingCardClass + ' rounded-xl p-3">' +
           '<div class="text-xs font-medium ' + remainingColor + ' mb-1">剩余</div>' +
           '<div class="text-2xl font-bold ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + data.currency_symbol + Math.abs(remaining).toFixed(2) + '</div>' +
         '</div>' +
@@ -289,10 +286,10 @@
       '<div class="mt-4">' +
         '<div class="flex justify-between text-sm mb-2">' +
           '<span class="text-secondary dark:text-secondary-dark">执行进度</span>' +
-          '<span class="font-medium ' + (percentage > 100 ? 'text-red-500' : (percentage > 80 ? 'text-yellow-500' : 'text-blue-500')) + '">' + percentage + '%</span>' +
+          '<span class="font-medium ' + progressTextColor + '">' + percentage + '%</span>' +
         '</div>' +
         '<div class="h-4 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">' +
-          '<div class="h-full rounded-full ' + (percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-blue-500')) + ' transition-all" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
+          '<div class="h-full rounded-full ' + progressColor + ' transition-all" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
         '</div>' +
       '</div>';
   }
@@ -332,19 +329,19 @@
     var rows = items.map(function(item) {
       var remaining = item.amount - item.spent_amount;
       var percentage = item.amount > 0 ? (item.spent_amount / item.amount * 100).toFixed(1) : 0;
-      var progressColor = percentage > 100 ? 'bg-red-500' : (percentage > 80 ? 'bg-yellow-500' : 'bg-blue-500');
-      var remainingColor = remaining >= 0 ? 'text-blue-500' : 'text-red-500';
-      return '<tr class="border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors">' +
-        '<td class="py-3 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + item.name + '</span></td>' +
-        '<td class="py-3 px-2 text-right font-medium text-primary dark:text-primary-dark">' + item.formatted_amount + '</td>' +
-        '<td class="py-3 px-2 text-right text-secondary dark:text-secondary-dark">' + item.formatted_spent + '</td>' +
-        '<td class="py-3 px-2 text-right font-medium ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + item.currency_symbol + Math.abs(remaining).toFixed(2) + '</td>' +
-        '<td class="py-3 px-2">' +
+      var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income');
+      var remainingColor = remaining >= 0 ? 'text-income' : 'text-expense';
+      return '<tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">' +
+        '<td class="py-2.5 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + item.name + '</span></td>' +
+        '<td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark">' + item.formatted_amount + '</td>' +
+        '<td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark">' + item.formatted_spent + '</td>' +
+        '<td class="py-2.5 px-2 text-right font-medium ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + item.currency_symbol + Math.abs(remaining).toFixed(2) + '</td>' +
+        '<td class="py-2.5 px-2">' +
           '<div class="flex items-center gap-2 justify-end">' +
             '<div class="w-20 h-2 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">' +
               '<div class="h-full rounded-full ' + progressColor + '" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
             '</div>' +
-            '<span class="text-xs ' + (percentage > 100 ? 'text-red-500' : (percentage > 80 ? 'text-yellow-500' : 'text-secondary dark:text-secondary-dark')) + '">' + percentage + '%</span>' +
+            '<span class="text-xs ' + (percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-secondary dark:text-secondary-dark')) + '">' + percentage + '%</span>' +
           '</div>' +
         '</td>' +
       '</tr>';
@@ -373,9 +370,11 @@
   document.addEventListener('DOMContentLoaded', function() {
     var select = document.getElementById('budget-select');
     if (select) {
-      // 页面加载时检查是否有选中的预算
       if (select.value) {
         document.getElementById('add-item-btn').classList.remove('hidden');
+        if (!window.currentBudgetId) {
+          window.selectBudget(parseInt(select.value, 10));
+        }
       }
       
       select.addEventListener('change', function() {
@@ -395,10 +394,10 @@
 <div id="new-budget-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('new-budget-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建预算</h3>
-        <button type="button" onclick="document.getElementById('new-budget-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <button type="button" onclick="document.getElementById('new-budget-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -408,38 +407,38 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算名称 *</label>
-            <%= f.text_field :name, required: true, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500", placeholder: "例如：装修预算" %>
+            <%= f.text_field :name, required: true, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500", placeholder: "例如：装修预算" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算总额</label>
-            <div class="px-3 py-2 text-sm rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
+            <div class="px-3 py-1.5 text-sm rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
               添加项目后自动计算
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">货币</label>
-            <%= f.select :currency, ["CNY", "USD", "EUR", "GBP", "JPY"], { selected: "CNY" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <%= f.select :currency, ["CNY", "USD", "EUR", "GBP", "JPY"], { selected: "CNY" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">开始日期 *</label>
-            <%= f.date_field :start_date, required: true, value: Date.today, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <%= f.date_field :start_date, required: true, value: Date.today, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">结束日期</label>
-            <%= f.date_field :end_date, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <%= f.date_field :end_date, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">状态</label>
-            <%= f.select :status, [["规划中", "planning"], ["进行中", "active"]], { selected: "planning" }, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <%= f.select :status, [["规划中", "planning"], ["进行中", "active"]], { selected: "planning" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
         </div>
         <div class="mt-4">
           <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">描述</label>
-          <%= f.text_area :description, rows: 2, class: "w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500", placeholder: "预算描述（可选）" %>
+          <%= f.text_area :description, rows: 2, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500", placeholder: "预算描述（可选）" %>
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
-          <button type="button" onclick="document.getElementById('new-budget-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">创建预算</button>
+          <button type="button" onclick="document.getElementById('new-budget-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">创建预算</button>
         </div>
       <% end %>
     </div>
@@ -450,10 +449,10 @@
 <div id="edit-budget-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-budget-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-6 max-h-[90vh] overflow-y-auto">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-4 max-h-[90vh] overflow-y-auto">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑预算</h3>
-        <button type="button" onclick="document.getElementById('edit-budget-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <button type="button" onclick="document.getElementById('edit-budget-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -464,34 +463,34 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算名称 *</label>
-            <input type="text" name="single_budget[name]" value="<%= @selected_budget.name %>" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="single_budget[name]" value="<%= @selected_budget.name %>" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算总额</label>
-            <div class="px-3 py-2 text-sm rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark">
+            <div class="px-3 py-1.5 text-sm rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark">
               ¥ <%= format_currency(@selected_budget.budget_items.sum(:amount)) %>
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">货币</label>
-            <select name="single_budget[currency]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="single_budget[currency]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="CNY" <%= @selected_budget.currency == 'CNY' ? 'selected' : '' %>>CNY</option>
               <option value="USD" <%= @selected_budget.currency == 'USD' ? 'selected' : '' %>>USD</option>
               <option value="EUR" <%= @selected_budget.currency == 'EUR' ? 'selected' : '' %>>EUR</option>
-              <option value="GBP" <%= @selected_budget.currency == 'GBP' ? 'selected' : '' %>>JPY</option>
+              <option value="GBP" <%= @selected_budget.currency == 'GBP' ? 'selected' : '' %>>GBP</option>
             </select>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">开始日期 *</label>
-            <input type="date" name="single_budget[start_date]" value="<%= @selected_budget.start_date %>" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="date" name="single_budget[start_date]" value="<%= @selected_budget.start_date %>" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">结束日期</label>
-            <input type="date" name="single_budget[end_date]" value="<%= @selected_budget.end_date %>" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="date" name="single_budget[end_date]" value="<%= @selected_budget.end_date %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">状态</label>
-            <select name="single_budget[status]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="single_budget[status]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="planning" <%= @selected_budget.status == 'planning' ? 'selected' : '' %>>规划中</option>
               <option value="active" <%= @selected_budget.status == 'active' ? 'selected' : '' %>>进行中</option>
               <option value="completed" <%= @selected_budget.status == 'completed' ? 'selected' : '' %>>已完成</option>
@@ -501,11 +500,11 @@
         </div>
         <div class="mt-4">
           <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">描述</label>
-          <textarea name="single_budget[description]" rows="2" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"><%= @selected_budget.description %></textarea>
+          <textarea name="single_budget[description]" rows="2" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"><%= @selected_budget.description %></textarea>
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
-          <button type="button" onclick="document.getElementById('edit-budget-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存修改</button>
+          <button type="button" onclick="document.getElementById('edit-budget-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存修改</button>
         </div>
       </form>
       <% end %>
@@ -517,10 +516,10 @@
 <div id="new-item-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('new-item-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-6">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">添加明细</h3>
-        <button type="button" onclick="document.getElementById('new-item-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <button type="button" onclick="document.getElementById('new-item-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -529,7 +528,7 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
-            <select name="budget_item[category]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" onchange="this.nextElementSibling.value = this.value">
+            <select name="budget_item[category]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" onchange="this.nextElementSibling.value = this.value">
               <option value="">选择分类</option>
               <% Category.expense.each do |cat| %>
                 <option value="<%= cat.name %>"><%= cat.full_name %></option>
@@ -541,17 +540,17 @@
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <input type="number" name="budget_item[amount]" step="0.01" required class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+              <input type="number" name="budget_item[amount]" step="0.01" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">备注</label>
-            <input type="text" name="budget_item[notes]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="可选备注">
+            <input type="text" name="budget_item[notes]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="可选备注">
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('new-item-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">添加</button>
+          <button type="button" onclick="document.getElementById('new-item-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">添加</button>
         </div>
       </form>
     </div>
@@ -562,10 +561,10 @@
 <div id="edit-item-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-item-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-6">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑项目</h3>
-        <button type="button" onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <button type="button" onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -575,7 +574,7 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
-            <select id="edit-item-category" name="budget_item[category]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select id="edit-item-category" name="budget_item[category]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择分类</option>
               <% Category.expense.each do |cat| %>
                 <option value="<%= cat.name %>"><%= cat.full_name %></option>
@@ -587,17 +586,17 @@
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <input type="number" id="edit-item-amount" name="budget_item[amount]" step="0.01" required class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="number" id="edit-item-amount" name="budget_item[amount]" step="0.01" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">备注</label>
-            <input type="text" id="edit-item-notes" name="budget_item[notes]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="edit-item-notes" name="budget_item[notes]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存修改</button>
+          <button type="button" onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存修改</button>
         </div>
       </form>
     </div>

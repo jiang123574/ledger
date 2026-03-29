@@ -144,7 +144,7 @@ zh-CN:
     type: "类型"
     amount: "金额"
     account: "账户"
-    day_of_month: "每月还款日"
+    day_of_month: "每月执行日"
     active: "启用"
     inactive: "停用"
     status: "状态"
