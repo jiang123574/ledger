@@ -114,29 +114,60 @@
       <div class="flex flex-wrap gap-2 items-end">
         <div class="flex-1 min-w-[140px]">
           <input type="text" id="search-input" placeholder="搜索备注、分类..." value="<%= params[:search] %>" 
-                 class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                 class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+        </div>
+        <div class="w-24">
+          <% selected_period_type = params[:period_type].presence || "month" %>
+          <select id="period-type-filter" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+            <option value="week" <%= selected_period_type == 'week' ? 'selected' : '' %>>按周</option>
+            <option value="month" <%= selected_period_type == 'month' ? 'selected' : '' %>>按月</option>
+            <option value="year" <%= selected_period_type == 'year' ? 'selected' : '' %>>按年</option>
+          </select>
+        </div>
+        <div class="w-[220px]">
+          <% selected_period_value = params[:period_value].presence || case selected_period_type
+             when "year" then Date.current.year.to_s
+             when "week" then Date.current.strftime("%G-W%V")
+             else Date.current.strftime("%Y-%m")
+             end %>
+          <div class="flex items-center gap-1">
+            <button type="button"
+                    id="period-prev-btn"
+                    onclick="shiftPeriod(-1)"
+                    class="px-2.5 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"
+                    aria-label="上一期">
+              ‹
+            </button>
+            <input id="period-value-filter"
+                   type="month"
+                   value="<%= selected_period_value %>"
+                   class="flex-1 min-w-0 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+            <button type="button"
+                    id="period-next-btn"
+                    onclick="shiftPeriod(1)"
+                    class="px-2.5 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"
+                    aria-label="下一期">
+              ›
+            </button>
+          </div>
         </div>
         <div class="w-28">
-          <select id="type-filter" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+          <select id="type-filter" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
             <option value="">全部类型</option>
             <option value="INCOME" <%= params[:type] == 'INCOME' ? 'selected' : '' %>>收入</option>
             <option value="EXPENSE" <%= params[:type] == 'EXPENSE' ? 'selected' : '' %>>支出</option>
             <option value="TRANSFER" <%= params[:type] == 'TRANSFER' ? 'selected' : '' %>>转账</option>
           </select>
         </div>
-        <div class="w-28">
-          <input type="date" id="start-date" value="<%= params[:start_date] %>" 
-                 class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+        <div class="min-w-[120px]">
+          <% selected_category_ids = Array(params[:category_ids]).reject(&:blank?) %>
+          <button type="button" id="open-category-filter"
+                  class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+            分类筛选<%= selected_category_ids.any? ? " (#{selected_category_ids.size})" : "" %>
+          </button>
         </div>
-        <div class="w-28">
-          <input type="date" id="end-date" value="<%= params[:end_date] %>" 
-                 class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
-        </div>
-        <button onclick="applyFilters()" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
-          筛选
-        </button>
-        <% if params[:search] || params[:type] || params[:start_date] || params[:end_date] || params[:account_id] %>
-          <button onclick="clearFilters()" class="px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">
+        <% if params[:search] || params[:type] || params[:period_type] || params[:period_value] || params[:category_ids].present? || params[:account_id] %>
+          <button onclick="clearFilters()" class="px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">
             清除
           </button>
         <% end %>
@@ -150,19 +181,19 @@
           <% @transactions.each do |t| %>
             <div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
               <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0 <%= t.type == 'INCOME' ? 'bg-income/10' : 'bg-expense/10' %>">
+                <div class="ie-icon-chip ie-icon-chip-sm <%= t.type == 'INCOME' ? 'ie-icon-income' : 'ie-icon-expense' %>">
                   <% if t.type == 'INCOME' %>
-                    <svg class="w-4 h-4 text-income" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
                   <% else %>
-                    <svg class="w-4 h-4 text-expense" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
                   <% end %>
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
                     <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%= 
                       case t.type
-                      when 'INCOME' then 'bg-income/10 text-income'
-                      when 'EXPENSE' then 'bg-expense/10 text-expense'
+                      when 'INCOME' then 'bg-income-light text-income'
+                      when 'EXPENSE' then 'bg-expense-light text-expense'
                       when 'TRANSFER' then 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
                       else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                       end %>">
@@ -182,7 +213,7 @@
                   <button onclick="openEditTransactionModal(<%= t.id %>, '<%= j t.date&.strftime("%Y-%m-%d") %>', '<%= t.amount %>', '<%= t.account_id %>', '<%= t.category_id %>', '<%= j t.note || '' %>', '<%= t.type %>')" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
-                  <button onclick="confirmDeleteTransaction(<%= t.id %>, '<%= j t.category&.name || t.display_type %>')" class="p-1.5 rounded-lg hover:bg-expense/10 text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
+                  <button onclick="confirmDeleteTransaction(<%= t.id %>, '<%= j t.category&.name || t.display_type %>')" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
@@ -196,11 +227,151 @@
             <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
           </div>
           <p class="text-secondary dark:text-secondary-dark text-sm">暂无交易记录</p>
-          <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="mt-3 px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
+          <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="mt-3 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
             新建第一笔交易
           </button>
         </div>
       <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- 新建账户弹窗 -->
+<div id="add-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-account-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建账户</h3>
+        <button type="button" onclick="document.getElementById('add-account-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <%= form_with model: Account.new, url: accounts_path, method: :post, local: true do |f| %>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户名称 *</label>
+            <%= f.text_field :name, required: true, placeholder: "例如：招商银行卡", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户类型</label>
+            <%= f.select :type, Account::ACCOUNT_TYPES.map { |k, v| [v, k] }, { include_blank: "选择类型" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">初始余额</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <%= f.number_field :initial_balance, step: "0.01", placeholder: "0.00", class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('add-account-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- 新建交易弹窗 -->
+<% expense_transaction_categories = @categories.select { |c| c.category_type == "EXPENSE" || c.type == "EXPENSE" } %>
+<% income_transaction_categories = @categories.select { |c| c.category_type == "INCOME" || c.type == "INCOME" } %>
+<% funding_source_accounts = @accounts %>
+<div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建交易</h3>
+        <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <%= form_with model: @transaction, url: transactions_path, method: :post, local: true do |f| %>
+        <%= f.hidden_field :currency, value: "CNY" %>
+        <%= f.hidden_field :type, value: (@transaction.type.presence || "EXPENSE"), id: "transaction-type-input" %>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">类型 *</label>
+            <div class="grid grid-cols-3 gap-2" id="transaction-type-cards">
+              <button type="button" data-transaction-type="EXPENSE" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">支出</button>
+              <button type="button" data-transaction-type="INCOME" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">收入</button>
+              <button type="button" data-transaction-type="TRANSFER" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">转账</button>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">日期 *</label>
+            <%= f.date_field :date, value: Date.current, required: true, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">金额 *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
+            <%= f.collection_select :account_id, @accounts, :id, :name, { include_blank: "选择账户" }, required: true, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div id="funding-account-field">
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">实际资金来源（可选）</label>
+            <%= select_tag :funding_account_id,
+                  options_for_select(funding_source_accounts.map { |a| [a.name, a.id] }),
+                  include_blank: "不补记资金来源",
+                  id: "funding-account-select",
+                  class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">选择后会自动创建“来源账户 → 当前账户”的转账，再记录这笔支出。</p>
+          </div>
+          <div id="target-account-field" class="hidden">
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">转入账户 *</label>
+            <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "选择转入账户" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div id="transaction-category-field">
+            <label id="transaction-category-label" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">支出分类</label>
+            <%= f.select :category_id, options_for_select(expense_transaction_categories.map { |c| [c.name, c.id] }), { include_blank: "选择支出分类" }, id: "transaction-category-select", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
+            <%= f.text_field :note, placeholder: "添加备注", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="submit" name="continue_entry" value="1" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">保存并继续</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- 分类多选弹窗 -->
+<div id="category-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('category-filter-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
+        <button type="button" onclick="document.getElementById('category-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="max-h-80 overflow-y-auto space-y-2 border border-border dark:border-border-dark rounded-lg p-3">
+        <% @categories.each do |category| %>
+          <label class="flex items-center gap-2 py-1 cursor-pointer">
+            <input type="checkbox" class="category-filter-option w-4 h-4 rounded border-border dark:border-border-dark"
+                   value="<%= category.id %>"
+                   <%= selected_category_ids.include?(category.id.to_s) ? "checked" : "" %>>
+            <span class="text-sm text-primary dark:text-primary-dark"><%= category.name %></span>
+          </label>
+        <% end %>
+      </div>
+      <div class="flex justify-end gap-3 mt-4">
+        <button type="button" onclick="document.getElementById('category-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+        <button type="button" id="confirm-category-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+      </div>
     </div>
   </div>
 </div>
@@ -220,18 +391,21 @@ function toggleAccountList() {
 }
 
 // 筛选功能
+let selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
+
 function applyFilters() {
   const params = new URLSearchParams();
   const search = document.getElementById('search-input').value;
   const type = document.getElementById('type-filter').value;
-  const startDate = document.getElementById('start-date').value;
-  const endDate = document.getElementById('end-date').value;
+  const periodType = document.getElementById('period-type-filter').value;
+  const periodValue = document.getElementById('period-value-filter').value;
   const accountId = '<%= params[:account_id] %>';
   
   if (search) params.append('search', search);
   if (type) params.append('type', type);
-  if (startDate) params.append('start_date', startDate);
-  if (endDate) params.append('end_date', endDate);
+  if (periodType) params.append('period_type', periodType);
+  if (periodValue) params.append('period_value', periodValue);
+  selectedCategoryIds.forEach(id => params.append('category_ids[]', id));
   if (accountId) params.append('account_id', accountId);
   
   window.location.href = '/accounts?' + params.toString();
@@ -244,6 +418,12 @@ function clearFilters() {
   } else {
     window.location.href = '/accounts';
   }
+}
+
+function updateCategoryFilterButtonLabel() {
+  const btn = document.getElementById('open-category-filter');
+  if (!btn) return;
+  btn.textContent = selectedCategoryIds.length > 0 ? `分类筛选 (${selectedCategoryIds.length})` : "分类筛选";
 }
 
 function filterByAccount(id) {
@@ -264,4 +444,202 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
     applyFilters();
   }
 });
+
+function syncPeriodInputType() {
+  const periodTypeEl = document.getElementById('period-type-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
+  if (!periodTypeEl || !periodValueEl) return;
+
+  const periodType = periodTypeEl.value;
+  const today = new Date();
+
+  if (periodType === 'week') {
+    periodValueEl.type = 'week';
+    if (!periodValueEl.value || !/^\d{4}-W\d{2}$/.test(periodValueEl.value)) {
+      const temp = new Date(today.getTime());
+      temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
+      const weekYear = temp.getFullYear();
+      const firstThursday = new Date(weekYear, 0, 4);
+      const weekNumber = Math.ceil((((temp - firstThursday) / 86400000) + firstThursday.getDay() + 1) / 7);
+      periodValueEl.value = `${weekYear}-W${String(weekNumber).padStart(2, '0')}`;
+    }
+  } else if (periodType === 'year') {
+    periodValueEl.type = 'number';
+    periodValueEl.min = '2000';
+    periodValueEl.max = '2100';
+    periodValueEl.step = '1';
+    if (!/^\d{4}$/.test(periodValueEl.value)) {
+      periodValueEl.value = String(today.getFullYear());
+    }
+  } else {
+    periodValueEl.type = 'month';
+    periodValueEl.min = '';
+    periodValueEl.max = '';
+    periodValueEl.step = '';
+    if (!/^\d{4}-\d{2}$/.test(periodValueEl.value)) {
+      periodValueEl.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+    }
+  }
+}
+
+function shiftPeriod(direction) {
+  const periodTypeEl = document.getElementById('period-type-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
+  if (!periodTypeEl || !periodValueEl) return;
+
+  const periodType = periodTypeEl.value;
+  const currentValue = periodValueEl.value;
+
+  if (periodType === 'year') {
+    const year = parseInt(currentValue, 10);
+    if (!Number.isNaN(year)) {
+      periodValueEl.value = String(year + direction);
+    }
+  } else if (periodType === 'month') {
+    const match = currentValue.match(/^(\d{4})-(\d{2})$/);
+    if (match) {
+      let year = parseInt(match[1], 10);
+      let month = parseInt(match[2], 10) + direction;
+      if (month < 1) {
+        month = 12;
+        year -= 1;
+      } else if (month > 12) {
+        month = 1;
+        year += 1;
+      }
+      periodValueEl.value = `${year}-${String(month).padStart(2, '0')}`;
+    }
+  } else if (periodType === 'week') {
+    const match = currentValue.match(/^(\d{4})-W(\d{2})$/);
+    if (match) {
+      const isoYear = parseInt(match[1], 10);
+      const isoWeek = parseInt(match[2], 10);
+      const monday = Date.fromISOWeek(isoYear, isoWeek);
+      monday.setDate(monday.getDate() + (direction * 7));
+      periodValueEl.value = monday.toISOWeekString();
+    }
+  }
+
+  applyFilters();
+}
+
+Date.fromISOWeek = function(year, week) {
+  const jan4 = new Date(year, 0, 4);
+  const day = jan4.getDay() || 7;
+  const monday = new Date(jan4);
+  monday.setDate(jan4.getDate() - day + 1 + ((week - 1) * 7));
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+};
+
+Date.prototype.toISOWeekString = function() {
+  const date = new Date(this);
+  const day = date.getDay() || 7;
+  date.setDate(date.getDate() + 4 - day);
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  const week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  return `${date.getFullYear()}-W${String(week).padStart(2, '0')}`;
+};
+
+document.getElementById('period-type-filter')?.addEventListener('change', syncPeriodInputType);
+syncPeriodInputType();
+document.getElementById('period-type-filter')?.addEventListener('change', applyFilters);
+document.getElementById('period-value-filter')?.addEventListener('change', applyFilters);
+document.getElementById('type-filter')?.addEventListener('change', applyFilters);
+
+document.getElementById('open-category-filter')?.addEventListener('click', function() {
+  document.getElementById('category-filter-modal').classList.remove('hidden');
+});
+
+document.getElementById('confirm-category-filter')?.addEventListener('click', function() {
+  selectedCategoryIds = Array.from(document.querySelectorAll('.category-filter-option:checked')).map(el => el.value);
+  updateCategoryFilterButtonLabel();
+  document.getElementById('category-filter-modal').classList.add('hidden');
+  applyFilters();
+});
+
+updateCategoryFilterButtonLabel();
+
+const expenseCategoryOptions = <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
+const incomeCategoryOptions = <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
+const transactionTypeInput = document.getElementById('transaction-type-input');
+const transactionTypeCards = document.querySelectorAll('#transaction-type-cards .transaction-type-card');
+const targetAccountField = document.getElementById('target-account-field');
+const targetAccountInput = document.querySelector('#add-transaction-modal select[name="transaction[target_account_id]"]');
+const fundingAccountField = document.getElementById('funding-account-field');
+const fundingAccountSelect = document.getElementById('funding-account-select');
+const categoryField = document.getElementById('transaction-category-field');
+const categoryLabel = document.getElementById('transaction-category-label');
+const categorySelect = document.getElementById('transaction-category-select');
+
+function setCategoryOptions(options, placeholder) {
+  if (!categorySelect) return;
+  categorySelect.innerHTML = '';
+  const blankOption = document.createElement('option');
+  blankOption.value = '';
+  blankOption.textContent = placeholder;
+  categorySelect.appendChild(blankOption);
+
+  options.forEach((option) => {
+    const el = document.createElement('option');
+    el.value = option.id;
+    el.textContent = option.name;
+    categorySelect.appendChild(el);
+  });
+}
+
+function applyTransactionTypeUI() {
+  const type = transactionTypeInput?.value || 'EXPENSE';
+  const isTransfer = type === 'TRANSFER';
+  const isIncome = type === 'INCOME';
+
+  transactionTypeCards.forEach((card) => {
+    const active = card.dataset.transactionType === type;
+    card.className = active
+      ? 'transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth bg-surface-inset dark:bg-surface-dark-inset border-border dark:border-border-dark text-primary dark:text-primary-dark'
+      : 'transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth bg-white dark:bg-surface-dark border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover';
+  });
+
+  if (targetAccountField && targetAccountInput) {
+    targetAccountField.classList.toggle('hidden', !isTransfer);
+    targetAccountInput.required = isTransfer;
+    if (!isTransfer) targetAccountInput.value = '';
+  }
+
+  if (fundingAccountField && fundingAccountSelect) {
+    const showFunding = type === 'EXPENSE';
+    fundingAccountField.classList.toggle('hidden', !showFunding);
+    if (!showFunding) fundingAccountSelect.value = '';
+  }
+
+  if (categoryField && categorySelect && categoryLabel) {
+    categoryField.classList.toggle('hidden', isTransfer);
+    if (isTransfer) {
+      categorySelect.required = false;
+      categorySelect.value = '';
+    } else if (isIncome) {
+      categoryLabel.textContent = '收入分类';
+      setCategoryOptions(incomeCategoryOptions, '选择收入分类');
+      categorySelect.required = true;
+    } else {
+      categoryLabel.textContent = '支出分类';
+      setCategoryOptions(expenseCategoryOptions, '选择支出分类');
+      categorySelect.required = true;
+    }
+  }
+}
+
+transactionTypeCards.forEach((card) => {
+  card.addEventListener('click', function() {
+    if (!transactionTypeInput) return;
+    transactionTypeInput.value = this.dataset.transactionType;
+    applyTransactionTypeUI();
+  });
+});
+
+applyTransactionTypeUI();
+
+<% if params[:open_new_transaction] == "1" %>
+document.getElementById('add-transaction-modal')?.classList.remove('hidden');
+<% end %>
 </script>

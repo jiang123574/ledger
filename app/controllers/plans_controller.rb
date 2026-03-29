@@ -14,7 +14,7 @@ class PlansController < ApplicationController
 
   def new
     @plan = Plan.new(
-      type: Plan::ONE_TIME,
+      type: Plan::RECURRING,
       currency: "CNY",
       day_of_month: 1,
       installments_total: 1,
@@ -26,6 +26,7 @@ class PlansController < ApplicationController
 
   def create
     @plan = Plan.new(plan_params)
+    @plan.type ||= Plan::RECURRING
 
     # Calculate amount from total for installment plans
     if @plan.type == Plan::INSTALLMENT && @plan.total_amount.present? && @plan.installments_total.present?
@@ -36,8 +37,6 @@ class PlansController < ApplicationController
       redirect_to plans_path, notice: t("plans.created")
     else
       redirect_to plans_path, alert: @plan.errors.full_messages.join(", ")
-    end
-  end
     end
   end
 
@@ -56,7 +55,6 @@ class PlansController < ApplicationController
     else
       redirect_to plans_path, alert: @plan.errors.full_messages.join(", ")
     end
-  end
   end
 
   def destroy

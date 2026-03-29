@@ -4,5 +4,7 @@
     <p class="text-secondary dark:text-secondary-dark mt-1">记录待报销的费用</p>
   </div>
 
-  <%= render "form", receivable: @receivable %>
+  <div class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs p-4 sm:p-5">
+    <%= render "form", receivable: @receivable %>
+  </div>
 </div>

@@ -1,58 +1,86 @@
 <% content_for :page_title, "应收款" %>
 
-<div class="space-y-6">
-  <!-- Header -->
-  <div class="flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">应收款</h1>
+<div class="space-y-4 sm:space-y-6">
+  <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
+    <div>
+      <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark">应收款</h1>
+      <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark mt-0.5 sm:mt-1">追踪待报销与已报销款项</p>
+    </div>
     <button type="button" onclick="openNewReceivableModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover">
       <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
       新建应收款
     </button>
   </div>
 
-  <!-- Unsettled Section -->
-  <% if @unsettled.any? %>
-    <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">待报销</h2>
-      <div class="grid gap-4">
-        <% @unsettled.each do |receivable| %>
-          <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4 border-l-4 border-orange-500">
-            <div class="flex justify-between items-start">
-              <div class="flex-1">
-                <div class="flex items-center gap-3">
-                  <div class="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900/20 flex items-center justify-center shrink-0">
-                    <span class="text-lg font-bold text-orange-600 dark:text-orange-400">¥</span>
-                  </div>
-                  <div>
-                    <h3 class="font-semibold text-primary dark:text-primary-dark"><%= receivable.description %></h3>
-                    <div class="flex items-center gap-2 mt-1">
-                      <span class="text-sm text-secondary dark:text-secondary-dark"><%= receivable.date&.strftime("%Y-%m-%d") %></span>
-                      <% if receivable.category.present? %>
-                        <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark">
-                          <%= receivable.category %>
-                        </span>
-                      <% end %>
-                    </div>
-                  </div>
-                </div>
+  <% total_amount = @receivables.sum { |r| r.original_amount.to_d } %>
+  <% pending_amount = @unsettled.sum { |r| r.remaining_amount.to_d } %>
+  <% reimbursed_amount = @receivables.sum { |r| (r.original_amount.to_d - r.remaining_amount.to_d) } %>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+    <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
+      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">应收总额</p>
+      <p class="text-lg sm:text-2xl font-semibold text-primary dark:text-primary-dark mt-0.5 sm:mt-1"><%= format_currency(total_amount) %></p>
+    <% end %>
+    <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
+      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">待报销金额</p>
+      <p class="text-lg sm:text-2xl font-semibold text-expense mt-0.5 sm:mt-1"><%= format_currency(pending_amount) %></p>
+    <% end %>
+    <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
+      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">已报销金额</p>
+      <p class="text-lg sm:text-2xl font-semibold text-income mt-0.5 sm:mt-1"><%= format_currency(reimbursed_amount) %></p>
+    <% end %>
+  </div>
 
-                <!-- Progress Bar -->
-                <% progress = receivable.original_amount > 0 ? (receivable.remaining_amount.to_f / receivable.original_amount.to_f * 100).round : 0 %>
-                <div class="mt-3">
-                  <div class="flex justify-between text-sm text-secondary dark:text-secondary-dark mb-1">
-                    <span>剩余 <%= format_currency(receivable.remaining_amount) %> / <%= format_currency(receivable.original_amount) %> 总额</span>
+  <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
+      <h2 class="text-base font-semibold text-primary dark:text-primary-dark">待报销</h2>
+      <span class="text-xs text-secondary dark:text-secondary-dark"><%= @unsettled.size %> 条</span>
+    </div>
+    <div class="divide-y divide-border">
+      <% if @unsettled.any? %>
+        <% @unsettled.each do |receivable| %>
+          <% reimbursed = receivable.original_amount.to_d - receivable.remaining_amount.to_d %>
+          <% progress = [[receivable.progress_percentage, 0].max, 100].min %>
+          <div class="p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-expense-soft text-expense whitespace-nowrap"><%= receivable.status %></span>
+                </div>
+                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
+                  <span><%= receivable.date&.strftime("%Y-%m-%d") %></span>
+                  <% if receivable.category.present? %>
+                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= receivable.category %></span>
+                  <% end %>
+                  <% if receivable.counterparty.present? %>
+                    <span>联系人：<%= receivable.counterparty.name %></span>
+                  <% end %>
+                  <% if receivable.account.present? %>
+                    <span>账户：<%= receivable.account.name %></span>
+                  <% end %>
+                </div>
+                <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
+                  <span class="text-income">已报销 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
+                  <span class="text-expense">未报销 <span class="font-medium"><%= format_currency(receivable.remaining_amount) %></span></span>
+                </div>
+                <div class="mt-2">
+                  <div class="flex justify-between text-xs text-secondary dark:text-secondary-dark mb-0.5">
+                    <span>报销进度</span>
                     <span><%= progress %>%</span>
                   </div>
                   <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
-                    <div class="bg-orange-500 dark:bg-orange-400 h-2 rounded-full transition-all" style="width: <%= progress %>"></div>
+                    <div class="bg-inverse h-2 rounded-full transition-all" style="width: <%= progress %>"></div>
                   </div>
                 </div>
+                <% if receivable.note.present? %>
+                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= receivable.note %></p>
+                <% end %>
               </div>
-
-              <div class="flex items-center gap-2 ml-4">
-                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 dark:bg-green-500 text-white hover:bg-green-700 dark:hover:bg-green-600 transition-smooth btn-modern">报销</button>
-                <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">编辑</button>
-                <button type="button" onclick="if(confirm('确定删除此报销记录？')) { document.getElementById('delete-receivable-form-<%= receivable.id %>').submit(); }" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-200 dark:hover:bg-red-900/40 transition-smooth btn-modern">删除</button>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">报销</button>
+                <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">编辑</button>
+                <button type="button" onclick="if(confirm('确定删除此报销记录？')) { document.getElementById('delete-receivable-form-<%= receivable.id %>').submit(); }" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">删除</button>
                 <form id="delete-receivable-form-<%= receivable.id %>" method="post" action="/receivables/<%= receivable.id %>" style="display:none">
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                   <input type="hidden" name="_method" value="delete">
@@ -61,91 +89,108 @@
             </div>
           </div>
         <% end %>
-      </div>
+      <% else %>
+        <div class="p-8 text-center">
+          <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
+            <%= render(Ds::IconComponent.new(name: "receipt", size: :lg, color: :secondary)) %>
+          </div>
+          <p class="text-secondary dark:text-secondary-dark">暂无待报销记录</p>
+        </div>
+      <% end %>
     </div>
-  <% end %>
+  </section>
 
-  <!-- Settled Section -->
-  <% if @settled.any? %>
-    <div class="space-y-4">
-      <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">已完成</h2>
-      <div class="grid gap-4">
+  <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+    <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
+      <h2 class="text-base font-semibold text-primary dark:text-primary-dark">已完成</h2>
+      <span class="text-xs text-secondary dark:text-secondary-dark"><%= @settled.size %> 条</span>
+    </div>
+    <div class="divide-y divide-border">
+      <% if @settled.any? %>
         <% @settled.each do |receivable| %>
-          <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4 border-l-4 border-green-500 opacity-75">
-            <div class="flex justify-between items-center">
-              <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center shrink-0">
-                  <%= render(Ds::IconComponent.new(name: "check", size: :md, color: :success)) %>
+          <% reimbursed = receivable.original_amount.to_d - receivable.remaining_amount.to_d %>
+          <div class="p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+            <div class="flex items-start justify-between gap-3">
+              <div class="flex-1 min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-income-soft text-income whitespace-nowrap">已完成</span>
                 </div>
-                <div>
-                  <h3 class="font-medium text-primary dark:text-primary-dark"><%= receivable.description %></h3>
-                  <p class="text-sm text-secondary dark:text-secondary-dark">完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></p>
+                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
+                  <span>完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></span>
+                  <% if receivable.category.present? %>
+                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= receivable.category %></span>
+                  <% end %>
+                  <% if receivable.counterparty.present? %>
+                    <span>联系人：<%= receivable.counterparty.name %></span>
+                  <% end %>
+                  <% if receivable.account.present? %>
+                    <span>账户：<%= receivable.account.name %></span>
+                  <% end %>
                 </div>
+                <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
+                  <span class="text-income">已报销 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
+                </div>
+                <% if receivable.note.present? %>
+                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= receivable.note %></p>
+                <% end %>
               </div>
-              <div class="flex items-center gap-3">
-                <span class="font-medium text-secondary dark:text-secondary-dark"><%= format_currency(receivable.original_amount) %></span>
-                <%= button_to "撤销", revert_receivable_path(receivable), method: :post, onclick: "if(!confirm('确定撤销此报销？撤销后可重新报销')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+              <div class="flex items-center gap-1.5 shrink-0">
+                <%= button_to "撤销", revert_receivable_path(receivable), method: :post, onclick: "if(!confirm('确定撤销此报销？撤销后可重新报销')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
               </div>
             </div>
           </div>
         <% end %>
-      </div>
+      <% else %>
+        <div class="p-8 text-center">
+          <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
+            <%= render(Ds::IconComponent.new(name: "check", size: :lg, color: :secondary)) %>
+          </div>
+          <p class="text-secondary dark:text-secondary-dark">暂无已完成记录</p>
+        </div>
+      <% end %>
     </div>
-  <% end %>
-
-  <!-- Empty State -->
-  <% if @receivables.empty? %>
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-8 text-center">
-      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-        <%= render(Ds::IconComponent.new(name: "receipt", size: :xl, color: :secondary)) %>
-      </div>
-      <p class="text-secondary dark:text-secondary-dark">暂无应收款</p>
-      <p class="text-secondary dark:text-secondary-dark text-sm mt-2">添加应收款来追踪待报销的费用</p>
-      <button type="button" onclick="openNewReceivableModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover mt-4">
-        <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
-        新建应收款
-      </button>
-    </div>
-  <% end %>
+  </section>
 </div>
 
 <!-- 新建应收款弹窗 -->
 <div id="add-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建应收款</h3>
-        <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建应收款</h3>
+        <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
       
       <form id="new-receivable-form" method="post" action="<%= receivables_path %>">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述 *</label>
-            <input type="text" name="receivable[description]" required placeholder="如：出差北京交通费" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="receivable[description]" required placeholder="如：出差北京交通费" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
-              <input type="date" name="receivable[date]" required value="<%= Date.today %>" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="date" name="receivable[date]" required value="<%= Date.today %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                <input type="number" name="receivable[original_amount]" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <input type="number" name="receivable[original_amount]" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               </div>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select name="receivable[category]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="receivable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择类别</option>
               <option value="差旅">差旅</option>
               <option value="餐饮">餐饮</option>
@@ -157,7 +202,7 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系人</label>
-            <select name="receivable[counterparty_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="receivable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择联系人</option>
               <% @counterparties.each do |c| %>
                 <option value="<%= c.id %>"><%= c.name %></option>
@@ -167,7 +212,7 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">支出账户</label>
-            <select name="receivable[account_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="receivable[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择账户</option>
               <% @accounts.each do |a| %>
                 <option value="<%= a.id %>"><%= a.name %></option>
@@ -177,13 +222,13 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <input type="text" name="receivable[note]" placeholder="可选" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="receivable[note]" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
+        <div class="flex justify-end gap-3 mt-5">
+          <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       </form>
     </div>
@@ -194,10 +239,10 @@
 <div id="edit-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑应收款</h3>
-        <button type="button" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">编辑应收款</h3>
+        <button type="button" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -205,29 +250,29 @@
       <form id="edit-receivable-form" method="post">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <input type="hidden" name="_method" value="patch">
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述 *</label>
-            <input type="text" id="edit-receivable-description" name="receivable[description]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="edit-receivable-description" name="receivable[description]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
-              <input type="date" id="edit-receivable-date" name="receivable[date]" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="date" id="edit-receivable-date" name="receivable[date]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                <input type="number" id="edit-receivable-amount" name="receivable[original_amount]" step="0.01" required class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <input type="number" id="edit-receivable-amount" name="receivable[original_amount]" step="0.01" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               </div>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select id="edit-receivable-category" name="receivable[category]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select id="edit-receivable-category" name="receivable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择类别</option>
               <option value="差旅">差旅</option>
               <option value="餐饮">餐饮</option>
@@ -239,7 +284,7 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系人</label>
-            <select id="edit-receivable-counterparty" name="receivable[counterparty_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select id="edit-receivable-counterparty" name="receivable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择联系人</option>
               <% @counterparties.each do |c| %>
                 <option value="<%= c.id %>"><%= c.name %></option>
@@ -249,7 +294,7 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">支出账户</label>
-            <select id="edit-receivable-account" name="receivable[account_id]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select id="edit-receivable-account" name="receivable[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择账户</option>
               <% @accounts.each do |a| %>
                 <option value="<%= a.id %>"><%= a.name %></option>
@@ -259,13 +304,13 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <input type="text" id="edit-receivable-note" name="receivable[note]" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="edit-receivable-note" name="receivable[note]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
+        <div class="flex justify-end gap-3 mt-5">
+          <button type="button" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       </form>
     </div>
@@ -276,10 +321,10 @@
 <div id="settle-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">报销应收款</h3>
-        <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">报销应收款</h3>
+        <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -288,18 +333,18 @@
       
       <form id="settle-form" method="post">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-        <div class="space-y-4">
+        <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">报销金额 *</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <input type="number" name="amount" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="number" name="amount" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户 *</label>
-            <select name="account_id" required class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="account_id" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择账户</option>
               <% @accounts.each do |a| %>
                 <option value="<%= a.id %>"><%= a.name %></option>
@@ -309,13 +354,13 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <input type="text" name="note" placeholder="可选" class="w-full px-3 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="note" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 
-        <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth">确认报销</button>
+        <div class="flex justify-end gap-3 mt-5">
+          <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确认报销</button>
         </div>
       </form>
     </div>

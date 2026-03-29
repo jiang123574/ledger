@@ -79,7 +79,7 @@ FactoryBot.define do
 
   factory :plan do
     sequence(:name) { |n| "Plan #{n}" }
-    type { Plan::ONE_TIME }
+    type { Plan::RECURRING }
     amount { 100 }
     currency { 'CNY' }
     day_of_month { 15 }

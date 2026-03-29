@@ -1,110 +1,150 @@
-<section class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs card-hover">
-  <div class="p-4 border-b border-border dark:border-border-dark flex items-center justify-between">
-    <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">分类标签</h2>
+<% expense_roots = Category.roots.expense.order(:sort_order, :name) %>
+<% income_roots = Category.roots.income.order(:sort_order, :name) %>
+
+<div class="space-y-6">
+  <div class="flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">分类标签</h1>
     <button type="button" onclick="document.getElementById('add-category-modal').classList.remove('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">+ 添加分类</button>
   </div>
-  <div class="p-4">
-    <% if @categories.any? %>
-      <div class="space-y-8">
-        <div>
-          <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-3 uppercase tracking-wide">支出</h3>
-          <div class="space-y-4">
-            <% Category.roots.expense.order(:sort_order, :name).each do |root| %>
-              <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-xl p-4">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-rose-500/10 dark:bg-rose-500/20 flex items-center justify-center">
-                      <svg class="w-6 h-6 text-rose-600 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                    </div>
-                    <div>
-                      <h4 class="font-semibold text-primary dark:text-primary-dark text-lg"><%= root.name %></h4>
-                    </div>
-                  </div>
-                  <%= button_to category_path(root), method: :delete, 
-                      onclick: "if(!confirm('确定删除该分类？')) return false",
-                      class: "p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  <% end %>
-                </div>
-                <% if root.children.any? %>
-                  <div class="mt-4 pl-4 space-y-2 border-l-2 border-rose-500/30 dark:border-rose-500/40 ml-6">
-                    <% root.children.order(:sort_order, :name).each do |child| %>
-                      <div class="flex items-center justify-between py-2 px-3 bg-surface dark:bg-surface-dark rounded-lg">
-                        <div class="flex items-center gap-3">
-                          <div class="w-8 h-8 rounded-lg bg-rose-500/10 dark:bg-rose-500/20 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-rose-500 dark:text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                          </div>
-                          <span class="font-medium text-primary dark:text-primary-dark"><%= child.name %></span>
-                        </div>
-                        <%= button_to category_path(child), method: :delete, 
-                            onclick: "if(!confirm('确定删除该分类？')) return false",
-                            class: "p-1.5 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-        </div>
 
-        <div>
-          <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-3 uppercase tracking-wide">收入</h3>
-          <div class="space-y-4">
-            <% Category.roots.income.order(:sort_order, :name).each do |root| %>
-              <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-xl p-4">
-                <div class="flex items-center justify-between">
-                  <div class="flex items-center gap-3">
-                    <div class="w-12 h-12 rounded-xl bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
-                      <svg class="w-6 h-6 text-emerald-600 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                    </div>
-                    <div>
-                      <h4 class="font-semibold text-primary dark:text-primary-dark text-lg"><%= root.name %></h4>
-                    </div>
-                  </div>
-                  <%= button_to category_path(root), method: :delete, 
-                      onclick: "if(!confirm('确定删除该分类？')) return false",
-                      class: "p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  <% end %>
-                </div>
-                <% if root.children.any? %>
-                  <div class="mt-4 pl-4 space-y-2 border-l-2 border-emerald-500/30 dark:border-emerald-500/40 ml-6">
-                    <% root.children.order(:sort_order, :name).each do |child| %>
-                      <div class="flex items-center justify-between py-2 px-3 bg-surface dark:bg-surface-dark rounded-lg">
-                        <div class="flex items-center gap-3">
-                          <div class="w-8 h-8 rounded-lg bg-emerald-500/10 dark:bg-emerald-500/20 flex items-center justify-center">
-                            <svg class="w-4 h-4 text-emerald-500 dark:text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-                          </div>
-                          <span class="font-medium text-primary dark:text-primary-dark"><%= child.name %></span>
-                        </div>
-                        <%= button_to category_path(child), method: :delete, 
-                            onclick: "if(!confirm('确定删除该分类？')) return false",
-                            class: "p-1.5 rounded-lg text-secondary dark:text-secondary-dark hover:bg-rose-100 hover:text-rose-600 dark:hover:bg-rose-900/50 transition-smooth",
-                          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                        <% end %>
-                      </div>
-                    <% end %>
-                  </div>
-                <% end %>
-              </div>
-            <% end %>
-          </div>
-        </div>
+  <div class="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded-lg p-4">
+    <div class="flex items-start gap-3">
+      <div class="text-secondary dark:text-secondary-dark text-2xl">🏷️</div>
+      <div>
+        <h3 class="font-medium text-primary dark:text-primary-dark">提示</h3>
+        <p class="text-sm text-secondary dark:text-secondary-dark">一级分类作为分组，二级分类用于记账时精细化统计。悬停行可快速删除。</p>
       </div>
-    <% else %>
-      <div class="text-center py-8">
-        <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
-          <svg class="w-8 h-8 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
-        </div>
-        <p class="text-secondary dark:text-secondary-dark">暂无分类</p>
-        <p class="text-sm text-secondary dark:text-secondary-dark mt-1">添加分类来更好地管理您的交易</p>
-      </div>
-    <% end %>
+    </div>
   </div>
-</section>
+
+  <% if @categories.any? %>
+    <div class="space-y-6">
+      <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
+          <h2 class="font-semibold text-primary dark:text-primary-dark">支出分类</h2>
+          <span class="text-xs text-secondary dark:text-secondary-dark"><%= expense_roots.sum { |root| 1 + root.children.size } %> 项</span>
+        </div>
+        <table class="min-w-full">
+          <thead class="bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">分类</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">层级</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary-dark uppercase">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border dark:divide-border-dark">
+            <% expense_roots.each do |root| %>
+              <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-expense-soft flex items-center justify-center">
+                      <svg class="w-4 h-4 text-expense" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    </div>
+                    <span class="font-medium text-primary dark:text-primary-dark"><%= root.name %></span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-secondary dark:text-secondary-dark">一级</td>
+                <td class="px-6 py-4 text-right">
+                  <%= button_to(category_path(root), method: :delete,
+                      onclick: "if(!confirm('确定删除该分类？')) return false",
+                      class: "inline-flex p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  <% end %>
+                </td>
+              </tr>
+              <% root.children.order(:sort_order, :name).each do |child| %>
+                <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3 pl-8">
+                      <div class="w-7 h-7 rounded-lg bg-expense-soft flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-expense" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                      </div>
+                      <span class="text-primary dark:text-primary-dark"><%= child.name %></span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-secondary dark:text-secondary-dark">二级</td>
+                  <td class="px-6 py-4 text-right">
+                    <%= button_to(category_path(child), method: :delete,
+                        onclick: "if(!confirm('确定删除该分类？')) return false",
+                        class: "inline-flex p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+        <div class="px-6 py-4 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
+          <h2 class="font-semibold text-primary dark:text-primary-dark">收入分类</h2>
+          <span class="text-xs text-secondary dark:text-secondary-dark"><%= income_roots.sum { |root| 1 + root.children.size } %> 项</span>
+        </div>
+        <table class="min-w-full">
+          <thead class="bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark">
+            <tr>
+              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">分类</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase">层级</th>
+              <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary-dark uppercase">操作</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-border dark:divide-border-dark">
+            <% income_roots.each do |root| %>
+              <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
+                <td class="px-6 py-4">
+                  <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-income-soft flex items-center justify-center">
+                      <svg class="w-4 h-4 text-income" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                    </div>
+                    <span class="font-medium text-primary dark:text-primary-dark"><%= root.name %></span>
+                  </div>
+                </td>
+                <td class="px-6 py-4 text-sm text-secondary dark:text-secondary-dark">一级</td>
+                <td class="px-6 py-4 text-right">
+                  <%= button_to(category_path(root), method: :delete,
+                      onclick: "if(!confirm('确定删除该分类？')) return false",
+                      class: "inline-flex p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                  <% end %>
+                </td>
+              </tr>
+              <% root.children.order(:sort_order, :name).each do |child| %>
+                <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
+                  <td class="px-6 py-4">
+                    <div class="flex items-center gap-3 pl-8">
+                      <div class="w-7 h-7 rounded-lg bg-income-soft flex items-center justify-center">
+                        <svg class="w-3.5 h-3.5 text-income" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+                      </div>
+                      <span class="text-primary dark:text-primary-dark"><%= child.name %></span>
+                    </div>
+                  </td>
+                  <td class="px-6 py-4 text-sm text-secondary dark:text-secondary-dark">二级</td>
+                  <td class="px-6 py-4 text-right">
+                    <%= button_to(category_path(child), method: :delete,
+                        onclick: "if(!confirm('确定删除该分类？')) return false",
+                        class: "inline-flex p-2 rounded-lg text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <% end %>
+                  </td>
+                </tr>
+              <% end %>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% else %>
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-8 text-center">
+      <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
+        <svg class="w-8 h-8 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+      </div>
+      <p class="text-secondary dark:text-secondary-dark">暂无分类</p>
+      <p class="text-sm text-secondary dark:text-secondary-dark mt-1">添加分类来更好地管理您的交易</p>
+    </div>
+  <% end %>
+</div>
 
 <!-- Add Category Modal -->
 <div id="add-category-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">

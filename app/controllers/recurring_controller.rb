@@ -16,7 +16,6 @@ class RecurringController < ApplicationController
     else
       redirect_to recurring_index_path, alert: @recurring.errors.full_messages.join(", ")
     end
-    end
   end
 
   def edit

@@ -1,4 +1,5 @@
 require "test_helper"
+require "rack/test"
 
 class ImportServiceTest < ActiveSupport::TestCase
   setup do
@@ -20,7 +21,7 @@ class ImportServiceTest < ActiveSupport::TestCase
   end
 
   test "should detect CSV format" do
-    file = fixture_file_upload(@temp_file.path, "text/csv")
+    file = Rack::Test::UploadedFile.new(@temp_file.path, "text/csv")
     format = ImportService.send(:detect_format, file)
     assert_equal "csv", format
   end
@@ -61,7 +62,7 @@ class ImportServiceTest < ActiveSupport::TestCase
   end
 
   test "should import CSV transactions" do
-    file = fixture_file_upload(@temp_file.path, "text/csv")
+    file = Rack::Test::UploadedFile.new(@temp_file.path, "text/csv")
     results = ImportService.import_csv(file)
 
     assert_equal 3, results[:success]
@@ -70,14 +71,14 @@ class ImportServiceTest < ActiveSupport::TestCase
   end
 
   test "should create accounts during import" do
-    file = fixture_file_upload(@temp_file.path, "text/csv")
+    file = Rack::Test::UploadedFile.new(@temp_file.path, "text/csv")
     ImportService.import_csv(file)
 
     assert Account.exists?(name: "现金")
   end
 
   test "should create categories during import" do
-    file = fixture_file_upload(@temp_file.path, "text/csv")
+    file = Rack::Test::UploadedFile.new(@temp_file.path, "text/csv")
     ImportService.import_csv(file)
 
     assert Category.exists?(name: "工资")
@@ -93,10 +94,8 @@ class ImportServiceTest < ActiveSupport::TestCase
 
   test "should validate file size" do
     # Create a mock file that's too large
-    large_file = fixture_file_upload(@temp_file.path, "text/csv")
-    large_file.stub(:size, 20.megabytes) do
-      validation = ImportService.validate_file(large_file)
-      assert_not validation[:valid]
-    end
+    large_file = Struct.new(:original_filename, :path, :size).new("large.csv", @temp_file.path, 20.megabytes)
+    validation = ImportService.validate_file(large_file)
+    assert_not validation[:valid]
   end
 end

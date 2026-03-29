@@ -1,6 +1,11 @@
 require "test_helper"
 
 class CounterpartyTest < ActiveSupport::TestCase
+  setup do
+    Receivable.delete_all
+    Counterparty.delete_all
+  end
+
   test "should be valid with name" do
     counterparty = Counterparty.new(name: "Test Counterparty")
     assert counterparty.valid?
@@ -9,7 +14,7 @@ class CounterpartyTest < ActiveSupport::TestCase
   test "should require name" do
     counterparty = Counterparty.new
     assert_not counterparty.valid?
-    assert_includes counterparty.errors[:name], "can't be blank"
+    assert counterparty.errors.of_kind?(:name, :blank)
   end
 
   test "name should be unique" do
@@ -17,7 +22,7 @@ class CounterpartyTest < ActiveSupport::TestCase
 
     duplicate = Counterparty.new(name: "Test Counterparty")
     assert_not duplicate.valid?
-    assert_includes duplicate.errors[:name], "has already been taken"
+    assert duplicate.errors.of_kind?(:name, :taken)
   end
 
   test "should have many receivables" do
@@ -30,12 +35,14 @@ class CounterpartyTest < ActiveSupport::TestCase
 
     Receivable.create!(
       counterparty: counterparty,
+      description: "差旅",
       original_amount: 1000,
       remaining_amount: 1000,
       date: Date.current
     )
     Receivable.create!(
       counterparty: counterparty,
+      description: "餐饮",
       original_amount: 500,
       remaining_amount: 500,
       date: Date.current
@@ -50,6 +57,7 @@ class CounterpartyTest < ActiveSupport::TestCase
     # Pending
     Receivable.create!(
       counterparty: counterparty,
+      description: "交通",
       original_amount: 1000,
       remaining_amount: 1000,
       date: Date.current
@@ -57,6 +65,7 @@ class CounterpartyTest < ActiveSupport::TestCase
     # Settled
     Receivable.create!(
       counterparty: counterparty,
+      description: "办公",
       original_amount: 500,
       remaining_amount: 0,
       settled_at: Time.current,

@@ -1,5 +1,5 @@
 <% display_month = @month.to_s %>
-<% display_month = "2026-03" unless display_month =~ /\A\d{4}-\d{2}\z/ %>
+<% display_month = Date.current.strftime("%Y-%m") unless display_month =~ /\A\d{4}-\d{2}\z/ %>
 <% current_date = Date.new(display_month[0..3].to_i, display_month[5..6].to_i, 1) %>
 
 <div class="space-y-4 sm:space-y-6">
@@ -136,9 +136,9 @@
       <!-- Section Content -->
       <div class="divide-y divide-border" data-dashboard-section-target="content">
         <% @transactions.first(8).each do |t| %>
-          <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface dark:bg-surface-dark transition-smooth" do %>
+          <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3 min-w-0">
-              <div class="w-10 h-10 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center shrink-0">
+              <div class="ie-icon-chip ie-icon-chip-md <%= t.type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
                 <%= render(Ds::IconComponent.new(name: t.type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: t.type == "INCOME" ? :income : :expense)) %>
               </div>
               <div class="min-w-0">
@@ -212,7 +212,7 @@
       <!-- Section Content -->
       <div class="divide-y divide-border" data-dashboard-section-target="content">
         <% @accounts.each do |account| %>
-          <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface dark:bg-surface-dark transition-smooth" do %>
+          <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3">
               <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0">
                 <span class="text-sm font-semibold text-primary dark:text-primary-dark"><%= account.name[0] %></span>

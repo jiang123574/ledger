@@ -19,14 +19,7 @@
       <!-- Plan Type -->
       <div>
         <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-2">计划类型</label>
-        <div class="grid grid-cols-3 gap-4">
-          <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset <%= @plan.type == 'ONE_TIME' ? 'border-inverse bg-surface dark:bg-surface-dark' : 'border-border dark:border-border-dark' %>">
-            <%= f.radio_button :type, 'ONE_TIME', class: "sr-only" %>
-            <div class="text-center">
-              <div class="text-2xl mb-1">📌</div>
-              <div class="font-medium text-primary dark:text-primary-dark">一次性</div>
-            </div>
-          </label>
+        <div class="grid grid-cols-2 gap-4">
           <label class="relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset <%= @plan.type == 'INSTALLMENT' ? 'border-inverse bg-surface dark:bg-surface-dark' : 'border-border dark:border-border-dark' %>">
             <%= f.radio_button :type, 'INSTALLMENT', class: "sr-only" %>
             <div class="text-center">
@@ -98,7 +91,7 @@
       <!-- Day of Month -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">每月还款日</label>
+          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">每月执行日</label>
           <%= render Ds::InputComponent.new(form: f, field: :day_of_month, type: :select,
                 choices: (1..31).to_a.map { |d| ["#{d}日", d] },
                 include_blank: false) %>
