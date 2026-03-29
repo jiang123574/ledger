@@ -40,7 +40,7 @@
   <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
     <% if @transactions.any? %>
       <% @transactions.each do |t| %>
-        <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+        <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-pointer" onclick="editTransaction(<%= t.id %>)">
           <div class="flex items-center gap-3">
             <div class="ie-icon-chip ie-icon-chip-sm <%= t.type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
               <% if t.type == "INCOME" %>
@@ -229,4 +229,31 @@ applyTransactionTypeUI();
 <% if params[:open_new_transaction] == "1" %>
 document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 <% end %>
+
+// 编辑交易弹窗
+function editTransaction(transactionId) {
+  // 通过 AJAX 获取交易数据并打开编辑弹窗
+  fetch(`/transactions/${transactionId}/edit`, {
+    headers: { 'Accept': 'text/html' }
+  })
+  .then(res => res.text())
+  .then(html => {
+    // 创建临时容器来解析 HTML
+    const temp = document.createElement('div');
+    temp.innerHTML = html;
+    
+    // 找到编辑弹窗并显示
+    const modal = temp.querySelector('#transaction-edit-modal');
+    if (modal) {
+      // 替换现有的弹窗或添加新的
+      const existingModal = document.getElementById('transaction-edit-modal');
+      if (existingModal) {
+        existingModal.remove();
+      }
+      document.body.appendChild(modal);
+      modal.classList.remove('hidden');
+    }
+  })
+  .catch(err => console.error('Error loading transaction:', err));
+}
 </script>

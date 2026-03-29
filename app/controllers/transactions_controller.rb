@@ -23,6 +23,11 @@ class TransactionsController < ApplicationController
     @transaction = Transaction.find(params[:id])
     @accounts = Account.visible.order(:name)
     @categories = Category.active.by_sort_order
+    
+    # 如果是 AJAX 请求，返回弹窗 HTML
+    if request.xhr?
+      render :edit_modal, layout: false
+    end
   end
 
 
