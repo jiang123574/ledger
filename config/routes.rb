@@ -69,6 +69,9 @@ Rails.application.routes.draw do
     collection do
       post :preview
       get :templates
+      get :pixiu
+      post :pixiu_upload
+      post :pixiu_confirm
     end
   end
 

@@ -1,75 +1,238 @@
 class ImportsController < ApplicationController
-  def new
-    @templates = ImportService.templates
-    @supported_formats = ImportService::SUPPORTED_FORMATS
-  end
-
-  def preview
-    if params[:file].blank?
-      render json: { error: t("import.errors.no_file", default: "请选择文件") }, status: :bad_request
-      return
-    end
-
-    validation = ImportService.validate_file(params[:file])
-    unless validation[:valid]
-      render json: { error: validation[:errors].join(", ") }, status: :bad_request
-      return
-    end
-
-    begin
-      @preview_data = ImportService.preview(params[:file], field_mapping_params)
-      @field_mapping = field_mapping_params
-
-      respond_to do |format|
-        format.html
-        format.json { render json: @preview_data }
+  def pixiu
+    @current_step = params[:step].to_i || 1
+    
+    case @current_step
+    when 1
+      # Upload step
+    when 2
+      # Preview step
+      if session[:pixiu_file_path].blank?
+        redirect_to imports_pixiu_path(step: 1), alert: "请先上传文件"
+        return
       end
-    rescue => e
-      render json: { error: t("import.errors.preview_failed", default: "预览失败: %{message}", message: e.message) }, status: :unprocessable_entity
-    end
-  end
-
-  def create
-    if params[:file].blank?
-      redirect_to new_import_path, alert: t("import.errors.no_file", default: "请选择要导入的文件")
-      return
-    end
-
-    validation = ImportService.validate_file(params[:file])
-    unless validation[:valid]
-      redirect_to new_import_path, alert: validation[:errors].join(", ")
-      return
-    end
-
-    begin
-      @results = ImportService.import(params[:file], field_mapping_params.merge(account_name: params[:account_name]))
-
-      if @results[:failed] > 0
-        flash[:warning] = t("import.partial_success", success: @results[:success], failed: @results[:failed])
-        flash[:import_errors] = @results[:errors].first(10) if @results[:errors].any?
-      else
-        flash[:notice] = t("import.success", count: @results[:success])
+      load_preview_data
+    when 3
+      # Configure mapping
+      if session[:pixiu_file_path].blank?
+        redirect_to imports_pixiu_path(step: 1), alert: "请先上传文件"
+        return
       end
-
-      redirect_to transactions_path
-    rescue ImportService::ImportError => e
-      redirect_to new_import_path, alert: t("import.errors.import_failed", message: e.message)
-    rescue => e
-      redirect_to new_import_path, alert: t("import.errors.import_failed", message: e.message)
+      load_mapping_data
+    when 4
+      # Complete
+      @import_result = session[:import_result] || {}
     end
   end
 
-  def templates
-    render json: ImportService.templates
+  def pixiu_upload
+    file = params[:file]
+    
+    unless file.present?
+      redirect_to imports_pixiu_path(step: 1), alert: "请选择文件"
+      return
+    end
+
+    # Validate file
+    unless file.content_type == 'text/csv' || file.original_filename.end_with?('.csv')
+      redirect_to imports_pixiu_path(step: 1), alert: "请上传 CSV 文件"
+      return
+    end
+
+    # Save file temporarily
+    temp_path = Rails.root.join('tmp', "pixiu_#{Time.current.to_i}.csv")
+    File.write(temp_path, file.read)
+
+    session[:pixiu_file_path] = temp_path.to_s
+    session[:pixiu_file_name] = file.original_filename
+
+    redirect_to imports_pixiu_path(step: 2)
+  end
+
+  def pixiu_confirm
+    file_path = session[:pixiu_file_path]
+    
+    unless file_path.present? && File.exist?(file_path)
+      redirect_to imports_pixiu_path(step: 1), alert: "文件已过期，请重新上传"
+      return
+    end
+
+    # Get mapping from params
+    accounts_map = build_accounts_map(params[:accounts])
+    categories_map = build_categories_map(params[:categories])
+
+    # Import transactions
+    result = import_transactions(file_path, accounts_map, categories_map)
+
+    session[:import_result] = result
+    session.delete(:pixiu_file_path)
+    session.delete(:pixiu_file_name)
+
+    # Clean up temp file
+    File.delete(file_path) if File.exist?(file_path)
+
+    redirect_to imports_pixiu_path(step: 4)
   end
 
   private
 
-  def field_mapping_params
-    return {} unless params[:field_mapping].present?
+  def load_preview_data
+    file_path = session[:pixiu_file_path]
+    
+    @stats = {
+      total: 0,
+      valid: 0,
+      transfers: 0,
+      invalid: 0
+    }
+    
+    @sample_data = []
 
-    # Only permit known field names
-    allowed_fields = %w[date type amount account category note tag]
-    params[:field_mapping].select { |_, v| allowed_fields.include?(v) }
+    CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
+      @stats[:total] += 1
+      
+      next if row['日期'].blank?
+      
+      if row['交易类型'] == '转账'
+        @stats[:transfers] += 1
+        next
+      end
+
+      income = row['流入金额'].to_f
+      expense = row['流出金额'].to_f
+
+      if income > 0 || expense > 0
+        @stats[:valid] += 1
+        
+        if @sample_data.size < 10
+          @sample_data << {
+            date: row['日期'],
+            category: row['收支大类'],
+            account: row['资金账户'],
+            type: income > 0 ? 'INCOME' : 'EXPENSE',
+            amount: income > 0 ? income : expense,
+            note: "#{row['交易分类']} - #{row['备注']}"
+          }
+        end
+      else
+        @stats[:invalid] += 1
+      end
+    end
+  end
+
+  def load_mapping_data
+    file_path = session[:pixiu_file_path]
+    
+    # Collect all unique account and category names
+    accounts_set = Set.new
+    categories_set = Set.new
+
+    CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
+      next if row['日期'].blank?
+      accounts_set << row['资金账户'].strip if row['资金账户'].present?
+      categories_set << row['收支大类'].strip if row['收支大类'].present?
+    end
+
+    # Create default mappings
+    @accounts_map = {}
+    accounts_set.each do |name|
+      account = Account.find_or_create_by(name: name) { |a| a.sort_order = 0 }
+      @accounts_map[name] = account
+    end
+
+    @categories_map = {}
+    categories_set.each do |name|
+      category = Category.find_or_create_by(name: name, category_type: 'EXPENSE') { |c| c.active = true }
+      @categories_map[name] = category
+    end
+  end
+
+  def build_accounts_map(params_accounts)
+    result = {}
+    params_accounts&.each do |pixiu_name, account_id|
+      account = Account.find(account_id)
+      result[pixiu_name] = account
+    end
+    result
+  end
+
+  def build_categories_map(params_categories)
+    result = {}
+    params_categories&.each do |pixiu_name, category_id|
+      category = Category.find(category_id)
+      result[pixiu_name] = category
+    end
+    result
+  end
+
+  def import_transactions(file_path, accounts_map, categories_map)
+    result = {
+      imported: 0,
+      skipped: 0,
+      errors: 0
+    }
+
+    CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
+      begin
+        next if row['日期'].blank?
+
+        # Skip transfers
+        next if row['交易类型'] == '转账'
+
+        date = Date.parse(row['日期'])
+        income = row['流入金额'].to_f
+        expense = row['流出金额'].to_f
+
+        if income > 0
+          type = 'INCOME'
+          amount = income
+        elsif expense > 0
+          type = 'EXPENSE'
+          amount = expense
+        else
+          result[:skipped] += 1
+          next
+        end
+
+        account_name = row['资金账户'].strip
+        account = accounts_map[account_name]
+        
+        unless account
+          result[:skipped] += 1
+          next
+        end
+
+        category_name = row['收支大类'].strip
+        category_name = '其他' if category_name.blank?
+        category = categories_map[category_name]
+
+        unless category
+          result[:skipped] += 1
+          next
+        end
+
+        note_parts = []
+        note_parts << row['交易分类'].strip if row['交易分类'].present?
+        note_parts << row['备注'].strip if row['备注'].present?
+        note = note_parts.join(' - ')
+
+        Transaction.create!(
+          date: date,
+          type: type,
+          amount: amount,
+          account: account,
+          category: category,
+          note: note
+        )
+
+        result[:imported] += 1
+
+      rescue => e
+        result[:errors] += 1
+        Rails.logger.error("Import error: #{e.message}")
+      end
+    end
+
+    result
   end
 end
