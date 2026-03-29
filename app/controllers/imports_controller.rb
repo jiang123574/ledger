@@ -304,15 +304,27 @@ class ImportsController < ApplicationController
         end
 
         # Handle regular transactions
-        if income > 0
+        # 根据交易分类判断收入/支出
+        transaction_type = row['交易分类']&.strip
+        
+        if transaction_type == '日常收入' || transaction_type == '余额调整'
           type = 'INCOME'
-          amount = income
-        elsif expense > 0
+          amount = income > 0 ? income : expense
+        elsif transaction_type == '日常支出'
           type = 'EXPENSE'
-          amount = expense
+          amount = income > 0 ? income : expense
         else
-          result[:skipped] += 1
-          next
+          # 其他类型，根据金额判断
+          if income > 0
+            type = 'INCOME'
+            amount = income
+          elsif expense > 0
+            type = 'EXPENSE'
+            amount = expense
+          else
+            result[:skipped] += 1
+            next
+          end
         end
 
         account_name = row['资金账户'].strip
