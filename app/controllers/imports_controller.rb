@@ -197,12 +197,18 @@ class ImportsController < ApplicationController
           # 先查询，如果不存在再创建
           child_category = Category.find_by(name: child_name, parent_id: parent_category.id)
           unless child_category
-            child_category = Category.create!(
-              name: child_name,
-              parent_id: parent_category.id,
-              type: 'EXPENSE',
-              active: true
-            )
+            begin
+              child_category = Category.create!(
+                name: child_name,
+                parent_id: parent_category.id,
+                type: 'EXPENSE',
+                active: true
+              )
+            rescue ActiveRecord::RecordNotUnique
+              # 如果因为全局唯一性约束失败，尝试找到现有的同名分类
+              # 这种情况下，我们使用现有的分类（即使它不是子分类）
+              child_category = Category.find_by(name: child_name)
+            end
           end
         end
       end
