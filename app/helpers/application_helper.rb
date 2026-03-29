@@ -114,17 +114,17 @@ module ApplicationHelper
     options = []
 
     # 按类型分组
-    expense_categories = categories.select { |c| c.category_type == 'EXPENSE' || c.type == 'EXPENSE' }
-    income_categories = categories.select { |c| c.category_type == 'INCOME' || c.type == 'INCOME' }
+    expense_categories = categories.select { |c| c.category_type == "EXPENSE" || c.type == "EXPENSE" }
+    income_categories = categories.select { |c| c.category_type == "INCOME" || c.type == "INCOME" }
 
     if expense_categories.any?
-      options << ['── 支出分类 ──', '', disabled: true]
+      options << [ "── 支出分类 ──", "", disabled: true ]
       options += build_category_tree_options(expense_categories)
     end
 
     if income_categories.any?
-      options << ['', '', disabled: true] if expense_categories.any?
-      options << ['── 收入分类 ──', '', disabled: true]
+      options << [ "", "", disabled: true ] if expense_categories.any?
+      options << [ "── 收入分类 ──", "", disabled: true ]
       options += build_category_tree_options(income_categories)
     end
 
@@ -139,7 +139,7 @@ module ApplicationHelper
 
     roots.each do |category|
       prefix = "　" * level + (level > 0 ? "└ " : "")
-      options << ["#{prefix}#{category.name}", category.id]
+      options << [ "#{prefix}#{category.name}", category.id ]
 
       # 递归添加子分类
       children = categories.select { |c| c.parent_id == category.id }

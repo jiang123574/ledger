@@ -93,7 +93,7 @@ class ReceivablesController < ApplicationController
     ActiveRecord::Base.transaction do
       # 删除相关的报销收入交易
       @receivable.reimbursement_transactions.destroy_all
-      
+
       # 恢复应收款状态
       @receivable.update!(
         remaining_amount: @receivable.original_amount,

@@ -94,7 +94,7 @@ Rails.application.routes.draw do
   get "/settings/data", to: "settings#show", as: :settings_data
   get "/settings/shortcuts", to: "settings#show", as: :settings_shortcuts
   get "/settings/danger", to: "settings#show", as: :settings_danger
-  
+
   # Settings actions
   post "/settings/export", to: "settings#export_transactions", as: :export_transactions
   post "/settings/import", to: "settings#import_transactions", as: :import_transactions

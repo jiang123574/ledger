@@ -32,7 +32,7 @@ class BudgetsController < ApplicationController
         spent_amount: item.spent_amount.to_f,
         formatted_amount: "¥#{item.amount.to_f.round(2)}",
         formatted_spent: "¥#{item.spent_amount.to_f.round(2)}",
-        currency_symbol: '¥'
+        currency_symbol: "¥"
       }
     end
     render json: {
@@ -42,7 +42,7 @@ class BudgetsController < ApplicationController
       spent_amount: budget.spent_amount.to_f,
       formatted_total: "¥#{budget.budget_items.sum(:amount).to_f.round(2)}",
       formatted_spent: "¥#{budget.spent_amount.to_f.round(2)}",
-      currency_symbol: '¥',
+      currency_symbol: "¥",
       items: items
     }
   end
