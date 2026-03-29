@@ -135,7 +135,7 @@
           <p class="text-sm text-secondary dark:text-secondary-dark mb-4">
             支持 CSV 格式，文件大小 &lt; 50MB
           </p>
-          <input type="file" id="pixiu-file-input" accept=".csv" class="hidden">
+          <input type="file" id="pixiu-file-input" accept=".csv" class="hidden" onchange="pixiuFileSelected(this)">
           <button type="button" class="px-4 py-2 bg-inverse text-white rounded-lg hover:bg-inverse-hover transition-colors" onclick="document.getElementById('pixiu-file-input').click()">
             选择文件
           </button>
@@ -175,77 +175,78 @@
 </div>
 
 <script>
-  const pixiuDropZone = document.getElementById('pixiu-drop-zone');
-  const pixiuFileInput = document.getElementById('pixiu-file-input');
-  const pixiuFileInfo = document.getElementById('pixiu-file-info');
-  const pixiuFileName = document.getElementById('pixiu-file-name');
-  const pixiuSubmitBtn = document.getElementById('pixiu-submit-btn');
+  function pixiuFileSelected(input) {
+    if (!input.files || input.files.length === 0) return;
+    const name = input.files[0].name;
+    document.getElementById('pixiu-file-name').textContent = name;
+    document.getElementById('pixiu-file-info').classList.remove('hidden');
+    document.getElementById('pixiu-submit-btn').disabled = false;
+  }
 
-  if (pixiuDropZone) {
-    pixiuDropZone.addEventListener('dragover', (e) => {
+  // 拖拽支持
+  document.addEventListener('dragover', function(e) {
+    const dz = document.getElementById('pixiu-drop-zone');
+    if (dz && dz.contains(e.target)) {
       e.preventDefault();
-      pixiuDropZone.classList.add('border-inverse', 'bg-surface-inset');
-    });
-
-    pixiuDropZone.addEventListener('dragleave', () => {
-      pixiuDropZone.classList.remove('border-inverse', 'bg-surface-inset');
-    });
-
-    pixiuDropZone.addEventListener('drop', (e) => {
+      dz.classList.add('border-inverse', 'bg-surface-inset');
+    }
+  });
+  document.addEventListener('dragleave', function(e) {
+    const dz = document.getElementById('pixiu-drop-zone');
+    if (dz && !dz.contains(e.relatedTarget)) {
+      dz.classList.remove('border-inverse', 'bg-surface-inset');
+    }
+  });
+  document.addEventListener('drop', function(e) {
+    const dz = document.getElementById('pixiu-drop-zone');
+    if (dz && dz.contains(e.target)) {
       e.preventDefault();
-      pixiuDropZone.classList.remove('border-inverse', 'bg-surface-inset');
-      
+      dz.classList.remove('border-inverse', 'bg-surface-inset');
       const files = e.dataTransfer.files;
       if (files.length > 0) {
-        pixiuFileInput.files = files;
-        updatePixiuFileInfo();
+        const input = document.getElementById('pixiu-file-input');
+        // DataTransfer 赋值
+        const dt = new DataTransfer();
+        dt.items.add(files[0]);
+        input.files = dt.files;
+        pixiuFileSelected(input);
       }
-    });
-
-    pixiuFileInput.addEventListener('change', updatePixiuFileInfo);
-  }
-
-  function updatePixiuFileInfo() {
-    if (pixiuFileInput.files.length > 0) {
-      pixiuFileName.textContent = pixiuFileInput.files[0].name;
-      pixiuFileInfo.classList.remove('hidden');
-      pixiuSubmitBtn.disabled = false;
     }
-  }
+  });
 
   function submitPixiuImport() {
-    if (pixiuFileInput.files.length === 0) {
+    const input = document.getElementById('pixiu-file-input');
+    if (!input || input.files.length === 0) {
       alert('请先选择文件');
       return;
     }
 
+    const btn = document.getElementById('pixiu-submit-btn');
     const formData = new FormData();
-    formData.append('file', pixiuFileInput.files[0]);
+    formData.append('file', input.files[0]);
 
-    pixiuSubmitBtn.disabled = true;
-    pixiuSubmitBtn.textContent = '上传中...';
+    btn.disabled = true;
+    btn.textContent = '上传中...';
 
     fetch('<%= pixiu_upload_imports_path %>', {
       method: 'POST',
       body: formData,
-      headers: {
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content
-      }
+      headers: { 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content }
     })
-    .then(response => {
-      if (response.ok) {
+    .then(res => {
+      if (res.redirected) {
+        window.location.href = res.url;
+      } else if (res.ok) {
         window.location.href = '<%= pixiu_imports_path %>';
       } else {
-        alert('上传失败，请重试');
-        pixiuSubmitBtn.disabled = false;
-        pixiuSubmitBtn.textContent = '下一步';
+        return res.text().then(t => { throw new Error(t); });
       }
     })
-    .catch(error => {
-      console.error('Error:', error);
-      alert('上传出错，请重试');
-      pixiuSubmitBtn.disabled = false;
-      pixiuSubmitBtn.textContent = '下一步';
+    .catch(err => {
+      console.error(err);
+      alert('上传失败，请重试');
+      btn.disabled = false;
+      btn.textContent = '下一步';
     });
   }
 </script>
