@@ -639,7 +639,8 @@ transactionTypeCards.forEach((card) => {
 
 applyTransactionTypeUI();
 
-function openEditTransactionModal(id) {
+function openEditTransactionModal(id, date, amount, accountId, categoryId, note, type) {
+  // 交易编辑目前通过页面跳转实现，此处保留接口以备后续弹窗改造
   window.location.href = `/transactions/${id}/edit`;
 }
 
