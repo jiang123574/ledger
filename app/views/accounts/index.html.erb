@@ -119,12 +119,13 @@
         <div class="w-24">
           <% selected_period_type = params[:period_type].presence || "month" %>
           <select id="period-type-filter" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+            <option value="all" <%= selected_period_type == 'all' ? 'selected' : '' %>>全部</option>
             <option value="week" <%= selected_period_type == 'week' ? 'selected' : '' %>>按周</option>
             <option value="month" <%= selected_period_type == 'month' ? 'selected' : '' %>>按月</option>
             <option value="year" <%= selected_period_type == 'year' ? 'selected' : '' %>>按年</option>
           </select>
         </div>
-        <div class="w-[220px]">
+        <div class="w-[220px]" id="period-value-container" style="<%= selected_period_type == 'all' ? 'display:none' : '' %>">
           <% selected_period_value = params[:period_value].presence || case selected_period_type
              when "year" then Date.current.year.to_s
              when "week" then Date.current.strftime("%G-W%V")
@@ -403,8 +404,12 @@ function applyFilters() {
   
   if (search) params.append('search', search);
   if (type) params.append('type', type);
-  if (periodType) params.append('period_type', periodType);
-  if (periodValue) params.append('period_value', periodValue);
+  if (periodType && periodType !== 'all') {
+    params.append('period_type', periodType);
+    if (periodValue) params.append('period_value', periodValue);
+  } else if (periodType === 'all') {
+    params.append('period_type', 'all');
+  }
   selectedCategoryIds.forEach(id => params.append('category_ids[]', id));
   if (accountId) params.append('account_id', accountId);
   
@@ -448,9 +453,20 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
 function syncPeriodInputType() {
   const periodTypeEl = document.getElementById('period-type-filter');
   const periodValueEl = document.getElementById('period-value-filter');
+  const periodValueContainer = document.getElementById('period-value-container');
   if (!periodTypeEl || !periodValueEl) return;
 
   const periodType = periodTypeEl.value;
+  
+  // 处理"全部"选项
+  if (periodType === 'all') {
+    if (periodValueContainer) periodValueContainer.style.display = 'none';
+    applyFilters();
+    return;
+  } else {
+    if (periodValueContainer) periodValueContainer.style.display = '';
+  }
+
   const today = new Date();
 
   if (periodType === 'week') {

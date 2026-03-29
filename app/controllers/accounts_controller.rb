@@ -36,6 +36,8 @@ class AccountsController < ApplicationController
     begin
       range =
         case period_type
+        when "all"
+          nil # 不限制日期范围
         when "year"
           year = period_value.to_i
           start_date = Date.new(year, 1, 1)
