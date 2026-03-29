@@ -10,6 +10,8 @@ gem "pg"
 gem "puma", ">= 5.0"
 # Use JavaScript with ESM import maps [https://github.com/rails/importmap-rails]
 gem "importmap-rails"
+# CSV will no longer be a default gem in Ruby 3.4+
+gem "csv"
 
 # Hotwire for SPA-like experience
 gem "turbo-rails"
