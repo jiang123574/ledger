@@ -27,27 +27,28 @@
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark"><%= t('plans.in_progress', default: '进行中的计划') %></h2>
         <div class="grid gap-3">
           <% @active_plans.each do |plan| %>
-            <div class="bg-container dark:bg-container-dark rounded-lg shadow p-3 border-l-4 <%= plan.type == Plan::INSTALLMENT ? 'border-inverse' : 'border-green-500' %>">
+            <div class="bg-container dark:bg-container-dark rounded-lg shadow p-3 border-l-4 <%= [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) ? 'border-inverse' : 'border-green-500' %>">
               <div class="flex justify-between items-start">
                 <div class="flex-1">
                   <div class="flex items-center gap-2">
                     <h3 class="font-semibold text-primary dark:text-primary-dark"><%= plan.name %></h3>
-                    <span class="px-2 py-0.5 text-xs rounded-full <%= plan.type == Plan::INSTALLMENT ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark' : 'bg-green-100 text-green-700' %>">
-                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : t('plans.recurring') %>
+                    <span class="px-2 py-0.5 text-xs rounded-full <%= [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) ? 'bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark' : 'bg-green-100 text-green-700' %>">
+                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::MORTGAGE ? t('plans.mortgage') : t('plans.recurring')) %>
                     </span>
                   </div>
 
                   <div class="mt-2 text-sm text-secondary dark:text-secondary-dark">
                     <span class="font-medium"><%= t('plans.amount') %>:</span>
                     <%= format_currency(plan.amount, plan.currency || 'CNY') %>
-                    <% if plan.type == Plan::INSTALLMENT %>
-                      <span class="text-secondary dark:text-secondary-dark">/期 (<%= t('plans.total', default: '总') %>: <%= format_currency(plan.total_amount, plan.currency || 'CNY') %>)</span>
+                    <% if [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
+                      <span class="text-secondary dark:text-secondary-dark">/期</span>
+                      <span class="ml-2"><span class="font-medium"><%= t('plans.remaining_periods', default: '剩余') %>:</span> <%= plan.installments_remaining %><%= t('plans.periods', default: '期') %></span>
                     <% end %>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.account') %>:</span> <%= plan.account&.name || '-' %></span>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.day_of_month') %>:</span> <%= plan.day_of_month %><%= t('plans.day', default: '日') %></span>
                   </div>
 
-                  <% if plan.type == Plan::INSTALLMENT %>
+                  <% if [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
                     <div class="mt-3">
                       <div class="flex justify-between text-sm text-secondary dark:text-secondary-dark mb-1">
                         <span><%= t('plans.progress', default: '进度') %>: <%= plan.installments_completed %> / <%= plan.installments_total %> <%= t('plans.periods', default: '期') %></span>
@@ -64,12 +65,12 @@
                 </div>
 
                 <div class="flex items-center gap-2">
-                  <% if plan.type == Plan::INSTALLMENT && !plan.completed? %>
+                  <% if [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) && !plan.completed? %>
                     <%= button_to t('plans.execute', default: '执行'), execute_plan_path(plan), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
-                  <% elsif plan.type != Plan::INSTALLMENT %>
+                  <% elsif ![Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
                     <%= button_to t('plans.execute', default: '执行'), execute_plan_path(plan), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
                   <% end %>
-                  <button onclick="openEditPlanModal(<%= plan.id %>, '<%= j plan.name %>', '<%= plan.type %>', '<%= plan.account_id %>', '<%= plan.amount %>', '<%= plan.total_amount || '' %>', '<%= plan.installments_total || '' %>', '<%= plan.day_of_month %>', '<%= plan.currency || 'CNY' %>', <%= plan.active %>)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
+                  <button onclick="openEditPlanModal(<%= plan.id %>, '<%= j plan.name %>', '<%= plan.type %>', '<%= plan.account_id %>', '<%= plan.amount %>', '<%= plan.total_amount || '' %>', '<%= plan.installments_total || '' %>', '<%= plan.installments_completed || 0 %>', '<%= plan.day_of_month %>', '<%= plan.currency || 'CNY' %>', <%= plan.active %>)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
                     <%= t('common.edit') %>
                   </button>
                   <%= button_to t('common.delete'), plan_path(plan), method: :delete, onclick: "if(!confirm('确定删除此计划？')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
@@ -93,9 +94,9 @@
                   <div class="flex items-center gap-2">
                     <h3 class="font-semibold text-secondary dark:text-secondary-dark"><%= plan.name %></h3>
                     <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
-                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : t('plans.recurring') %>
+                      <%= plan.type == Plan::INSTALLMENT ? t('plans.installment') : (plan.type == Plan::MORTGAGE ? t('plans.mortgage') : t('plans.recurring')) %>
                     </span>
-                    <% if plan.type == Plan::INSTALLMENT && plan.completed? %>
+                    <% if [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) && plan.completed? %>
                       <span class="px-2 py-0.5 text-xs rounded-full bg-green-100 text-green-700">✓ <%= t('plans.completed', default: '已完成') %></span>
                     <% end %>
                   </div>
@@ -133,13 +134,21 @@
           <!-- Plan Type -->
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-2">计划类型</label>
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-3 gap-4">
               <label class="plan-type-label relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset border-border dark:border-border-dark" data-type="INSTALLMENT">
                 <input type="radio" name="plan[type]" value="INSTALLMENT" class="sr-only">
                 <div class="text-center">
                   <div class="text-2xl mb-1">💳</div>
                   <div class="font-medium text-primary dark:text-primary-dark text-sm">分期还款</div>
                   <div class="text-xs text-secondary dark:text-secondary-dark">信用卡分期等</div>
+                </div>
+              </label>
+              <label class="plan-type-label relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset border-border dark:border-border-dark" data-type="MORTGAGE">
+                <input type="radio" name="plan[type]" value="MORTGAGE" class="sr-only">
+                <div class="text-center">
+                  <div class="text-2xl mb-1">🏠</div>
+                  <div class="font-medium text-primary dark:text-primary-dark text-sm">房贷</div>
+                  <div class="text-xs text-secondary dark:text-secondary-dark">每期金额 + 剩余期数</div>
                 </div>
               </label>
               <label class="plan-type-label relative flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer hover:bg-surface-inset dark:hover:bg-surface-dark-inset border-inverse bg-surface dark:bg-surface-dark" data-type="RECURRING">
@@ -191,11 +200,30 @@
             <input type="hidden" id="new-plan-amount" name="plan[amount]">
           </div>
 
+          <div id="mortgage-fields" class="hidden space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">每期金额</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+                  <input type="number" id="new-mortgage-amount" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">剩余期数</label>
+                <input type="number" id="new-mortgage-remaining" name="remaining_periods" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="240">
+              </div>
+            </div>
+            <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
+              💡 剩余总额估算: <span id="new-mortgage-total" class="font-semibold">¥0.00</span>
+            </div>
+          </div>
+
           <div id="amount-field">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <input type="number" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
+              <input type="number" id="new-regular-amount" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="0.00">
             </div>
           </div>
 
@@ -254,6 +282,7 @@
           <!-- Plan Type (readonly display) -->
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-2">计划类型</label>
+            <input type="hidden" id="edit-plan-type" name="plan[type]">
             <div id="edit-plan-type-display" class="p-4 border border-border dark:border-border-dark rounded-lg bg-surface-inset dark:bg-surface-dark-inset text-primary dark:text-primary-dark"></div>
           </div>
 
@@ -293,6 +322,25 @@
               💡 每期还款: <span id="edit-per-installment" class="font-semibold">¥0.00</span>
             </div>
             <input type="hidden" id="edit-plan-amount-hidden" name="plan[amount]">
+          </div>
+
+          <div id="edit-mortgage-fields" class="hidden space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">每期金额</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+                  <input type="number" id="edit-mortgage-amount" name="plan[amount]" step="0.01" class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                </div>
+              </div>
+              <div>
+                <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">剩余期数</label>
+                <input type="number" id="edit-mortgage-remaining" name="remaining_periods" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+            <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
+              💡 剩余总额估算: <span id="edit-mortgage-total" class="font-semibold">¥0.00</span>
+            </div>
           </div>
 
           <div id="edit-amount-field">
@@ -341,6 +389,49 @@
 </div>
 
 <script>
+  function setInputDisabled(id, disabled) {
+    const input = document.getElementById(id)
+    if (input) input.disabled = disabled
+  }
+
+  function updateNewPlanTypeFields(type) {
+    const installmentFields = document.getElementById('installment-fields')
+    const mortgageFields = document.getElementById('mortgage-fields')
+    const amountField = document.getElementById('amount-field')
+
+    installmentFields.classList.toggle('hidden', type !== 'INSTALLMENT')
+    mortgageFields.classList.toggle('hidden', type !== 'MORTGAGE')
+    amountField.classList.toggle('hidden', type === 'INSTALLMENT' || type === 'MORTGAGE')
+
+    setInputDisabled('new-plan-total-amount', type !== 'INSTALLMENT')
+    setInputDisabled('new-plan-installments', type !== 'INSTALLMENT')
+    setInputDisabled('new-plan-amount', type !== 'INSTALLMENT')
+
+    setInputDisabled('new-mortgage-amount', type !== 'MORTGAGE')
+    setInputDisabled('new-mortgage-remaining', type !== 'MORTGAGE')
+
+    setInputDisabled('new-regular-amount', type === 'INSTALLMENT' || type === 'MORTGAGE')
+  }
+
+  function updateEditPlanTypeFields(type) {
+    const installmentFields = document.getElementById('edit-installment-fields')
+    const mortgageFields = document.getElementById('edit-mortgage-fields')
+    const amountField = document.getElementById('edit-amount-field')
+
+    installmentFields.classList.toggle('hidden', type !== 'INSTALLMENT')
+    mortgageFields.classList.toggle('hidden', type !== 'MORTGAGE')
+    amountField.classList.toggle('hidden', type === 'INSTALLMENT' || type === 'MORTGAGE')
+
+    setInputDisabled('edit-plan-total-amount', type !== 'INSTALLMENT')
+    setInputDisabled('edit-plan-installments', type !== 'INSTALLMENT')
+    setInputDisabled('edit-plan-amount-hidden', type !== 'INSTALLMENT')
+
+    setInputDisabled('edit-mortgage-amount', type !== 'MORTGAGE')
+    setInputDisabled('edit-mortgage-remaining', type !== 'MORTGAGE')
+
+    setInputDisabled('edit-plan-amount', type === 'INSTALLMENT' || type === 'MORTGAGE')
+  }
+
   // Plan type labels
   document.querySelectorAll('.plan-type-label').forEach(label => {
     label.addEventListener('click', function() {
@@ -350,18 +441,8 @@
       })
       this.classList.remove('border-border', 'dark:border-border-dark')
       this.classList.add('border-inverse', 'bg-surface', 'dark:bg-surface-dark')
-      
-      const type = this.dataset.type
-      const installmentFields = document.getElementById('installment-fields')
-      const amountField = document.getElementById('amount-field')
-      
-      if (type === 'INSTALLMENT') {
-        installmentFields.classList.remove('hidden')
-        amountField.classList.add('hidden')
-      } else {
-        installmentFields.classList.add('hidden')
-        amountField.classList.remove('hidden')
-      }
+
+      updateNewPlanTypeFields(this.dataset.type)
     })
   })
 
@@ -378,6 +459,14 @@
     if (amount) amount.value = perInstallment.toFixed(2)
   }
 
+  function calculateMortgageTotal(amountId, remainingId, displayId) {
+    const amount = parseFloat(document.getElementById(amountId)?.value) || 0
+    const remaining = parseInt(document.getElementById(remainingId)?.value) || 0
+    const total = amount * remaining
+    const display = document.getElementById(displayId)
+    if (display) display.textContent = '¥' + total.toFixed(2)
+  }
+
   document.getElementById('new-plan-total-amount')?.addEventListener('input', () => {
     calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount')
   })
@@ -392,17 +481,33 @@
     calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden')
   })
 
+  document.getElementById('new-mortgage-amount')?.addEventListener('input', () => {
+    calculateMortgageTotal('new-mortgage-amount', 'new-mortgage-remaining', 'new-mortgage-total')
+  })
+  document.getElementById('new-mortgage-remaining')?.addEventListener('input', () => {
+    calculateMortgageTotal('new-mortgage-amount', 'new-mortgage-remaining', 'new-mortgage-total')
+  })
+  document.getElementById('edit-mortgage-amount')?.addEventListener('input', () => {
+    calculateMortgageTotal('edit-mortgage-amount', 'edit-mortgage-remaining', 'edit-mortgage-total')
+  })
+  document.getElementById('edit-mortgage-remaining')?.addEventListener('input', () => {
+    calculateMortgageTotal('edit-mortgage-amount', 'edit-mortgage-remaining', 'edit-mortgage-total')
+  })
+
   function openNewPlanModal() {
+    const selectedType = document.querySelector('.plan-type-label input[name="plan[type]"]:checked')?.value || 'RECURRING'
+    updateNewPlanTypeFields(selectedType)
     document.getElementById('new-plan-modal').classList.remove('hidden')
   }
 
-  function openEditPlanModal(id, name, type, accountId, amount, totalAmount, installments, dayOfMonth, currency, active) {
+  function openEditPlanModal(id, name, type, accountId, amount, totalAmount, installments, completedInstallments, dayOfMonth, currency, active) {
     const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
     
     // Set type display
-    const typeLabels = { 'INSTALLMENT': '💳 分期还款', 'RECURRING': '🔄 周期支出', 'ONE_TIME': '🔄 周期支出' }
+    const typeLabels = { 'INSTALLMENT': '💳 分期还款', 'MORTGAGE': '🏠 房贷', 'RECURRING': '🔄 周期支出', 'ONE_TIME': '🔄 周期支出' }
     document.getElementById('edit-plan-type-display').textContent = typeLabels[type] || type
+    document.getElementById('edit-plan-type').value = type
     
     // Set fields
     document.getElementById('edit-plan-name').value = name
@@ -410,19 +515,19 @@
     document.getElementById('edit-plan-day').value = dayOfMonth
     document.getElementById('edit-plan-currency').value = currency
     document.getElementById('edit-plan-active').checked = active
-    
-    const installmentFields = document.getElementById('edit-installment-fields')
-    const amountField = document.getElementById('edit-amount-field')
-    
+
+    updateEditPlanTypeFields(type)
+
     if (type === 'INSTALLMENT') {
-      installmentFields.classList.remove('hidden')
-      amountField.classList.add('hidden')
       document.getElementById('edit-plan-total-amount').value = totalAmount
       document.getElementById('edit-plan-installments').value = installments
       calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden')
+    } else if (type === 'MORTGAGE') {
+      const remainingPeriods = Math.max(0, (parseInt(installments, 10) || 0) - (parseInt(completedInstallments, 10) || 0))
+      document.getElementById('edit-mortgage-amount').value = amount
+      document.getElementById('edit-mortgage-remaining').value = remainingPeriods
+      calculateMortgageTotal('edit-mortgage-amount', 'edit-mortgage-remaining', 'edit-mortgage-total')
     } else {
-      installmentFields.classList.add('hidden')
-      amountField.classList.remove('hidden')
       document.getElementById('edit-plan-amount').value = amount
     }
     

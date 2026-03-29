@@ -639,6 +639,38 @@ transactionTypeCards.forEach((card) => {
 
 applyTransactionTypeUI();
 
+function openEditTransactionModal(id, date, amount, accountId, categoryId, note, type) {
+  // 交易编辑目前通过页面跳转实现，此处保留接口以备后续弹窗改造
+  window.location.href = `/transactions/${id}/edit`;
+}
+
+function confirmDeleteTransaction(id, name) {
+  const label = name || '这笔交易';
+  if (!window.confirm(`确定删除${label}吗？`)) return;
+
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = `/transactions/${id}`;
+
+  const methodInput = document.createElement('input');
+  methodInput.type = 'hidden';
+  methodInput.name = '_method';
+  methodInput.value = 'delete';
+  form.appendChild(methodInput);
+
+  const token = document.querySelector('meta[name="csrf-token"]')?.content;
+  if (token) {
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'authenticity_token';
+    csrfInput.value = token;
+    form.appendChild(csrfInput);
+  }
+
+  document.body.appendChild(form);
+  form.submit();
+}
+
 <% if params[:open_new_transaction] == "1" %>
 document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 <% end %>

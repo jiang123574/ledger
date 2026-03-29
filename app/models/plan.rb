@@ -3,10 +3,11 @@ class Plan < ApplicationRecord
 
   # Types
   INSTALLMENT = "INSTALLMENT"
+  MORTGAGE = "MORTGAGE"
   RECURRING = "RECURRING"
   ONE_TIME = "ONE_TIME"
 
-  TYPES = [ INSTALLMENT, RECURRING, ONE_TIME ].freeze
+  TYPES = [ INSTALLMENT, MORTGAGE, RECURRING, ONE_TIME ].freeze
 
   belongs_to :account, class_name: "Account", optional: true
 
@@ -14,11 +15,12 @@ class Plan < ApplicationRecord
   validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :day_of_month, inclusion: { in: 1..31 }
   validates :type, inclusion: { in: TYPES }, allow_nil: true
-  validates :installments_total, numericality: { greater_than: 0 }, if: -> { type == INSTALLMENT }
-  validates :total_amount, presence: true, if: -> { type == INSTALLMENT }
+  validates :installments_total, numericality: { greater_than: 0 }, if: :installment_like?
+  validates :total_amount, presence: true, if: :installment_like?
 
   scope :active, -> { where(active: true) }
   scope :installment, -> { where(type: INSTALLMENT) }
+  scope :mortgage, -> { where(type: MORTGAGE) }
   scope :recurring, -> { where(type: RECURRING) }
 
   def active?
@@ -26,17 +28,17 @@ class Plan < ApplicationRecord
   end
 
   def installments_remaining
-    return 0 unless type == INSTALLMENT
+    return 0 unless installment_like?
     installments_total - installments_completed
   end
 
   def completed?
-    type == INSTALLMENT && installments_completed >= installments_total
+    installment_like? && installments_completed >= installments_total
   end
 
   def progress_percentage
     return 100 if completed?
-    return 0 unless type == INSTALLMENT && installments_total.positive?
+    return 0 unless installment_like? && installments_total.positive?
     (installments_completed.to_f / installments_total * 100).round(1)
   end
 
@@ -62,7 +64,7 @@ class Plan < ApplicationRecord
 
   def generate_transaction!
     return nil unless active? && account.present?
-    return nil if type == INSTALLMENT && completed?
+    return nil if installment_like? && completed?
 
     ApplicationRecord.transaction do
       transaction = Transaction.create!(
@@ -75,7 +77,7 @@ class Plan < ApplicationRecord
         date: Date.current
       )
 
-      if type == INSTALLMENT
+      if installment_like?
         increment!(:installments_completed)
         update!(active: false) if completed?
       end
@@ -96,14 +98,18 @@ class Plan < ApplicationRecord
   end
 
   def transaction_note
-    return name unless type == INSTALLMENT
+    return name unless installment_like?
 
     I18n.t("plans.installment_note", name: name, current: installments_completed + 1, total: installments_total)
   end
 
+  def installment_like?
+    [ INSTALLMENT, MORTGAGE ].include?(type)
+  end
+
   def find_or_create_default_category
-    Category.find_or_create_by(name: I18n.t("plans.default_category")) do |c|
-      c.type = "EXPENSE"
+    Category.find_or_create_by(name: I18n.t("plans.default_category"), category_type: "EXPENSE") do |c|
+      c.active = true if c.active.nil?
     end
   end
 
@@ -111,6 +117,7 @@ class Plan < ApplicationRecord
     def generate_all_due!
       active.find_each do |plan|
         next unless plan.next_due_date == Date.current
+        next if plan.last_generated&.to_date == Date.current
 
         begin
           plan.generate_transaction!

@@ -1,9 +1,12 @@
 module ApplicationHelper
   # Currency formatting helper
-  # Uses Rails' number_to_currency with sensible defaults for CNY
-  def format_currency(amount, unit: "¥", precision: 2)
-    return format_currency(0, unit: unit, precision: precision) if amount.nil?
-    number_to_currency(amount, unit: unit, precision: precision, format: "%u%n")
+  # Supports both:
+  #   format_currency(amount, "CNY")
+  #   format_currency(amount, unit: "¥")
+  def format_currency(amount, currency = nil, unit: nil, precision: 2)
+    amount = 0 if amount.nil?
+    currency_unit = unit || currency_unit_for(currency)
+    number_to_currency(amount, unit: currency_unit, precision: precision, format: "%u%n")
   end
 
   # Format currency with sign (for income/expense display)
@@ -60,6 +63,21 @@ module ApplicationHelper
   end
 
   private
+
+  def currency_unit_for(currency)
+    case currency.to_s.upcase
+    when "USD"
+      "$"
+    when "EUR"
+      "€"
+    when "JPY"
+      "¥"
+    when "GBP"
+      "£"
+    else
+      "¥"
+    end
+  end
 
   def nav_item_link_classes(is_active)
     [
