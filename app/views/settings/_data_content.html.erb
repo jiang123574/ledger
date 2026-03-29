@@ -66,12 +66,17 @@
       </div>
     </div>
     
-    <div class="py-3">
+    <div class="py-3 border-t border-border dark:border-border-dark">
       <div class="flex items-center justify-between mb-3">
         <div>
-          <h3 class="font-medium text-primary dark:text-primary-dark">数据库备份</h3>
-          <p class="text-sm text-secondary dark:text-secondary-dark">创建完整的数据库备份</p>
+          <h3 class="font-medium text-primary dark:text-primary-dark">清空所有数据</h3>
+          <p class="text-sm text-secondary dark:text-secondary-dark">删除所有交易记录、账户、分类等数据（不可恢复）</p>
         </div>
+        <%= button_to "清空数据", clear_all_data_settings_path, method: :post,
+            class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-smooth btn-modern",
+            data: { confirm: "确定要清空所有数据吗？此操作不可恢复！" } %>
+      </div>
+    </div>
         <%= button_to "创建备份", create_backup_path, method: :post,
             class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern",
             data: { loading_button_target: "button" },
