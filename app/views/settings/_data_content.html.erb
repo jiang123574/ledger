@@ -35,20 +35,33 @@
           <p class="text-sm text-secondary dark:text-secondary-dark">从 CSV 文件导入交易记录</p>
         </div>
       </div>
-      <%= form_with url: import_transactions_path, method: :post, local: true, multipart: true,
-            data: {
-              controller: "loading-button",
-              action: "submit->loading-button#showLoading",
-              loading_button_loading_text_value: "导入中..."
-            } do |f| %>
-        <div class="flex items-center gap-3">
-          <%= f.file_field :file, accept: ".csv", class: "text-sm text-primary dark:text-primary-dark border border-border dark:border-border-dark rounded-lg p-2 bg-white dark:bg-container-dark", required: true %>
-          <%= f.submit "导入", class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern", data: { loading_button_target: "button" } %>
+      <div class="space-y-3">
+        <!-- 贔貅导入 -->
+        <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3">
+          <p class="text-sm font-medium text-primary dark:text-primary-dark mb-2">🐷 贔貅记账导入</p>
+          <p class="text-xs text-secondary dark:text-secondary-dark mb-3">导入贔貅记账的交易流水（支持转账、自动映射账户和分类）</p>
+          <%= link_to "开始导入", imports_pixiu_path, class: "inline-block px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
         </div>
-        <p class="text-xs text-secondary dark:text-secondary-dark mt-2">
-          CSV 格式：日期, 类型(收入/支出), 金额, 账户, 分类, 目标账户, 备注
-        </p>
-      <% end %>
+        
+        <!-- 通用 CSV 导入 -->
+        <div>
+          <p class="text-sm font-medium text-primary dark:text-primary-dark mb-2">通用 CSV 导入</p>
+          <%= form_with url: import_transactions_path, method: :post, local: true, multipart: true,
+                data: {
+                  controller: "loading-button",
+                  action: "submit->loading-button#showLoading",
+                  loading_button_loading_text_value: "导入中..."
+                } do |f| %>
+            <div class="flex items-center gap-3">
+              <%= f.file_field :file, accept: ".csv", class: "text-sm text-primary dark:text-primary-dark border border-border dark:border-border-dark rounded-lg p-2 bg-white dark:bg-container-dark", required: true %>
+              <%= f.submit "导入", class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern", data: { loading_button_target: "button" } %>
+            </div>
+            <p class="text-xs text-secondary dark:text-secondary-dark mt-2">
+              CSV 格式：日期, 类型(收入/支出), 金额, 账户, 分类, 目标账户, 备注
+            </p>
+          <% end %>
+        </div>
+      </div>
     </div>
     
     <div class="py-3">
