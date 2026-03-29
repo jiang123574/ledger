@@ -95,6 +95,23 @@ class ImportsController < ApplicationController
       
       if row['交易类型'] == '转账'
         @stats[:transfers] += 1
+        
+        if @sample_data.size < 10
+          account_str = row['资金账户'].strip
+          if account_str.include?('→')
+            parts = account_str.split('→').map(&:strip)
+            amount = row['流入金额'].to_f > 0 ? row['流入金额'].to_f : row['流出金额'].to_f
+            
+            @sample_data << {
+              date: row['日期'],
+              category: '转账',
+              account: "#{parts[0]} → #{parts[1]}",
+              type: 'TRANSFER',
+              amount: amount,
+              note: "转账"
+            }
+          end
+        end
         next
       end
 
@@ -169,20 +186,72 @@ class ImportsController < ApplicationController
     result = {
       imported: 0,
       skipped: 0,
-      errors: 0
+      errors: 0,
+      transfers: 0
     }
+
+    # Get transfer category
+    transfer_category = Category.find_or_create_by(name: '转账', category_type: 'TRANSFER') { |c| c.active = true }
 
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       begin
         next if row['日期'].blank?
 
-        # Skip transfers
-        next if row['交易类型'] == '转账'
-
         date = Date.parse(row['日期'])
         income = row['流入金额'].to_f
         expense = row['流出金额'].to_f
 
+        # Handle transfers: "账户A → 账户B"
+        if row['交易类型'] == '转账'
+          account_str = row['资金账户'].strip
+          
+          # Parse "账户A → 账户B" format
+          if account_str.include?('→')
+            parts = account_str.split('→').map(&:strip)
+            from_account_name = parts[0]
+            to_account_name = parts[1]
+            
+            from_account = accounts_map[from_account_name]
+            to_account = accounts_map[to_account_name]
+            
+            if from_account && to_account && (income > 0 || expense > 0)
+              amount = income > 0 ? income : expense
+              
+              # Create two transactions: expense from source, income to destination
+              note = "转账: #{from_account_name} → #{to_account_name}"
+              
+              # Expense transaction (from account)
+              Transaction.create!(
+                date: date,
+                type: 'EXPENSE',
+                amount: amount,
+                account: from_account,
+                category: transfer_category,
+                note: note
+              )
+              
+              # Income transaction (to account)
+              Transaction.create!(
+                date: date,
+                type: 'INCOME',
+                amount: amount,
+                account: to_account,
+                category: transfer_category,
+                note: note
+              )
+              
+              result[:transfers] += 1
+              result[:imported] += 2
+            else
+              result[:skipped] += 1
+            end
+          else
+            result[:skipped] += 1
+          end
+          next
+        end
+
+        # Handle regular transactions
         if income > 0
           type = 'INCOME'
           amount = income

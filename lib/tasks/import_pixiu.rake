@@ -31,10 +31,14 @@ namespace :import do
       total: 0,
       imported: 0,
       skipped: 0,
-      errors: 0
+      errors: 0,
+      transfers: 0
     }
     
     errors = []
+    
+    # Get transfer category
+    transfer_category = Category.find_or_create_by(name: '转账', category_type: 'TRANSFER') { |c| c.active = true }
     
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       stats[:total] += 1
@@ -49,6 +53,53 @@ namespace :import do
         income_amount = row['流入金额'].to_f
         expense_amount = row['流出金额'].to_f
         
+        # Handle transfers: "账户A → 账户B"
+        if row['交易类型'] == '转账'
+          account_str = row['资金账户'].strip
+          
+          if account_str.include?('→')
+            parts = account_str.split('→').map(&:strip)
+            from_account_name = parts[0]
+            to_account_name = parts[1]
+            
+            from_account = accounts_map[from_account_name]
+            to_account = accounts_map[to_account_name]
+            
+            if from_account && to_account && (income_amount > 0 || expense_amount > 0)
+              amount = income_amount > 0 ? income_amount : expense_amount
+              note = "转账: #{from_account_name} → #{to_account_name}"
+              
+              # Create two transactions
+              Transaction.create!(
+                date: date,
+                type: 'EXPENSE',
+                amount: amount,
+                account: from_account,
+                category: transfer_category,
+                note: note
+              )
+              
+              Transaction.create!(
+                date: date,
+                type: 'INCOME',
+                amount: amount,
+                account: to_account,
+                category: transfer_category,
+                note: note
+              )
+              
+              stats[:transfers] += 1
+              stats[:imported] += 2
+            else
+              stats[:skipped] += 1
+            end
+          else
+            stats[:skipped] += 1
+          end
+          next
+        end
+        
+        # Handle regular transactions
         if income_amount > 0
           type = 'INCOME'
           amount = income_amount
@@ -56,12 +107,6 @@ namespace :import do
           type = 'EXPENSE'
           amount = expense_amount
         else
-          stats[:skipped] += 1
-          next
-        end
-        
-        # Skip transfers
-        if row['交易类型'] == '转账'
           stats[:skipped] += 1
           next
         end

@@ -69,10 +69,18 @@ amount = 流入金额 > 0 ? 流入金额 : 流出金额
 
 #### 转账交易
 - **类型**：转账（资金账户 → 资金账户）
-- **处理方案**：
-  - 方案A：忽略（不记录）
-  - 方案B：记录为转账备注
-  - 方案C：双向记录（出账 + 入账）
+- **处理方案**：✅ **双向记录**（推荐）
+  - 从源账户创建 EXPENSE 交易
+  - 到目标账户创建 INCOME 交易
+  - 分类自动设为"转账"
+  - 金额相同，便于对账
+- **示例**：
+  ```
+  农行2917 → 支付宝余额 (1000元)
+  ↓
+  农行2917: -1000 (EXPENSE, 转账)
+  支付宝余额: +1000 (INCOME, 转账)
+  ```
 
 #### 空分类（7160条）
 - 处理：归类为"其他"或"未分类"
@@ -107,38 +115,37 @@ categories_map = {
 
 ### 第3步：数据导入
 ```ruby
-CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
-  date = Date.parse(row['日期'])
+# 处理转账
+if row['交易类型'] == '转账'
+  account_str = row['资金账户']  # "账户A → 账户B"
+  parts = account_str.split('→').map(&:strip)
+  from_account = accounts_map[parts[0]]
+  to_account = accounts_map[parts[1]]
+  amount = row['流入金额'] > 0 ? row['流入金额'] : row['流出金额']
   
-  # 确定交易类型和金额
-  if row['流入金额'].to_f > 0
-    type = 'INCOME'
-    amount = row['流入金额'].to_f
-  else
-    type = 'EXPENSE'
-    amount = row['流出金额'].to_f
-  end
-  
-  # 跳过转账
-  next if row['交易类型'] == '转账'
-  
-  # 获取账户
-  account = accounts_map[row['资金账户']]
-  next unless account
-  
-  # 获取分类
-  category = categories_map[row['收支大类']] || categories_map['其他']
-  
-  # 创建交易
-  Transaction.create!(
-    date: date,
-    type: type,
-    amount: amount,
-    account: account,
-    category: category,
-    note: "#{row['交易分类']} - #{row['备注']}"
-  )
+  # 创建两条交易
+  Transaction.create!(type: 'EXPENSE', amount: amount, account: from_account, ...)
+  Transaction.create!(type: 'INCOME', amount: amount, account: to_account, ...)
+  next
 end
+
+# 处理普通交易
+if row['流入金额'].to_f > 0
+  type = 'INCOME'
+  amount = row['流入金额'].to_f
+else
+  type = 'EXPENSE'
+  amount = row['流出金额'].to_f
+end
+
+Transaction.create!(
+  date: date,
+  type: type,
+  amount: amount,
+  account: account,
+  category: category,
+  note: note
+)
 ```
 
 ---
@@ -159,7 +166,9 @@ end
 ## 预期结果
 
 - **总交易数**：~22,000 条
-- **有效交易**：~15,000 条（排除转账）
+- **有效交易**：~7,000 条（导入）
+- **转账交易**：~7,000 条（创建 ~14,000 条记录）
+- **总导入记录**：~21,000 条
 - **导入时间**：~5-10 分钟
 - **数据覆盖**：2026-03-20 至今
 
