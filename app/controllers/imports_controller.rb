@@ -94,7 +94,7 @@ class ImportsController < ApplicationController
       next if row['日期'].blank?
       
       # 交易分类 = 交易类型（日常支出、日常收入、转账等）
-      transaction_type = row['交易分类'].strip
+      transaction_type = row['交易分类']&.strip
       
       if transaction_type == '转账'
         @stats[:transfers] += 1
@@ -218,7 +218,7 @@ class ImportsController < ApplicationController
 
         # Handle transfers: "账户A → 账户B"
         # 交易分类 = 交易类型（日常支出、日常收入、转账等）
-        if row['交易分类'] == '转账'
+        if row['交易分类']&.strip == '转账'
           account_str = row['资金账户'].strip
           
           # Parse "账户A → 账户B" format
