@@ -185,13 +185,19 @@ class ImportsController < ApplicationController
 
     @categories_map = {}
     parent_categories_set.each do |parent_name|
-      parent_category = Category.find_or_create_by(name: parent_name, parent_id: nil, category_type: 'EXPENSE') { |c| c.active = true }
+      parent_category = Category.find_or_create_by(name: parent_name, parent_id: nil) do |c|
+        c.type = 'EXPENSE'
+        c.active = true
+      end
       @categories_map[parent_name] = parent_category
       
       # 创建子分类
       if child_categories_map[parent_name]
         child_categories_map[parent_name].each do |child_name|
-          Category.find_or_create_by(name: child_name, parent_id: parent_category.id, category_type: 'EXPENSE') { |c| c.active = true }
+          Category.find_or_create_by(name: child_name, parent_id: parent_category.id) do |c|
+            c.type = 'EXPENSE'
+            c.active = true
+          end
         end
       end
     end
