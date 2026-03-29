@@ -93,7 +93,10 @@ class ImportsController < ApplicationController
       
       next if row['日期'].blank?
       
-      if row['交易类型'] == '转账'
+      # 交易分类 = 交易类型（日常支出、日常收入、转账等）
+      transaction_type = row['交易分类'].strip
+      
+      if transaction_type == '转账'
         @stats[:transfers] += 1
         
         if @sample_data.size < 10
@@ -124,11 +127,11 @@ class ImportsController < ApplicationController
         if @sample_data.size < 10
           @sample_data << {
             date: row['日期'],
-            category: row['收支大类'],
+            category: "#{row['收支大类']} - #{row['交易类型']}",
             account: row['资金账户'],
             type: income > 0 ? 'INCOME' : 'EXPENSE',
             amount: income > 0 ? income : expense,
-            note: "#{row['交易分类']} - #{row['备注']}"
+            note: row['备注'].present? ? row['备注'] : ''
           }
         end
       else
@@ -158,6 +161,7 @@ class ImportsController < ApplicationController
         accounts_set << account_str
       end
       
+      # 收支大类 = 父分类
       categories_set << row['收支大类'].strip if row['收支大类'].present?
     end
 
@@ -213,7 +217,8 @@ class ImportsController < ApplicationController
         expense = row['流出金额'].to_f
 
         # Handle transfers: "账户A → 账户B"
-        if row['交易类型'] == '转账'
+        # 交易分类 = 交易类型（日常支出、日常收入、转账等）
+        if row['交易分类'] == '转账'
           account_str = row['资金账户'].strip
           
           # Parse "账户A → 账户B" format
@@ -292,7 +297,7 @@ class ImportsController < ApplicationController
         end
 
         note_parts = []
-        note_parts << row['交易分类'].strip if row['交易分类'].present?
+        note_parts << row['交易类型'].strip if row['交易类型'].present?
         note_parts << row['备注'].strip if row['备注'].present?
         note = note_parts.join(' - ')
 
