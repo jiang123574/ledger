@@ -263,24 +263,6 @@ class ImportService
     { valid: errors.empty?, errors: errors, format: format }
   end
 
-  def self.create_transaction(data)
-    ApplicationRecord.transaction do
-      account = find_or_create_account(data[:account])
-      category = find_or_create_category(data[:category], data[:type])
-      transaction_type = data[:type] || (data[:amount] >= 0 ? "INCOME" : "EXPENSE")
-
-      Transaction.create!(
-        date: data[:date] || Date.current,
-        type: transaction_type,
-        amount: data[:amount]&.abs || 0,
-        account: account,
-        category: category,
-        note: data[:note],
-        tag: data[:tag]
-      )
-    end
-  end
-
   # Field mapping templates
   def self.templates
     [
@@ -308,10 +290,8 @@ class ImportService
   end
 
   def self.encoding(file)
-    # Try to detect encoding, default to UTF-8
-    content = File.read(file.path, 1024)
-    content.encoding.name
-  rescue
+    # CSV/Excel text import in this app is UTF-8 first.
+    # Binary reads can force ASCII-8BIT and break Chinese header matching.
     "UTF-8"
   end
 
@@ -372,19 +352,22 @@ class ImportService
   end
 
   def self.create_transaction(data)
-    account = find_or_create_account(data[:account])
-    category = find_or_create_category(data[:category], data[:type])
-    transaction_type = data[:type] || (data[:amount] >= 0 ? "INCOME" : "EXPENSE")
+    ApplicationRecord.transaction do
+      account = find_or_create_account(data[:account])
+      category = find_or_create_category(data[:category], data[:type])
+      transaction_type = data[:type] || (data[:amount] >= 0 ? "INCOME" : "EXPENSE")
 
-    Transaction.create!(
-      date: data[:date] || Date.current,
-      type: transaction_type,
-      amount: data[:amount]&.abs || 0,
-      account: account,
-      category: category,
-      note: data[:note],
-      tag: data[:tag]
-    )
+      Transaction.create!(
+        date: data[:date] || Date.current,
+        type: transaction_type,
+        amount: data[:amount]&.abs || 0,
+        currency: account&.currency || "CNY",
+        account: account,
+        category: category,
+        note: data[:note],
+        tag: data[:tag]
+      )
+    end
   end
 
   def self.parse_date(date_str)

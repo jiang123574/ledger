@@ -18,13 +18,13 @@ class PlanTest < ActiveSupport::TestCase
   test "should require name" do
     plan = Plan.new(amount: 100, day_of_month: 15)
     assert_not plan.valid?
-    assert_includes plan.errors[:name], "can't be blank"
+    assert plan.errors.of_kind?(:name, :blank)
   end
 
   test "should require amount" do
     plan = Plan.new(name: "Test", day_of_month: 15)
     assert_not plan.valid?
-    assert_includes plan.errors[:amount], "can't be blank"
+    assert plan.errors.of_kind?(:amount, :blank)
   end
 
   test "should validate day_of_month range" do
@@ -51,7 +51,7 @@ class PlanTest < ActiveSupport::TestCase
       type: Plan::INSTALLMENT
     )
     assert_not plan.valid?
-    assert_includes plan.errors[:total_amount], "can't be blank"
+    assert plan.errors.of_kind?(:total_amount, :blank)
   end
 
   test "installment plan should be valid with all required fields" do
