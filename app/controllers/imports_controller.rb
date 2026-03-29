@@ -41,7 +41,7 @@ class ImportsController < ApplicationController
 
     # Save file temporarily
     temp_path = Rails.root.join('tmp', "pixiu_#{Time.current.to_i}.csv")
-    File.write(temp_path, file.read, encoding: 'UTF-8')
+    FileUtils.cp(file.tempfile.path, temp_path)
 
     session[:pixiu_file_path] = temp_path.to_s
     session[:pixiu_file_name] = file.original_filename
