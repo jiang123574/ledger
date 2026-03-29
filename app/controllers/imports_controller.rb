@@ -255,10 +255,10 @@ class ImportsController < ApplicationController
         # Handle transfers: "账户A → 账户B"
         # 交易分类 = 交易类型（日常支出、日常收入、转账等）
         if row['交易分类']&.strip == '转账'
-          account_str = row['资金账户'].strip
+          account_str = row['资金账户']&.strip
           
           # Parse "账户A → 账户B" format
-          if account_str.include?('→')
+          if account_str && account_str.include?('→')
             parts = account_str.split('→').map(&:strip)
             from_account_name = parts[0]
             to_account_name = parts[1]
@@ -269,31 +269,22 @@ class ImportsController < ApplicationController
             if from_account && to_account && (income > 0 || expense > 0)
               amount = income > 0 ? income : expense
               
-              # Create two transactions: expense from source, income to destination
+              # Create TRANSFER transaction
               note = "转账: #{from_account_name} → #{to_account_name}"
               
-              # Expense transaction (from account)
+              # Single TRANSFER transaction with target_account
               Transaction.create!(
                 date: date,
-                type: 'EXPENSE',
+                type: 'TRANSFER',
                 amount: amount,
                 account: from_account,
-                category: transfer_category,
-                note: note
-              )
-              
-              # Income transaction (to account)
-              Transaction.create!(
-                date: date,
-                type: 'INCOME',
-                amount: amount,
-                account: to_account,
+                target_account: to_account,
                 category: transfer_category,
                 note: note
               )
               
               result[:transfers] += 1
-              result[:imported] += 2
+              result[:imported] += 1
             else
               result[:skipped] += 1
             end
