@@ -3,14 +3,14 @@ import { Controller } from "@hotwired/stimulus"
 // Color themes for income/expense colors
 const COLOR_THEMES = {
   default: {
-    name: "默认 (收入绿/支出红)",
-    income: "#22c55e",
-    expense: "#ef4444"
-  },
-  reversed: {
-    name: "反色 (收入红/支出绿)",
+    name: "默认 (收入红/支出绿)",
     income: "#ef4444",
     expense: "#22c55e"
+  },
+  original: {
+    name: "原色 (收入绿/支出红)",
+    income: "#22c55e",
+    expense: "#ef4444"
   },
   blue_orange: {
     name: "蓝/橙",
@@ -56,9 +56,9 @@ export default class extends Controller {
   }
 
   loadTheme() {
-    let savedTheme = "default"
+    let savedTheme = "reversed"
     try {
-      savedTheme = localStorage.getItem("colorTheme") || "default"
+      savedTheme = localStorage.getItem("colorTheme") || "reversed"
     } catch (e) {
       console.warn('Failed to read color theme from localStorage:', e)
     }
@@ -92,9 +92,9 @@ export default class extends Controller {
   }
 
   static getCurrentColors() {
-    let themeName = "default"
+    let themeName = "reversed"
     try {
-      themeName = localStorage.getItem("colorTheme") || "default"
+      themeName = localStorage.getItem("colorTheme") || "reversed"
     } catch (e) {
       console.warn('Failed to read color theme from localStorage:', e)
     }

@@ -71,9 +71,36 @@ class AccountsController < ApplicationController
       @transactions = @transactions.where("note LIKE ?", "%#{params[:search]}%")
     end
 
-    @transactions = @transactions.order(date: :desc, created_at: :desc).limit(200)
+    @transactions = @transactions.order(date: :desc, created_at: :desc)
+    
+    # 支持分页
+    @page = (params[:page].to_i > 0) ? params[:page].to_i : 1
+    @per_page = (params[:per_page].to_i > 0) ? params[:per_page].to_i : 50
+    @total_count = @transactions.count
+    @transactions = @transactions.limit(@per_page).offset((@page - 1) * @per_page)
 
     @transaction = Transaction.new(currency: "CNY", date: Date.today)
+
+    if params[:account_id].present?
+      @current_account = Account.find_by(id: params[:account_id])
+      @account_balance = @current_account&.current_balance || 0
+    else
+      @account_balance = @accounts.sum(&:current_balance)
+    end
+
+    @total_income = @transactions.income.sum(:amount)
+    @total_expense = @transactions.expense.sum(:amount)
+    @total_balance = @total_income - @total_expense
+
+    running_balance = @account_balance
+    @transactions_with_balance = @transactions.map do |t|
+      if t.type == "INCOME"
+        running_balance -= t.amount
+      elsif t.type == "EXPENSE"
+        running_balance += t.amount
+      end
+      [t, running_balance]
+    end
   end
 
   def show
