@@ -309,11 +309,12 @@ function loadMoreTransactions() {
       const newTransactions = doc.querySelectorAll('#transactions-container > div');
       
       if (newTransactions.length > 0) {
-        const container = document.getElementById('transactions-container');
-        newTransactions.forEach(t => container.appendChild(t));
+        const transactionsContainer = document.getElementById('transactions-container');
+        newTransactions.forEach(t => transactionsContainer.appendChild(t));
         
-        // 更新分页状态
-        container.dataset.page = currentPage + 1;
+        // 更新分页状态（更新 transaction-list 的 dataset）
+        const listContainer = document.getElementById('transaction-list');
+        listContainer.dataset.page = currentPage + 1;
         
         // 检查是否还有更多
         const newPage = currentPage + 1;
