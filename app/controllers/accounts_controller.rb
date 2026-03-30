@@ -93,11 +93,21 @@ class AccountsController < ApplicationController
     @total_balance = @total_income - @total_expense
 
     running_balance = @account_balance
+    current_account_id = params[:account_id].to_i
+    
     @transactions_with_balance = @transactions.map do |t|
-      if t.type == "INCOME"
+      case t.type
+      when "INCOME"
         running_balance += t.amount  # 收入增加余额
-      elsif t.type == "EXPENSE"
+      when "EXPENSE"
         running_balance -= t.amount  # 支出减少余额
+      when "TRANSFER"
+        # 转账：根据账户角色决定余额变化
+        if t.account_id == current_account_id
+          running_balance -= t.amount  # 转出，减少余额
+        elsif t.target_account_id == current_account_id
+          running_balance += t.amount  # 转入，增加余额
+        end
       end
       [t, running_balance]
     end
