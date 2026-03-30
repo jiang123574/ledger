@@ -21,10 +21,10 @@ class ReportsController < ApplicationController
   private
 
   def load_report_data
-    # 缓存键需要考虑 Transaction 和 Account 的更新时间
+    # 缓存键需要考虑 Transaction 的更新时间
+    # 注意：accounts 表没有 updated_at 列
     transaction_key = Transaction.maximum(:updated_at)&.to_i || 0
-    account_key = Account.maximum(:updated_at)&.to_i || 0
-    @cache_key = "#{transaction_key}-#{account_key}"
+    @cache_key = "#{transaction_key}"
 
     # 收支统计
     transactions = Transaction.where(date: @start_date..@end_date).where.not(type: "TRANSFER")
