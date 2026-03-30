@@ -74,8 +74,8 @@ class AccountsController < ApplicationController
     @transactions = @transactions.order(date: :desc, created_at: :desc)
     
     # 支持分页
-    @page = (params[:page].to_i > 0) ? params[:page].to_i : 1
-    @per_page = (params[:per_page].to_i > 0) ? params[:per_page].to_i : 50
+    @page = [[params[:page].to_i, 1].max, 1000].min  # 限制 1-1000
+    @per_page = [[params[:per_page].to_i, 20].max, 200].min  # 限制 20-200
     @total_count = @transactions.count
     @transactions = @transactions.limit(@per_page).offset((@page - 1) * @per_page)
 
@@ -95,9 +95,9 @@ class AccountsController < ApplicationController
     running_balance = @account_balance
     @transactions_with_balance = @transactions.map do |t|
       if t.type == "INCOME"
-        running_balance -= t.amount
+        running_balance += t.amount  # 收入增加余额
       elsif t.type == "EXPENSE"
-        running_balance += t.amount
+        running_balance -= t.amount  # 支出减少余额
       end
       [t, running_balance]
     end

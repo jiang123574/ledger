@@ -461,32 +461,16 @@ class ImportService
     from_account = find_or_create_account(from_account_name)
     to_account = find_or_create_account(to_account_name)
     
-    transfer_category = Category.find_or_create_by(name: "转账", category_type: "TRANSFER") { |c| c.active = true }
     note = "转账: #{from_account_name} → #{to_account_name}#{data[:note] ? " - #{data[:note]}" : ""}"
     
-    # 创建转出记录（EXPENSE）
-    t1 = Transaction.create!(
-      date: data[:date],
-      type: "EXPENSE",
+    # 使用 Transaction.create_transfer! 创建转账（两条 TRANSFER 记录）
+    Transaction.create_transfer!(
+      from_account: from_account,
+      to_account: to_account,
       amount: amount,
-      currency: data[:currency] || "CNY",
-      account: from_account,
-      category: transfer_category,
+      date: data[:date],
       note: note
     )
-    
-    # 创建转入记录（INCOME）
-    t2 = Transaction.create!(
-      date: data[:date],
-      type: "INCOME",
-      amount: amount,
-      currency: data[:currency] || "CNY",
-      account: to_account,
-      category: transfer_category,
-      note: note
-    )
-    
-    [t1, t2]
   end
 
   def self.parse_date(date_str)
