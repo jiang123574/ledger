@@ -56,9 +56,9 @@ export default class extends Controller {
   }
 
   loadTheme() {
-    let savedTheme = "reversed"
+    let savedTheme = "default"
     try {
-      savedTheme = localStorage.getItem("colorTheme") || "reversed"
+      savedTheme = localStorage.getItem("colorTheme") || "default"
     } catch (e) {
       console.warn('Failed to read color theme from localStorage:', e)
     }
@@ -92,9 +92,9 @@ export default class extends Controller {
   }
 
   static getCurrentColors() {
-    let themeName = "reversed"
+    let themeName = "default"
     try {
-      themeName = localStorage.getItem("colorTheme") || "reversed"
+      themeName = localStorage.getItem("colorTheme") || "default"
     } catch (e) {
       console.warn('Failed to read color theme from localStorage:', e)
     }
