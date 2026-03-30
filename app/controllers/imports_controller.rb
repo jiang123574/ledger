@@ -125,9 +125,10 @@ class ImportsController < ApplicationController
         @stats[:valid] += 1
         
         if @sample_data.size < 10
+          parent = row['收支大类']&.strip.presence || row['交易分类']&.strip
           @sample_data << {
             date: row['日期'],
-            category: "#{row['收支大类']} - #{row['交易类型']}",
+            category: "#{parent} - #{row['交易类型']}",
             account: row['资金账户'],
             type: income > 0 ? 'INCOME' : 'EXPENSE',
             amount: income > 0 ? income : expense,
@@ -162,8 +163,11 @@ class ImportsController < ApplicationController
         accounts_set << account_str
       end
       
-      # 收支大类 = 父分类
+      # 收支大类 = 父分类，当为空时使用交易分类
       parent_name = row['收支大类']&.strip
+      if parent_name.blank? && row['交易分类']&.strip.present?
+        parent_name = row['交易分类']&.strip
+      end
       if parent_name.present?
         parent_categories_set << parent_name
         
@@ -241,9 +245,6 @@ class ImportsController < ApplicationController
       transfers: 0
     }
 
-    # Get transfer category
-    transfer_category = Category.find_or_create_by(name: '转账', category_type: 'TRANSFER') { |c| c.active = true }
-
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       begin
         next if row['日期'].blank?
@@ -269,22 +270,19 @@ class ImportsController < ApplicationController
             if from_account && to_account && (income > 0 || expense > 0)
               amount = income > 0 ? income : expense
               
-              # Create TRANSFER transaction
               note = "转账: #{from_account_name} → #{to_account_name}"
               
-              # Single TRANSFER transaction with target_account
-              Transaction.create!(
-                date: date,
-                type: 'TRANSFER',
+              # 使用 Transaction.create_transfer! 创建转账（两条 TRANSFER 记录）
+              Transaction.create_transfer!(
+                from_account: from_account,
+                to_account: to_account,
                 amount: amount,
-                account: from_account,
-                target_account: to_account,
-                category: transfer_category,
+                date: date,
                 note: note
               )
               
               result[:transfers] += 1
-              result[:imported] += 1
+              result[:imported] += 2  # create_transfer! 创建两条记录
             else
               result[:skipped] += 1
             end
@@ -329,6 +327,12 @@ class ImportsController < ApplicationController
         # 使用子分类（交易类型）作为分类
         parent_name = row['收支大类']&.strip
         child_name = row['交易类型']&.strip
+        
+        # 当收支大类为空时，使用交易分类作为分类名
+        if parent_name.blank? && row['交易分类']&.strip.present?
+          parent_name = row['交易分类']&.strip
+          child_name = nil
+        end
         
         # 优先使用子分类，如果没有则使用父分类
         if child_name.present? && parent_name.present?

@@ -50,11 +50,25 @@ class ImportService
     CSV.foreach(file.path, encoding: encoding(file), headers: true) do |row|
       begin
         transaction_data = map_csv_row(row, field_mapping)
-        next if transaction_data[:date].nil? || transaction_data[:amount].nil?
+        
+        # Skip if no date or no amount (except for transfers which need both)
+        if transaction_data[:date].nil?
+          next
+        end
+        if transaction_data[:amount].nil? && transaction_data[:type] != "TRANSFER"
+          next
+        end
 
-        transaction = create_transaction(transaction_data)
-        results[:success] += 1
-        results[:imported_ids] << transaction.id
+        transactions = create_transaction(transaction_data)
+        
+        # Handle transfer (returns array) or single transaction
+        if transactions.is_a?(Array)
+          results[:success] += transactions.size
+          results[:imported_ids] += transactions.map(&:id)
+        else
+          results[:success] += 1
+          results[:imported_ids] << transactions.id if transactions
+        end
       rescue => e
         results[:failed] += 1
         results[:errors] << "第 #{$.} 行: #{e.message}"
@@ -299,9 +313,13 @@ class ImportService
     {
       "日期" => "date", "交易时间" => "date", "date" => "date",
       "类型" => "type", "收支类型" => "type", "交易类型" => "type", "type" => "type",
+      "父类" => "category", "收支大类" => "category", "分类" => "category", "交易分类" => "category", "category" => "category",
+      "子类" => "sub_category",
       "金额" => "amount", "金额（元）" => "amount", "金额(元)" => "amount", "amount" => "amount",
-      "账户" => "account", "支付方式" => "account", "account" => "account",
-      "分类" => "category", "交易分类" => "category", "category" => "category",
+      "流入金额" => "income_amount",
+      "流出金额" => "expense_amount",
+      "账户" => "account", "支付方式" => "account", "资金账户" => "account", "account" => "account",
+      "币种" => "currency",
       "备注" => "note", "商品说明" => "note", "商品" => "note", "note" => "note",
       "标签" => "tag", "tag" => "tag"
     }
@@ -324,7 +342,7 @@ class ImportService
   end
 
   def self.map_csv_row(row, mapping)
-    data = { date: nil, type: nil, amount: nil, account: nil, category: nil, note: nil, tag: nil }
+    data = { date: nil, type: nil, amount: nil, account: nil, category: nil, note: nil, tag: nil, sub_category: nil, currency: nil, income_amount: nil, expense_amount: nil }
 
     row.each do |key, value|
       field = mapping[key] || mapping[key.to_s.strip]
@@ -337,10 +355,18 @@ class ImportService
         data[:type] = parse_type(value)
       when "amount"
         data[:amount] = parse_amount(value)
+      when "income_amount"
+        data[:income_amount] = parse_amount(value)
+      when "expense_amount"
+        data[:expense_amount] = parse_amount(value)
       when "account"
         data[:account] = value.to_s.strip
       when "category"
         data[:category] = value.to_s.strip
+      when "sub_category"
+        data[:sub_category] = value.to_s.strip
+      when "currency"
+        data[:currency] = value.to_s.strip
       when "note"
         data[:note] = value.to_s.strip
       when "tag"
@@ -348,26 +374,115 @@ class ImportService
       end
     end
 
+    # 处理流入/流出金额格式
+    income = data[:income_amount].to_f
+    expense = data[:expense_amount].to_f
+    
+    # 如果类型已经是转账，需要设置金额
+    if data[:type] == "TRANSFER"
+      data[:amount] = income > 0 ? income : expense
+    elsif income > 0 || expense > 0
+      if income > 0 && expense > 0
+        # 两者都有值，判断为转账（需要账户字段包含箭头）
+        if data[:account].to_s.include?("→") || data[:account].to_s.include?("->")
+          data[:type] = "TRANSFER"
+          data[:amount] = income
+        else
+          # 没有箭头，按金额大的一方处理
+          if income >= expense
+            data[:type] = "INCOME"
+            data[:amount] = income
+          else
+            data[:type] = "EXPENSE"
+            data[:amount] = expense
+          end
+        end
+      elsif income > 0
+        data[:type] = "INCOME"
+        data[:amount] = income
+      elsif expense > 0
+        data[:type] = "EXPENSE"
+        data[:amount] = expense
+      end
+    end
+
+    # 合并子类到备注
+    if data[:sub_category].present?
+      data[:note] = [data[:sub_category], data[:note]].compact.join(" - ")
+    end
+
     data
   end
 
   def self.create_transaction(data)
     ApplicationRecord.transaction do
+      original_type = data[:type]
+      amount = data[:amount]
+      
+      # 处理转账类型
+      if original_type == "TRANSFER"
+        return handle_transfer(data)
+      end
+      
+      # 如果金额是负数，反转交易类型（退款处理）
+      if amount && amount < 0
+        case original_type
+        when "EXPENSE" then transaction_type = "INCOME"  # 支出退款 = 收入
+        when "INCOME" then transaction_type = "EXPENSE" # 收入退款 = 支出
+        else transaction_type = "INCOME"                # 默认退款当收入
+        end
+        amount = amount.abs
+      else
+        transaction_type = original_type || (amount && amount >= 0 ? "INCOME" : "EXPENSE")
+      end
+      
       account = find_or_create_account(data[:account])
-      category = find_or_create_category(data[:category], data[:type])
-      transaction_type = data[:type] || (data[:amount] >= 0 ? "INCOME" : "EXPENSE")
+      category = find_or_create_category(data[:category], transaction_type)
 
       Transaction.create!(
         date: data[:date] || Date.current,
         type: transaction_type,
-        amount: data[:amount]&.abs || 0,
-        currency: account&.currency || "CNY",
+        amount: amount || 0,
+        currency: data[:currency] || account&.currency || "CNY",
         account: account,
         category: category,
         note: data[:note],
         tag: data[:tag]
       )
     end
+  end
+  
+  def self.handle_transfer(data)
+    account_str = data[:account].to_s
+    amount = data[:amount].to_f.abs
+    return nil if amount <= 0 || data[:date].nil?
+    
+    # 支持 "账户A → 账户B" 或 "账户A -> 账户B" 格式
+    if account_str.include?("→") || account_str.include?("->")
+      parts = account_str.split(/→|->/).map(&:strip)
+      from_account_name = parts[0]
+      to_account_name = parts[1]
+    else
+      # 如果没有明确的目标账户，跳过或记录为普通交易
+      return nil
+    end
+    
+    from_account = find_or_create_account(from_account_name)
+    to_account = find_or_create_account(to_account_name)
+    
+    note = "转账: #{from_account_name} → #{to_account_name}#{data[:note] ? " - #{data[:note]}" : ""}"
+    
+    # 使用 Transaction.create_transfer! 创建转账（两条 TRANSFER 记录）
+    outflow = Transaction.create_transfer!(
+      from_account: from_account,
+      to_account: to_account,
+      amount: amount,
+      date: data[:date],
+      note: note
+    )
+    
+    # 返回两条记录（outflow 和 inflow）
+    [outflow, outflow.link].compact
   end
 
   def self.parse_date(date_str)

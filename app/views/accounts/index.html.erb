@@ -175,13 +175,40 @@
       </div>
     </div>
 
+    <!-- 账户余额和汇总 -->
+    <div class="p-3 lg:p-4 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
+      <div class="flex items-center justify-between mb-2">
+        <div class="text-sm">
+          <span class="text-secondary dark:text-secondary-dark">账户余额:</span>
+          <span class="ml-1 font-semibold text-primary dark:text-primary-dark"><%= format_currency(@account_balance) %></span>
+        </div>
+      </div>
+      <div class="flex items-center justify-between text-sm">
+        <div>
+          <span class="text-secondary dark:text-secondary-dark">流入:</span>
+          <span class="ml-1 font-medium text-income"><%= format_currency(@total_income) %></span>
+        </div>
+        <div>
+          <span class="text-secondary dark:text-secondary-dark">流出:</span>
+          <span class="ml-1 font-medium text-expense"><%= format_currency(@total_expense) %></span>
+        </div>
+        <div>
+          <span class="text-secondary dark:text-secondary-dark">差额:</span>
+          <span class="ml-1 font-medium <%= @total_balance >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(@total_balance) %></span>
+        </div>
+      </div>
+    </div>
+
     <!-- 交易列表 -->
-    <div class="flex-1 overflow-y-auto">
+    <div id="transaction-list" class="flex-1 overflow-y-auto" data-page="<%= @page %>" data-per-page="<%= @per_page %>" data-total-count="<%= @total_count %>">
       <% if @transactions.any? %>
-        <div class="divide-y divide-border dark:divide-border-dark">
-          <% @transactions.each do |t| %>
+        <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container">
+          <% @transactions_with_balance.each do |t, balance| %>
             <div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
               <div class="flex items-center gap-3">
+                <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
+                  <%= t.date&.strftime("%Y-%m-%d") %>
+                </div>
                 <div class="ie-icon-chip ie-icon-chip-sm <%= t.type == 'INCOME' ? 'ie-icon-income' : 'ie-icon-expense' %>">
                   <% if t.type == 'INCOME' %>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
@@ -208,7 +235,7 @@
                   <p class="text-sm font-medium <%= t.type == 'INCOME' ? 'text-income' : 'text-expense' %>">
                     <%= format_currency_with_sign(t.amount, type: t.type) %>
                   </p>
-                  <p class="text-xs text-secondary dark:text-secondary-dark"><%= t.date&.strftime("%m/%d") %></p>
+                  <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= format_currency(balance) %></p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
                   <button onclick="openEditTransactionModal(<%= t.id %>, '<%= j t.date&.strftime("%Y-%m-%d") %>', '<%= t.amount %>', '<%= t.account_id %>', '<%= t.category_id %>', '<%= j t.note || '' %>', '<%= t.type %>')" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
@@ -221,6 +248,16 @@
               </div>
             </div>
           <% end %>
+        </div>
+        <!-- 加载更多触发器 -->
+        <div id="load-more-sentinel" class="p-4 text-center <%= @total_count > @page * @per_page ? '' : 'hidden' %>">
+          <button id="load-more-btn" onclick="loadMoreTransactions()" class="px-4 py-2 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+            加载更多
+          </button>
+        </div>
+        <div id="loading-indicator" class="hidden p-4 text-center">
+          <div class="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+          <span class="ml-2 text-sm text-secondary dark:text-secondary-dark">加载中...</span>
         </div>
       <% else %>
         <div class="p-8 text-center">
@@ -237,43 +274,198 @@
   </div>
 </div>
 
+<script>
+let isLoadingMore = false;
+
+function loadMoreTransactions() {
+  if (isLoadingMore) return;
+  
+  const container = document.getElementById('transaction-list');
+  const currentPage = parseInt(container.dataset.page);
+  const perPage = parseInt(container.dataset.perPage);
+  const totalCount = parseInt(container.dataset.totalCount);
+  
+  if (currentPage * perPage >= totalCount) {
+    document.getElementById('load-more-sentinel').classList.add('hidden');
+    return;
+  }
+  
+  isLoadingMore = true;
+  document.getElementById('load-more-btn').classList.add('hidden');
+  document.getElementById('loading-indicator').classList.remove('hidden');
+  
+  // 构建URL参数
+  const params = new URLSearchParams(window.location.search);
+  params.set('page', currentPage + 1);
+  params.set('per_page', perPage);
+  params.set('format', 'turbo'); // 请求HTML片段
+  
+  fetch('/accounts?' + params.toString())
+    .then(response => response.text())
+    .then(html => {
+      // 解析返回的HTML，提取交易列表
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newTransactions = doc.querySelectorAll('#transactions-container > div');
+      
+      if (newTransactions.length > 0) {
+        const transactionsContainer = document.getElementById('transactions-container');
+        newTransactions.forEach(t => transactionsContainer.appendChild(t));
+        
+        // 更新分页状态（更新 transaction-list 的 dataset）
+        const listContainer = document.getElementById('transaction-list');
+        listContainer.dataset.page = currentPage + 1;
+        
+        // 检查是否还有更多
+        const newPage = currentPage + 1;
+        if (newPage * perPage >= totalCount) {
+          document.getElementById('load-more-sentinel').classList.add('hidden');
+        }
+      }
+      
+      document.getElementById('load-more-btn').classList.remove('hidden');
+      document.getElementById('loading-indicator').classList.add('hidden');
+      isLoadingMore = false;
+    })
+    .catch(err => {
+      console.error('加载失败:', err);
+      document.getElementById('load-more-btn').classList.remove('hidden');
+      document.getElementById('loading-indicator').classList.add('hidden');
+      isLoadingMore = false;
+    });
+}
+
+// 滚动到底部自动加载 - 使用 IntersectionObserver
+document.addEventListener('DOMContentLoaded', function() {
+  const sentinel = document.getElementById('load-more-sentinel');
+  if (!sentinel) return;
+  
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        loadMoreTransactions();
+      }
+    });
+  }, { rootMargin: '100px' });
+  
+  observer.observe(sentinel);
+});
+</script>
+
 <!-- 新建账户弹窗 -->
 <div id="add-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-account-modal').classList.add('hidden')"></div>
+    <div class="fixed inset-0 bg-black/50" onclick="closeAccountModal()"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建账户</h3>
-        <button type="button" onclick="document.getElementById('add-account-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <h3 id="account-modal-title" class="text-lg font-semibold text-primary dark:text-primary-dark">新建账户</h3>
+        <button type="button" onclick="closeAccountModal()" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <%= form_with model: Account.new, url: accounts_path, method: :post, local: true do |f| %>
+      <%= form_with model: Account.new, url: accounts_path, method: :post, local: true, id: 'account-form' do |f| %>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户名称 *</label>
-            <%= f.text_field :name, required: true, placeholder: "例如：招商银行卡", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <%= f.text_field :name, required: true, placeholder: "例如：招商银行卡", id: 'account-name', class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户类型</label>
-            <%= f.select :type, Account::ACCOUNT_TYPES.map { |k, v| [v, k] }, { include_blank: "选择类型" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <%= f.select :type, Account::ACCOUNT_TYPES.map { |k, v| [v, k] }, { include_blank: "选择类型" }, id: 'account-type', class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">初始余额</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-              <%= f.number_field :initial_balance, step: "0.01", placeholder: "0.00", class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+              <%= f.number_field :initial_balance, step: "0.01", placeholder: "0.00", id: 'account-initial-balance', class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
           </div>
         </div>
-        <div class="flex justify-end gap-3 mt-6">
-          <button type="button" onclick="document.getElementById('add-account-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+        <div class="flex justify-between mt-6">
+          <div id="delete-account-btn-container"></div>
+          <div class="flex gap-3">
+            <button type="button" onclick="closeAccountModal()" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+            <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+          </div>
         </div>
       <% end %>
     </div>
   </div>
 </div>
+
+<script>
+function openEditAccountModal(btn) {
+  const id = btn.dataset.id;
+  const name = btn.dataset.name;
+  const type = btn.dataset.type;
+  const initialBalance = btn.dataset.initialBalance;
+  
+  document.getElementById('account-modal-title').textContent = '编辑账户';
+  document.getElementById('account-form').action = '/accounts/' + id;
+  document.getElementById('account-form').method = 'post';
+  
+  // 添加 _method=patch
+  let methodInput = document.getElementById('account-method-input');
+  if (!methodInput) {
+    methodInput = document.createElement('input');
+    methodInput.id = 'account-method-input';
+    methodInput.type = 'hidden';
+    methodInput.name = '_method';
+    document.getElementById('account-form').appendChild(methodInput);
+  }
+  methodInput.value = 'patch';
+  
+  document.getElementById('account-name').value = name;
+  document.getElementById('account-type').value = type;
+  document.getElementById('account-initial-balance').value = initialBalance;
+  
+  // 添加删除按钮
+  const deleteContainer = document.getElementById('delete-account-btn-container');
+  deleteContainer.innerHTML = '<button type="button" onclick="confirmDeleteAccount(' + id + ', \'' + name + '\')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-smooth">删除账户</button>';
+  
+  document.getElementById('add-account-modal').classList.remove('hidden');
+}
+
+function closeAccountModal() {
+  document.getElementById('add-account-modal').classList.add('hidden');
+  // 重置表单
+  document.getElementById('account-modal-title').textContent = '新建账户';
+  document.getElementById('account-form').action = '/accounts';
+  document.getElementById('account-form').method = 'post';
+  const methodInput = document.getElementById('account-method-input');
+  if (methodInput) methodInput.remove();
+  document.getElementById('account-name').value = '';
+  document.getElementById('account-type').value = '';
+  document.getElementById('account-initial-balance').value = '';
+  document.getElementById('delete-account-btn-container').innerHTML = '';
+}
+
+function confirmDeleteAccount(id, name) {
+  if (!window.confirm('确定要删除账户 "' + name + '" 吗？\n\n注意：删除账户不会删除相关的交易记录。')) return;
+  
+  const form = document.createElement('form');
+  form.method = 'POST';
+  form.action = '/accounts/' + id;
+  
+  const methodInput = document.createElement('input');
+  methodInput.type = 'hidden';
+  methodInput.name = '_method';
+  methodInput.value = 'delete';
+  form.appendChild(methodInput);
+  
+  const token = document.querySelector('meta[name="csrf-token"]')?.content;
+  if (token) {
+    const csrfInput = document.createElement('input');
+    csrfInput.type = 'hidden';
+    csrfInput.name = 'authenticity_token';
+    csrfInput.value = token;
+    form.appendChild(csrfInput);
+  }
+  
+  document.body.appendChild(form);
+  form.submit();
+}
+</script>
 
 <!-- 新建交易弹窗 -->
 <% expense_transaction_categories = @categories.select { |c| c.category_type == "EXPENSE" || c.type == "EXPENSE" } %>
@@ -434,7 +626,7 @@ function updateCategoryFilterButtonLabel() {
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
-  window.location.href = '/accounts?' + params.toString();
+  window.location.href = '/transactions?' + params.toString();
 }
 
 function clearAccountFilter() {

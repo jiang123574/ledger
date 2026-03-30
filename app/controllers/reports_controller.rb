@@ -21,6 +21,11 @@ class ReportsController < ApplicationController
   private
 
   def load_report_data
+    # 缓存键需要考虑 Transaction 和 Account 的更新时间
+    transaction_key = Transaction.maximum(:updated_at)&.to_i || 0
+    account_key = Account.maximum(:updated_at)&.to_i || 0
+    @cache_key = "#{transaction_key}-#{account_key}"
+
     # 收支统计
     transactions = Transaction.where(date: @start_date..@end_date).where.not(type: "TRANSFER")
 
@@ -35,12 +40,11 @@ class ReportsController < ApplicationController
     @expense_by_category = load_category_stats("EXPENSE")
     @income_by_category = load_category_stats("INCOME")
 
-    # 账户余额
-    @account_balances = Account.visible.map do |account|
-      {
-        account: account,
-        balance: account.current_balance
-      }
+    # 账户余额 - 使用缓存的余额计算
+    @account_balances = Rails.cache.fetch("reports/accounts/#{@cache_key}", expires_in: 5.minutes) do
+      Account.visible.map do |account|
+        { account: account, balance: account.current_balance }
+      end
     end
 
     # 预算进度
@@ -77,35 +81,45 @@ class ReportsController < ApplicationController
 
   def load_monthly_trend
     if @report_type == :yearly
-      # 年度：按月统计
+      # 年度：按月统计 - 一次查询
+      stats = Transaction.where(date: @start_date..@end_date)
+        .where.not(type: "TRANSFER")
+        .group("date_trunc('month', date)", :type)
+        .select("date_trunc('month', date) as month_date, type, SUM(amount) as total")
+        .map { |r| { month: r.month_date.month, type: r.type, amount: r.total.to_f } }
+
+      stats_by_month = stats.group_by { |s| s[:month] }
       (1..12).map do |month|
-        start_date = Date.new(@year, month, 1)
-        end_date = start_date.end_of_month
-
-        transactions = Transaction.where(date: start_date..end_date).where.not(type: "TRANSFER")
-
+        month_data = stats_by_month[month] || []
         {
           month: month,
           label: "#{month}月",
-          income: transactions.income.sum(:amount),
-          expense: transactions.expense.sum(:amount)
+          income: month_data.find { |s| s[:type] == 'INCOME' }&.dig(:amount) || 0,
+          expense: month_data.find { |s| s[:type] == 'EXPENSE' }&.dig(:amount) || 0
         }
       end
     else
-      # 月度：按周统计
+      # 月度：按周统计 - 一次查询
+      stats = Transaction.where(date: @start_date..@end_date)
+        .where.not(type: "TRANSFER")
+        .group("date_trunc('week', date)", :type)
+        .select("date_trunc('week', date) as week_date, type, SUM(amount) as total")
+        .map { |r| { week: r.week_date.to_date, type: r.type, amount: r.total.to_f } }
+
+      stats_by_week = stats.group_by { |s| s[:week] }
       weeks = []
       current = @start_date
       week_num = 1
 
       while current <= @end_date
-        week_end = [ current.end_of_week, @end_date ].min
-        transactions = Transaction.where(date: current..week_end).where.not(type: "TRANSFER")
+        week_end = [current.end_of_week, @end_date].min
+        week_data = stats_by_week[current] || []
 
         weeks << {
           week: week_num,
           label: "第#{week_num}周",
-          income: transactions.income.sum(:amount),
-          expense: transactions.expense.sum(:amount)
+          income: week_data.find { |s| s[:type] == 'INCOME' }&.dig(:amount) || 0,
+          expense: week_data.find { |s| s[:type] == 'EXPENSE' }&.dig(:amount) || 0
         }
 
         current = week_end + 1.day
@@ -126,13 +140,18 @@ class ReportsController < ApplicationController
 
   def load_budget_data
     @budgets = Budget.for_month("#{@year}-#{@month.to_s.rjust(2, '0')}")
-    @budget_progress = @budgets.map do |budget|
-      spent = Transaction.where(
-        type: "EXPENSE",
-        category_id: budget.category_id,
-        date: @start_date..@end_date
-      ).sum(:amount)
+    return @budget_progress = [] if @budgets.empty?
 
+    # 一次查询获取所有预算分类的支出
+    category_ids = @budgets.pluck(:category_id)
+    spent_by_category = Transaction.where(
+      type: "EXPENSE",
+      category_id: category_ids,
+      date: @start_date..@end_date
+    ).group(:category_id).sum(:amount)
+
+    @budget_progress = @budgets.map do |budget|
+      spent = spent_by_category[budget.category_id] || 0
       {
         budget: budget,
         spent: spent,
