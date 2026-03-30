@@ -245,9 +245,6 @@ class ImportsController < ApplicationController
       transfers: 0
     }
 
-    # Get transfer category
-    transfer_category = Category.find_or_create_by(name: '转账', category_type: 'TRANSFER') { |c| c.active = true }
-
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       begin
         next if row['日期'].blank?
@@ -273,22 +270,19 @@ class ImportsController < ApplicationController
             if from_account && to_account && (income > 0 || expense > 0)
               amount = income > 0 ? income : expense
               
-              # Create TRANSFER transaction
               note = "转账: #{from_account_name} → #{to_account_name}"
               
-              # Single TRANSFER transaction with target_account
-              Transaction.create!(
-                date: date,
-                type: 'TRANSFER',
+              # 使用 Transaction.create_transfer! 创建转账（两条 TRANSFER 记录）
+              Transaction.create_transfer!(
+                from_account: from_account,
+                to_account: to_account,
                 amount: amount,
-                account: from_account,
-                target_account: to_account,
-                category: transfer_category,
+                date: date,
                 note: note
               )
               
               result[:transfers] += 1
-              result[:imported] += 1
+              result[:imported] += 2  # create_transfer! 创建两条记录
             else
               result[:skipped] += 1
             end
