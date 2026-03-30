@@ -382,11 +382,20 @@ class ImportService
     if data[:type] == "TRANSFER"
       data[:amount] = income > 0 ? income : expense
     elsif income > 0 || expense > 0
-      if income > 0 && expense > 0 && income == expense
-        # 两者相等且都有值，判断为转账（需要账户字段包含箭头）
+      if income > 0 && expense > 0
+        # 两者都有值，判断为转账（需要账户字段包含箭头）
         if data[:account].to_s.include?("→") || data[:account].to_s.include?("->")
           data[:type] = "TRANSFER"
           data[:amount] = income
+        else
+          # 没有箭头，按金额大的一方处理
+          if income >= expense
+            data[:type] = "INCOME"
+            data[:amount] = income
+          else
+            data[:type] = "EXPENSE"
+            data[:amount] = expense
+          end
         end
       elsif income > 0
         data[:type] = "INCOME"
