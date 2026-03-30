@@ -464,13 +464,16 @@ class ImportService
     note = "转账: #{from_account_name} → #{to_account_name}#{data[:note] ? " - #{data[:note]}" : ""}"
     
     # 使用 Transaction.create_transfer! 创建转账（两条 TRANSFER 记录）
-    Transaction.create_transfer!(
+    outflow = Transaction.create_transfer!(
       from_account: from_account,
       to_account: to_account,
       amount: amount,
       date: data[:date],
       note: note
     )
+    
+    # 返回两条记录（outflow 和 inflow）
+    [outflow, outflow.link].compact
   end
 
   def self.parse_date(date_str)
