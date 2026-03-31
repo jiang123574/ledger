@@ -161,17 +161,32 @@ class Transaction < ApplicationRecord
   end
 
   # 创建转账交易 (同时创建两条关联记录)
-  # 创建转账交易（只创建一条记录）
-  # 转出账户余额减少，转入账户余额增加
-  # 账户余额计算逻辑：sent_transfers 减少余额，received_transfers 增加余额
+  # 账户余额计算逻辑：
+  # - sent_transactions.transfers: 转出，减少余额
+  # - received_transactions.transfers: 转入，增加余额
   def self.create_transfer!(from_account:, to_account:, amount:, date:, note: nil)
-    create!(
-      type: "TRANSFER",
-      account: from_account,        # 转出账户
-      target_account: to_account,   # 转入账户
-      amount: amount,
-      date: date,
-      note: note
-    )
+    transaction do
+      outflow = create!(
+        type: "TRANSFER",
+        account: from_account,
+        target_account: to_account,
+        amount: amount,
+        date: date,
+        note: note
+      )
+
+      inflow = create!(
+        type: "TRANSFER",
+        account: to_account,
+        target_account: from_account,
+        amount: amount,
+        date: date,
+        note: note,
+        link: outflow
+      )
+
+      outflow.update!(link: inflow)
+      outflow
+    end
   end
 end

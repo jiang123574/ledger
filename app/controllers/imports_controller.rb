@@ -302,7 +302,7 @@ class ImportsController < ApplicationController
               )
               
               result[:transfers] += 1
-              result[:imported] += 1
+              result[:imported] += 2  # create_transfer! 创建两条记录
             else
               result[:skipped] += 1
             end
