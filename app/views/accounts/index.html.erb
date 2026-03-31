@@ -146,10 +146,10 @@
                     aria-label="上一期">
               ‹
             </button>
-            <input id="period-value-filter"
-                   type="month"
-                   value="<%= selected_period_value %>"
-                   class="flex-1 min-w-0 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+<input id="period-value-filter"
+                    type="text"
+                    value="<%= selected_period_value %>"
+                    class="flex-1 min-w-0 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
             <button type="button"
                     id="period-next-btn"
                     onclick="shiftPeriod(1)"
@@ -217,18 +217,22 @@
                 <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
                   <%= t.date&.strftime("%Y-%m-%d") %>
                 </div>
-                <% 
-                  is_transfer = t.type == 'TRANSFER'
-                  current_account_filter = @current_account_id.to_s
-                  is_outflow = is_transfer && (current_account_filter.blank? || t.account_id.to_s == current_account_filter)
-                  is_inflow = is_transfer && t.target_account_id.to_s == current_account_filter && current_account_filter.present?
-                  display_type = if is_transfer
-                    is_inflow ? "转入" : "转出"
-                  else
-                    t.display_type
-                  end
-                  display_amount_type = is_inflow ? "INCOME" : "EXPENSE"
-                %>
+<% 
+  is_transfer = t.type == 'TRANSFER'
+  current_account_filter = @current_account_id.to_s
+  is_outflow = is_transfer && (current_account_filter.blank? || t.account_id.to_s == current_account_filter)
+  is_inflow = is_transfer && t.target_account_id.to_s == current_account_filter && current_account_filter.present?
+  display_type = if is_transfer
+    is_inflow ? "转入" : "转出"
+  else
+    t.display_type
+  end
+  display_amount_type = if is_transfer
+    is_inflow ? "INCOME" : "EXPENSE"
+  else
+    t.type
+  end
+%>
                 <div class="ie-icon-chip ie-icon-chip-sm <%= display_amount_type == 'INCOME' ? 'ie-icon-income' : 'ie-icon-expense' %>">
                   <% if display_amount_type == 'INCOME' %>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
