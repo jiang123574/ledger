@@ -68,8 +68,16 @@ module.exports = {
           dark: '#eab308',
           'dark-hover': '#ca8a04'
         },
-        income: '#22c55e',
-        expense: '#ef4444',
+        income: {
+          DEFAULT: 'var(--color-income, #ef4444)',
+          soft: 'rgba(var(--color-income-rgb, 239, 68, 68), 0.1)',
+          light: 'rgba(var(--color-income-rgb, 239, 68, 68), 0.2)'
+        },
+        expense: {
+          DEFAULT: 'var(--color-expense, #22c55e)',
+          soft: 'rgba(var(--color-expense-rgb, 34, 197, 94), 0.1)',
+          light: 'rgba(var(--color-expense-rgb, 34, 197, 94), 0.2)'
+        },
         transfer: '#3b82f6',
         gray: {
           25: '#fafafa',
