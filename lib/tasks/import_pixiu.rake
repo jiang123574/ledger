@@ -53,46 +53,63 @@ namespace :import do
         income_amount = row['流入金额'].to_f
         expense_amount = row['流出金额'].to_f
         
-        # Handle transfers: "账户A → 账户B"
-        if row['交易类型'] == '转账'
-          account_str = row['资金账户'].strip
+        # Handle transfers
+        transaction_category = row['交易分类']&.strip || ''
+        transaction_type_detail = row['交易类型']&.strip || ''
+        
+        is_transfer = transaction_category == '转账' || transaction_type_detail.start_with?('转账')
+        
+        if is_transfer
+          account_str = row['资金账户']&.strip || ''
+          from_account = nil
+          to_account = nil
+          from_account_name = nil
+          to_account_name = nil
           
           if account_str.include?('→')
             parts = account_str.split('→').map(&:strip)
             from_account_name = parts[0]
             to_account_name = parts[1]
-            
+          elsif transaction_type_detail.include?('/')
+            parts = transaction_type_detail.split('/').map(&:strip)
+            if parts.length > 1
+              account_info = parts[1]
+              if account_info.include?('转到') || account_info.include?('转出')
+                to_account_name = account_info.sub(/转到|转出/, '').strip
+                from_account_name = "支付宝余额"
+              elsif account_info.include?('转入')
+                from_account_name = account_info.sub('转入', '').strip
+                to_account_name = "支付宝余额"
+              else
+                from_account_name = "支付宝余额"
+                to_account_name = account_info
+              end
+            end
+          end
+          
+          if from_account_name && to_account_name
             from_account = accounts_map[from_account_name]
             to_account = accounts_map[to_account_name]
+          end
+          
+          if from_account && to_account && (income_amount > 0 || expense_amount > 0)
+            amount = income_amount > 0 ? income_amount : expense_amount
+            note = transaction_type_detail || "转账: #{from_account_name} → #{to_account_name}"
             
-            if from_account && to_account && (income_amount > 0 || expense_amount > 0)
-              amount = income_amount > 0 ? income_amount : expense_amount
-              note = "转账: #{from_account_name} → #{to_account_name}"
-              
-              # Create two transactions
-              Transaction.create!(
-                date: date,
-                type: 'EXPENSE',
-                amount: amount,
-                account: from_account,
-                category: transfer_category,
-                note: note
-              )
-              
-              Transaction.create!(
-                date: date,
-                type: 'INCOME',
-                amount: amount,
-                account: to_account,
-                category: transfer_category,
-                note: note
-              )
-              
-              stats[:transfers] += 1
-              stats[:imported] += 2
-            else
-              stats[:skipped] += 1
-            end
+            # 对于支付宝余额流水，只创建一条转账记录
+            # create_transfer! 会创建两条记录（outflow + inflow），这里我们只需要一条
+            Transaction.create!(
+              date: date,
+              type: 'TRANSFER',
+              amount: amount,
+              account: from_account,
+              target_account: to_account,
+              category: transfer_category,
+              note: note
+            )
+            
+            stats[:transfers] += 1
+            stats[:imported] += 1
           else
             stats[:skipped] += 1
           end
@@ -112,7 +129,7 @@ namespace :import do
         end
         
         # Get account
-        account_name = row['资金账户'].strip
+        account_name = row['资金账户']&.strip || '支付宝余额'
         account = accounts_map[account_name]
         
         unless account
@@ -120,20 +137,38 @@ namespace :import do
           next
         end
         
-        # Get category
-        category_name = row['收支大类'].strip
-        category_name = '其他' if category_name.blank?
+        # Get category - 优先使用交易类型，如果没有则使用交易分类
+        category_name = row['交易类型']&.strip
+        if category_name.blank? || %w[日常支出 日常收入 转账].include?(category_name)
+          category_name = row['交易分类']&.strip || '其他'
+        end
+        
+        # 如果是日常支出/日常收入，使用交易类型作为分类
+        if row['交易分类']&.strip == '日常支出' || row['交易分类']&.strip == '日常收入'
+          category_name = row['交易类型']&.strip || '其他'
+        end
+        
         category = categories_map[category_name]
         
+        # 如果分类不存在，尝试查找或创建
         unless category
-          stats[:skipped] += 1
-          next
+          category = Category.find_by(name: category_name)
+          if category
+            categories_map[category_name] = category
+          else
+            category = Category.create!(
+              name: category_name,
+              type: type,
+              active: true
+            )
+            categories_map[category_name] = category
+          end
         end
         
         # Build note
         note_parts = []
-        note_parts << row['交易分类'].strip if row['交易分类'].present?
-        note_parts << row['备注'].strip if row['备注'].present?
+        note_parts << row['交易类型']&.strip if row['交易类型'].present?
+        note_parts << row['备注']&.strip if row['备注'].present?
         note = note_parts.join(' - ')
         
         # Create transaction
@@ -156,6 +191,10 @@ namespace :import do
       rescue => e
         stats[:errors] += 1
         errors << "Row #{stats[:total]}: #{e.message}"
+        # Debug: print the row that caused the error
+        if stats[:errors] <= 5
+          puts "  Debug - Row content: #{row.to_h.inspect[0..200]}"
+        end
       end
     end
     
@@ -253,7 +292,9 @@ namespace :import do
       "药品医疗" => { name: "医疗", type: "EXPENSE" },
       "人情往来" => { name: "人情", type: "EXPENSE" },
       "家居用品" => { name: "家居", type: "EXPENSE" },
-      "系统收入" => { name: "系统收入", type: "INCOME" }
+      "系统收入" => { name: "系统收入", type: "INCOME" },
+      "缴纳保费" => { name: "保险支出", type: "EXPENSE" },
+      "物品售出" => { name: "销售收入", type: "INCOME" }
     }
     
     result = {}
