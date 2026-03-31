@@ -312,9 +312,9 @@ class ImportService
   def self.default_csv_mapping
     {
       "日期" => "date", "交易时间" => "date", "date" => "date",
-      "类型" => "type", "收支类型" => "type", "交易类型" => "type", "type" => "type",
-      "父类" => "category", "收支大类" => "category", "分类" => "category", "交易分类" => "category", "category" => "category",
-      "子类" => "sub_category",
+      "类型" => "type", "收支类型" => "type", "交易分类" => "type", "type" => "type",
+      "父类" => "category", "收支大类" => "category", "分类" => "category", "category" => "category",
+      "子类" => "sub_category", "交易类型" => "sub_category",
       "金额" => "amount", "金额（元）" => "amount", "金额(元)" => "amount", "amount" => "amount",
       "流入金额" => "income_amount",
       "流出金额" => "expense_amount",
@@ -374,28 +374,39 @@ class ImportService
       end
     end
 
+    # 转账识别：优先检查账户字段是否包含箭头（转账格式）
+    account_str = data[:account].to_s
+    is_transfer_account = account_str.include?("→") || account_str.include?("->")
+    
     # 处理流入/流出金额格式
     income = data[:income_amount].to_f
     expense = data[:expense_amount].to_f
     
-    # 如果类型已经是转账，需要设置金额
-    if data[:type] == "TRANSFER"
-      data[:amount] = income > 0 ? income : expense
+    # 转账识别逻辑：
+    # 1. 交易分类为"转账" 且 流入=流出 且 账户含箭头
+    # 2. 或者账户含箭头且流入=流出（即使交易分类不是转账）
+    if data[:type] == "TRANSFER" && is_transfer_account && income > 0 && income == expense
+      data[:amount] = income
+      # 转账无分类
+      data[:category] = nil
+      data[:sub_category] = nil
+    elsif is_transfer_account && income > 0 && income == expense
+      # 账户含箭头且流入=流出，自动识别为转账
+      data[:type] = "TRANSFER"
+      data[:amount] = income
+      # 转账无分类
+      data[:category] = nil
+      data[:sub_category] = nil
     elsif income > 0 || expense > 0
+      # 非转账的普通收支
       if income > 0 && expense > 0
-        # 两者都有值，判断为转账（需要账户字段包含箭头）
-        if data[:account].to_s.include?("→") || data[:account].to_s.include?("->")
-          data[:type] = "TRANSFER"
+        # 两者都有值但不是转账格式，按金额大的一方处理
+        if income >= expense
+          data[:type] = "INCOME"
           data[:amount] = income
         else
-          # 没有箭头，按金额大的一方处理
-          if income >= expense
-            data[:type] = "INCOME"
-            data[:amount] = income
-          else
-            data[:type] = "EXPENSE"
-            data[:amount] = expense
-          end
+          data[:type] = "EXPENSE"
+          data[:amount] = expense
         end
       elsif income > 0
         data[:type] = "INCOME"
@@ -406,10 +417,7 @@ class ImportService
       end
     end
 
-    # 合并子类到备注
-    if data[:sub_category].present?
-      data[:note] = [data[:sub_category], data[:note]].compact.join(" - ")
-    end
+    # 子类处理在 create_transaction 中进行，这里不合并
 
     data
   end
@@ -437,7 +445,24 @@ class ImportService
       end
       
       account = find_or_create_account(data[:account])
-      category = find_or_create_category(data[:category], transaction_type)
+      
+      # 支持父子分类：如果父类和子类都存在，创建子类并关联父类
+      parent_category_name = data[:category]
+      sub_category_name = data[:sub_category]
+      
+      if parent_category_name.present? && sub_category_name.present?
+        category = find_or_create_sub_category(parent_category_name, sub_category_name, transaction_type)
+      elsif parent_category_name.present?
+        category = find_or_create_category(parent_category_name, transaction_type)
+      else
+        category = nil
+      end
+
+      # 合并子类到备注（保留完整信息）
+      note_parts = []
+      note_parts << sub_category_name if sub_category_name.present?
+      note_parts << data[:note] if data[:note].present?
+      final_note = note_parts.join(" - ")
 
       Transaction.create!(
         date: data[:date] || Date.current,
@@ -446,7 +471,7 @@ class ImportService
         currency: data[:currency] || account&.currency || "CNY",
         account: account,
         category: category,
-        note: data[:note],
+        note: final_note,
         tag: data[:tag]
       )
     end
@@ -458,10 +483,11 @@ class ImportService
     return nil if amount <= 0 || data[:date].nil?
     
     # 支持 "账户A → 账户B" 或 "账户A -> 账户B" 格式
+    # 箭头左边是转出账户（from），右边是接收账户（to）
     if account_str.include?("→") || account_str.include?("->")
       parts = account_str.split(/→|->/).map(&:strip)
-      from_account_name = parts[0]
-      to_account_name = parts[1]
+      from_account_name = parts[0]  # 左边：转出账户
+      to_account_name = parts[1]    # 右边：接收账户
     else
       # 如果没有明确的目标账户，跳过或记录为普通交易
       return nil
@@ -472,17 +498,16 @@ class ImportService
     
     note = "转账: #{from_account_name} → #{to_account_name}#{data[:note] ? " - #{data[:note]}" : ""}"
     
-    # 使用 Transaction.create_transfer! 创建转账（两条 TRANSFER 记录）
-    outflow = Transaction.create_transfer!(
+    # 使用 Transaction.create_transfer! 创建转账（一条 TRANSFER 记录）
+    # 转出账户余额减少，转入账户余额增加
+    # 转账交易无分类（category=nil）
+    Transaction.create_transfer!(
       from_account: from_account,
       to_account: to_account,
       amount: amount,
       date: data[:date],
       note: note
     )
-    
-    # 返回两条记录（outflow 和 inflow）
-    [outflow, outflow.link].compact
   end
 
   def self.parse_date(date_str)
@@ -515,8 +540,8 @@ class ImportService
     return nil if type_str.blank?
 
     case type_str.to_s.strip
-    when "收入", "INCOME", "income", "收", "+", "Income" then "INCOME"
-    when "支出", "EXPENSE", "expense", "支", "-", "Expense" then "EXPENSE"
+    when "收入", "INCOME", "income", "收", "+", "Income", "日常收入" then "INCOME"
+    when "支出", "EXPENSE", "expense", "支", "-", "Expense", "日常支出" then "EXPENSE"
     when "转账", "TRANSFER", "transfer", "Transfer" then "TRANSFER"
     else nil
     end
@@ -553,6 +578,27 @@ class ImportService
     Category.find_or_create_by(name: name.strip) do |c|
       c.type = (type == "INCOME") ? "INCOME" : "EXPENSE"
     end
+  end
+
+  # 创建子分类并关联父分类
+  def self.find_or_create_sub_category(parent_name, sub_name, type)
+    return nil if sub_name.blank?
+
+    parent_name = parent_name.strip
+    sub_name = sub_name.strip
+
+    # 先创建或查找父分类
+    parent = Category.find_or_create_by(name: parent_name) do |c|
+      c.type = (type == "INCOME") ? "INCOME" : "EXPENSE"
+    end
+
+    # 创建或查找子分类，设置父分类
+    sub_category = Category.find_or_create_by(name: sub_name, parent_id: parent.id) do |c|
+      c.type = (type == "INCOME") ? "INCOME" : "EXPENSE"
+      c.parent = parent
+    end
+
+    sub_category
   end
 
   # Validate file content matches extension

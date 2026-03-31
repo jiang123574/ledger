@@ -40,9 +40,9 @@ class ReportsController < ApplicationController
     @expense_by_category = load_category_stats("EXPENSE")
     @income_by_category = load_category_stats("INCOME")
 
-    # 账户余额 - 使用缓存的余额计算
+    # 账户余额 - 使用缓存的余额计算（只包含计入资产的账户）
     @account_balances = Rails.cache.fetch("reports/accounts/#{@cache_key}", expires_in: 5.minutes) do
-      Account.visible.map do |account|
+      Account.visible.included_in_total.map do |account|
         { account: account, balance: account.current_balance }
       end
     end

@@ -32,17 +32,34 @@
       (function() {
         const savedTheme = localStorage.getItem('colorTheme') || 'default';
         const themes = {
-          default: { income: '#22c55e', expense: '#ef4444' },
-          reversed: { income: '#ef4444', expense: '#22c55e' },
+          default: { income: '#ef4444', expense: '#22c55e' },  // 默认: 收入红/支出绿
+          original: { income: '#22c55e', expense: '#ef4444' }, // 原色: 收入绿/支出红
           blue_orange: { income: '#3b82f6', expense: '#f97316' },
           purple_yellow: { income: '#8b5cf6', expense: '#eab308' },
           cyan_pink: { income: '#06b6d4', expense: '#ec4899' },
           teal_rose: { income: '#14b8a6', expense: '#f43f5e' },
           indigo_amber: { income: '#6366f1', expense: '#f59e0b' }
         };
+        
+        function hexToRgb(hex) {
+          const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+          return result ? {
+            r: parseInt(result[1], 16),
+            g: parseInt(result[2], 16),
+            b: parseInt(result[3], 16)
+          } : { r: 0, g: 0, b: 0 };
+        }
+        
         const theme = themes[savedTheme] || themes.default;
         document.documentElement.style.setProperty('--color-income', theme.income);
         document.documentElement.style.setProperty('--color-expense', theme.expense);
+        
+        // 设置 RGB 值变量
+        const incomeRgb = hexToRgb(theme.income);
+        const expenseRgb = hexToRgb(theme.expense);
+        document.documentElement.style.setProperty('--color-income-rgb', `${incomeRgb.r}, ${incomeRgb.g}, ${incomeRgb.b}`);
+        document.documentElement.style.setProperty('--color-expense-rgb', `${expenseRgb.r}, ${expenseRgb.g}, ${expenseRgb.b}`);
+        
         document.documentElement.setAttribute('data-color-theme', savedTheme);
       })();
     </script>
@@ -96,8 +113,16 @@
                 dark: '#f8f9fa',
                 'dark-hover': '#e9ecef'
               },
-              income: '#22c55e',
-              expense: '#ef4444',
+              income: {
+                DEFAULT: 'var(--color-income, #ef4444)',
+                soft: 'rgba(var(--color-income-rgb, 239, 68, 68), 0.1)',
+                light: 'rgba(var(--color-income-rgb, 239, 68, 68), 0.2)'
+              },
+              expense: {
+                DEFAULT: 'var(--color-expense, #22c55e)',
+                soft: 'rgba(var(--color-expense-rgb, 34, 197, 94), 0.1)',
+                light: 'rgba(var(--color-expense-rgb, 34, 197, 94), 0.2)'
+              },
               transfer: '#3b82f6',
 
               gray: {

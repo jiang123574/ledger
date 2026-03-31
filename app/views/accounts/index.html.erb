@@ -6,7 +6,7 @@
       <div>
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark">账户管理</h2>
         <div class="text-xs text-secondary dark:text-secondary-dark mt-0.5">
-          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@accounts.sum(&:current_balance)) %></span>
+          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@accounts.included_in_total.sum(&:current_balance)) %></span>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -28,7 +28,7 @@
         </button>
       </div>
       <div class="text-sm text-secondary dark:text-secondary-dark">
-        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@accounts.sum(&:current_balance)) %></span>
+        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@accounts.included_in_total.sum(&:current_balance)) %></span>
       </div>
     </div>
     
@@ -40,7 +40,7 @@
           <!-- 类型标题 -->
           <div class="px-4 py-2 bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-between">
             <span class="text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wide"><%= type_name || '未分类' %></span>
-            <span class="text-xs text-secondary dark:text-secondary-dark"><%= format_currency(accounts.sum(&:current_balance)) %></span>
+            <span class="text-xs text-secondary dark:text-secondary-dark"><%= format_currency(accounts.select { |a| a.include_in_total == 1 }.sum(&:current_balance)) %></span>
           </div>
           <!-- 该类型的账户列表 -->
           <div class="account-group" data-account-type="<%= type %>">
@@ -54,7 +54,12 @@
                     <span class="text-sm font-bold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
                   </div>
                   <div class="flex-1 min-w-0" onclick="filterByAccount(<%= account.id %>)">
-                    <p class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= account.name %></p>
+                    <div class="flex items-center gap-2">
+                      <p class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= account.name %></p>
+                      <% if account.include_in_total != 1 %>
+                        <span class="text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">不计资产</span>
+                      <% end %>
+                    </div>
                     <% if account.type == 'CREDIT' && account.credit_limit %>
                       <p class="text-xs text-secondary dark:text-secondary-dark">额度 <%= format_currency(account.credit_limit) %></p>
                     <% end %>
@@ -66,6 +71,7 @@
                             data-name="<%= account.name %>"
                             data-type="<%= account.type %>"
                             data-initial-balance="<%= account.initial_balance || 0 %>"
+                            data-include-in-total="<%= account.include_in_total %>"
                             data-currency="<%= account.currency %>"
                             data-credit-limit="<%= account.credit_limit || '' %>"
                             data-billing-day="<%= account.billing_day || '' %>"
@@ -209,8 +215,20 @@
                 <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
                   <%= t.date&.strftime("%Y-%m-%d") %>
                 </div>
-                <div class="ie-icon-chip ie-icon-chip-sm <%= t.type == 'INCOME' ? 'ie-icon-income' : 'ie-icon-expense' %>">
-                  <% if t.type == 'INCOME' %>
+                <% 
+                  # 转账方向判断
+                  is_transfer = t.type == 'TRANSFER'
+                  is_outflow = is_transfer && t.account_id.to_s == @current_account_id.to_s
+                  is_inflow = is_transfer && t.target_account_id.to_s == @current_account_id.to_s
+                  display_type = if is_transfer
+                    is_outflow ? "转出" : "转入"
+                  else
+                    t.display_type
+                  end
+                  display_amount_type = is_inflow ? "INCOME" : t.type
+                %>
+                <div class="ie-icon-chip ie-icon-chip-sm <%= display_amount_type == 'INCOME' ? 'ie-icon-income' : 'ie-icon-expense' %>">
+                  <% if display_amount_type == 'INCOME' %>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 11l5-5m0 0l5 5m-5-5v12"></path></svg>
                   <% else %>
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 13l-5 5m0 0l-5-5m5 5V6"></path></svg>
@@ -222,23 +240,29 @@
                       case t.type
                       when 'INCOME' then 'bg-income-light text-income'
                       when 'EXPENSE' then 'bg-expense-light text-expense'
-                      when 'TRANSFER' then 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400'
+                      when 'TRANSFER' then is_inflow ? 'bg-income-light text-income' : 'bg-expense-light text-expense'
                       else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
                       end %>">
-                      <%= t.display_type %>
+                      <%= display_type %>
                     </span>
-                    <p class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= t.category&.name || '-' %></p>
+                    <p class="text-sm font-medium text-primary dark:text-primary-dark truncate">
+                      <% if is_transfer %>
+                        <%= is_outflow ? "→ #{t.target_account&.name}" : "← #{t.account&.name}" %>
+                      <% else %>
+                        <%= t.category&.name || '-' %>
+                      <% end %>
+                    </p>
                   </div>
                   <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5"><%= t.note || t.account_name %></p>
                 </div>
                 <div class="text-right shrink-0">
-                  <p class="text-sm font-medium <%= t.type == 'INCOME' ? 'text-income' : 'text-expense' %>">
-                    <%= format_currency_with_sign(t.amount, type: t.type) %>
+                  <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
+                    <%= format_currency_with_sign(t.amount, type: display_amount_type) %>
                   </p>
                   <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= format_currency(balance) %></p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
-                  <button onclick="openEditTransactionModal(<%= t.id %>, '<%= j t.date&.strftime("%Y-%m-%d") %>', '<%= t.amount %>', '<%= t.account_id %>', '<%= t.category_id %>', '<%= j t.note || '' %>', '<%= t.type %>')" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
+                  <button onclick="openEditTransactionModal(<%= t.id %>)" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
                   <button onclick="confirmDeleteTransaction(<%= t.id %>, '<%= j t.category&.name || t.display_type %>')" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
@@ -380,6 +404,10 @@ document.addEventListener('DOMContentLoaded', function() {
               <%= f.number_field :initial_balance, step: "0.01", placeholder: "0.00", id: 'account-initial-balance', class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
           </div>
+          <div class="flex items-center gap-2">
+            <%= f.check_box :include_in_total, { id: 'account-include-in-total', class: "w-4 h-4 rounded border-border dark:border-border-dark text-blue-600 focus:ring-blue-500" }, 1, 0 %>
+            <label for="account-include-in-total" class="text-sm text-primary dark:text-primary-dark">计入资产总额</label>
+          </div>
         </div>
         <div class="flex justify-between mt-6">
           <div id="delete-account-btn-container"></div>
@@ -399,6 +427,7 @@ function openEditAccountModal(btn) {
   const name = btn.dataset.name;
   const type = btn.dataset.type;
   const initialBalance = btn.dataset.initialBalance;
+  const includeInTotal = btn.dataset.includeInTotal;
   
   document.getElementById('account-modal-title').textContent = '编辑账户';
   document.getElementById('account-form').action = '/accounts/' + id;
@@ -419,6 +448,10 @@ function openEditAccountModal(btn) {
   document.getElementById('account-type').value = type;
   document.getElementById('account-initial-balance').value = initialBalance;
   
+  // 设置是否计入资产总额
+  const includeInTotalCheckbox = document.getElementById('account-include-in-total');
+  includeInTotalCheckbox.checked = includeInTotal == 1;
+  
   // 添加删除按钮
   const deleteContainer = document.getElementById('delete-account-btn-container');
   deleteContainer.innerHTML = '<button type="button" onclick="confirmDeleteAccount(' + id + ', \'' + name + '\')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-smooth">删除账户</button>';
@@ -437,6 +470,7 @@ function closeAccountModal() {
   document.getElementById('account-name').value = '';
   document.getElementById('account-type').value = '';
   document.getElementById('account-initial-balance').value = '';
+  document.getElementById('account-include-in-total').checked = true;
   document.getElementById('delete-account-btn-container').innerHTML = '';
 }
 
@@ -536,6 +570,21 @@ function confirmDeleteAccount(id, name) {
           <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       <% end %>
+    </div>
+  </div>
+</div>
+
+<!-- 编辑交易弹窗 -->
+<div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+  <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')"></div>
+  <div class="flex items-center justify-center min-h-screen p-4">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8">
+      <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-colors">
+        <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <div id="edit-transaction-content"></div>
     </div>
   </div>
 </div>
@@ -846,9 +895,16 @@ transactionTypeCards.forEach((card) => {
 
 applyTransactionTypeUI();
 
-function openEditTransactionModal(id, date, amount, accountId, categoryId, note, type) {
-  // 交易编辑目前通过页面跳转实现，此处保留接口以备后续弹窗改造
-  window.location.href = `/transactions/${id}/edit`;
+function openEditTransactionModal(id) {
+  fetch(`/transactions/${id}/edit`, {
+    headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' }
+  })
+  .then(res => res.text())
+  .then(html => {
+    document.getElementById('edit-transaction-content').innerHTML = html;
+    document.getElementById('edit-transaction-modal').classList.remove('hidden');
+  })
+  .catch(err => console.error('Error loading transaction:', err));
 }
 
 function confirmDeleteTransaction(id, name) {

@@ -83,12 +83,28 @@ export default class extends Controller {
   applyTheme(themeName) {
     const theme = COLOR_THEMES[themeName] || COLOR_THEMES.default
     
+    // 设置颜色变量
     document.documentElement.style.setProperty("--color-income", theme.income)
     document.documentElement.style.setProperty("--color-expense", theme.expense)
+    
+    // 设置 RGB 值变量，用于 rgba() 格式
+    const incomeRgb = this.hexToRgb(theme.income)
+    const expenseRgb = this.hexToRgb(theme.expense)
+    document.documentElement.style.setProperty("--color-income-rgb", `${incomeRgb.r}, ${incomeRgb.g}, ${incomeRgb.b}`)
+    document.documentElement.style.setProperty("--color-expense-rgb", `${expenseRgb.r}, ${expenseRgb.g}, ${expenseRgb.b}`)
     
     document.documentElement.setAttribute("data-color-theme", themeName)
     
     window.dispatchEvent(new CustomEvent("colorThemeChanged", { detail: { theme: themeName, colors: theme } }))
+  }
+
+  hexToRgb(hex) {
+    const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : { r: 0, g: 0, b: 0 }
   }
 
   static getCurrentColors() {

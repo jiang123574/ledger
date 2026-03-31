@@ -19,10 +19,11 @@ class DashboardController < ApplicationController
       Account.visible.includes(sent_transactions: :category, received_transactions: :category).to_a
     end
 
-    # Cache recent transactions
+    # Cache recent transactions (排除转账)
     @transactions = Rails.cache.fetch("dashboard/transactions/#{@month}/#{@cache_key}", expires_in: 2.minutes) do
       Transaction.includes(:account, :category)
         .where(date: start_date..end_date)
+        .where.not(type: "TRANSFER")
         .order(date: :desc)
         .limit(50)
         .to_a

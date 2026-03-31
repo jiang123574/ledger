@@ -65,7 +65,7 @@ class Account < ApplicationRecord
 
   # 按账户类型统计余额
   def self.balance_by_type
-    visible.group(:type).sum do |account|
+    visible.included_in_total.group(:type).sum do |account|
       account.current_balance
     end
   end
