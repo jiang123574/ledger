@@ -90,6 +90,38 @@ class SettingsController < ApplicationController
               type: "application/sql"
   end
 
+  def restore_upload
+    if params[:backup_file].blank?
+      redirect_to settings_path, alert: "请选择要恢复的备份文件"
+      return
+    end
+
+    # 保存上传的文件到临时位置
+    uploaded_file = params[:backup_file]
+    temp_path = Rails.root.join("tmp", "backups", "restore_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql")
+    
+    # 确保目录存在
+    FileUtils.mkdir_p(File.dirname(temp_path))
+    
+    # 复制上传的文件
+    FileUtils.cp(uploaded_file.path, temp_path)
+
+    # 执行恢复
+    result = BackupService.restore_backup(temp_path)
+
+    # 清理临时文件
+    FileUtils.rm_f(temp_path)
+
+    if result[:success]
+      redirect_to settings_path, notice: "数据已从备份文件恢复"
+    else
+      redirect_to settings_path, alert: "恢复失败: #{result[:error]}"
+    end
+  rescue => e
+    FileUtils.rm_f(temp_path) if temp_path
+    redirect_to settings_path, alert: "恢复失败: #{e.message}"
+  end
+
   def clear_all_data
     ActiveRecord::Base.transaction do
       Attachment.destroy_all
