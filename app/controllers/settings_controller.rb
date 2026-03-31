@@ -74,6 +74,10 @@ class SettingsController < ApplicationController
 
   def download_backup
     backup_name = params[:name]
+    
+    # 确保 .sql 后缀存在（Rails 路由可能把 .sql 当作 format 解析）
+    backup_name = "#{backup_name}.sql" unless backup_name.end_with?(".sql")
+    
     backup_path = Rails.root.join("tmp", "backups", backup_name)
 
     unless File.exist?(backup_path)
