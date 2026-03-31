@@ -41,8 +41,8 @@
             <%= render Ds::InputComponent.new(form: f, field: :amount, type: :number, placeholder: "0.00", prefix: "¥") %>
           </div>
 
-          <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">账户</label>
+          <div id="account-field-out">
+            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5" id="account-label-out">账户</label>
             <%= render Ds::InputComponent.new(form: f, field: :account_id, type: :select, 
                   choices: @accounts.map { |a| [a.name, a.id] },
                   include_blank: "选择账户") %>
@@ -87,27 +87,34 @@
       tab.classList.add('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-blue-500');
       document.getElementById('transaction_type').value = tab.dataset.type;
       
-      // 根据类型显示/隐藏字段
       const categoryField = document.getElementById('category-field');
       const targetAccountField = document.getElementById('target-account-field');
+      const accountLabelOut = document.getElementById('account-label-out');
       
       if (tab.dataset.type === 'TRANSFER') {
         categoryField.classList.add('hidden');
         targetAccountField.classList.remove('hidden');
+        if (accountLabelOut) accountLabelOut.textContent = '转出账户';
       } else {
         categoryField.classList.remove('hidden');
         targetAccountField.classList.add('hidden');
+        if (accountLabelOut) accountLabelOut.textContent = '账户';
       }
     });
   });
   
-  // 表单提交后刷新页面
+  if (document.getElementById('transaction_type')?.value === 'TRANSFER') {
+    document.getElementById('category-field').classList.add('hidden');
+    document.getElementById('target-account-field').classList.remove('hidden');
+    const accountLabelOut = document.getElementById('account-label-out');
+    if (accountLabelOut) accountLabelOut.textContent = '转出账户';
+  }
+  
   document.getElementById('transaction-edit-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const form = this;
     const formData = new FormData(form);
     
-    // 提交表单
     fetch(form.action, {
       method: 'PATCH',
       body: formData,
@@ -115,7 +122,6 @@
     })
     .then(res => {
       document.getElementById('edit-transaction-modal').classList.add('hidden');
-      // 服务器端会处理重定向，保持筛选状态
       if (res.redirected) {
         window.location.href = res.url;
       } else {
