@@ -9,19 +9,19 @@
 <%= form_with model: @transaction, local: false, id: "transaction-edit-form", class: "space-y-6" do |f| %>
         <!-- Transaction Type Tabs -->
         <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-1 flex">
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="EXPENSE">
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @transaction.type == 'EXPENSE' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="EXPENSE">
             <span class="flex items-center justify-center gap-2">
               <%= render(Ds::IconComponent.new(name: "minus-circle", size: :sm, color: :expense)) %>
               支出
             </span>
           </button>
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="INCOME">
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @transaction.type == 'INCOME' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="INCOME">
             <span class="flex items-center justify-center gap-2">
               <%= render(Ds::IconComponent.new(name: "plus-circle", size: :sm, color: :income)) %>
               收入
             </span>
           </button>
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab" data-type="TRANSFER">
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @transaction.type == 'TRANSFER' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="TRANSFER">
             <span class="flex items-center justify-center gap-2">
               <%= render(Ds::IconComponent.new(name: "arrow-right-left", size: :sm)) %>
               转账
@@ -82,9 +82,9 @@
   document.querySelectorAll('.type-tab').forEach(function(tab) {
     tab.addEventListener('click', function() {
       document.querySelectorAll('.type-tab').forEach(function(t) {
-        t.classList.remove('bg-container', 'shadow-sm', 'dark:bg-container-dark');
+        t.classList.remove('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-blue-500');
       });
-      tab.classList.add('bg-container', 'dark:bg-container-dark', 'shadow-sm');
+      tab.classList.add('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-blue-500');
       document.getElementById('transaction_type').value = tab.dataset.type;
       
       // 根据类型显示/隐藏字段
@@ -100,15 +100,6 @@
       }
     });
   });
-
-  var currentType = '<%= @transaction.type %>';
-  document.querySelector('.type-tab[data-type="' + currentType + '"]').classList.add('bg-container', 'dark:bg-container-dark', 'shadow-sm');
-  
-  // 初始化字段显示
-  if (currentType === 'TRANSFER') {
-    document.getElementById('category-field').classList.add('hidden');
-    document.getElementById('target-account-field').classList.remove('hidden');
-  }
   
   // 表单提交后刷新页面
   document.getElementById('transaction-edit-form').addEventListener('submit', function(e) {
@@ -116,19 +107,19 @@
     const form = this;
     const formData = new FormData(form);
     
+    // 提交表单
     fetch(form.action, {
       method: 'PATCH',
       body: formData,
       headers: { 'Accept': 'text/html' }
     })
     .then(res => {
-      if (res.ok) {
-        document.getElementById('edit-transaction-modal').classList.add('hidden');
-        window.location.reload();
+      document.getElementById('edit-transaction-modal').classList.add('hidden');
+      // 服务器端会处理重定向，保持筛选状态
+      if (res.redirected) {
+        window.location.href = res.url;
       } else {
-        return res.text().then(html => {
-          document.getElementById('edit-transaction-content').innerHTML = html;
-        });
+        window.location.reload();
       }
     })
     .catch(err => console.error('Error saving transaction:', err));

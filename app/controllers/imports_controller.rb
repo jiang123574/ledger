@@ -93,25 +93,56 @@ class ImportsController < ApplicationController
       
       next if row['日期'].blank?
       
-      # 交易分类 = 交易类型（日常支出、日常收入、转账等）
-      transaction_type = row['交易分类']&.strip
+      # 交易分类 = 父分类（转账、缴纳保费等）
+      transaction_category = row['交易分类']&.strip
+      transaction_type_detail = row['交易类型']&.strip
       
-      if transaction_type == '转账'
+      # 判断是否为转账
+      is_transfer = transaction_category == '转账' || transaction_type_detail&.start_with?('转账')
+      
+      if is_transfer
         @stats[:transfers] += 1
         
         if @sample_data.size < 10
-          account_str = row['资金账户'].strip
-          if account_str.include?('→')
+          # 解析转账账户
+          # 格式1: 资金账户 = "账户A → 账户B"
+          # 格式2: 交易类型 = "转账 / 转到中信1622" 或 "转账 / 中信1622转入"
+          account_str = row['资金账户']&.strip
+          
+          if account_str&.include?('→')
             parts = account_str.split('→').map(&:strip)
-            amount = row['流入金额'].to_f > 0 ? row['流入金额'].to_f : row['流出金额'].to_f
-            
+            from_account = parts[0]
+            to_account = parts[1]
+          elsif transaction_type_detail&.include?('/')
+            # 解析 "转账 / 转到中信1622" 格式
+            parts = transaction_type_detail.split('/').map(&:strip)
+            if parts.length > 1
+              account_info = parts[1]
+              if account_info.include?('转到') || account_info.include?('转出')
+                # 转出：从当前账户转到目标账户
+                to_account = account_info.sub(/转到|转出/, '').strip
+                from_account = "支付宝余额"
+              elsif account_info.include?('转入')
+                # 转入：从源账户转入当前账户
+                from_account = account_info.sub('转入', '').strip
+                to_account = "支付宝余额"
+              else
+                from_account = "支付宝余额"
+                to_account = account_info
+              end
+            end
+          end
+          
+          amount = row['流入金额'].to_f > 0 ? row['流入金额'].to_f : row['流出金额'].to_f
+          
+          if from_account && to_account
             @sample_data << {
               date: row['日期'],
               category: '转账',
-              account: "#{parts[0]} → #{parts[1]}",
+              account: "#{from_account} → #{to_account}",
               type: 'TRANSFER',
               amount: amount,
-              note: "转账"
+              note: transaction_type_detail || "转账"
             }
           end
         end
@@ -158,14 +189,43 @@ class ImportsController < ApplicationController
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       next if row['日期'].blank?
       
-      account_str = row['资金账户'].strip if row['资金账户'].present?
+      account_str = row['资金账户']&.strip
+      transaction_category = row['交易分类']&.strip
+      transaction_type_detail = row['交易类型']&.strip
       
       # 处理转账：分离出两个账户
-      if account_str && account_str.include?('→')
+      if account_str&.include?('→')
         parts = account_str.split('→').map(&:strip)
         accounts_set << parts[0]
         accounts_set << parts[1]
+      elsif transaction_type_detail&.include?('/') && transaction_category == '转账'
+        # 解析 "转账 / 转到中信1622" 格式
+        parts = transaction_type_detail.split('/').map(&:strip)
+        if parts.length > 1
+          account_info = parts[1]
+          if account_info.include?('转到') || account_info.include?('转出')
+            to_account = account_info.sub(/转到|转出/, '').strip
+            accounts_set << to_account
+          elsif account_info.include?('转入')
+            from_account = account_info.sub('转入', '').strip
+            accounts_set << from_account
+          else
+            accounts_set << account_info
+          end
+        end
+        accounts_set << "支付宝余额" # 默认账户
       elsif account_str
+        accounts_set << account_str
+      end
+      
+      # 收支大类 = 父分类，当为空时使用交易分类
+      parent_name = row['收支大类']&.strip
+      if parent_name.blank? && transaction_category.present?
+        # 如果交易分类不是"转账"等特殊类型，则作为父分类
+        if !%w[转账].include?(transaction_category)
+          parent_name = transaction_category
+        end
+      end
         accounts_set << account_str
       end
       
@@ -281,39 +341,60 @@ class ImportsController < ApplicationController
         income = row['流入金额'].to_f
         expense = row['流出金额'].to_f
 
-        # Handle transfers: "账户A → 账户B"
-        # 交易分类 = 交易类型（日常支出、日常收入、转账等）
-        if row['交易分类']&.strip == '转账'
+        # Handle transfers: "账户A → 账户B" 或 "转账 / 转到中信1622"
+        # 交易分类 = 父分类（转账、缴纳保费等）
+        transaction_category = row['交易分类']&.strip
+        transaction_type_detail = row['交易类型']&.strip
+        
+        is_transfer = transaction_category == '转账' || transaction_type_detail&.start_with?('转账')
+        
+        if is_transfer
           account_str = row['资金账户']&.strip
+          from_account = nil
+          to_account = nil
           
           # Parse "账户A → 账户B" format
-          # 箭头左边是转出账户，右边是转入账户
-          if account_str && account_str.include?('→')
+          if account_str&.include?('→')
             parts = account_str.split('→').map(&:strip)
-            from_account_name = parts[0]  # 转出账户
-            to_account_name = parts[1]    # 转入账户
-            
+            from_account_name = parts[0]
+            to_account_name = parts[1]
             from_account = accounts_map[from_account_name]
             to_account = accounts_map[to_account_name]
-            
-            if from_account && to_account && (income > 0 || expense > 0)
-              amount = income > 0 ? income : expense
-              
-              # 使用 Transaction.create_transfer! 创建转账（一条 TRANSFER 记录）
-              # 转出账户余额减少，转入账户余额增加
-              Transaction.create_transfer!(
-                from_account: from_account,
-                to_account: to_account,
-                amount: amount,
-                date: date,
-                note: "转账: #{from_account_name} → #{to_account_name}"
-              )
-              
-              result[:transfers] += 1
-              result[:imported] += 2  # create_transfer! 创建两条记录
-            else
-              result[:skipped] += 1
+          elsif transaction_type_detail&.include?('/')
+            # 解析 "转账 / 转到中信1622" 格式
+            parts = transaction_type_detail.split('/').map(&:strip)
+            if parts.length > 1
+              account_info = parts[1]
+              if account_info.include?('转到') || account_info.include?('转出')
+                # 转出：从当前账户转到目标账户
+                to_account_name = account_info.sub(/转到|转出/, '').strip
+                from_account_name = "支付宝余额"
+              elsif account_info.include?('转入')
+                # 转入：从源账户转入当前账户
+                from_account_name = account_info.sub('转入', '').strip
+                to_account_name = "支付宝余额"
+              else
+                from_account_name = "支付宝余额"
+                to_account_name = account_info
+              end
+              from_account = accounts_map[from_account_name]
+              to_account = accounts_map[to_account_name]
             end
+          end
+          
+          if from_account && to_account && (income > 0 || expense > 0)
+            amount = income > 0 ? income : expense
+            
+            Transaction.create_transfer!(
+              from_account: from_account,
+              to_account: to_account,
+              amount: amount,
+              date: date,
+              note: transaction_type_detail || "转账: #{from_account_name} → #{to_account_name}"
+            )
+            
+            result[:transfers] += 1
+            result[:imported] += 2
           else
             result[:skipped] += 1
           end

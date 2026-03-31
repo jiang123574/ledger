@@ -2,8 +2,13 @@ class AccountsController < ApplicationController
   before_action :set_account, only: [ :show, :edit, :update, :destroy ]
 
   def index
-    @accounts = Account.order(:sort_order, :name)
-    @categories = Category.active.by_sort_order
+    @accounts = Rails.cache.fetch("accounts_list", expires_in: 10.minutes) do
+      Account.order(:sort_order, :name).to_a
+    end
+    
+    @categories = Rails.cache.fetch("categories_active", expires_in: 1.hour) do
+      Category.active.by_sort_order.to_a
+    end
 
     # 支持筛选的交易查询
     @transactions = Transaction.includes(:account, :category, :tags)
@@ -38,6 +43,7 @@ class AccountsController < ApplicationController
       else Date.current.strftime("%Y-%m")
       end
 
+    range = nil
     begin
       range =
         case period_type
@@ -65,11 +71,11 @@ class AccountsController < ApplicationController
             start_date..end_date
           end
         end
-
-      @transactions = @transactions.where(date: range) if range.present?
     rescue Date::Error
       # Ignore invalid period input and keep existing scope.
     end
+
+    @transactions = @transactions.where(date: range) if range.present?
 
     # 按关键词搜索
     if params[:search].present?
@@ -78,43 +84,98 @@ class AccountsController < ApplicationController
 
     @transactions = @transactions.order(date: :desc, created_at: :desc)
     
-    # 支持分页
-    @page = [[params[:page].to_i, 1].max, 1000].min  # 限制 1-1000
-    @per_page = [[params[:per_page].to_i, 20].max, 200].min  # 限制 20-200
-    @total_count = @transactions.count
-    @transactions = @transactions.limit(@per_page).offset((@page - 1) * @per_page)
-
-    @transaction = Transaction.new(currency: "CNY", date: Date.today)
-
-    if params[:account_id].present?
-      @current_account = Account.find_by(id: params[:account_id])
-      @account_balance = @current_account&.current_balance || 0
-    else
-      @account_balance = @accounts.included_in_total.sum(&:current_balance)
-    end
-
-    @total_income = @transactions.where(type: "INCOME").sum(:amount)
-    @total_expense = @transactions.where(type: "EXPENSE").sum(:amount)
-    @total_balance = @total_income - @total_expense
-
-    running_balance = @account_balance.to_d
-    current_account_id = params[:account_id].to_i
+    # 支持分页 - 默认只加载 10 条，减少首次加载时间
+    @page = [[params[:page].to_i, 1].max, 1000].min
+    @per_page = [[params[:per_page].to_i, 10].max, 200].min
     
-    @transactions_with_balance = @transactions.map do |t|
-      case t.type
-      when "INCOME"
-        running_balance += t.amount.to_d
-      when "EXPENSE"
-        running_balance -= t.amount.to_d
-      when "TRANSFER"
-        if t.account_id.to_i == current_account_id
-          running_balance -= t.amount.to_d
-        elsif t.target_account_id.to_i == current_account_id
-          running_balance += t.amount.to_d
+    # 缓存 key - 包含所有筛选条件
+    filter_cache_key = "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}"
+    
+    # 缓存 count
+    @total_count = Rails.cache.fetch("transactions_count_#{filter_cache_key}", expires_in: 30.seconds) do
+      @transactions.count
+    end
+    
+    # 缓存交易列表（不同 page 单独缓存）
+    transactions_cache_key = "transactions_list_#{filter_cache_key}_#{@page}_#{@per_page}"
+    @transactions_with_balance = Rails.cache.fetch(transactions_cache_key, expires_in: 2.minutes) do
+      # 分页获取交易
+      paginated_transactions = @transactions.limit(@per_page).offset((@page - 1) * @per_page).to_a
+      
+      # 构建余额计算（简化版，第一页之后不计算余额）
+      current_account_id = params[:account_id].to_i
+      initial_balance = if params[:account_id].present?
+        Account.find_by(id: params[:account_id])&.initial_balance || 0
+      else
+        Account.included_in_total.sum(&:initial_balance)
+      end
+      
+      result = []
+      if @page == 1 && paginated_transactions.any?
+        # 按日期升序排序计算余额
+        sorted = paginated_transactions.sort_by { |t| [t.date || Date.new(1970), t.id] }
+        running_balance = initial_balance.to_d
+        balance_map = {}
+        
+        sorted.each do |t|
+          case t.type
+          when "INCOME" then running_balance += t.amount.to_d
+          when "EXPENSE" then running_balance -= t.amount.to_d
+          when "TRANSFER"
+            if t.account_id.to_i == current_account_id
+              running_balance -= t.amount.to_d
+            elsif t.target_account_id.to_i == current_account_id
+              running_balance += t.amount.to_d
+            end
+          end
+          balance_map[t.id] = running_balance
+        end
+        
+        # 保持原始顺序返回
+        paginated_transactions.each do |t|
+          result << [t, balance_map[t.id] || running_balance]
+        end
+      else
+        paginated_transactions.each do |t|
+          result << [t, nil]  # 非第一页不显示余额
         end
       end
-      [t, running_balance]
+      result
     end
+
+    # 计算统计信息（基于筛选条件，但受分页影响）
+    if params[:account_id].present?
+      account_id = params[:account_id].to_i
+      @account_balance = Account.find_by(id: account_id)&.current_balance || 0
+
+      income = Transaction.where(
+        "(account_id = ? AND type = 'INCOME') OR (type = 'TRANSFER' AND target_account_id = ?)",
+        account_id, account_id
+      )
+      expense = Transaction.where(
+        "(account_id = ? AND type = 'EXPENSE') OR (type = 'TRANSFER' AND account_id = ?)",
+        account_id, account_id
+      )
+
+      if range.present?
+        income = income.where(date: range)
+        expense = expense.where(date: range)
+      end
+      if params[:type].present?
+        income = income.where(type: params[:type]) if params[:type] == 'INCOME'
+        expense = expense.where(type: params[:type]) if params[:type] == 'EXPENSE'
+      end
+
+      @total_income = income.sum(:amount)
+      @total_expense = expense.sum(:amount)
+    else
+      @account_balance = Account.total_assets
+      @total_income = @transactions.where(type: "INCOME").sum(:amount)
+      @total_expense = @transactions.where(type: "EXPENSE").sum(:amount)
+    end
+    @total_balance = @total_income - @total_expense
+
+    @transaction = Transaction.new(currency: "CNY", date: Date.today)
   end
 
   def show
@@ -138,6 +199,7 @@ class AccountsController < ApplicationController
 
   def update
     if @account.update(account_params)
+      expire_accounts_cache
       redirect_to accounts_path, notice: "账户已更新"
     else
       redirect_to accounts_path, alert: @account.errors.full_messages.join(", ")
@@ -146,11 +208,11 @@ class AccountsController < ApplicationController
 
   def destroy
     @account.destroy
-    redirect_to accounts_url, notice: "账户已删除"
+    expire_accounts_cache
+    redirect_to accounts_path, notice: "账户已删除"
   end
 
   def reorder
-    @account = Account.find(params[:id])
     target_account = Account.find(params[:target_id])
 
     # 交换 sort_order
@@ -159,11 +221,18 @@ class AccountsController < ApplicationController
 
     @account.update!(sort_order: target_order)
     target_account.update!(sort_order: current_order)
+    
+    expire_accounts_cache
 
     head :ok
   end
 
   private
+
+  def expire_accounts_cache
+    Rails.cache.delete("accounts_list")
+    Rails.cache.delete("categories_active")
+  end
 
   def set_account
     @account = Account.find(params[:id])

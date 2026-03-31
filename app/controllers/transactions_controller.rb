@@ -40,32 +40,35 @@ class TransactionsController < ApplicationController
     @transaction = build_transaction
 
     if @transaction.save
+      expire_transactions_cache
       handle_successful_save("交易已创建")
     else
-      redirect_to transactions_path, alert: @transaction.errors.full_messages.join(", ")
+      redirect_to accounts_path(filter_params), alert: @transaction.errors.full_messages.join(", ")
     end
   end
 
   def update
     if @transaction.update(transaction_params)
+      expire_transactions_cache
       handle_successful_save("交易已更新")
     else
-      redirect_to transactions_path, alert: @transaction.errors.full_messages.join(", ")
+      redirect_to accounts_path(filter_params), alert: @transaction.errors.full_messages.join(", ")
     end
   end
 
   def destroy
     @transaction.destroy
-    redirect_to transactions_path, notice: "交易已删除"
+    expire_transactions_cache
+    redirect_to accounts_path(filter_params), notice: "交易已删除"
   end
 
   def bulk_destroy
     ids = params[:ids].presence
     if ids
       count = Transaction.where(id: ids).destroy_all.size
-      redirect_to transactions_path, notice: "已删除 #{count} 笔交易"
+      redirect_to accounts_path(filter_params), notice: "已删除 #{count} 笔交易"
     else
-      redirect_to transactions_path, alert: "请选择要删除的交易"
+      redirect_to accounts_path(filter_params), alert: "请选择要删除的交易"
     end
   end
 
@@ -139,9 +142,9 @@ class TransactionsController < ApplicationController
 
     handle_successful_save("交易已创建（已自动补记资金来源转账）")
   rescue ActiveRecord::RecordInvalid => e
-    redirect_to transactions_path, alert: e.record.errors.full_messages.join(", ")
+    redirect_to accounts_path(filter_params), alert: e.record.errors.full_messages.join(", ")
   rescue ActiveRecord::RecordNotFound
-    redirect_to transactions_path, alert: "资金来源账户不存在"
+    redirect_to accounts_path(filter_params), alert: "资金来源账户不存在"
   end
 
   def transaction_params
@@ -154,14 +157,38 @@ class TransactionsController < ApplicationController
     )
   end
 
+  def filter_params
+    params.permit(:account_id, :search, :type, :period_type, :period_value, category_ids: [])
+  end
+
+  def build_redirect_url
+    # 优先使用 URL 参数，否则尝试从 referer 获取
+    if params[:account_id].present? || params[:period_type].present? || params[:search].present?
+      accounts_path(filter_params)
+    else
+      # 从 referer 解析筛选参数
+      referer = request.referer
+      return accounts_path if referer.blank?
+      
+      begin
+        uri = URI.parse(referer)
+        filter_params_from_referer = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
+        accounts_path(filter_params_from_referer.select { |k, v| v.present? })
+      rescue
+        accounts_path
+      end
+    end
+  end
+
   def handle_successful_save(message)
     if params[:continue_entry] == "1"
       return redirect_to(continue_entry_redirect_url, notice: "#{message}，请继续录入")
     end
 
+    redirect_url = build_redirect_url
     respond_to do |format|
-      format.html { redirect_to transactions_path, notice: message }
-      format.turbo_stream { redirect_to transactions_path, notice: message }
+      format.html { redirect_to redirect_url, notice: message }
+      format.turbo_stream { redirect_to redirect_url, notice: message }
     end
   end
 
@@ -186,5 +213,10 @@ class TransactionsController < ApplicationController
       transfer_count: transactions.transfers.count,
       count: transactions.count
     }
+  end
+
+  def expire_transactions_cache
+    # 清除交易相关的所有缓存
+    Rails.cache.delete_matched("transactions_*")
   end
 end

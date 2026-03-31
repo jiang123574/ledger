@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_29_160000) do
+ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -288,6 +288,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_160000) do
     t.integer "target_account_id"
     t.string "type"
     t.datetime "updated_at", null: false
+    t.index ["account_id", "date", "type"], name: "index_transactions_on_account_id_and_date_and_type"
     t.index ["account_id", "date"], name: "index_transactions_account_date"
     t.index ["account_id"], name: "index_transactions_on_account_id"
     t.index ["category"], name: "index_transactions_on_category"
@@ -296,6 +297,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_29_160000) do
     t.index ["dedupe_key"], name: "index_transactions_on_dedupe_key"
     t.index ["link_id"], name: "index_transactions_on_link_id"
     t.index ["receivable_id"], name: "index_transactions_on_receivable_id"
+    t.index ["target_account_id", "date"], name: "index_transactions_on_target_account_id_and_date"
     t.index ["target_account_id"], name: "index_transactions_on_target_account_id"
     t.index ["type", "date"], name: "index_transactions_type_date"
     t.index ["type"], name: "index_transactions_on_type"

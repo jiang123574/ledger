@@ -6,7 +6,7 @@
       <div>
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark">账户管理</h2>
         <div class="text-xs text-secondary dark:text-secondary-dark mt-0.5">
-          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@accounts.included_in_total.sum(&:current_balance)) %></span>
+          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.included_in_total.sum(&:current_balance)) %></span>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -28,7 +28,7 @@
         </button>
       </div>
       <div class="text-sm text-secondary dark:text-secondary-dark">
-        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@accounts.included_in_total.sum(&:current_balance)) %></span>
+        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.included_in_total.sum(&:current_balance)) %></span>
       </div>
     </div>
     
@@ -45,15 +45,16 @@
           <!-- 该类型的账户列表 -->
           <div class="account-group" data-account-type="<%= type %>">
             <% accounts.sort_by(&:sort_order).each do |account| %>
-              <div class="p-3 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth group cursor-grab active:cursor-grabbing <%= params[:account_id].to_i == account.id ? 'bg-surface-inset dark:bg-surface-dark-inset' : '' %>" 
+              <div class="p-3 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth group cursor-pointer <%= params[:account_id].to_i == account.id ? 'bg-surface-inset dark:bg-surface-dark-inset' : '' %>" 
                    data-account-id="<%= account.id %>"
+                   onclick="filterByAccount(<%= account.id %>)"
                    draggable="true"
                    data-action="dragstart->account-sort#start dragover->account-sort#over drop->account-sort#drop dragend->account-sort#end">
                 <div class="flex items-center gap-3">
-                  <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0" onclick="filterByAccount(<%= account.id %>)">
+                  <div class="w-8 h-8 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0">
                     <span class="text-sm font-bold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
                   </div>
-                  <div class="flex-1 min-w-0" onclick="filterByAccount(<%= account.id %>)">
+                  <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                       <p class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= account.name %></p>
                       <% if account.include_in_total != 1 %>
@@ -65,7 +66,7 @@
                     <% end %>
                   </div>
                   <div class="flex items-center gap-1">
-                    <p class="font-medium text-sm text-primary dark:text-primary-dark" onclick="filterByAccount(<%= account.id %>)"><%= format_currency(account.current_balance) %></p>
+                    <p class="font-medium text-sm text-primary dark:text-primary-dark"><%= format_currency(account.current_balance) %></p>
                     <button onclick="event.stopPropagation(); openEditAccountModal(this)" 
                             data-id="<%= account.id %>"
                             data-name="<%= account.name %>"
@@ -111,7 +112,7 @@
             </span>
           <% end %>
         </div>
-        <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern">
+        <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden'); if(typeof applyTransactionTypeUI==='function'){applyTransactionTypeUI();}" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern">
           + 新建
         </button>
       </div>
@@ -208,6 +209,7 @@
     <!-- 交易列表 -->
     <div id="transaction-list" class="flex-1 overflow-y-auto" data-page="<%= @page %>" data-per-page="<%= @per_page %>" data-total-count="<%= @total_count %>">
       <% if @transactions.any? %>
+        <%= render 'skeleton' unless @page > 1 %>
         <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container">
           <% @transactions_with_balance.each do |t, balance| %>
             <div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
@@ -259,7 +261,7 @@
                   <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
                     <%= format_currency_with_sign(t.amount, type: display_amount_type) %>
                   </p>
-                  <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= format_currency(balance) %></p>
+                  <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= @page == 1 ? format_currency(balance) : '--' %></p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
                   <button onclick="openEditTransactionModal(<%= t.id %>)" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
@@ -289,7 +291,7 @@
             <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
           </div>
           <p class="text-secondary dark:text-secondary-dark text-sm">暂无交易记录</p>
-          <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden')" class="mt-3 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
+          <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden'); if(typeof applyTransactionTypeUI==='function'){applyTransactionTypeUI();}" class="mt-3 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
             新建第一笔交易
           </button>
         </div>
@@ -408,6 +410,38 @@ document.addEventListener('DOMContentLoaded', function() {
             <%= f.check_box :include_in_total, { id: 'account-include-in-total', class: "w-4 h-4 rounded border-border dark:border-border-dark text-blue-600 focus:ring-blue-500" }, 1, 0 %>
             <label for="account-include-in-total" class="text-sm text-primary dark:text-primary-dark">计入资产总额</label>
           </div>
+          
+          <!-- 信用卡字段 -->
+          <div id="credit-card-fields" class="hidden space-y-4 pt-4 border-t border-border dark:border-border-dark">
+            <h4 class="text-sm font-medium text-primary dark:text-primary-dark">信用卡设置</h4>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">信用额度</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+                <%= f.number_field :credit_limit, step: "0.01", placeholder: "0.00", id: 'account-credit-limit', class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+              </div>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账单日</label>
+              <%= f.select :billing_day, (1..28).map { |d| ["每月#{d}日", d] }, { include_blank: "选择账单日" }, id: 'account-billing-day', class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账单日交易计入</label>
+              <%= f.select :billing_day_mode, [["本期账单", "current"], ["下期账单", "next"]], { include_blank: "选择" }, id: 'account-billing-day-mode', class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">还款日类型</label>
+              <%= f.select :due_day_mode, [["固定日期", "fixed"], ["账单日后N天", "relative"]], { include_blank: "选择" }, id: 'account-due-day-mode', class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">还款日（固定）</label>
+              <%= f.select :due_day, (1..28).map { |d| ["每月#{d}日", d] }, { include_blank: "选择还款日" }, id: 'account-due-day', class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账单日后天数</label>
+              <%= f.number_field :due_day_offset, placeholder: "1-28", min: 1, max: 28, id: 'account-due-day-offset', class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            </div>
+          </div>
         </div>
         <div class="flex justify-between mt-6">
           <div id="delete-account-btn-container"></div>
@@ -448,6 +482,17 @@ function openEditAccountModal(btn) {
   document.getElementById('account-type').value = type;
   document.getElementById('account-initial-balance').value = initialBalance;
   
+  // 设置信用卡字段
+  document.getElementById('account-credit-limit').value = btn.dataset.creditLimit || '';
+  document.getElementById('account-billing-day').value = btn.dataset.billingDay || '';
+  document.getElementById('account-billing-day-mode').value = btn.dataset.billingDayMode || '';
+  document.getElementById('account-due-day-mode').value = btn.dataset.dueDayMode || '';
+  document.getElementById('account-due-day').value = btn.dataset.dueDay || '';
+  document.getElementById('account-due-day-offset').value = btn.dataset.dueDayOffset || '';
+  
+  // 根据账户类型显示/隐藏信用卡字段
+  toggleCreditCardFields(type);
+  
   // 设置是否计入资产总额
   const includeInTotalCheckbox = document.getElementById('account-include-in-total');
   includeInTotalCheckbox.checked = includeInTotal == 1;
@@ -472,7 +517,30 @@ function closeAccountModal() {
   document.getElementById('account-initial-balance').value = '';
   document.getElementById('account-include-in-total').checked = true;
   document.getElementById('delete-account-btn-container').innerHTML = '';
+  // 重置信用卡字段
+  document.getElementById('account-credit-limit').value = '';
+  document.getElementById('account-billing-day').value = '';
+  document.getElementById('account-billing-day-mode').value = '';
+  document.getElementById('account-due-day-mode').value = '';
+  document.getElementById('account-due-day').value = '';
+  document.getElementById('account-due-day-offset').value = '';
+  toggleCreditCardFields('');
 }
+
+// 根据账户类型显示/隐藏信用卡字段
+function toggleCreditCardFields(type) {
+  const creditCardFields = document.getElementById('credit-card-fields');
+  if (type === 'CREDIT') {
+    creditCardFields.classList.remove('hidden');
+  } else {
+    creditCardFields.classList.add('hidden');
+  }
+}
+
+// 账户类型选择变化时显示/隐藏信用卡字段
+document.getElementById('account-type')?.addEventListener('change', function() {
+  toggleCreditCardFields(this.value);
+});
 
 function confirmDeleteAccount(id, name) {
   if (!window.confirm('确定要删除账户 "' + name + '" 吗？\n\n注意：删除账户不会删除相关的交易记录。')) return;
@@ -619,6 +687,19 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <script>
+// 防抖函数
+function debounce(func, wait) {
+  let timeout;
+  return function executedFunction(...args) {
+    const later = () => {
+      clearTimeout(timeout);
+      func(...args);
+    };
+    clearTimeout(timeout);
+    timeout = setTimeout(later, wait);
+  };
+}
+
 // 移动端账户列表折叠
 function toggleAccountList() {
   const list = document.getElementById('account-list');
@@ -634,6 +715,7 @@ function toggleAccountList() {
 
 // 筛选功能
 let selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
+let currentPage = <%= @page %>;
 
 function applyFilters() {
   const params = new URLSearchParams();
@@ -657,6 +739,9 @@ function applyFilters() {
   window.location.href = '/accounts?' + params.toString();
 }
 
+// 防抖筛选
+const debouncedApplyFilters = debounce(applyFilters, 500);
+
 function clearFilters() {
   const accountId = '<%= params[:account_id] %>';
   if (accountId) {
@@ -675,7 +760,7 @@ function updateCategoryFilterButtonLabel() {
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
-  window.location.href = '/transactions?' + params.toString();
+  window.location.href = '/accounts?' + params.toString();
 }
 
 function clearAccountFilter() {
@@ -690,6 +775,9 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
     applyFilters();
   }
 });
+
+// 搜索输入防抖
+document.getElementById('search-input')?.addEventListener('input', debouncedApplyFilters);
 
 function syncPeriodInputType() {
   const periodTypeEl = document.getElementById('period-type-filter');
@@ -851,9 +939,13 @@ function applyTransactionTypeUI() {
 
   transactionTypeCards.forEach((card) => {
     const active = card.dataset.transactionType === type;
-    card.className = active
-      ? 'transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth bg-surface-inset dark:bg-surface-dark-inset border-border dark:border-border-dark text-primary dark:text-primary-dark'
-      : 'transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth bg-white dark:bg-surface-dark border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover';
+    if (active) {
+      card.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset', 'border-blue-500', 'text-primary', 'dark:text-primary-dark');
+      card.classList.remove('bg-white', 'dark:bg-surface-dark', 'text-secondary', 'dark:text-secondary-dark');
+    } else {
+      card.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset', 'border-blue-500', 'text-primary', 'dark:text-primary-dark');
+      card.classList.add('bg-white', 'dark:bg-surface-dark', 'text-secondary', 'dark:text-secondary-dark');
+    }
   });
 
   if (targetAccountField && targetAccountInput) {
