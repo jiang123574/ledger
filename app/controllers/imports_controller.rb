@@ -148,6 +148,7 @@ class ImportsController < ApplicationController
     accounts_set = Set.new
     parent_categories_set = Set.new
     child_categories_map = {}  # { parent_name => [child_names] }
+    parent_category_types = {} # { parent_name => 'INCOME'/'EXPENSE' } 根据"交易分类"判断
 
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
       next if row['日期'].blank?
@@ -163,6 +164,9 @@ class ImportsController < ApplicationController
         accounts_set << account_str
       end
       
+      # 跳过转账记录（不需要分类）
+      next if row['交易分类']&.strip == '转账'
+      
       # 收支大类 = 父分类，当为空时使用交易分类
       parent_name = row['收支大类']&.strip
       if parent_name.blank? && row['交易分类']&.strip.present?
@@ -170,6 +174,14 @@ class ImportsController < ApplicationController
       end
       if parent_name.present?
         parent_categories_set << parent_name
+        
+        # 根据"交易分类"判断分类类型
+        transaction_category = row['交易分类']&.strip
+        if transaction_category == '日常收入' || transaction_category == '余额调整'
+          parent_category_types[parent_name] = 'INCOME'
+        elsif transaction_category == '日常支出'
+          parent_category_types[parent_name] = 'EXPENSE'
+        end
         
         # 交易类型 = 子分类
         child_name = row['交易类型']&.strip
@@ -189,11 +201,19 @@ class ImportsController < ApplicationController
 
     @categories_map = {}
     parent_categories_set.each do |parent_name|
+      # 根据"交易分类"确定类型，默认为 EXPENSE
+      category_type = parent_category_types[parent_name] || 'EXPENSE'
+      
       parent_category = Category.find_or_create_by(name: parent_name, parent_id: nil) do |c|
-        c.type = 'EXPENSE'
+        c.type = category_type
         c.active = true
       end
       @categories_map[parent_name] = parent_category
+      
+      # 如果类型不匹配，更新
+      if parent_category.type != category_type
+        parent_category.update!(type: category_type)
+      end
       
       # 创建子分类
       if child_categories_map[parent_name]
@@ -205,7 +225,7 @@ class ImportsController < ApplicationController
               child_category = Category.create!(
                 name: child_name,
                 parent_id: parent_category.id,
-                type: 'EXPENSE',
+                type: category_type,
                 active: true
               )
             rescue ActiveRecord::RecordNotUnique
@@ -259,10 +279,11 @@ class ImportsController < ApplicationController
           account_str = row['资金账户']&.strip
           
           # Parse "账户A → 账户B" format
+          # 箭头左边是转出账户，右边是转入账户
           if account_str && account_str.include?('→')
             parts = account_str.split('→').map(&:strip)
-            from_account_name = parts[0]
-            to_account_name = parts[1]
+            from_account_name = parts[0]  # 转出账户
+            to_account_name = parts[1]    # 转入账户
             
             from_account = accounts_map[from_account_name]
             to_account = accounts_map[to_account_name]
@@ -270,19 +291,18 @@ class ImportsController < ApplicationController
             if from_account && to_account && (income > 0 || expense > 0)
               amount = income > 0 ? income : expense
               
-              note = "转账: #{from_account_name} → #{to_account_name}"
-              
-              # 使用 Transaction.create_transfer! 创建转账（两条 TRANSFER 记录）
+              # 使用 Transaction.create_transfer! 创建转账（一条 TRANSFER 记录）
+              # 转出账户余额减少，转入账户余额增加
               Transaction.create_transfer!(
                 from_account: from_account,
                 to_account: to_account,
                 amount: amount,
                 date: date,
-                note: note
+                note: "转账: #{from_account_name} → #{to_account_name}"
               )
               
               result[:transfers] += 1
-              result[:imported] += 2  # create_transfer! 创建两条记录
+              result[:imported] += 1
             else
               result[:skipped] += 1
             end
@@ -297,11 +317,23 @@ class ImportsController < ApplicationController
         transaction_type = row['交易分类']&.strip
         
         if transaction_type == '日常收入' || transaction_type == '余额调整'
-          type = 'INCOME'
-          amount = income > 0 ? income : expense
+          # 日常收入但有流出金额 = 退款/退回 = EXPENSE
+          if expense > 0
+            type = 'EXPENSE'
+            amount = expense
+          else
+            type = 'INCOME'
+            amount = income > 0 ? income : expense
+          end
         elsif transaction_type == '日常支出'
-          type = 'EXPENSE'
-          amount = income > 0 ? income : expense
+          # 日常支出但有流入金额 = 退款 = INCOME
+          if income > 0
+            type = 'INCOME'
+            amount = income
+          else
+            type = 'EXPENSE'
+            amount = expense
+          end
         else
           # 其他类型，根据金额判断
           if income > 0

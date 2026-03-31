@@ -8,9 +8,14 @@ class AccountsController < ApplicationController
     # 支持筛选的交易查询
     @transactions = Transaction.includes(:account, :category, :tags)
 
-    # 按账户筛选
+    # 按账户筛选（转账记录在转出和转入账户下都显示）
     if params[:account_id].present?
-      @transactions = @transactions.where(account_id: params[:account_id])
+      account_id = params[:account_id]
+      @transactions = @transactions.where(
+        "transactions.account_id = ? OR (transactions.type = 'TRANSFER' AND transactions.target_account_id = ?)",
+        account_id, account_id
+      )
+      @current_account_id = account_id  # 保存当前账户ID，用于显示转账方向
     end
 
     # 按类型筛选
@@ -85,28 +90,27 @@ class AccountsController < ApplicationController
       @current_account = Account.find_by(id: params[:account_id])
       @account_balance = @current_account&.current_balance || 0
     else
-      @account_balance = @accounts.sum(&:current_balance)
+      @account_balance = @accounts.included_in_total.sum(&:current_balance)
     end
 
-    @total_income = @transactions.income.sum(:amount)
-    @total_expense = @transactions.expense.sum(:amount)
+    @total_income = @transactions.where(type: "INCOME").sum(:amount)
+    @total_expense = @transactions.where(type: "EXPENSE").sum(:amount)
     @total_balance = @total_income - @total_expense
 
-    running_balance = @account_balance
+    running_balance = @account_balance.to_d
     current_account_id = params[:account_id].to_i
     
     @transactions_with_balance = @transactions.map do |t|
       case t.type
       when "INCOME"
-        running_balance += t.amount  # 收入增加余额
+        running_balance += t.amount.to_d
       when "EXPENSE"
-        running_balance -= t.amount  # 支出减少余额
+        running_balance -= t.amount.to_d
       when "TRANSFER"
-        # 转账：根据账户角色决定余额变化
-        if t.account_id == current_account_id
-          running_balance -= t.amount  # 转出，减少余额
-        elsif t.target_account_id == current_account_id
-          running_balance += t.amount  # 转入，增加余额
+        if t.account_id.to_i == current_account_id
+          running_balance -= t.amount.to_d
+        elsif t.target_account_id.to_i == current_account_id
+          running_balance += t.amount.to_d
         end
       end
       [t, running_balance]
