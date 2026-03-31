@@ -57,19 +57,18 @@ class ImportsController < ApplicationController
       return
     end
 
-    # Get mapping from params
     accounts_map = build_accounts_map(params[:accounts])
     categories_map = build_categories_map(params[:categories])
 
-    # Import transactions
     result = import_transactions(file_path, accounts_map, categories_map)
 
     session[:import_result] = result
     session.delete(:pixiu_file_path)
     session.delete(:pixiu_file_name)
 
-    # Clean up temp file
     File.delete(file_path) if File.exist?(file_path)
+
+    Rails.cache.clear
 
     redirect_to pixiu_imports_path(step: 4)
   end
@@ -220,40 +219,46 @@ class ImportsController < ApplicationController
       
       # 收支大类 = 父分类，当为空时使用交易分类
       parent_name = row['收支大类']&.strip
-      if parent_name.blank? && transaction_category.present?
-        # 如果交易分类不是"转账"等特殊类型，则作为父分类
-        if !%w[转账].include?(transaction_category)
-          parent_name = transaction_category
-        end
-      end
-        accounts_set << account_str
-      end
+      transaction_category = row['交易分类']&.strip
+      child_name = row['交易类型']&.strip
       
       # 跳过转账记录（不需要分类）
-      next if row['交易分类']&.strip == '转账'
+      next if transaction_category == '转账'
       
-      # 收支大类 = 父分类，当为空时使用交易分类
-      parent_name = row['收支大类']&.strip
-      transaction_category = row['交易分类']&.strip
-      
-      # 排除交易分类为"日常收入"/"日常支出"/"转账"的情况，这些是类型标识不是分类名
-      if parent_name.blank? && transaction_category.present? && !%w[日常收入 日常支出 转账].include?(transaction_category)
-        parent_name = transaction_category
+      # 当收支大类为空时，优先使用交易分类
+      if parent_name.blank?
+        if transaction_category.present?
+          parent_name = transaction_category
+        elsif child_name.present?
+          parent_name = child_name
+          child_name = nil
+        end
+      elsif parent_name == '无'
+        # 收支大类为"无"时，使用交易类型作为父分类
+        if child_name.present?
+          parent_name = child_name
+          child_name = nil
+        end
       end
       
       if parent_name.present?
         parent_categories_set << parent_name
         
-        # 根据"交易分类"判断分类类型
-        if transaction_category == '日常收入' || transaction_category == '余额调整'
+        # 定义交易分类类型映射
+        income_categories = %w[日常收入 余额调整 收款 报销 物品售出 借入 理财赎回]
+        expense_categories = %w[日常支出 垫付 借出 物品购入 缴纳保费 理财申购 还款 债务坏账 债权坏账 应付款 物品批量购入]
+        
+        # 根据交易分类判断分类类型
+        if income_categories.include?(transaction_category)
           parent_category_types[parent_name] = 'INCOME'
-        elsif transaction_category == '日常支出'
+        elsif expense_categories.include?(transaction_category)
           parent_category_types[parent_name] = 'EXPENSE'
         end
         
-        # 交易类型 = 子分类
-        child_name = row['交易类型']&.strip
-        if child_name.present?
+        # 当收支大类有值时，交易类型 = 子分类
+        if parent_name != row['收支大类']&.strip || parent_name == '无'
+          # 收支大类为空或"无"时，不创建子分类
+        elsif child_name.present?
           child_categories_map[parent_name] ||= Set.new
           child_categories_map[parent_name] << child_name
         end
@@ -342,18 +347,21 @@ class ImportsController < ApplicationController
         expense = row['流出金额'].to_f
 
         # Handle transfers: "账户A → 账户B" 或 "转账 / 转到中信1622"
-        # 交易分类 = 父分类（转账、缴纳保费等）
         transaction_category = row['交易分类']&.strip
         transaction_type_detail = row['交易类型']&.strip
+        account_str = row['资金账户']&.strip
         
-        is_transfer = transaction_category == '转账' || transaction_type_detail&.start_with?('转账')
+        # 判断是否为转账类型
+        transfer_categories = %w[转账 信用卡还款]
+        non_transfer_types = %w[优惠抵扣 手续费]
+        is_non_transfer = non_transfer_types.any? { |t| transaction_type_detail&.include?(t) }
+        
+        is_transfer = (transfer_categories.include?(transaction_category) || transaction_type_detail&.start_with?('转账')) && !is_non_transfer
         
         if is_transfer
-          account_str = row['资金账户']&.strip
           from_account = nil
           to_account = nil
           
-          # Parse "账户A → 账户B" format
           if account_str&.include?('→')
             parts = account_str.split('→').map(&:strip)
             from_account_name = parts[0]
@@ -361,16 +369,13 @@ class ImportsController < ApplicationController
             from_account = accounts_map[from_account_name]
             to_account = accounts_map[to_account_name]
           elsif transaction_type_detail&.include?('/')
-            # 解析 "转账 / 转到中信1622" 格式
             parts = transaction_type_detail.split('/').map(&:strip)
             if parts.length > 1
               account_info = parts[1]
               if account_info.include?('转到') || account_info.include?('转出')
-                # 转出：从当前账户转到目标账户
                 to_account_name = account_info.sub(/转到|转出/, '').strip
                 from_account_name = "支付宝余额"
               elsif account_info.include?('转入')
-                # 转入：从源账户转入当前账户
                 from_account_name = account_info.sub('转入', '').strip
                 to_account_name = "支付宝余额"
               else
@@ -394,7 +399,7 @@ class ImportsController < ApplicationController
             )
             
             result[:transfers] += 1
-            result[:imported] += 2
+            result[:imported] += 1
           else
             result[:skipped] += 1
           end
@@ -402,11 +407,13 @@ class ImportsController < ApplicationController
         end
 
         # Handle regular transactions
-        # 根据交易分类判断收入/支出
-        transaction_type = row['交易分类']&.strip
+        transaction_category = row['交易分类']&.strip
         
-        if transaction_type == '日常收入' || transaction_type == '余额调整'
-          # 日常收入但有流出金额 = 退款/退回 = EXPENSE
+        # 定义交易分类类型映射
+        income_categories = %w[日常收入 余额调整 收款 报销 物品售出 借入 理财赎回]
+        expense_categories = %w[日常支出 垫付 借出 物品购入 缴纳保费 理财申购 还款 债务坏账 债权坏账 应付款 物品批量购入]
+        
+        if income_categories.include?(transaction_category)
           if expense > 0
             type = 'EXPENSE'
             amount = expense
@@ -414,8 +421,7 @@ class ImportsController < ApplicationController
             type = 'INCOME'
             amount = income > 0 ? income : expense
           end
-        elsif transaction_type == '日常支出'
-          # 日常支出但有流入金额 = 退款 = INCOME
+        elsif expense_categories.include?(transaction_category)
           if income > 0
             type = 'INCOME'
             amount = income
@@ -447,13 +453,23 @@ class ImportsController < ApplicationController
 
         # 使用子分类（交易类型）作为分类
         parent_name = row['收支大类']&.strip
-        child_name = row['交易类型']&.strip
         transaction_category = row['交易分类']&.strip
+        child_name = row['交易类型']&.strip
         
-        # 当收支大类为空时，使用交易分类作为分类名（排除日常收入/日常支出/转账）
-        if parent_name.blank? && transaction_category.present? && !%w[日常收入 日常支出 转账].include?(transaction_category)
-          parent_name = transaction_category
-          child_name = nil
+        # 当收支大类为空时，优先使用交易分类
+        if parent_name.blank?
+          if transaction_category.present? && transaction_category != '转账'
+            parent_name = transaction_category
+          elsif child_name.present?
+            parent_name = child_name
+            child_name = nil
+          end
+        elsif parent_name == '无'
+          # 收支大类为"无"时，使用交易类型作为父分类
+          if child_name.present?
+            parent_name = child_name
+            child_name = nil
+          end
         end
         
         # 优先使用子分类，如果没有则使用父分类
@@ -467,8 +483,12 @@ class ImportsController < ApplicationController
         end
 
         unless category
-          result[:skipped] += 1
-          next
+          # 如果分类不存在，尝试查找或创建
+          category = Category.find_or_create_by(name: parent_name, parent_id: nil) do |c|
+            c.type = type
+            c.active = true
+          end
+          categories_map[parent_name] ||= category
         end
 
         note_parts = []

@@ -94,13 +94,14 @@ class SettingsController < ApplicationController
       Plan.destroy_all
       Budget.destroy_all
       
-      # 先解除转账记录的自引用关联（历史数据可能有两两关联的记录）
       Transaction.where.not(link_id: nil).update_all(link_id: nil)
       Transaction.destroy_all
       
       Category.destroy_all
       Account.destroy_all
     end
+
+    Rails.cache.clear
 
     redirect_to settings_path, notice: "所有数据已清除"
   rescue => e

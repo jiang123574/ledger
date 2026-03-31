@@ -218,16 +218,16 @@
                   <%= t.date&.strftime("%Y-%m-%d") %>
                 </div>
                 <% 
-                  # 转账方向判断
                   is_transfer = t.type == 'TRANSFER'
-                  is_outflow = is_transfer && t.account_id.to_s == @current_account_id.to_s
-                  is_inflow = is_transfer && t.target_account_id.to_s == @current_account_id.to_s
+                  current_account_filter = @current_account_id.to_s
+                  is_outflow = is_transfer && (current_account_filter.blank? || t.account_id.to_s == current_account_filter)
+                  is_inflow = is_transfer && t.target_account_id.to_s == current_account_filter && current_account_filter.present?
                   display_type = if is_transfer
-                    is_outflow ? "转出" : "转入"
+                    is_inflow ? "转入" : "转出"
                   else
                     t.display_type
                   end
-                  display_amount_type = is_inflow ? "INCOME" : t.type
+                  display_amount_type = is_inflow ? "INCOME" : "EXPENSE"
                 %>
                 <div class="ie-icon-chip ie-icon-chip-sm <%= display_amount_type == 'INCOME' ? 'ie-icon-income' : 'ie-icon-expense' %>">
                   <% if display_amount_type == 'INCOME' %>
@@ -249,7 +249,11 @@
                     </span>
                     <p class="text-sm font-medium text-primary dark:text-primary-dark truncate">
                       <% if is_transfer %>
-                        <%= is_outflow ? "→ #{t.target_account&.name}" : "← #{t.account&.name}" %>
+                        <% if current_account_filter.present? %>
+                          <%= is_inflow ? "← #{t.account&.name}" : "→ #{t.target_account&.name}" %>
+                        <% else %>
+                          <%= "#{t.account&.name} → #{t.target_account&.name}" %>
+                        <% end %>
                       <% else %>
                         <%= t.category&.name || '-' %>
                       <% end %>
@@ -258,9 +262,17 @@
                   <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5"><%= t.note || t.account_name %></p>
                 </div>
                 <div class="text-right shrink-0">
-                  <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
-                    <%= format_currency_with_sign(t.amount, type: display_amount_type) %>
-                  </p>
+                  <% if is_transfer && current_account_filter.blank? %>
+                    <p class="text-sm">
+                      <span class="text-expense">-<%= format_currency(t.amount) %></span>
+                      <span class="mx-1 text-secondary dark:text-secondary-dark">/</span>
+                      <span class="text-income">+<%= format_currency(t.amount) %></span>
+                    </p>
+                  <% else %>
+                    <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
+                      <%= format_currency_with_sign(t.amount, type: display_amount_type) %>
+                    </p>
+                  <% end %>
                   <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= @page == 1 ? format_currency(balance) : '--' %></p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
@@ -787,10 +799,9 @@ function syncPeriodInputType() {
 
   const periodType = periodTypeEl.value;
   
-  // 处理"全部"选项
   if (periodType === 'all') {
     if (periodValueContainer) periodValueContainer.style.display = 'none';
-    return; // 不调用 applyFilters，让 change 事件处理
+    return;
   } else {
     if (periodValueContainer) periodValueContainer.style.display = '';
   }
@@ -812,7 +823,8 @@ function syncPeriodInputType() {
     periodValueEl.min = '2000';
     periodValueEl.max = '2100';
     periodValueEl.step = '1';
-    if (!/^\d{4}$/.test(periodValueEl.value)) {
+    const yearValue = parseInt(periodValueEl.value, 10);
+    if (!yearValue || yearValue < 2000 || yearValue > 2100) {
       periodValueEl.value = String(today.getFullYear());
     }
   } else {
@@ -836,8 +848,12 @@ function shiftPeriod(direction) {
 
   if (periodType === 'year') {
     const year = parseInt(currentValue, 10);
-    if (!Number.isNaN(year)) {
-      periodValueEl.value = String(year + direction);
+    if (year && year >= 2000 && year <= 2100) {
+      const newYear = year + direction;
+      if (newYear >= 2000 && newYear <= 2100) {
+        periodValueEl.value = String(newYear);
+        applyFilters();
+      }
     }
   } else if (periodType === 'month') {
     const match = currentValue.match(/^(\d{4})-(\d{2})$/);
@@ -852,6 +868,7 @@ function shiftPeriod(direction) {
         year += 1;
       }
       periodValueEl.value = `${year}-${String(month).padStart(2, '0')}`;
+      applyFilters();
     }
   } else if (periodType === 'week') {
     const match = currentValue.match(/^(\d{4})-W(\d{2})$/);
@@ -861,10 +878,9 @@ function shiftPeriod(direction) {
       const monday = Date.fromISOWeek(isoYear, isoWeek);
       monday.setDate(monday.getDate() + (direction * 7));
       periodValueEl.value = monday.toISOWeekString();
+      applyFilters();
     }
   }
-
-  applyFilters();
 }
 
 Date.fromISOWeek = function(year, week) {
