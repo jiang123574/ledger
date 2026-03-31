@@ -125,7 +125,12 @@ class ImportsController < ApplicationController
         @stats[:valid] += 1
         
         if @sample_data.size < 10
-          parent = row['收支大类']&.strip.presence || row['交易分类']&.strip
+          parent = row['收支大类']&.strip.presence
+          transaction_category = row['交易分类']&.strip
+          if parent.blank? && transaction_category.present? && !%w[日常收入 日常支出 转账].include?(transaction_category)
+            parent = transaction_category
+          end
+          parent ||= '-'
           @sample_data << {
             date: row['日期'],
             category: "#{parent} - #{row['交易类型']}",
@@ -169,14 +174,17 @@ class ImportsController < ApplicationController
       
       # 收支大类 = 父分类，当为空时使用交易分类
       parent_name = row['收支大类']&.strip
-      if parent_name.blank? && row['交易分类']&.strip.present?
-        parent_name = row['交易分类']&.strip
+      transaction_category = row['交易分类']&.strip
+      
+      # 排除交易分类为"日常收入"/"日常支出"/"转账"的情况，这些是类型标识不是分类名
+      if parent_name.blank? && transaction_category.present? && !%w[日常收入 日常支出 转账].include?(transaction_category)
+        parent_name = transaction_category
       end
+      
       if parent_name.present?
         parent_categories_set << parent_name
         
         # 根据"交易分类"判断分类类型
-        transaction_category = row['交易分类']&.strip
         if transaction_category == '日常收入' || transaction_category == '余额调整'
           parent_category_types[parent_name] = 'INCOME'
         elsif transaction_category == '日常支出'
@@ -359,10 +367,11 @@ class ImportsController < ApplicationController
         # 使用子分类（交易类型）作为分类
         parent_name = row['收支大类']&.strip
         child_name = row['交易类型']&.strip
+        transaction_category = row['交易分类']&.strip
         
-        # 当收支大类为空时，使用交易分类作为分类名
-        if parent_name.blank? && row['交易分类']&.strip.present?
-          parent_name = row['交易分类']&.strip
+        # 当收支大类为空时，使用交易分类作为分类名（排除日常收入/日常支出/转账）
+        if parent_name.blank? && transaction_category.present? && !%w[日常收入 日常支出 转账].include?(transaction_category)
+          parent_name = transaction_category
           child_name = nil
         end
         
