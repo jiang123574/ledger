@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_01_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_01_100001) do
   enable_extension "pg_catalog.plpgsql"
 
   create_table "accounts", force: :cascade do |t|
@@ -66,6 +66,22 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_100000) do
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
     t.index ["blob_id"], name: "index_active_storage_variant_records_on_blob_id"
+  end
+
+  create_table "activity_logs", force: :cascade do |t|
+    t.string "action", null: false
+    t.json "changeset"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "ip_address"
+    t.bigint "item_id", null: false
+    t.string "item_type", null: false
+    t.datetime "updated_at", null: false
+    t.string "whodunnit"
+    t.index ["action"], name: "index_activity_logs_on_action"
+    t.index ["created_at"], name: "index_activity_logs_on_created_at"
+    t.index ["item_type", "item_id"], name: "index_activity_logs_on_item"
+    t.index ["item_type", "item_id"], name: "index_activity_logs_on_item_type_and_item_id"
   end
 
   create_table "attachments", force: :cascade do |t|

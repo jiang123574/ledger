@@ -17,9 +17,21 @@ Rails.application.routes.draw do
     collection do
       post :bulk_destroy
     end
+    member do
+      get :versions
+    end
+  end
+
+  resources :versions, only: [:index, :show] do
+    member do
+      post :revert
+    end
   end
 
   resources :accounts do
+    member do
+      get :versions
+    end
     collection do
       get :stats
     end

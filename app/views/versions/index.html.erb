@@ -1,0 +1,101 @@
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">操作记录</h1>
+    <p class="mt-1 text-sm text-secondary dark:text-secondary-dark">查看所有操作历史并支持回滚</p>
+  </div>
+
+  <!-- 筛选器 -->
+  <div class="mb-6 bg-surface dark:bg-surface-dark rounded-lg p-4">
+    <form method="get" class="flex flex-wrap gap-4">
+      <div>
+        <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1">模型类型</label>
+        <select name="item_type" class="rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark px-3 py-2 text-sm">
+          <option value="">全部</option>
+          <option value="Entry" <%= 'selected' if params[:item_type] == 'Entry' %>>Entry</option>
+          <option value="Account" <%= 'selected' if params[:item_type] == 'Account' %>>Account</option>
+        </select>
+      </div>
+      
+      <div>
+        <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1">操作类型</label>
+        <select name="action_type" class="rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark px-3 py-2 text-sm">
+          <option value="">全部</option>
+          <option value="create" <%= 'selected' if params[:action_type] == 'create' %>>创建</option>
+          <option value="update" <%= 'selected' if params[:action_type] == 'update' %>>更新</option>
+          <option value="destroy" <%= 'selected' if params[:action_type] == 'destroy' %>>删除</option>
+        </select>
+      </div>
+      
+      <div class="flex items-end">
+        <button type="submit" class="px-4 py-2 bg-inverse text-white rounded-lg text-sm font-medium hover:bg-inverse-hover">
+          筛选
+        </button>
+        <a href="<%= versions_path %>" class="ml-2 px-4 py-2 border border-border dark:border-border-dark rounded-lg text-sm font-medium hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
+          清除
+        </a>
+      </div>
+    </form>
+  </div>
+
+  <!-- 操作记录列表 -->
+  <div class="bg-surface dark:bg-surface-dark rounded-lg shadow overflow-hidden">
+    <table class="min-w-full divide-y divide-border dark:divide-border-dark">
+      <thead class="bg-surface-inset dark:bg-surface-dark-inset">
+        <tr>
+          <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">时间</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">操作</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">模型</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">详情</th>
+          <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">操作</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-border dark:divide-border-dark">
+        <% @activity_logs.each do |log| %>
+          <tr class="hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark">
+              <%= log.created_at.strftime('%Y-%m-%d %H:%M:%S') %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap">
+              <% action_class = case log.action
+                 when 'create' then 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                 when 'update' then 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                 when 'destroy' then 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                 end %>
+              <span class="px-2 py-1 text-xs font-medium rounded <%= action_class %>">
+                <%= { 'create' => '创建', 'update' => '更新', 'destroy' => '删除' }[log.action] %>
+              </span>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark">
+              <%= log.item_type %>
+              <% if log.item_id %>
+                <span class="text-secondary dark:text-secondary-dark">#<%= log.item_id %></span>
+              <% end %>
+            </td>
+            <td class="px-6 py-4 text-sm text-secondary dark:text-secondary-dark max-w-md truncate">
+              <%= log.description %>
+              <% if log.action == 'update' %>
+                <div class="text-xs text-secondary dark:text-secondary-dark mt-1">
+                  <%= log.changes_summary %>
+                </div>
+              <% end %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <%= link_to '详情', version_path(log), class: 'text-blue-600 dark:text-blue-400 hover:underline mr-3' %>
+              <% if log.action != 'create' %>
+                <%= link_to '回滚', revert_version_path(log), 
+                    method: :post,
+                    data: { confirm: '确定要回滚此操作吗？' },
+                    class: 'text-red-600 dark:text-red-400 hover:underline' %>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- 分页 -->
+  <div class="mt-6">
+    <%= paginate @activity_logs if @activity_logs.respond_to?(:total_pages) %>
+  </div>
+</div>
