@@ -2,14 +2,14 @@
 
 require 'rails_helper'
 
-RSpec.describe TransactionSearch, type: :model do
-  describe '#apply' do
-    let(:scope) { Transaction.all }
+RSpec.describe EntrySearch, type: :model do
+  describe '#build_query' do
+    let(:scope) { Entry.all }
 
     it 'returns scope with default sort when no filters' do
       search = described_class.new({})
 
-      result = search.apply(scope)
+      result = search.build_query(scope)
 
       expect(result.to_sql).to include('ORDER BY')
     end
@@ -20,23 +20,23 @@ RSpec.describe TransactionSearch, type: :model do
         end_date: '2024-12-31'
       )
 
-      result = search.apply(scope)
+      result = search.build_query(scope)
 
       expect(result.to_sql).to include('date')
     end
 
-    it 'filters by type' do
-      search = described_class.new(type: 'INCOME')
+    it 'filters by kind' do
+      search = described_class.new(kind: 'income')
 
-      result = search.apply(scope)
+      result = search.build_query(scope)
 
-      expect(result.to_sql).to include('type')
+      expect(result.to_sql).to include('entryable_transactions')
     end
 
     it 'filters by account_id' do
       search = described_class.new(account_id: 1)
 
-      result = search.apply(scope)
+      result = search.build_query(scope)
 
       expect(result.to_sql).to include('account_id')
     end
@@ -44,17 +44,17 @@ RSpec.describe TransactionSearch, type: :model do
     it 'filters by category_id' do
       search = described_class.new(category_id: 1)
 
-      result = search.apply(scope)
+      result = search.build_query(scope)
 
-      expect(result.to_sql).to include('category_id')
+      expect(result.to_sql).to include('entryable_transactions')
     end
 
     it 'filters by search term' do
       search = described_class.new(search: 'test')
 
-      result = search.apply(scope)
+      result = search.build_query(scope)
 
-      expect(result.to_sql).to include('note')
+      expect(result.to_sql).to include('name')
     end
   end
 
@@ -65,8 +65,8 @@ RSpec.describe TransactionSearch, type: :model do
       expect(search.active_filters?).to be false
     end
 
-    it 'returns true when type is present' do
-      search = described_class.new(type: 'INCOME')
+    it 'returns true when kind is present' do
+      search = described_class.new(kind: 'income')
 
       expect(search.active_filters?).to be true
     end
@@ -89,14 +89,21 @@ RSpec.describe TransactionSearch, type: :model do
 
     it 'returns only present values' do
       search = described_class.new(
-        type: 'INCOME',
+        kind: 'income',
         start_date: '2024-01-01'
       )
 
       params = search.to_params
 
-      expect(params[:type]).to eq('INCOME')
+      expect(params[:kind]).to eq('income')
       expect(params[:start_date]).to be_present
     end
+  end
+end
+
+# TransactionSearch 是 EntrySearch 的别名
+RSpec.describe TransactionSearch, type: :model do
+  it 'is an alias for EntrySearch' do
+    expect(TransactionSearch).to eq(EntrySearch)
   end
 end

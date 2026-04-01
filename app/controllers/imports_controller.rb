@@ -390,7 +390,7 @@ class ImportsController < ApplicationController
           if from_account && to_account && (income > 0 || expense > 0)
             amount = income > 0 ? income : expense
             
-            Transaction.create_transfer!(
+            create_entry_transfer(
               from_account: from_account,
               to_account: to_account,
               amount: amount,
@@ -496,13 +496,13 @@ class ImportsController < ApplicationController
         note_parts << row['备注'].strip if row['备注'].present?
         note = note_parts.join(' - ')
 
-        Transaction.create!(
-          date: date,
-          type: type,
-          amount: amount,
+        create_entry(
           account: account,
-          category: category,
-          note: note
+          amount: type == 'INCOME' ? amount : -amount,
+          date: date,
+          name: note,
+          kind: type.downcase,
+          category: category
         )
 
         result[:imported] += 1
@@ -514,5 +514,54 @@ class ImportsController < ApplicationController
     end
 
     result
+  end
+
+  def create_entry(account:, amount:, date:, name:, kind:, category: nil)
+    entryable = Entryable::Transaction.new(
+      kind: kind,
+      category_id: category&.id
+    )
+    entryable.save(validate: false)
+
+    Entry.create!(
+      account_id: account.id,
+      date: date,
+      name: name,
+      amount: amount,
+      currency: 'CNY',
+      entryable: entryable
+    )
+  end
+
+  def create_entry_transfer(from_account:, to_account:, amount:, date:, note:)
+    transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
+
+    # 转出 Entry
+    entryable_out = Entryable::Transaction.new(kind: 'expense')
+    entryable_out.save(validate: false)
+
+    Entry.create!(
+      account_id: from_account.id,
+      date: date,
+      name: note,
+      amount: -amount.to_d,
+      currency: from_account.currency || 'CNY',
+      entryable: entryable_out,
+      transfer_id: transfer_id
+    )
+
+    # 转入 Entry
+    entryable_in = Entryable::Transaction.new(kind: 'income')
+    entryable_in.save(validate: false)
+
+    Entry.create!(
+      account_id: to_account.id,
+      date: date,
+      name: note,
+      amount: amount.to_d,
+      currency: to_account.currency || 'CNY',
+      entryable: entryable_in,
+      transfer_id: transfer_id
+    )
   end
 end

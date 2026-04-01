@@ -6,22 +6,23 @@ class Entryable::Transaction < ApplicationRecord
   
   self.table_name = 'entryable_transactions'
   
-  # 关联
   belongs_to :category, class_name: '::Category', optional: true
   belongs_to :merchant, class_name: '::Merchant', optional: true
   
   has_many :taggings, as: :taggable, class_name: '::Tagging', dependent: :destroy
   has_many :tags, through: :taggings
   
-  # 验证
-  validates :tags, presence: true, allow_nil: true
-  
-  # Store accessors
   store_accessor :extra, :provider_data, :sync_status, :enrichment_data
   
-  # 类型判断
+  after_initialize :set_defaults, if: :new_record?
+  
   def kind
     super || 'expense'
+  end
+  
+  def set_defaults
+    self.locked_attributes ||= {}
+    self.extra ||= {}
   end
   
   def income?
@@ -32,7 +33,6 @@ class Entryable::Transaction < ApplicationRecord
     kind == 'expense'
   end
   
-  # 标签管理
   def tag_list=(tag_names)
     self.tags = tag_names.map do |name|
       Tag.find_or_create_by(name: name.strip)
@@ -48,7 +48,6 @@ class Entryable::Transaction < ApplicationRecord
     lock_attr!(:tag_ids) if tags.any?
   end
   
-  # 分类统计
   def self.by_category_stats(account_id: nil, period_type: 'month')
     query = joins(:entry).where.not(category_id: nil)
     query = query.where(entries: { account_id: account_id }) if account_id.present?

@@ -30,9 +30,15 @@ class SingleBudget < ApplicationRecord
     if category && start_date && end_date
       category_ids = category.self_and_descendants.select(:id)
       end_date_val = end_date || start_date
-      transactions = Transaction.where(category_id: category_ids)
-                                 .where("date >= ? AND date <= ?", start_date, end_date_val)
-      update(spent_amount: transactions.sum(:amount))
+      
+      # 使用 Entry 查询
+      spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+        .where(entryable_type: 'Entryable::Transaction')
+        .where(entryable_transactions: { category_id: category_ids })
+        .where(date: start_date..end_date_val)
+        .sum('ABS(entries.amount)')
+      
+      update(spent_amount: spent)
     else
       update(spent_amount: budget_items.sum(:spent_amount))
     end

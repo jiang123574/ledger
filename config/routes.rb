@@ -13,6 +13,12 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :entries do
+    collection do
+      post :bulk_destroy
+    end
+  end
+
   resources :accounts do
     collection do
       get :stats

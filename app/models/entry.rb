@@ -8,13 +8,11 @@
 # - JSONB 存储灵活元数据
 
 class Entry < ApplicationRecord
-  include Monetizable, Enrichable
+  include Monetizable
   
-  # Delegated Type - 学习 Sure 的设计
   delegated_type :entryable, types: Entryable::TYPES, dependent: :destroy
   accepts_nested_attributes_for :entryable, update_only: true
   
-  # 关联
   belongs_to :account
   belongs_to :transfer, optional: true
   belongs_to :import, optional: true
@@ -22,15 +20,13 @@ class Entry < ApplicationRecord
   
   has_many :child_entries, class_name: "Entry", foreign_key: :parent_entry_id, dependent: :destroy
   
-  # 验证
   validates :date, :name, :amount, :currency, presence: true
   validates :date, uniqueness: { scope: [:account_id, :entryable_type] }, if: -> { valuation? }
   validates :date, comparison: { greater_than: -> { 30.years.ago.to_date } }
   validates :external_id, uniqueness: { scope: [:account_id, :source] }, 
             if: -> { external_id.present? && source.present? }
   
-  # Scopes - 学习 Sure 的 scope 设计
-  scope :visible, -> { joins(:account).where(accounts: { status: ['draft', 'active'] }) }
+  scope :visible, -> { joins(:account).where(accounts: { hidden: false }) }
   
   scope :chronological, -> {
     order(
@@ -49,16 +45,11 @@ class Entry < ApplicationRecord
   }
   
   scope :by_account, ->(account_id) { where(account_id: account_id) }
-  scope :by_period, ->(period_type, period_value) { Transaction.period_scope(period_type, period_value) }
   scope :by_date_range, ->(start_date, end_date) { where(date: start_date..end_date) }
   scope :excluded, -> { where(excluded: true) }
   scope :not_excluded, -> { where(excluded: false) }
-  
-  scope :income, -> { where(entryable_type: 'Entryable::Transaction', entryable: { kind: 'income' }) }
-  scope :expense, -> { where(entryable_type: 'Entryable::Transaction', entryable: { kind: 'expense' }) }
   scope :transfers, -> { where.not(transfer_id: nil) }
   
-  # 类型判断
   def transaction?
     entryable_type == 'Entryable::Transaction'
   end
@@ -71,12 +62,10 @@ class Entry < ApplicationRecord
     entryable_type == 'Entryable::Trade'
   end
   
-  # 分类
   def classification
     amount.negative? ? 'expense' : 'income'
   end
   
-  # 锁定机制 - 学习 Sure
   def lock_attribute!(attr_name)
     self.locked_attributes ||= {}
     self.locked_attributes[attr_name] = Time.current.iso8601
@@ -84,7 +73,7 @@ class Entry < ApplicationRecord
   end
   
   def locked?(attr_name)
-    locked_attributes&.dig(attr_name).present?
+    locked_attributes&.dig(attr_name.to_s).present?
   end
   
   def locked_field_names
@@ -97,7 +86,6 @@ class Entry < ApplicationRecord
     end
   end
   
-  # 保护机制
   def mark_user_modified!
     update!(user_modified: true)
   end
@@ -120,7 +108,6 @@ class Entry < ApplicationRecord
     end
   end
   
-  # 分层交易 - 学习 Sure
   def split_parent?
     child_entries.exists?
   end
@@ -163,12 +150,10 @@ class Entry < ApplicationRecord
   end
   
   class << self
-    # 搜索方法
     def search(params)
       EntrySearch.new(params).build_query(all)
     end
     
-    # 批量更新
     def bulk_update!(bulk_update_params, update_tags: false)
       bulk_attributes = {
         date: bulk_update_params[:date],
@@ -217,7 +202,6 @@ class Entry < ApplicationRecord
       size
     end
     
-    # 最小支持日期
     def min_supported_date
       30.years.ago.to_date
     end

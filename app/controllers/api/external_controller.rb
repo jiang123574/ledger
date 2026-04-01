@@ -19,13 +19,30 @@ module Api
     end
 
     def transactions
-      transaction = Transaction.new(transaction_params)
-      transaction.date ||= Time.current
+      # 支持新的 Entry 创建
+      kind = params[:type].to_s.downcase == 'income' ? 'income' : 'expense'
+      amount = params[:amount].to_d
+      entry_amount = kind == 'income' ? amount : -amount
+      
+      entryable = Entryable::Transaction.new(
+        kind: kind,
+        category_id: params[:category_id]
+      )
+      entryable.save(validate: false)
+      
+      entry = Entry.new(
+        account_id: params[:account_id],
+        date: params[:date] || Time.current,
+        name: params[:note] || "API导入",
+        amount: entry_amount,
+        currency: 'CNY',
+        entryable: entryable
+      )
 
-      if transaction.save
-        render json: { success: true, transaction: transaction }, status: :created
+      if entry.save
+        render json: { success: true, entry: { id: entry.id, date: entry.date, amount: entry.amount } }, status: :created
       else
-        render json: { success: false, errors: transaction.errors.full_messages }, status: :unprocessable_entity
+        render json: { success: false, errors: entry.errors.full_messages }, status: :unprocessable_entity
       end
     end
 

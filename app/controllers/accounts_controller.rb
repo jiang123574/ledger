@@ -1,5 +1,5 @@
 class AccountsController < ApplicationController
-  before_action :set_account, only: [ :show, :edit, :update, :destroy ]
+  before_action :set_account, only: [:show, :edit, :update, :destroy]
 
   def index
     @accounts = Rails.cache.fetch("accounts_list", expires_in: 10.minutes) do
@@ -13,51 +13,56 @@ class AccountsController < ApplicationController
     period_type = params[:period_type].presence || "month"
     period_value = params[:period_value].presence || default_period_value(period_type)
 
-    @transactions = Transaction.includes(:account, :category, :tags)
+    @entries = Entry.where(entryable_type: 'Entryable::Transaction')
 
     if params[:account_id].present?
       account_id = params[:account_id]
-      @transactions = @transactions.where(
-        "transactions.account_id = ? OR (transactions.type = 'TRANSFER' AND transactions.target_account_id = ?)",
-        account_id, account_id
-      )
+      @entries = @entries.where(account_id: account_id)
       @current_account_id = account_id
     end
 
     if params[:type].present?
-      @transactions = @transactions.where(type: params[:type])
+      kind = params[:type].downcase
+      @entries = @entries.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+                         .where(entryable_transactions: { kind: kind })
     end
 
     if params[:category_ids].present?
       category_ids = Array(params[:category_ids]).reject(&:blank?)
-      @transactions = @transactions.where(category_id: category_ids) if category_ids.any?
+      if category_ids.any?
+        @entries = @entries.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+                           .where(entryable_transactions: { category_id: category_ids })
+      end
     end
 
-    @transactions = @transactions.by_period(period_type, period_value)
+    @entries = apply_period_filter(@entries, period_type, period_value)
 
     if params[:search].present?
-      @transactions = @transactions.where("note LIKE ?", "%#{params[:search]}%")
+      @entries = @entries.where("entries.name LIKE ? OR entries.notes LIKE ?", "%#{params[:search]}%", "%#{params[:search]}%")
     end
 
-    @transactions = @transactions.reverse_chronological
+    @entries = @entries.reverse_chronological.includes(:account)
     
     @page = [[params[:page].to_i, 1].max, 1000].min
     @per_page = [[params[:per_page].to_i, 5].max, 200].min
     
     filter_cache_key = build_filter_cache_key
     
-    @total_count = Rails.cache.fetch("transactions_count_#{filter_cache_key}", expires_in: 30.seconds) do
-      @transactions.count
+    @total_count = Rails.cache.fetch("entries_count_#{filter_cache_key}", expires_in: 30.seconds) do
+      @entries.count
     end
     
-    transactions_cache_key = "transactions_list_#{filter_cache_key}_#{@page}_#{@per_page}"
-    @transactions_with_balance = Rails.cache.fetch(transactions_cache_key, expires_in: 2.minutes) do
-      load_transactions_with_balance
+    entries_cache_key = "entries_list_#{filter_cache_key}_#{@page}_#{@per_page}"
+    @entries_with_balance = Rails.cache.fetch(entries_cache_key, expires_in: 2.minutes) do
+      load_entries_with_balance
     end
+
+    @transactions_with_balance = @entries_with_balance.map { |e, balance| [build_transaction_from_entry(e), balance] }
+    @transactions = @transactions_with_balance.map(&:first)
 
     stats_cache_key = "stats_#{params[:account_id] || 'all'}_#{period_type}_#{period_value}_#{params[:type]}"
     stats_data = Rails.cache.fetch(stats_cache_key, expires_in: 1.minute) do
-      calculate_stats(params[:account_id].presence, period_type, period_value, params[:type].presence)
+      calculate_entry_stats(params[:account_id].presence, period_type, period_value, params[:type].presence)
     end
     
     @account_balance = stats_data[:account_balance]
@@ -66,6 +71,7 @@ class AccountsController < ApplicationController
     @total_balance = stats_data[:total_balance]
 
     @transaction = Transaction.new(currency: "CNY", date: Date.today)
+    @entry = Entry.new(currency: "CNY", date: Date.today)
   end
 
   def stats
@@ -126,7 +132,6 @@ class AccountsController < ApplicationController
   def reorder
     target_account = Account.find(params[:target_id])
 
-    # 交换 sort_order
     current_order = @account.sort_order
     target_order = target_account.sort_order
 
@@ -209,6 +214,163 @@ class AccountsController < ApplicationController
       end
     end
     result
+  end
+
+  def load_entries_with_balance
+    paginated_entries = @entries.limit(@per_page).offset((@page - 1) * @per_page).to_a
+    
+    initial_balance = if params[:account_id].present?
+      Account.find_by(id: params[:account_id])&.initial_balance || 0
+    else
+      Account.included_in_total.sum(&:initial_balance)
+    end
+    
+    result = []
+    if @page == 1 && paginated_entries.any?
+      sorted = paginated_entries.sort_by { |e| [e.date || Date.new(1970), e.id] }
+      running_balance = initial_balance.to_d
+      balance_map = {}
+      
+      sorted.each do |e|
+        running_balance += e.amount.to_d
+        balance_map[e.id] = running_balance
+      end
+      
+      paginated_entries.each do |e|
+        result << [e, balance_map[e.id] || running_balance]
+      end
+    else
+      paginated_entries.each do |e|
+        result << [e, nil]
+      end
+    end
+    result
+  end
+
+  def apply_period_filter(scope, period_type, period_value)
+    case period_type
+    when 'all'
+      scope
+    when 'year'
+      start_date = Date.new(period_value.to_i, 1, 1)
+      end_date = start_date.end_of_year
+      scope.by_date_range(start_date, end_date)
+    when 'week'
+      if (m = period_value.match(/\A(\d{4})-W(\d{2})\z/))
+        year = m[1].to_i
+        week = m[2].to_i
+        start_date = Date.commercial(year, week, 1)
+        scope.by_date_range(start_date, start_date + 6.days)
+      else
+        scope
+      end
+    else
+      if period_value.match?(/\A\d{4}-\d{2}\z/)
+        start_date = Date.parse("#{period_value}-01")
+        scope.by_date_range(start_date, start_date.end_of_month)
+      else
+        scope
+      end
+    end
+  end
+
+  def build_transaction_from_entry(entry)
+    t = Transaction.new
+    t.id = entry.id
+    t.account_id = entry.account_id
+    t.account = entry.account
+    t.date = entry.date
+    t.amount = entry.amount.abs
+    t.currency = entry.currency
+    t.note = entry.notes || entry.name
+    
+    if entry.transfer_id.present?
+      t.type = 'TRANSFER'
+      if entry.amount < 0
+        t.target_account_id = find_transfer_target_account(entry)
+      else
+        t.account_id = find_transfer_source_account(entry)
+      end
+    elsif entry.entryable.respond_to?(:kind)
+      t.type = entry.entryable.kind.upcase
+      if entry.entryable.respond_to?(:category)
+        t.category = entry.entryable.category
+        t.category_id = entry.entryable.category_id
+      end
+    end
+    
+    t
+  end
+
+  def find_transfer_target_account(entry)
+    target_entry = Entry.where(transfer_id: entry.transfer_id)
+                        .where.not(id: entry.id)
+                        .where('amount > 0')
+                        .first
+    target_entry&.account_id
+  end
+
+  def find_transfer_source_account(entry)
+    source_entry = Entry.where(transfer_id: entry.transfer_id)
+                        .where.not(id: entry.id)
+                        .where('amount < 0')
+                        .first
+    source_entry&.account_id
+  end
+
+  def calculate_entry_stats(account_id, period_type, period_value, filter_type)
+    if account_id.present?
+      account = Account.find_by(id: account_id)
+      account_balance = account&.current_balance || 0
+
+      entries_query = apply_period_filter(
+        Entry.where(account_id: account_id, entryable_type: 'Entryable::Transaction'),
+        period_type, period_value
+      )
+      
+      if filter_type.present?
+        kind = filter_type.downcase
+        entries_query = entries_query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+                                     .where(entryable_transactions: { kind: kind })
+      end
+
+      stats = entries_query.select(
+        "SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as total_income",
+        "SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END) as total_expense"
+      ).to_a.first
+
+      {
+        account_balance: account_balance,
+        total_income: stats&.total_income || 0,
+        total_expense: stats&.total_expense || 0,
+        total_balance: (stats&.total_income || 0) - (stats&.total_expense || 0)
+      }
+    else
+      account_balance = Account.visible.included_in_total.sum { |a| a.current_balance }
+
+      entries_query = apply_period_filter(
+        Entry.where(entryable_type: 'Entryable::Transaction'),
+        period_type, period_value
+      )
+      
+      if filter_type.present?
+        kind = filter_type.downcase
+        entries_query = entries_query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+                                     .where(entryable_transactions: { kind: kind })
+      end
+
+      stats = entries_query.select(
+        "SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as total_income",
+        "SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END) as total_expense"
+      ).to_a.first
+
+      {
+        account_balance: account_balance,
+        total_income: stats&.total_income || 0,
+        total_expense: stats&.total_expense || 0,
+        total_balance: (stats&.total_income || 0) - (stats&.total_expense || 0)
+      }
+    end
   end
 
   def calculate_stats(account_id, period_type, period_value, filter_type)

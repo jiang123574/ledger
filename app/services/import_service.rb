@@ -427,17 +427,15 @@ class ImportService
       original_type = data[:type]
       amount = data[:amount]
       
-      # 处理转账类型
       if original_type == "TRANSFER"
         return handle_transfer(data)
       end
       
-      # 如果金额是负数，反转交易类型（退款处理）
       if amount && amount < 0
         case original_type
-        when "EXPENSE" then transaction_type = "INCOME"  # 支出退款 = 收入
-        when "INCOME" then transaction_type = "EXPENSE" # 收入退款 = 支出
-        else transaction_type = "INCOME"                # 默认退款当收入
+        when "EXPENSE" then transaction_type = "INCOME"
+        when "INCOME" then transaction_type = "EXPENSE"
+        else transaction_type = "INCOME"
         end
         amount = amount.abs
       else
@@ -446,7 +444,6 @@ class ImportService
       
       account = find_or_create_account(data[:account])
       
-      # 支持父子分类：如果父类和子类都存在，创建子类并关联父类
       parent_category_name = data[:category]
       sub_category_name = data[:sub_category]
       
@@ -458,7 +455,6 @@ class ImportService
         category = nil
       end
 
-      # 合并子类到备注（保留完整信息）
       note_parts = []
       note_parts << sub_category_name if sub_category_name.present?
       note_parts << data[:note] if data[:note].present?
@@ -475,6 +471,110 @@ class ImportService
         tag: data[:tag]
       )
     end
+  end
+
+  def self.create_entry(data)
+    ApplicationRecord.transaction do
+      original_type = data[:type]
+      amount = data[:amount]
+      
+      if original_type == "TRANSFER"
+        return handle_entry_transfer(data)
+      end
+      
+      if amount && amount < 0
+        case original_type
+        when "EXPENSE" then kind = 'income'
+        when "INCOME" then kind = 'expense'
+        else kind = 'income'
+        end
+        amount = amount.abs
+      else
+        kind = (original_type == "INCOME") ? 'income' : 'expense'
+      end
+      
+      account = find_or_create_account(data[:account])
+      
+      parent_category_name = data[:category]
+      sub_category_name = data[:sub_category]
+      
+      if parent_category_name.present? && sub_category_name.present?
+        category = find_or_create_sub_category(parent_category_name, sub_category_name, kind == 'income' ? "INCOME" : "EXPENSE")
+      elsif parent_category_name.present?
+        category = find_or_create_category(parent_category_name, kind == 'income' ? "INCOME" : "EXPENSE")
+      else
+        category = nil
+      end
+
+      note_parts = []
+      note_parts << sub_category_name if sub_category_name.present?
+      note_parts << data[:note] if data[:note].present?
+      final_note = note_parts.join(" - ")
+
+      entryable = Entryable::Transaction.create!(
+        kind: kind,
+        category_id: category&.id
+      )
+
+      Entry.create!(
+        account_id: account.id,
+        date: data[:date] || Date.current,
+        name: final_note || "#{kind == 'income' ? '收入' : '支出'} #{amount}",
+        amount: kind == 'income' ? amount.to_d : -amount.to_d,
+        currency: data[:currency] || account&.currency || "CNY",
+        notes: final_note,
+        entryable: entryable
+      )
+    end
+  end
+
+  def self.handle_entry_transfer(data)
+    account_str = data[:account].to_s
+    amount = data[:amount].to_f.abs
+    return nil if amount <= 0 || data[:date].nil?
+    
+    if account_str.include?("→") || account_str.include?("->")
+      parts = account_str.split(/→|->/).map(&:strip)
+      from_account_name = parts[0]
+      to_account_name = parts[1]
+    else
+      return nil
+    end
+    
+    from_account = find_or_create_account(from_account_name)
+    to_account = find_or_create_account(to_account_name)
+    
+    note = "转账: #{from_account_name} → #{to_account_name}#{data[:note] ? " - #{data[:note]}" : ""}"
+    
+    transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
+    
+    # 转出 Entry
+    entryable_out = Entryable::Transaction.create!(kind: 'expense')
+    entry_out = Entry.create!(
+      account_id: from_account.id,
+      date: data[:date],
+      name: note,
+      amount: -amount.to_d,
+      currency: from_account.currency,
+      notes: note,
+      entryable: entryable_out,
+      transfer_id: transfer_id
+    )
+    
+    # 转入 Entry
+    entryable_in = Entryable::Transaction.create!(kind: 'income')
+    entry_in = Entry.create!(
+      account_id: to_account.id,
+      date: data[:date],
+      name: note,
+      amount: amount.to_d,
+      currency: to_account.currency,
+      notes: note,
+      entryable: entryable_in,
+      transfer_id: transfer_id
+    )
+    
+    [entry_out, entry_in]
   end
   
   def self.handle_transfer(data)

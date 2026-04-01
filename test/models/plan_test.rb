@@ -113,7 +113,7 @@ class PlanTest < ActiveSupport::TestCase
     end
   end
 
-  test "generate_transaction! should create transaction" do
+  test "generate_transaction! should create entry" do
     plan = Plan.create!(
       name: "Test Plan",
       amount: 100,
@@ -123,11 +123,11 @@ class PlanTest < ActiveSupport::TestCase
       active: true
     )
 
-    transaction = plan.generate_transaction!
+    entry = plan.generate_transaction!
 
-    assert_instance_of Transaction, transaction
-    assert_equal 100, transaction.amount
-    assert_equal @account, transaction.account
+    assert_instance_of Entry, entry
+    assert_equal -100, entry.amount
+    assert_equal @account, entry.account
   end
 
   test "generate_transaction! should increment installments_completed for installment plan" do

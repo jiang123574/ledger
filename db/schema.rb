@@ -4,14 +4,13 @@
 #
 # This file is the source Rails uses to define your schema when running `bin/rails
 # db:schema:load`. When creating a new database, `bin/rails db:schema:load` tends to
-# be faster and is potentially less error prone than running all of your
-# migrations from scratch. Old migrations may fail to apply correctly if those
-# migrations use external dependencies or application code.
+# be faster and is potentially error prone than running all the migrations from
+# scratch. Old migrations may fail to apply correctly if those migrations use
+# external dependencies or application code.
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_01_091533) do
-  # These are extensions that must be enabled in order to support this database
+ActiveRecord::Schema[8.1].define(version: 2026_04_01_100000) do
   enable_extension "pg_catalog.plpgsql"
 
   create_table "accounts", force: :cascade do |t|
@@ -116,7 +115,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_091533) do
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_budgets_on_category_id"
     t.index ["month", "category_id"], name: "idx_budgets_month_category"
-    t.index ["month", "category_id"], name: "index_budgets_month_category"
     t.index ["month"], name: "index_budgets_on_month"
   end
 
@@ -336,6 +334,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_091533) do
     t.index ["status"], name: "index_single_budgets_on_status"
   end
 
+  create_table "taggings", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.bigint "tag_id", null: false
+    t.bigint "taggable_id", null: false
+    t.string "taggable_type", null: false
+    t.index ["tag_id"], name: "index_taggings_on_tag_id"
+    t.index ["taggable_type", "taggable_id", "tag_id"], name: "index_taggings_uniqueness", unique: true
+    t.index ["taggable_type", "taggable_id"], name: "index_taggings_on_taggable"
+  end
+
   create_table "tags", force: :cascade do |t|
     t.string "color", limit: 7, default: "#3498db"
     t.datetime "created_at", null: false
@@ -378,7 +386,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_091533) do
     t.index ["account_id", "date", "amount", "type"], name: "idx_trans_unique_check", where: "(dedupe_key IS NULL)"
     t.index ["account_id", "date", "type"], name: "index_transactions_on_account_id_and_date_and_type"
     t.index ["account_id", "date"], name: "idx_trans_account_date"
-    t.index ["account_id", "date"], name: "index_transactions_account_date"
     t.index ["account_id", "type", "date"], name: "idx_trans_account_type_date"
     t.index ["account_id"], name: "index_transactions_on_account_id"
     t.index ["category"], name: "index_transactions_on_category"
@@ -394,7 +401,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_091533) do
     t.index ["locked_attributes"], name: "idx_trans_locked_gin", using: :gin
     t.index ["receivable_id"], name: "index_transactions_on_receivable_id"
     t.index ["target_account_id", "date"], name: "idx_trans_target_date"
-    t.index ["target_account_id", "date"], name: "index_transactions_on_target_account_id_and_date"
     t.index ["target_account_id", "type", "date"], name: "idx_trans_target_type_date"
     t.index ["target_account_id"], name: "index_transactions_on_target_account_id"
     t.index ["type", "date", "account_id"], name: "idx_trans_type_date_account"
@@ -420,6 +426,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_091533) do
   add_foreign_key "recurring_transactions", "accounts"
   add_foreign_key "recurring_transactions", "categories"
   add_foreign_key "single_budgets", "categories"
+  add_foreign_key "taggings", "tags"
   add_foreign_key "transaction_tags", "tags", on_delete: :cascade
   add_foreign_key "transaction_tags", "transactions", on_delete: :cascade
   add_foreign_key "transactions", "accounts"
