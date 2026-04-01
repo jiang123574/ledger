@@ -30,7 +30,7 @@ class Entry < ApplicationRecord
             if: -> { external_id.present? && source.present? }
   
   # Scopes - 学习 Sure 的 scope 设计
-  scope :visible, -> { joins(:account).where(accounts: { status: ['draft', 'active'] }) }
+  scope :visible, -> { joins(:account).where(accounts: { hidden: false }) }
   
   scope :chronological, -> {
     order(

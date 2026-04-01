@@ -172,16 +172,6 @@ def apply_kind_filter(scope)
     scope.where(account_id: account_id)
   end
 
-  def apply_category_filter(scope)
-    return scope unless category_id
-    scope.joins(:entryable).where(entryable_transactions: { category_id: category_id })
-  end
-
-  def apply_tag_filter(scope)
-    return scope unless tag_id
-    scope.joins(entryable: :taggings).where(taggings: { tag_id: tag_id })
-  end
-
   def apply_search_filter(scope)
     return scope unless search.present?
     pattern = "%#{search}%"
