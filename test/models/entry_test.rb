@@ -223,7 +223,6 @@ class EntryTest < ActiveSupport::TestCase
     assert entry.errors[:date].any?
     assert entry.errors[:name].any?
     assert entry.errors[:amount].any?
-    # currency has default value "CNY"
   end
 
   test "min_supported_date should return 30 years ago" do

@@ -13,7 +13,6 @@ class AccountsController < ApplicationController
     period_type = params[:period_type].presence || "month"
     period_value = params[:period_value].presence || default_period_value(period_type)
 
-    # 使用 Entry 查询替代 Transaction
     @entries = Entry.where(entryable_type: 'Entryable::Transaction')
 
     if params[:account_id].present?
@@ -23,7 +22,6 @@ class AccountsController < ApplicationController
     end
 
     if params[:type].present?
-      # type 参数: INCOME/EXPENSE -> kind: income/expense
       kind = params[:type].downcase
       @entries = @entries.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
                          .where(entryable_transactions: { kind: kind })
@@ -37,7 +35,6 @@ class AccountsController < ApplicationController
       end
     end
 
-    # 使用 EntrySearch 的 period 过滤
     @entries = apply_period_filter(@entries, period_type, period_value)
 
     if params[:search].present?
@@ -60,7 +57,6 @@ class AccountsController < ApplicationController
       load_entries_with_balance
     end
 
-    # 兼容旧视图，构建 Transaction 对象
     @transactions_with_balance = @entries_with_balance.map { |e, balance| [build_transaction_from_entry(e), balance] }
     @transactions = @transactions_with_balance.map(&:first)
 
@@ -136,7 +132,6 @@ class AccountsController < ApplicationController
   def reorder
     target_account = Account.find(params[:target_id])
 
-    # 交换 sort_order
     current_order = @account.sort_order
     target_order = target_account.sort_order
 
@@ -237,7 +232,6 @@ class AccountsController < ApplicationController
       balance_map = {}
       
       sorted.each do |e|
-        # Entry 的 amount 已经是正数(收入)或负数(支出)
         running_balance += e.amount.to_d
         balance_map[e.id] = running_balance
       end
@@ -271,7 +265,6 @@ class AccountsController < ApplicationController
         scope
       end
     else
-      # month
       if period_value.match?(/\A\d{4}-\d{2}\z/)
         start_date = Date.parse("#{period_value}-01")
         scope.by_date_range(start_date, start_date.end_of_month)
@@ -291,17 +284,11 @@ class AccountsController < ApplicationController
     t.currency = entry.currency
     t.note = entry.notes || entry.name
     
-    # 处理转账类型
     if entry.transfer_id.present?
       t.type = 'TRANSFER'
-      # 根据金额正负判断是转出还是转入
       if entry.amount < 0
-        # 转出：当前账户是源账户
-        # 需要找对应的转入 entry 来获取目标账户
         t.target_account_id = find_transfer_target_account(entry)
       else
-        # 转入：当前账户是目标账户
-        # 需要找对应的转出 entry 来获取源账户
         t.account_id = find_transfer_source_account(entry)
       end
     elsif entry.entryable.respond_to?(:kind)
@@ -316,7 +303,6 @@ class AccountsController < ApplicationController
   end
 
   def find_transfer_target_account(entry)
-    # 找同一 transfer_id 下的转入 entry
     target_entry = Entry.where(transfer_id: entry.transfer_id)
                         .where.not(id: entry.id)
                         .where('amount > 0')
@@ -325,7 +311,6 @@ class AccountsController < ApplicationController
   end
 
   def find_transfer_source_account(entry)
-    # 找同一 transfer_id 下的转出 entry
     source_entry = Entry.where(transfer_id: entry.transfer_id)
                         .where.not(id: entry.id)
                         .where('amount < 0')

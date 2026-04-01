@@ -28,12 +28,10 @@ class Account < ApplicationRecord
   scope :by_currency, ->(currency) { where(currency: currency) if currency.present? }
   scope :by_last_activity, -> { order(last_transaction_date: :desc) }
 
-  # 获取默认货币
   def self.default_currency
     Currency.default&.code || "CNY"
   end
 
-  # 计算当前余额（使用 Entry 数据）
   def current_balance
     initial_balance.to_d + transaction_entries.sum(:amount).to_d
   end
@@ -51,14 +49,12 @@ class Account < ApplicationRecord
     balance
   end
 
-  # 计算总资产（所有账户余额之和）
   def self.total_assets
     visible.included_in_total.sum do |account|
       account.current_balance
     end
   end
 
-  # 按账户类型统计余额
   def self.balance_by_type
     visible.included_in_total.group(:type).sum do |account|
       account.current_balance

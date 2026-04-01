@@ -33,7 +33,6 @@ class Entryable::Transaction < ApplicationRecord
     kind == 'expense'
   end
   
-  # 标签管理
   def tag_list=(tag_names)
     self.tags = tag_names.map do |name|
       Tag.find_or_create_by(name: name.strip)
@@ -49,7 +48,6 @@ class Entryable::Transaction < ApplicationRecord
     lock_attr!(:tag_ids) if tags.any?
   end
   
-  # 分类统计
   def self.by_category_stats(account_id: nil, period_type: 'month')
     query = joins(:entry).where.not(category_id: nil)
     query = query.where(entries: { account_id: account_id }) if account_id.present?

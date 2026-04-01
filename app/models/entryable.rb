@@ -25,7 +25,6 @@ module Entryable
     self.locked_attributes ||= {}
   end
   
-  # 锁定属性
   def lock_attr!(attr_name)
     self.locked_attributes ||= {}
     self.locked_attributes[attr_name] = Time.current.iso8601
@@ -37,7 +36,6 @@ module Entryable
   end
   
   def lock_saved_attributes!
-    # 子类实现
   end
   
   class_methods do
