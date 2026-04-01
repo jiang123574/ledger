@@ -10,13 +10,6 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log('StatsLoader connected')
-    console.log('accountId:', this.accountIdValue)
-    console.log('periodType:', this.periodTypeValue)
-    console.log('hasBalanceTarget:', this.hasBalanceTarget)
-    console.log('hasIncomeTarget:', this.hasIncomeTarget)
-    console.log('hasExpenseTarget:', this.hasExpenseTarget)
-    console.log('hasNetTarget:', this.hasNetTarget)
     this.loadStats()
   }
 
@@ -29,15 +22,9 @@ export default class extends Controller {
     }
     if (this.typeValue) params.append('type', this.typeValue)
 
-    console.log('Fetching stats:', `/accounts/stats?${params}`)
-    
     fetch(`/accounts/stats?${params}`)
-      .then(response => {
-        console.log('Response status:', response.status)
-        return response.json()
-      })
+      .then(response => response.json())
       .then(data => {
-        console.log('Stats data:', data)
         this.updateDisplay(data)
       })
       .catch(error => {
@@ -46,40 +33,22 @@ export default class extends Controller {
   }
 
   updateDisplay(data) {
-    console.log('Updating display with data:', data)
-    
     if (this.hasBalanceTarget) {
-      const formattedBalance = this.formatCurrency(data.account_balance)
-      console.log('Setting balance:', formattedBalance)
-      this.balanceTarget.textContent = formattedBalance
-    } else {
-      console.warn('No balance target found')
+      this.balanceTarget.textContent = this.formatCurrency(data.account_balance)
     }
     
     if (this.hasIncomeTarget) {
-      const formattedIncome = this.formatCurrency(data.total_income)
-      console.log('Setting income:', formattedIncome)
-      this.incomeTarget.textContent = formattedIncome
-    } else {
-      console.warn('No income target found')
+      this.incomeTarget.textContent = this.formatCurrency(data.total_income)
     }
     
     if (this.hasExpenseTarget) {
-      const formattedExpense = this.formatCurrency(data.total_expense)
-      console.log('Setting expense:', formattedExpense)
-      this.expenseTarget.textContent = formattedExpense
-    } else {
-      console.warn('No expense target found')
+      this.expenseTarget.textContent = this.formatCurrency(data.total_expense)
     }
     
     if (this.hasNetTarget) {
-      const formattedNet = this.formatCurrency(data.total_balance)
-      console.log('Setting net:', formattedNet)
-      this.netTarget.textContent = formattedNet
+      this.netTarget.textContent = this.formatCurrency(data.total_balance)
       this.netTarget.classList.remove('text-income', 'text-expense')
       this.netTarget.classList.add(data.total_balance >= 0 ? 'text-income' : 'text-expense')
-    } else {
-      console.warn('No net target found')
     }
   }
 

@@ -73,7 +73,7 @@ class Entry < ApplicationRecord
   
   # 分类
   def classification
-    amount.negative? ? 'income' : 'expense'
+    amount.negative? ? 'expense' : 'income'
   end
   
   # 锁定机制 - 学习 Sure
@@ -132,7 +132,7 @@ class Entry < ApplicationRecord
   def split!(splits)
     total = splits.sum { |s| s[:amount].to_d }
     unless total == amount
-      raise ActiveRecord::RecordInvalid.new(self), 
+      raise ArgumentError, 
             "Split amounts must sum to parent amount (expected #{amount}, got #{total})"
     end
     
@@ -160,12 +160,6 @@ class Entry < ApplicationRecord
       child_entries.destroy_all
       update!(excluded: false)
     end
-  end
-  
-  # 同步账户
-  def sync_account_later
-    sync_start_date = [date_previously_was, date].compact.min unless destroyed?
-    account.sync_later(window_start_date: sync_start_date)
   end
   
   class << self
