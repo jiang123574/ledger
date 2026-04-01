@@ -14,11 +14,15 @@ module Entryable
     has_one :entry, as: :entryable, touch: true, dependent: :destroy
     has_one :account, through: :entry
     
-    validates :locked_attributes, presence: true, allow_nil: true
-    
     delegate :date, :name, :amount, :currency, :notes, :excluded?,
              :date=, :name=, :amount=, :currency=, :notes=,
              to: :entry, allow_nil: true
+    
+    after_initialize :set_defaults, if: :new_record?
+  end
+  
+  def set_defaults
+    self.locked_attributes ||= {}
   end
   
   # 锁定属性

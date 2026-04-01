@@ -4,12 +4,10 @@ class ReportsController < ApplicationController
     @month = params[:month]&.to_i
 
     if @month.present?
-      # 月度报表
       @start_date = Date.new(@year, @month, 1)
       @end_date = @start_date.end_of_month
       @report_type = :monthly
     else
-      # 年度报表
       @start_date = Date.new(@year, 1, 1)
       @end_date = Date.new(@year, 12, 31)
       @report_type = :yearly
@@ -21,26 +19,24 @@ class ReportsController < ApplicationController
   private
 
   def load_report_data
-    # 缓存键需要考虑 Transaction 的更新时间
-    # 注意：accounts 表没有 updated_at 列
-    transaction_key = Transaction.maximum(:updated_at)&.to_i || 0
-    @cache_key = "#{transaction_key}"
+    entry_key = Entry.maximum(:updated_at)&.to_i || 0
+    @cache_key = "#{entry_key}"
 
-    # 收支统计
-    transactions = Transaction.where(date: @start_date..@end_date).where.not(type: "TRANSFER")
+    # 收支统计 - 使用 Entry
+    entries = Entry.where(date: @start_date..@end_date, entryable_type: 'Entryable::Transaction')
 
-    @total_income = transactions.income.sum(:amount)
-    @total_expense = transactions.expense.sum(:amount)
+    @total_income = entries.where('amount > 0').sum(:amount)
+    @total_expense = entries.where('amount < 0').sum('ABS(amount)')
     @net_balance = @total_income - @total_expense
 
     # 月度趋势
     @monthly_trend = load_monthly_trend
 
     # 分类统计
-    @expense_by_category = load_category_stats("EXPENSE")
-    @income_by_category = load_category_stats("INCOME")
+    @expense_by_category = load_category_stats('expense')
+    @income_by_category = load_category_stats('income')
 
-    # 账户余额 - 使用缓存的余额计算（只包含计入资产的账户）
+    # 账户余额
     @account_balances = Rails.cache.fetch("reports/accounts/#{@cache_key}", expires_in: 5.minutes) do
       Account.visible.included_in_total.map do |account|
         { account: account, balance: account.current_balance }
@@ -55,56 +51,49 @@ class ReportsController < ApplicationController
   end
 
   def load_chart_data
-    # 收支趋势图表数据
     @trend_chart_data = {
       labels: @monthly_trend.map { |p| p[:label] },
       income: @monthly_trend.map { |p| p[:income] },
       expense: @monthly_trend.map { |p| p[:expense] }
     }
 
-    # 支出分类图表数据
     @expense_chart_data = @expense_by_category.first(10).map do |category, amount|
-      {
-        label: category || "未分类",
-        value: amount
-      }
+      { label: category || "未分类", value: amount }
     end
 
-    # 收入分类图表数据
     @income_chart_data = @income_by_category.first(10).map do |category, amount|
-      {
-        label: category || "未分类",
-        value: amount
-      }
+      { label: category || "未分类", value: amount }
     end
   end
 
   def load_monthly_trend
     if @report_type == :yearly
-      # 年度：按月统计 - 一次查询
-      stats = Transaction.where(date: @start_date..@end_date)
-        .where.not(type: "TRANSFER")
-        .group("date_trunc('month', date)", :type)
-        .select("date_trunc('month', date) as month_date, type, SUM(amount) as total")
-        .map { |r| { month: r.month_date.month, type: r.type, amount: r.total.to_f } }
+      stats = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+        .where(entries: { entryable_type: 'Entryable::Transaction' })
+        .where(date: @start_date..@end_date)
+        .group("date_trunc('month', entries.date)", 'entryable_transactions.kind')
+        .select("date_trunc('month', entries.date) as month_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
+        .map { |r| { month: r.month_date.month, kind: r.kind, amount: r.total.to_f } }
 
       stats_by_month = stats.group_by { |s| s[:month] }
       (1..12).map do |month|
         month_data = stats_by_month[month] || []
+        income = month_data.find { |s| s[:kind] == 'income' }&.dig(:amount) || 0
+        expense = month_data.find { |s| s[:kind] == 'expense' }&.dig(:amount) || 0
         {
           month: month,
           label: "#{month}月",
-          income: month_data.find { |s| s[:type] == 'INCOME' }&.dig(:amount) || 0,
-          expense: month_data.find { |s| s[:type] == 'EXPENSE' }&.dig(:amount) || 0
+          income: income,
+          expense: expense
         }
       end
     else
-      # 月度：按周统计 - 一次查询
-      stats = Transaction.where(date: @start_date..@end_date)
-        .where.not(type: "TRANSFER")
-        .group("date_trunc('week', date)", :type)
-        .select("date_trunc('week', date) as week_date, type, SUM(amount) as total")
-        .map { |r| { week: r.week_date.to_date, type: r.type, amount: r.total.to_f } }
+      stats = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+        .where(entries: { entryable_type: 'Entryable::Transaction' })
+        .where(date: @start_date..@end_date)
+        .group("date_trunc('week', entries.date)", 'entryable_transactions.kind')
+        .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
+        .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
       stats_by_week = stats.group_by { |s| s[:week] }
       weeks = []
@@ -114,12 +103,14 @@ class ReportsController < ApplicationController
       while current <= @end_date
         week_end = [current.end_of_week, @end_date].min
         week_data = stats_by_week[current] || []
+        income = week_data.find { |s| s[:kind] == 'income' }&.dig(:amount) || 0
+        expense = week_data.find { |s| s[:kind] == 'expense' }&.dig(:amount) || 0
 
         weeks << {
           week: week_num,
           label: "第#{week_num}周",
-          income: week_data.find { |s| s[:type] == 'INCOME' }&.dig(:amount) || 0,
-          expense: week_data.find { |s| s[:type] == 'EXPENSE' }&.dig(:amount) || 0
+          income: income,
+          expense: expense
         }
 
         current = week_end + 1.day
@@ -130,25 +121,28 @@ class ReportsController < ApplicationController
     end
   end
 
-  def load_category_stats(type)
-    Transaction.where(type: type, date: @start_date..@end_date)
-      .joins(:category)
+  def load_category_stats(kind)
+    Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
+      .where(entries: { entryable_type: 'Entryable::Transaction' })
+      .where(entryable_transactions: { kind: kind })
+      .where(date: @start_date..@end_date)
       .group("categories.name")
-      .order(Arel.sql("SUM(amount) DESC"))
-      .sum(:amount)
+      .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
+      .sum('ABS(entries.amount)')
   end
 
   def load_budget_data
     @budgets = Budget.for_month("#{@year}-#{@month.to_s.rjust(2, '0')}")
     return @budget_progress = [] if @budgets.empty?
 
-    # 一次查询获取所有预算分类的支出
     category_ids = @budgets.pluck(:category_id)
-    spent_by_category = Transaction.where(
-      type: "EXPENSE",
-      category_id: category_ids,
-      date: @start_date..@end_date
-    ).group(:category_id).sum(:amount)
+    spent_by_category = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+      .where(entries: { entryable_type: 'Entryable::Transaction' })
+      .where(entryable_transactions: { kind: 'expense', category_id: category_ids })
+      .where(date: @start_date..@end_date)
+      .group('entryable_transactions.category_id')
+      .sum('ABS(entries.amount)')
 
     @budget_progress = @budgets.map do |budget|
       spent = spent_by_category[budget.category_id] || 0

@@ -25,14 +25,13 @@ class ReceivablesController < ApplicationController
     @receivable.remaining_amount = @receivable.original_amount
 
     if @receivable.save
-      # 自动创建支出交易（费用）
-      Transaction.create!(
-        type: "EXPENSE",
+      # 自动创建支出 Entry
+      create_entry(
         account_id: @receivable.account_id,
-        amount: @receivable.original_amount,
-        currency: "CNY",
+        amount: -@receivable.original_amount.to_d,
         date: @receivable.date,
-        note: "[待报销] #{@receivable.description}",
+        name: "[待报销] #{@receivable.description}",
+        kind: 'expense',
         category_id: @receivable.category_id
       )
       redirect_to receivables_path, notice: "应收款已创建"
@@ -67,15 +66,13 @@ class ReceivablesController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
-      # 创建收入交易（报销款到账）
-      Transaction.create!(
-        type: "INCOME",
+      # 创建收入 Entry（报销款到账）
+      create_entry(
         account_id: @account_id,
         amount: @settle_amount,
-        currency: "CNY",
         date: Date.current,
-        note: "[报销] #{@receivable.description}",
-        receivable: @receivable
+        name: "[报销] #{@receivable.description}",
+        kind: 'income'
       )
 
       # 更新应收款余额
@@ -121,6 +118,23 @@ class ReceivablesController < ApplicationController
       :date, :description, :original_amount,
       :source_transaction_id, :note, :category,
       :counterparty_id, :account_id
+    )
+  end
+
+  def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil)
+    entryable = Entryable::Transaction.new(
+      kind: kind,
+      category_id: category_id
+    )
+    entryable.save(validate: false)
+
+    Entry.create!(
+      account_id: account_id,
+      date: date,
+      name: name,
+      amount: amount,
+      currency: 'CNY',
+      entryable: entryable
     )
   end
 end

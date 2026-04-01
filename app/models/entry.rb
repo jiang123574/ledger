@@ -8,7 +8,7 @@
 # - JSONB 存储灵活元数据
 
 class Entry < ApplicationRecord
-  include Monetizable, Enrichable
+  include Monetizable
   
   # Delegated Type - 学习 Sure 的设计
   delegated_type :entryable, types: Entryable::TYPES, dependent: :destroy
@@ -49,13 +49,10 @@ class Entry < ApplicationRecord
   }
   
   scope :by_account, ->(account_id) { where(account_id: account_id) }
-  scope :by_period, ->(period_type, period_value) { Transaction.period_scope(period_type, period_value) }
   scope :by_date_range, ->(start_date, end_date) { where(date: start_date..end_date) }
   scope :excluded, -> { where(excluded: true) }
   scope :not_excluded, -> { where(excluded: false) }
   
-  scope :income, -> { where(entryable_type: 'Entryable::Transaction', entryable: { kind: 'income' }) }
-  scope :expense, -> { where(entryable_type: 'Entryable::Transaction', entryable: { kind: 'expense' }) }
   scope :transfers, -> { where.not(transfer_id: nil) }
   
   # 类型判断
@@ -84,7 +81,7 @@ class Entry < ApplicationRecord
   end
   
   def locked?(attr_name)
-    locked_attributes&.dig(attr_name).present?
+    locked_attributes&.dig(attr_name.to_s).present?
   end
   
   def locked_field_names

@@ -67,14 +67,14 @@ class Plan < ApplicationRecord
     return nil if installment_like? && completed?
 
     ApplicationRecord.transaction do
-      transaction = Transaction.create!(
+      entry = create_entry(
         account: account,
-        amount: amount,
+        amount: -amount.to_d,  # Plan 默认是支出，金额为负
         currency: currency || default_currency,
-        type: transaction_type,
-        category: find_or_create_default_category,
-        note: transaction_note,
-        date: Date.current
+        date: Date.current,
+        name: transaction_note,
+        kind: 'expense',
+        category: find_or_create_default_category
       )
 
       if installment_like?
@@ -83,11 +83,28 @@ class Plan < ApplicationRecord
       end
 
       update!(last_generated: Time.current)
-      transaction
+      entry
     end
   end
 
   private
+
+  def create_entry(account:, amount:, currency:, date:, name:, kind:, category:)
+    entryable = Entryable::Transaction.new(
+      kind: kind,
+      category_id: category&.id
+    )
+    entryable.save(validate: false)
+
+    Entry.create!(
+      account_id: account.id,
+      date: date,
+      name: name,
+      amount: amount,
+      currency: currency,
+      entryable: entryable
+    )
+  end
 
   def default_currency
     "CNY"

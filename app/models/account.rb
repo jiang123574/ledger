@@ -12,6 +12,10 @@ class Account < ApplicationRecord
 
   has_many :sent_transactions, class_name: "Transaction", foreign_key: "account_id", dependent: :destroy
   has_many :received_transactions, class_name: "Transaction", foreign_key: "target_account_id", dependent: :destroy
+  has_many :entries, dependent: :destroy
+  has_many :transaction_entries, -> { where(entryable_type: 'Entryable::Transaction') }, class_name: 'Entry'
+  has_many :valuation_entries, -> { where(entryable_type: 'Entryable::Valuation') }, class_name: 'Entry'
+  has_many :trade_entries, -> { where(entryable_type: 'Entryable::Trade') }, class_name: 'Entry'
   has_many :plans, dependent: :destroy
   has_many :recurring_transactions, dependent: :destroy
 
@@ -29,29 +33,19 @@ class Account < ApplicationRecord
     Currency.default&.code || "CNY"
   end
 
-  # 计算当前余额
-  # INCOME: +amount
-  # EXPENSE: -amount
-  # TRANSFER: 源账户 -amount, 目标账户 +amount
+  # 计算当前余额（使用 Entry 数据）
   def current_balance
+    initial_balance.to_d + transaction_entries.sum(:amount).to_d
+  end
+
+  def current_balance_from_transactions
     balance = initial_balance.to_d
 
-    # 收入：增加余额
     balance += sent_transactions.income.sum(:amount).to_d
-
-    # 支出：减少余额
     balance -= sent_transactions.expense.sum(:amount).to_d
-
-    # 预支：减少余额
     balance -= sent_transactions.where(type: "ADVANCE").sum(:amount).to_d
-
-    # 报销：增加余额
     balance += sent_transactions.where(type: "REIMBURSE").sum(:amount).to_d
-
-    # 转账：从本账户转出减少余额
     balance -= sent_transactions.transfers.sum(:amount).to_d
-
-    # 转账：转入本账户增加余额
     balance += received_transactions.transfers.sum(:amount).to_d
 
     balance
@@ -112,7 +106,18 @@ class Account < ApplicationRecord
     )
   end
 
+  def update_entries_cache!
+    update(
+      transactions_count: entries.count,
+      last_transaction_date: entries.maximum(:date)
+    )
+  end
+
   def self.bulk_update_cache
     find_each { |account| account.update_transactions_cache! }
+  end
+
+  def self.bulk_update_entries_cache
+    find_each { |account| account.update_entries_cache! }
   end
 end

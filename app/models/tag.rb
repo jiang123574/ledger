@@ -3,6 +3,7 @@
 class Tag < ApplicationRecord
   has_many :transaction_tags, dependent: :destroy
   has_many :transactions, through: :transaction_tags, source: :transaction_record
+  has_many :taggings, dependent: :destroy
 
   validates :name, presence: true, uniqueness: true, length: { maximum: 50 }
   validates :color, format: { with: /\A#[0-9A-Fa-f]{6}\z/ }, allow_nil: true
@@ -11,9 +12,9 @@ class Tag < ApplicationRecord
 
   scope :alphabetically, -> { order(:name) }
   scope :by_usage, -> {
-    left_joins(:transaction_tags)
+    left_joins(:taggings)
       .group(:id)
-      .order(Arel.sql("COUNT(transaction_tags.id) DESC"))
+      .order(Arel.sql("COUNT(taggings.id) DESC"))
   }
 
   def self.ransackable_attributes(auth_object = nil)
@@ -21,7 +22,7 @@ class Tag < ApplicationRecord
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[transactions transaction_tags]
+    %w[transactions transaction_tags taggings]
   end
 
   private

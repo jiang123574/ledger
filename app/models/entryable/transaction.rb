@@ -6,22 +6,23 @@ class Entryable::Transaction < ApplicationRecord
   
   self.table_name = 'entryable_transactions'
   
-  # 关联
   belongs_to :category, class_name: '::Category', optional: true
   belongs_to :merchant, class_name: '::Merchant', optional: true
   
   has_many :taggings, as: :taggable, class_name: '::Tagging', dependent: :destroy
   has_many :tags, through: :taggings
   
-  # 验证
-  validates :tags, presence: true, allow_nil: true
-  
-  # Store accessors
   store_accessor :extra, :provider_data, :sync_status, :enrichment_data
   
-  # 类型判断
+  after_initialize :set_defaults, if: :new_record?
+  
   def kind
     super || 'expense'
+  end
+  
+  def set_defaults
+    self.locked_attributes ||= {}
+    self.extra ||= {}
   end
   
   def income?

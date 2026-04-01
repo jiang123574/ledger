@@ -1,11 +1,10 @@
 # frozen_string_literal: true
 
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: [ :show, :edit, :update, :destroy ]
-  before_action :load_lookups, only: [ :new, :edit, :create, :update ]
+  before_action :set_transaction, only: [:show, :edit, :update, :destroy]
+  before_action :load_lookups, only: [:new, :edit, :create, :update]
 
   def index
-    # 重定向到账户页面，并透传筛选参数
     redirect_to accounts_path(request.query_parameters)
   end
 
@@ -13,23 +12,18 @@ class TransactionsController < ApplicationController
     redirect_to transactions_path
   end
 
-
   def new
-    # 统一新建入口到账户页的模态框
     redirect_to accounts_path(open_new_transaction: 1)
   end
 
   def edit
-    @transaction = Transaction.find(params[:id])
     @accounts = Account.visible.order(:name)
     @categories = Category.active.by_sort_order
     
-    # 如果是 AJAX 请求，返回弹窗 HTML
     if request.xhr?
       render :edit_modal, layout: false
     end
   end
-
 
   def create
     if create_expense_with_funding_transfer?
@@ -48,16 +42,18 @@ class TransactionsController < ApplicationController
   end
 
   def update
-    if @transaction.update(transaction_params)
+    # 更新 Entry 而非 Transaction
+    if update_entry
       expire_transactions_cache
       handle_successful_save("交易已更新")
     else
-      redirect_to accounts_path(filter_params), alert: @transaction.errors.full_messages.join(", ")
+      redirect_to accounts_path(filter_params), alert: @entry.errors.full_messages.join(", ")
     end
   end
 
   def destroy
-    @transaction.destroy
+    # 删除 Entry 而非 Transaction
+    @entry&.destroy
     expire_transactions_cache
     redirect_to accounts_path(filter_params), notice: "交易已删除"
   end
@@ -65,7 +61,7 @@ class TransactionsController < ApplicationController
   def bulk_destroy
     ids = params[:ids].presence
     if ids
-      count = Transaction.where(id: ids).destroy_all.size
+      count = Entry.where(id: ids).destroy_all.size
       redirect_to accounts_path(filter_params), notice: "已删除 #{count} 笔交易"
     else
       redirect_to accounts_path(filter_params), alert: "请选择要删除的交易"
@@ -75,14 +71,76 @@ class TransactionsController < ApplicationController
   private
 
   def set_transaction
-    @transaction = Transaction.find(params[:id])
+    # 先尝试找 Entry，再 fallback 到 Transaction
+    @entry = Entry.find_by(id: params[:id])
+    
+    if @entry
+      @transaction = build_transaction_from_entry(@entry)
+    else
+      @transaction = Transaction.find(params[:id])
+    end
+  end
+
+  def build_transaction_from_entry(entry)
+    t = Transaction.new
+    t.id = entry.id
+    t.account_id = entry.account_id
+    t.account = entry.account
+    t.date = entry.date
+    t.amount = entry.amount.abs
+    t.currency = entry.currency
+    t.note = entry.notes || entry.name
+    
+    if entry.transfer_id.present?
+      t.type = 'TRANSFER'
+    elsif entry.entryable.respond_to?(:kind)
+      t.type = entry.entryable.kind.upcase
+      if entry.entryable.respond_to?(:category)
+        t.category = entry.entryable.category
+        t.category_id = entry.entryable.category_id
+      end
+    end
+    
+    # 让这个对象表现得像一个已持久化的记录
+    t.define_singleton_method(:persisted?) { true }
+    t.define_singleton_method(:new_record?) { false }
+    
+    t
+  end
+
+  def update_entry
+    return false unless @entry
+    
+    attrs = transaction_params
+    
+    # 更新 Entry
+    @entry.date = attrs[:date] if attrs[:date].present?
+    @entry.name = attrs[:note] if attrs[:note].present?
+    @entry.notes = attrs[:note] if attrs[:note].present?
+    @entry.account_id = attrs[:account_id] if attrs[:account_id].present?
+    
+    # 更新金额和类型
+    if attrs[:type].present?
+      kind = attrs[:type].downcase
+      amount = attrs[:amount].to_d
+      @entry.amount = kind == 'income' ? amount : -amount
+    end
+    
+    # 更新 Entryable
+    if @entry.entryable.is_a?(Entryable::Transaction)
+      @entry.entryable.kind = attrs[:type].downcase if attrs[:type].present?
+      @entry.entryable.category_id = attrs[:category_id] if attrs[:category_id].present?
+      @entry.entryable.save(validate: false)
+    end
+    
+    @entry.save
   end
 
   def load_lookups
     @accounts = Account.visible.order(:name)
     @categories = Category.active.by_sort_order
     @tags = Tag.alphabetically
-    @transaction_types = Transaction::TYPES.map { |t| [ t_display(t), t ] }
+    @transaction_types = Transaction::TYPES.map { |t| [t_display(t), t] }
   end
 
   def t_display(type)
@@ -98,7 +156,6 @@ class TransactionsController < ApplicationController
   def build_transaction
     attrs = transaction_params
 
-    # 处理标签
     tag_ids = attrs.delete(:tag_ids) || []
     transaction = Transaction.new(attrs)
     transaction.tag_ids = tag_ids.reject(&:blank?).map(&:to_i)
@@ -162,11 +219,9 @@ class TransactionsController < ApplicationController
   end
 
   def build_redirect_url
-    # 优先使用 URL 参数，否则尝试从 referer 获取
     if params[:account_id].present? || params[:period_type].present? || params[:search].present?
       accounts_path(filter_params)
     else
-      # 从 referer 解析筛选参数
       referer = request.referer
       return accounts_path if referer.blank?
       
@@ -206,17 +261,8 @@ class TransactionsController < ApplicationController
     fallback
   end
 
-  def calculate_summary(transactions)
-    {
-      total_income: transactions.income.sum(:amount),
-      total_expense: transactions.expense.sum(:amount),
-      transfer_count: transactions.transfers.count,
-      count: transactions.count
-    }
-  end
-
   def expire_transactions_cache
-    # 清除交易相关的所有缓存
     Rails.cache.delete_matched("transactions_*")
+    Rails.cache.delete_matched("entries_*")
   end
 end

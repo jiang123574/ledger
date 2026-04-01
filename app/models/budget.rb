@@ -13,8 +13,24 @@ class Budget < ApplicationRecord
     category_id.nil?
   end
 
-  # 计算已使用金额
   def spent_amount
+    return 0 unless month.present?
+
+    start_date = Date.parse("#{month}-01")
+    end_date = start_date.end_of_month
+
+    query = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+      .where(entryable_type: 'Entryable::Transaction', date: start_date..end_date)
+      .where(entryable_transactions: { kind: 'expense' })
+    
+    if category_id.present?
+      query = query.where(entryable_transactions: { category_id: category_id })
+    end
+
+    query.sum('ABS(entries.amount)')
+  end
+
+  def spent_amount_from_transactions
     return 0 unless month.present?
 
     start_date = Date.parse("#{month}-01")
@@ -26,35 +42,29 @@ class Budget < ApplicationRecord
     query.sum(:amount)
   end
 
-  # 计算进度百分比
   def progress_percentage
     return 0 if amount.to_d <= 0
     (spent_amount.to_d / amount.to_d * 100).round(1)
   end
 
-  # 计算剩余金额
   def remaining_amount
     amount.to_d - spent_amount.to_d
   end
 
-  # 是否超支
   def overspent?
     remaining_amount < 0
   end
 
-  # 是否接近预算（超过80%）
   def near_limit?
     progress_percentage >= 80 && progress_percentage < 100
   end
 
-  # 状态颜色
   def status_color
     return "red" if overspent?
     return "yellow" if near_limit?
     "blue"
   end
 
-  # 状态文本
   def status_text
     return "已超支" if overspent?
     return "即将超支" if near_limit?

@@ -317,15 +317,15 @@
 </div>
 
 <script>
-let isLoadingMore = false;
+var isLoadingMore = isLoadingMore || false;
 
 function loadMoreTransactions() {
   if (isLoadingMore) return;
   
-  const container = document.getElementById('transaction-list');
-  const currentPage = parseInt(container.dataset.page);
-  const perPage = parseInt(container.dataset.perPage);
-  const totalCount = parseInt(container.dataset.totalCount);
+  var container = document.getElementById('transaction-list');
+  var currentPage = parseInt(container.dataset.page);
+  var perPage = parseInt(container.dataset.perPage);
+  var totalCount = parseInt(container.dataset.totalCount);
   
   if (currentPage * perPage >= totalCount) {
     document.getElementById('load-more-sentinel').classList.add('hidden');
@@ -337,7 +337,7 @@ function loadMoreTransactions() {
   document.getElementById('loading-indicator').classList.remove('hidden');
   
   // 构建URL参数
-  const params = new URLSearchParams(window.location.search);
+  var params = new URLSearchParams(window.location.search);
   params.set('page', currentPage + 1);
   params.set('per_page', perPage);
   params.set('format', 'turbo'); // 请求HTML片段
@@ -346,20 +346,20 @@ function loadMoreTransactions() {
     .then(response => response.text())
     .then(html => {
       // 解析返回的HTML，提取交易列表
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const newTransactions = doc.querySelectorAll('#transactions-container > div');
+      var parser = new DOMParser();
+      var doc = parser.parseFromString(html, 'text/html');
+      var newTransactions = doc.querySelectorAll('#transactions-container > div');
       
       if (newTransactions.length > 0) {
-        const transactionsContainer = document.getElementById('transactions-container');
+        var transactionsContainer = document.getElementById('transactions-container');
         newTransactions.forEach(t => transactionsContainer.appendChild(t));
         
         // 更新分页状态（更新 transaction-list 的 dataset）
-        const listContainer = document.getElementById('transaction-list');
+        var listContainer = document.getElementById('transaction-list');
         listContainer.dataset.page = currentPage + 1;
         
         // 检查是否还有更多
-        const newPage = currentPage + 1;
+        var newPage = currentPage + 1;
         if (newPage * perPage >= totalCount) {
           document.getElementById('load-more-sentinel').classList.add('hidden');
         }
@@ -379,10 +379,10 @@ function loadMoreTransactions() {
 
 // 滚动到底部自动加载 - 使用 IntersectionObserver
 document.addEventListener('DOMContentLoaded', function() {
-  const sentinel = document.getElementById('load-more-sentinel');
+  var sentinel = document.getElementById('load-more-sentinel');
   if (!sentinel) return;
   
-  const observer = new IntersectionObserver((entries) => {
+  var observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
       if (entry.isIntersecting) {
         loadMoreTransactions();
@@ -473,18 +473,18 @@ document.addEventListener('DOMContentLoaded', function() {
 
 <script>
 function openEditAccountModal(btn) {
-  const id = btn.dataset.id;
-  const name = btn.dataset.name;
-  const type = btn.dataset.type;
-  const initialBalance = btn.dataset.initialBalance;
-  const includeInTotal = btn.dataset.includeInTotal;
+  var id = btn.dataset.id;
+  var name = btn.dataset.name;
+  var type = btn.dataset.type;
+  var initialBalance = btn.dataset.initialBalance;
+  var includeInTotal = btn.dataset.includeInTotal;
   
   document.getElementById('account-modal-title').textContent = '编辑账户';
   document.getElementById('account-form').action = '/accounts/' + id;
   document.getElementById('account-form').method = 'post';
   
   // 添加 _method=patch
-  let methodInput = document.getElementById('account-method-input');
+  var methodInput = document.getElementById('account-method-input');
   if (!methodInput) {
     methodInput = document.createElement('input');
     methodInput.id = 'account-method-input';
@@ -510,11 +510,11 @@ function openEditAccountModal(btn) {
   toggleCreditCardFields(type);
   
   // 设置是否计入资产总额
-  const includeInTotalCheckbox = document.getElementById('account-include-in-total');
+  var includeInTotalCheckbox = document.getElementById('account-include-in-total');
   includeInTotalCheckbox.checked = includeInTotal == 1;
   
   // 添加删除按钮
-  const deleteContainer = document.getElementById('delete-account-btn-container');
+  var deleteContainer = document.getElementById('delete-account-btn-container');
   deleteContainer.innerHTML = '<button type="button" onclick="confirmDeleteAccount(' + id + ', \'' + name + '\')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-smooth">删除账户</button>';
   
   document.getElementById('add-account-modal').classList.remove('hidden');
@@ -526,7 +526,7 @@ function closeAccountModal() {
   document.getElementById('account-modal-title').textContent = '新建账户';
   document.getElementById('account-form').action = '/accounts';
   document.getElementById('account-form').method = 'post';
-  const methodInput = document.getElementById('account-method-input');
+  var methodInput = document.getElementById('account-method-input');
   if (methodInput) methodInput.remove();
   document.getElementById('account-name').value = '';
   document.getElementById('account-type').value = '';
@@ -545,7 +545,7 @@ function closeAccountModal() {
 
 // 根据账户类型显示/隐藏信用卡字段
 function toggleCreditCardFields(type) {
-  const creditCardFields = document.getElementById('credit-card-fields');
+  var creditCardFields = document.getElementById('credit-card-fields');
   if (type === 'CREDIT') {
     creditCardFields.classList.remove('hidden');
   } else {
@@ -561,19 +561,19 @@ document.getElementById('account-type')?.addEventListener('change', function() {
 function confirmDeleteAccount(id, name) {
   if (!window.confirm('确定要删除账户 "' + name + '" 吗？\n\n注意：删除账户不会删除相关的交易记录。')) return;
   
-  const form = document.createElement('form');
+  var form = document.createElement('form');
   form.method = 'POST';
   form.action = '/accounts/' + id;
   
-  const methodInput = document.createElement('input');
+  var methodInput = document.createElement('input');
   methodInput.type = 'hidden';
   methodInput.name = '_method';
   methodInput.value = 'delete';
   form.appendChild(methodInput);
   
-  const token = document.querySelector('meta[name="csrf-token"]')?.content;
+  var token = document.querySelector('meta[name="csrf-token"]')?.content;
   if (token) {
-    const csrfInput = document.createElement('input');
+    var csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'authenticity_token';
     csrfInput.value = token;
@@ -705,9 +705,9 @@ function confirmDeleteAccount(id, name) {
 <script>
 // 防抖函数
 function debounce(func, wait) {
-  let timeout;
+  var timeout;
   return function executedFunction(...args) {
-    const later = () => {
+    var later = () => {
       clearTimeout(timeout);
       func(...args);
     };
@@ -718,8 +718,8 @@ function debounce(func, wait) {
 
 // 移动端账户列表折叠
 function toggleAccountList() {
-  const list = document.getElementById('account-list');
-  const icon = document.getElementById('account-toggle-icon');
+  var list = document.getElementById('account-list');
+  var icon = document.getElementById('account-toggle-icon');
   if (list.classList.contains('hidden')) {
     list.classList.remove('hidden');
     icon.style.transform = 'rotate(180deg)';
@@ -730,16 +730,16 @@ function toggleAccountList() {
 }
 
 // 筛选功能
-let selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
-let currentPage = <%= @page %>;
+var selectedCategoryIds = selectedCategoryIds || <%= raw selected_category_ids.to_json %>;
+var currentPage = currentPage || <%= @page %>;
 
 function applyFilters() {
-  const params = new URLSearchParams();
-  const search = document.getElementById('search-input').value;
-  const type = document.getElementById('type-filter').value;
-  const periodType = document.getElementById('period-type-filter').value;
-  const periodValue = document.getElementById('period-value-filter').value;
-  const accountId = '<%= params[:account_id] %>';
+  var params = new URLSearchParams();
+  var search = document.getElementById('search-input').value;
+  var type = document.getElementById('type-filter').value;
+  var periodType = document.getElementById('period-type-filter').value;
+  var periodValue = document.getElementById('period-value-filter').value;
+  var accountId = '<%= params[:account_id] %>';
   
   if (search) params.append('search', search);
   if (type) params.append('type', type);
@@ -749,17 +749,17 @@ function applyFilters() {
   } else if (periodType === 'all') {
     params.append('period_type', 'all');
   }
-  selectedCategoryIds.forEach(id => params.append('category_ids[]', id));
+  selectedCategoryIds.forEach(function(id) { params.append('category_ids[]', id); });
   if (accountId) params.append('account_id', accountId);
   
   window.location.href = '/accounts?' + params.toString();
 }
 
 // 防抖筛选
-const debouncedApplyFilters = debounce(applyFilters, 500);
+var debouncedApplyFilters = debounce(applyFilters, 500);
 
 function clearFilters() {
-  const accountId = '<%= params[:account_id] %>';
+  var accountId = '<%= params[:account_id] %>';
   if (accountId) {
     window.location.href = '/accounts?account_id=' + accountId;
   } else {
@@ -768,19 +768,19 @@ function clearFilters() {
 }
 
 function updateCategoryFilterButtonLabel() {
-  const btn = document.getElementById('open-category-filter');
+  var btn = document.getElementById('open-category-filter');
   if (!btn) return;
-  btn.textContent = selectedCategoryIds.length > 0 ? `分类筛选 (${selectedCategoryIds.length})` : "分类筛选";
+  btn.textContent = selectedCategoryIds.length > 0 ? '分类筛选 (' + selectedCategoryIds.length + ')' : "分类筛选";
 }
 
 function filterByAccount(id) {
-  const params = new URLSearchParams(window.location.search);
+  var params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
   window.location.href = '/accounts?' + params.toString();
 }
 
 function clearAccountFilter() {
-  const params = new URLSearchParams(window.location.search);
+  var params = new URLSearchParams(window.location.search);
   params.delete('account_id');
   window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
@@ -796,12 +796,12 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
 document.getElementById('search-input')?.addEventListener('input', debouncedApplyFilters);
 
 function syncPeriodInputType() {
-  const periodTypeEl = document.getElementById('period-type-filter');
-  const periodValueEl = document.getElementById('period-value-filter');
-  const periodValueContainer = document.getElementById('period-value-container');
+  var periodTypeEl = document.getElementById('period-type-filter');
+  var periodValueEl = document.getElementById('period-value-filter');
+  var periodValueContainer = document.getElementById('period-value-container');
   if (!periodTypeEl || !periodValueEl) return;
 
-  const periodType = periodTypeEl.value;
+  var periodType = periodTypeEl.value;
   
   if (periodType === 'all') {
     if (periodValueContainer) periodValueContainer.style.display = 'none';
@@ -810,16 +810,16 @@ function syncPeriodInputType() {
     if (periodValueContainer) periodValueContainer.style.display = '';
   }
 
-  const today = new Date();
+  var today = new Date();
 
   if (periodType === 'week') {
     periodValueEl.type = 'week';
     if (!periodValueEl.value || !/^\d{4}-W\d{2}$/.test(periodValueEl.value)) {
-      const temp = new Date(today.getTime());
+      var temp = new Date(today.getTime());
       temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
-      const weekYear = temp.getFullYear();
-      const firstThursday = new Date(weekYear, 0, 4);
-      const weekNumber = Math.ceil((((temp - firstThursday) / 86400000) + firstThursday.getDay() + 1) / 7);
+      var weekYear = temp.getFullYear();
+      var firstThursday = new Date(weekYear, 0, 4);
+      var weekNumber = Math.ceil((((temp - firstThursday) / 86400000) + firstThursday.getDay() + 1) / 7);
       periodValueEl.value = `${weekYear}-W${String(weekNumber).padStart(2, '0')}`;
     }
   } else if (periodType === 'year') {
@@ -827,7 +827,7 @@ function syncPeriodInputType() {
     periodValueEl.min = '2000';
     periodValueEl.max = '2100';
     periodValueEl.step = '1';
-    const yearValue = parseInt(periodValueEl.value, 10);
+    var yearValue = parseInt(periodValueEl.value, 10);
     if (!yearValue || yearValue < 2000 || yearValue > 2100) {
       periodValueEl.value = String(today.getFullYear());
     }
@@ -843,27 +843,27 @@ function syncPeriodInputType() {
 }
 
 function shiftPeriod(direction) {
-  const periodTypeEl = document.getElementById('period-type-filter');
-  const periodValueEl = document.getElementById('period-value-filter');
+  var periodTypeEl = document.getElementById('period-type-filter');
+  var periodValueEl = document.getElementById('period-value-filter');
   if (!periodTypeEl || !periodValueEl) return;
 
-  const periodType = periodTypeEl.value;
-  const currentValue = periodValueEl.value;
+  var periodType = periodTypeEl.value;
+  var currentValue = periodValueEl.value;
 
   if (periodType === 'year') {
-    const year = parseInt(currentValue, 10);
+    var year = parseInt(currentValue, 10);
     if (year && year >= 2000 && year <= 2100) {
-      const newYear = year + direction;
+      var newYear = year + direction;
       if (newYear >= 2000 && newYear <= 2100) {
         periodValueEl.value = String(newYear);
         applyFilters();
       }
     }
   } else if (periodType === 'month') {
-    const match = currentValue.match(/^(\d{4})-(\d{2})$/);
+    var match = currentValue.match(/^(\d{4})-(\d{2})$/);
     if (match) {
-      let year = parseInt(match[1], 10);
-      let month = parseInt(match[2], 10) + direction;
+      var year = parseInt(match[1], 10);
+      var month = parseInt(match[2], 10) + direction;
       if (month < 1) {
         month = 12;
         year -= 1;
@@ -875,11 +875,11 @@ function shiftPeriod(direction) {
       applyFilters();
     }
   } else if (periodType === 'week') {
-    const match = currentValue.match(/^(\d{4})-W(\d{2})$/);
+    var match = currentValue.match(/^(\d{4})-W(\d{2})$/);
     if (match) {
-      const isoYear = parseInt(match[1], 10);
-      const isoWeek = parseInt(match[2], 10);
-      const monday = Date.fromISOWeek(isoYear, isoWeek);
+      var isoYear = parseInt(match[1], 10);
+      var isoWeek = parseInt(match[2], 10);
+      var monday = Date.fromISOWeek(isoYear, isoWeek);
       monday.setDate(monday.getDate() + (direction * 7));
       periodValueEl.value = monday.toISOWeekString();
       applyFilters();
@@ -888,20 +888,20 @@ function shiftPeriod(direction) {
 }
 
 Date.fromISOWeek = function(year, week) {
-  const jan4 = new Date(year, 0, 4);
-  const day = jan4.getDay() || 7;
-  const monday = new Date(jan4);
+  var jan4 = new Date(year, 0, 4);
+  var day = jan4.getDay() || 7;
+  var monday = new Date(jan4);
   monday.setDate(jan4.getDate() - day + 1 + ((week - 1) * 7));
   monday.setHours(0, 0, 0, 0);
   return monday;
 };
 
 Date.prototype.toISOWeekString = function() {
-  const date = new Date(this);
-  const day = date.getDay() || 7;
+  var date = new Date(this);
+  var day = date.getDay() || 7;
   date.setDate(date.getDate() + 4 - day);
-  const yearStart = new Date(date.getFullYear(), 0, 1);
-  const week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  var yearStart = new Date(date.getFullYear(), 0, 1);
+  var week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
   return `${date.getFullYear()}-W${String(week).padStart(2, '0')}`;
 };
 
@@ -924,28 +924,28 @@ document.getElementById('confirm-category-filter')?.addEventListener('click', fu
 
 updateCategoryFilterButtonLabel();
 
-const expenseCategoryOptions = <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
-const incomeCategoryOptions = <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
-const transactionTypeInput = document.getElementById('transaction-type-input');
-const transactionTypeCards = document.querySelectorAll('#transaction-type-cards .transaction-type-card');
-const targetAccountField = document.getElementById('target-account-field');
-const targetAccountInput = document.querySelector('#add-transaction-modal select[name="transaction[target_account_id]"]');
-const fundingAccountField = document.getElementById('funding-account-field');
-const fundingAccountSelect = document.getElementById('funding-account-select');
-const categoryField = document.getElementById('transaction-category-field');
-const categoryLabel = document.getElementById('transaction-category-label');
-const categorySelect = document.getElementById('transaction-category-select');
+var expenseCategoryOptions = <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
+var incomeCategoryOptions = <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
+var transactionTypeInput = document.getElementById('transaction-type-input');
+var transactionTypeCards = document.querySelectorAll('#transaction-type-cards .transaction-type-card');
+var targetAccountField = document.getElementById('target-account-field');
+var targetAccountInput = document.querySelector('#add-transaction-modal select[name="transaction[target_account_id]"]');
+var fundingAccountField = document.getElementById('funding-account-field');
+var fundingAccountSelect = document.getElementById('funding-account-select');
+var categoryField = document.getElementById('transaction-category-field');
+var categoryLabel = document.getElementById('transaction-category-label');
+var categorySelect = document.getElementById('transaction-category-select');
 
 function setCategoryOptions(options, placeholder) {
   if (!categorySelect) return;
   categorySelect.innerHTML = '';
-  const blankOption = document.createElement('option');
+  var blankOption = document.createElement('option');
   blankOption.value = '';
   blankOption.textContent = placeholder;
   categorySelect.appendChild(blankOption);
 
   options.forEach((option) => {
-    const el = document.createElement('option');
+    var el = document.createElement('option');
     el.value = option.id;
     el.textContent = option.name;
     categorySelect.appendChild(el);
@@ -953,12 +953,12 @@ function setCategoryOptions(options, placeholder) {
 }
 
 function applyTransactionTypeUI() {
-  const type = transactionTypeInput?.value || 'EXPENSE';
-  const isTransfer = type === 'TRANSFER';
-  const isIncome = type === 'INCOME';
+  var type = transactionTypeInput?.value || 'EXPENSE';
+  var isTransfer = type === 'TRANSFER';
+  var isIncome = type === 'INCOME';
 
   transactionTypeCards.forEach((card) => {
-    const active = card.dataset.transactionType === type;
+    var active = card.dataset.transactionType === type;
     if (active) {
       card.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset', 'border-blue-500', 'text-primary', 'dark:text-primary-dark');
       card.classList.remove('bg-white', 'dark:bg-surface-dark', 'text-secondary', 'dark:text-secondary-dark');
@@ -975,7 +975,7 @@ function applyTransactionTypeUI() {
   }
 
   if (fundingAccountField && fundingAccountSelect) {
-    const showFunding = type === 'EXPENSE';
+    var showFunding = type === 'EXPENSE';
     fundingAccountField.classList.toggle('hidden', !showFunding);
     if (!showFunding) fundingAccountSelect.value = '';
   }
@@ -1020,22 +1020,22 @@ function openEditTransactionModal(id) {
 }
 
 function confirmDeleteTransaction(id, name) {
-  const label = name || '这笔交易';
+  var label = name || '这笔交易';
   if (!window.confirm(`确定删除${label}吗？`)) return;
 
-  const form = document.createElement('form');
+  var form = document.createElement('form');
   form.method = 'POST';
   form.action = `/transactions/${id}`;
 
-  const methodInput = document.createElement('input');
+  var methodInput = document.createElement('input');
   methodInput.type = 'hidden';
   methodInput.name = '_method';
   methodInput.value = 'delete';
   form.appendChild(methodInput);
 
-  const token = document.querySelector('meta[name="csrf-token"]')?.content;
+  var token = document.querySelector('meta[name="csrf-token"]')?.content;
   if (token) {
-    const csrfInput = document.createElement('input');
+    var csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'authenticity_token';
     csrfInput.value = token;
