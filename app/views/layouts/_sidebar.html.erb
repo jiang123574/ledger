@@ -33,9 +33,14 @@
     <%= nav_item(:reports, "报表统计", reports_path, "bar-chart-2") %>
   </nav>
 
-  <%# Footer - Fixed at bottom %>
+<%# Footer - Fixed at bottom %>
   <div class="p-4 border-t border-border dark:border-border-dark bg-container dark:bg-container-dark shrink-0">
-    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark transition-colors" do %>
+    <%= link_to versions_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-primary dark:hover:text-primary dark:text-primary-dark transition-colors" do %>
+      <%= render(Ds::IconComponent.new(name: "history", size: :md)) %>
+      <span class="text-sm font-medium">操作记录</span>
+    <% end %>
+    
+    <%= link_to settings_path, class: "flex items-center gap-3 px-3 py-3 min-h-[44px] rounded-lg text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-primary dark:hover:text-primary dark:text-primary-dark transition-colors" do %>
       <%= render(Ds::IconComponent.new(name: "cog", size: :md)) %>
       <span class="text-sm font-medium">设置</span>
     <% end %>

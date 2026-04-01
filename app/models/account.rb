@@ -1,6 +1,14 @@
 class Account < ApplicationRecord
   self.inheritance_column = nil
 
+  # 版本控制
+  has_paper_trail on: %i[create update destroy],
+                  ignore: %i[updated_at last_transaction_date],
+                  meta: {
+                    name: :name,
+                    initial_balance: :initial_balance
+                  }
+
   ACCOUNT_TYPES = {
     "CASH" => "现金",
     "BANK" => "储蓄卡",

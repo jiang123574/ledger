@@ -1,0 +1,73 @@
+<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <div class="mb-6">
+    <%= link_to '← 返回列表', versions_path, class: 'text-blue-600 dark:text-blue-400 hover:underline' %>
+  </div>
+
+  <div class="bg-surface dark:bg-surface-dark rounded-lg shadow">
+    <div class="px-6 py-4 border-b border-border dark:border-border-dark">
+      <h2 class="text-xl font-bold text-primary dark:text-primary-dark">
+        操作详情
+      </h2>
+      <p class="text-sm text-secondary dark:text-secondary-dark mt-1">
+        <%= @activity_log.created_at.strftime('%Y-%m-%d %H:%M:%S') %>
+      </p>
+    </div>
+
+    <div class="px-6 py-4 space-y-4">
+      <!-- 基本信息 -->
+      <div>
+        <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider mb-2">基本信息</h3>
+        <dl class="grid grid-cols-2 gap-4">
+          <div>
+            <dt class="text-sm font-medium text-primary dark:text-primary-dark">模型类型</dt>
+            <dd class="mt-1 text-sm text-secondary dark:text-secondary-dark"><%= @activity_log.item_type %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-primary dark:text-primary-dark">记录ID</dt>
+            <dd class="mt-1 text-sm text-secondary dark:text-secondary-dark"><%= @activity_log.item_id %></dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-primary dark:text-primary-dark">操作类型</dt>
+            <dd class="mt-1 text-sm text-secondary dark:text-secondary-dark">
+              <%= { 'create' => '创建', 'update' => '更新', 'destroy' => '删除' }[@activity_log.action] %>
+            </dd>
+          </div>
+          <div>
+            <dt class="text-sm font-medium text-primary dark:text-primary-dark">描述</dt>
+            <dd class="mt-1 text-sm text-secondary dark:text-secondary-dark">
+              <%= @activity_log.description %>
+            </dd>
+          </div>
+        </dl>
+      </div>
+
+      <!-- 变更内容 -->
+      <% if @activity_log.action == 'update' && @activity_log.changes.present? %>
+        <div>
+          <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider mb-2">变更内容</h3>
+          <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4">
+            <%= @activity_log.changes_summary %>
+          </div>
+        </div>
+      <% end %>
+
+      <!-- 完整数据 (JSON) -->
+      <% if @activity_log.changes.present? %>
+        <div>
+          <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider mb-2">完整数据 (JSON)</h3>
+          <pre class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4 text-xs overflow-x-auto"><%= JSON.pretty_generate(JSON.parse(@activity_log.changes)) rescue @activity_log.changes %></pre>
+        </div>
+      <% end %>
+
+      <!-- 操作按钮 -->
+      <div class="pt-4 border-t border-border dark:border-border-dark flex gap-3">
+        <% if @activity_log.action != 'create' %>
+          <%= button_to '回滚此操作', revert_version_path(@activity_log),
+              method: :post,
+              data: { confirm: '确定要回滚此操作吗？此操作不可撤销。' },
+              class: 'px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700' %>
+        <% end %>
+      </div>
+    </div>
+  </div>
+</div>

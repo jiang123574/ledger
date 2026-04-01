@@ -10,6 +10,11 @@
 class Entry < ApplicationRecord
   include Monetizable
   
+  # 操作记录 - 创建、更新、删除时自动记录
+  after_create :log_create_activity
+  after_update :log_update_activity
+  after_destroy :log_destroy_activity
+  
   delegated_type :entryable, types: Entryable::TYPES, dependent: :destroy
   accepts_nested_attributes_for :entryable, update_only: true
   
@@ -205,5 +210,28 @@ class Entry < ApplicationRecord
     def min_supported_date
       30.years.ago.to_date
     end
+  end
+
+  private
+
+  def log_create_activity
+    ActivityLog.log_create(
+      self,
+      description: "创建交易: #{name} #{amount}元"
+    )
+  end
+
+  def log_update_activity
+    ActivityLog.log_update(
+      self,
+      description: "更新交易: #{name}"
+    )
+  end
+
+  def log_destroy_activity
+    ActivityLog.log_destroy(
+      self,
+      description: "删除交易: #{name} #{amount}元"
+    )
   end
 end
