@@ -43,6 +43,9 @@ gem "image_processing", "~> 1.2"
 # ViewComponent for reusable UI components
 gem "view_component"
 
+# Pagination
+gem "kaminari"
+
 # Rate limiting for API protection
 gem "rack-attack"
 
