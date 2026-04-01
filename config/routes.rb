@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   end
 
   resources :accounts do
+    collection do
+      get :stats
+    end
     member do
       patch :reorder
     end

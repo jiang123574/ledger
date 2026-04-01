@@ -10,31 +10,66 @@ class AccountsController < ApplicationController
       Category.active.by_sort_order.to_a
     end
 
-    # 支持筛选的交易查询
+    period_type = params[:period_type].presence || "month"
+    period_value = params[:period_value].presence || default_period_value(period_type)
+
     @transactions = Transaction.includes(:account, :category, :tags)
 
-    # 按账户筛选（转账记录在转出和转入账户下都显示）
     if params[:account_id].present?
       account_id = params[:account_id]
       @transactions = @transactions.where(
         "transactions.account_id = ? OR (transactions.type = 'TRANSFER' AND transactions.target_account_id = ?)",
         account_id, account_id
       )
-      @current_account_id = account_id  # 保存当前账户ID，用于显示转账方向
+      @current_account_id = account_id
     end
 
-    # 按类型筛选
     if params[:type].present?
       @transactions = @transactions.where(type: params[:type])
     end
 
-    # 按分类筛选（支持多选）
     if params[:category_ids].present?
       category_ids = Array(params[:category_ids]).reject(&:blank?)
       @transactions = @transactions.where(category_id: category_ids) if category_ids.any?
     end
 
-    # 按周期筛选（年/月/周）
+    @transactions = @transactions.by_period(period_type, period_value)
+
+    if params[:search].present?
+      @transactions = @transactions.where("note LIKE ?", "%#{params[:search]}%")
+    end
+
+    @transactions = @transactions.reverse_chronological
+    
+    @page = [[params[:page].to_i, 1].max, 1000].min
+    @per_page = [[params[:per_page].to_i, 5].max, 200].min
+    
+    filter_cache_key = build_filter_cache_key
+    
+    @total_count = Rails.cache.fetch("transactions_count_#{filter_cache_key}", expires_in: 30.seconds) do
+      @transactions.count
+    end
+    
+    transactions_cache_key = "transactions_list_#{filter_cache_key}_#{@page}_#{@per_page}"
+    @transactions_with_balance = Rails.cache.fetch(transactions_cache_key, expires_in: 2.minutes) do
+      load_transactions_with_balance
+    end
+
+    stats_cache_key = "stats_#{params[:account_id] || 'all'}_#{period_type}_#{period_value}_#{params[:type]}"
+    stats_data = Rails.cache.fetch(stats_cache_key, expires_in: 1.minute) do
+      calculate_stats(params[:account_id].presence, period_type, period_value, params[:type].presence)
+    end
+    
+    @account_balance = stats_data[:account_balance]
+    @total_income = stats_data[:total_income]
+    @total_expense = stats_data[:total_expense]
+    @total_balance = stats_data[:total_balance]
+
+    @transaction = Transaction.new(currency: "CNY", date: Date.today)
+  end
+
+  def stats
+    account_id = params[:account_id].presence
     period_type = params[:period_type].presence || "month"
     period_value = params[:period_value].presence ||
       case period_type
@@ -42,140 +77,16 @@ class AccountsController < ApplicationController
       when "week" then Date.current.strftime("%G-W%V")
       else Date.current.strftime("%Y-%m")
       end
+    filter_type = params[:type].presence
 
-    range = nil
-    begin
-      range =
-        case period_type
-        when "all"
-          nil # 不限制日期范围
-        when "year"
-          year = period_value.to_i
-          start_date = Date.new(year, 1, 1)
-          end_date = start_date.end_of_year
-          start_date..end_date
-        when "week"
-          if (m = period_value.match(/\A(\d{4})-W(\d{2})\z/))
-            year = m[1].to_i
-            week = m[2].to_i
-            start_date = Date.commercial(year, week, 1)
-            end_date = start_date + 6.days
-            start_date..end_date
-          end
-        else # month
-          if (m = period_value.match(/\A(\d{4})-(\d{2})\z/))
-            year = m[1].to_i
-            month = m[2].to_i
-            start_date = Date.new(year, month, 1)
-            end_date = start_date.end_of_month
-            start_date..end_date
-          end
-        end
-    rescue Date::Error
-      # Ignore invalid period input and keep existing scope.
+    range = calculate_period_range(period_type, period_value)
+
+    cache_key = "stats_#{account_id || 'all'}_#{period_type}_#{period_value}_#{filter_type}"
+    stats_data = Rails.cache.fetch(cache_key, expires_in: 1.minute) do
+      calculate_stats(account_id, range, filter_type)
     end
 
-    @transactions = @transactions.where(date: range) if range.present?
-
-    # 按关键词搜索
-    if params[:search].present?
-      @transactions = @transactions.where("note LIKE ?", "%#{params[:search]}%")
-    end
-
-    @transactions = @transactions.order(date: :desc, created_at: :desc)
-    
-    # 支持分页 - 默认只加载 10 条，减少首次加载时间
-    @page = [[params[:page].to_i, 1].max, 1000].min
-    @per_page = [[params[:per_page].to_i, 10].max, 200].min
-    
-    # 缓存 key - 包含所有筛选条件
-    filter_cache_key = "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}"
-    
-    # 缓存 count
-    @total_count = Rails.cache.fetch("transactions_count_#{filter_cache_key}", expires_in: 30.seconds) do
-      @transactions.count
-    end
-    
-    # 缓存交易列表（不同 page 单独缓存）
-    transactions_cache_key = "transactions_list_#{filter_cache_key}_#{@page}_#{@per_page}"
-    @transactions_with_balance = Rails.cache.fetch(transactions_cache_key, expires_in: 2.minutes) do
-      # 分页获取交易
-      paginated_transactions = @transactions.limit(@per_page).offset((@page - 1) * @per_page).to_a
-      
-      # 构建余额计算（简化版，第一页之后不计算余额）
-      current_account_id = params[:account_id].to_i
-      initial_balance = if params[:account_id].present?
-        Account.find_by(id: params[:account_id])&.initial_balance || 0
-      else
-        Account.included_in_total.sum(&:initial_balance)
-      end
-      
-      result = []
-      if @page == 1 && paginated_transactions.any?
-        # 按日期升序排序计算余额
-        sorted = paginated_transactions.sort_by { |t| [t.date || Date.new(1970), t.id] }
-        running_balance = initial_balance.to_d
-        balance_map = {}
-        
-        sorted.each do |t|
-          case t.type
-          when "INCOME" then running_balance += t.amount.to_d
-          when "EXPENSE" then running_balance -= t.amount.to_d
-          when "TRANSFER"
-            if t.account_id.to_i == current_account_id
-              running_balance -= t.amount.to_d
-            elsif t.target_account_id.to_i == current_account_id
-              running_balance += t.amount.to_d
-            end
-          end
-          balance_map[t.id] = running_balance
-        end
-        
-        # 保持原始顺序返回
-        paginated_transactions.each do |t|
-          result << [t, balance_map[t.id] || running_balance]
-        end
-      else
-        paginated_transactions.each do |t|
-          result << [t, nil]  # 非第一页不显示余额
-        end
-      end
-      result
-    end
-
-    # 计算统计信息（基于筛选条件，但受分页影响）
-    if params[:account_id].present?
-      account_id = params[:account_id].to_i
-      @account_balance = Account.find_by(id: account_id)&.current_balance || 0
-
-      income = Transaction.where(
-        "(account_id = ? AND type = 'INCOME') OR (type = 'TRANSFER' AND target_account_id = ?)",
-        account_id, account_id
-      )
-      expense = Transaction.where(
-        "(account_id = ? AND type = 'EXPENSE') OR (type = 'TRANSFER' AND account_id = ?)",
-        account_id, account_id
-      )
-
-      if range.present?
-        income = income.where(date: range)
-        expense = expense.where(date: range)
-      end
-      if params[:type].present?
-        income = income.where(type: params[:type]) if params[:type] == 'INCOME'
-        expense = expense.where(type: params[:type]) if params[:type] == 'EXPENSE'
-      end
-
-      @total_income = income.sum(:amount)
-      @total_expense = expense.sum(:amount)
-    else
-      @account_balance = Account.total_assets
-      @total_income = @transactions.where(type: "INCOME").sum(:amount)
-      @total_expense = @transactions.where(type: "EXPENSE").sum(:amount)
-    end
-    @total_balance = @total_income - @total_expense
-
-    @transaction = Transaction.new(currency: "CNY", date: Date.today)
+    render json: stats_data
   end
 
   def show
@@ -245,5 +156,102 @@ class AccountsController < ApplicationController
       :billing_day_mode, :due_day_mode, :due_day_offset,
       :include_in_total, :hidden, :sort_order
     )
+  end
+  
+  def default_period_value(period_type)
+    case period_type
+    when 'year' then Date.current.year.to_s
+    when 'week' then Date.current.strftime("%G-W%V")
+    else Date.current.strftime("%Y-%m")
+    end
+  end
+  
+  def build_filter_cache_key
+    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}"
+  end
+  
+  def load_transactions_with_balance
+    paginated_transactions = @transactions.limit(@per_page).offset((@page - 1) * @per_page).to_a
+    
+    current_account_id = params[:account_id].to_i
+    initial_balance = if params[:account_id].present?
+      Account.find_by(id: params[:account_id])&.initial_balance || 0
+    else
+      Account.included_in_total.sum(&:initial_balance)
+    end
+    
+    result = []
+    if @page == 1 && paginated_transactions.any?
+      sorted = paginated_transactions.sort_by { |t| [t.date || Date.new(1970), t.id] }
+      running_balance = initial_balance.to_d
+      balance_map = {}
+      
+      sorted.each do |t|
+        case t.type
+        when "INCOME" then running_balance += t.amount.to_d
+        when "EXPENSE" then running_balance -= t.amount.to_d
+        when "TRANSFER"
+          if t.account_id.to_i == current_account_id
+            running_balance -= t.amount.to_d
+          elsif t.target_account_id.to_i == current_account_id
+            running_balance += t.amount.to_d
+          end
+        end
+        balance_map[t.id] = running_balance
+      end
+      
+      paginated_transactions.each do |t|
+        result << [t, balance_map[t.id] || running_balance]
+      end
+    else
+      paginated_transactions.each do |t|
+        result << [t, nil]
+      end
+    end
+    result
+  end
+
+  def calculate_stats(account_id, period_type, period_value, filter_type)
+    if account_id.present?
+      account = Account.find_by(id: account_id)
+      account_balance = account&.current_balance || 0
+
+      stats_query = Transaction.where(
+        "(account_id = ? AND type IN ('INCOME', 'EXPENSE')) OR " \
+        "(type = 'TRANSFER' AND (account_id = ? OR target_account_id = ?))",
+        account_id, account_id, account_id
+      ).by_period(period_type, period_value)
+      
+      stats_query = stats_query.where(type: filter_type) if filter_type.present?
+
+      stats = stats_query.select(
+        "SUM(CASE WHEN (type = 'INCOME' OR (type = 'TRANSFER' AND target_account_id = #{account_id})) THEN amount ELSE 0 END) as total_income",
+        "SUM(CASE WHEN (type = 'EXPENSE' OR (type = 'TRANSFER' AND account_id = #{account_id} AND target_account_id != #{account_id})) THEN amount ELSE 0 END) as total_expense"
+      ).to_a.first
+
+      {
+        account_balance: account_balance,
+        total_income: stats&.total_income || 0,
+        total_expense: stats&.total_expense || 0,
+        total_balance: (stats&.total_income || 0) - (stats&.total_expense || 0)
+      }
+    else
+      account_balance = Account.total_assets
+
+      base_query = Transaction.where.not(type: "TRANSFER").by_period(period_type, period_value)
+      base_query = base_query.where(type: filter_type) if filter_type.present?
+
+      stats = base_query.select(
+        "SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as total_income",
+        "SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as total_expense"
+      ).to_a.first
+
+      {
+        account_balance: account_balance,
+        total_income: stats&.total_income || 0,
+        total_expense: stats&.total_expense || 0,
+        total_balance: (stats&.total_income || 0) - (stats&.total_expense || 0)
+      }
+    end
   end
 end
