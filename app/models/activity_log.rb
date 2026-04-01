@@ -13,11 +13,10 @@ class ActivityLog < ApplicationRecord
   scope :for_item, ->(item) { where(item: item) }
   scope :by_action, ->(action) { where(action: action) }
 
-  # 获取变更摘要
   def changes_summary
-    return nil unless changes.present?
+    return nil unless changeset.present?
     
-    parsed = changes.is_a?(String) ? JSON.parse(changes) : changes
+    parsed = changeset.is_a?(String) ? JSON.parse(changeset) : changeset
     
     parsed.map do |field, values|
       next if field.in?(%w[updated_at created_at])
@@ -27,7 +26,6 @@ class ActivityLog < ApplicationRecord
     end.compact.join(", ")
   end
 
-  # 恢复到这个版本
   def revert!
     return false if action == 'create'
     
@@ -36,9 +34,9 @@ class ActivityLog < ApplicationRecord
     
     case action
     when 'update'
-      return false unless changes.present?
+      return false unless changeset.present?
       
-      parsed = changes.is_a?(String) ? JSON.parse(changes) : changes
+      parsed = changeset.is_a?(String) ? JSON.parse(changeset) : changeset
       
       parsed.each do |field, (old_val, _new_val)|
         next if field.in?(%w[updated_at created_at])
@@ -47,10 +45,9 @@ class ActivityLog < ApplicationRecord
       end
       
     when 'destroy'
-      # 从 changes 中恢复记录
-      return false unless changes.present?
+      return false unless changeset.present?
       
-      parsed = changes.is_a?(String) ? JSON.parse(changes) : changes
+      parsed = changeset.is_a?(String) ? JSON.parse(changeset) : changeset
       
       record = item_class.new(parsed.except('id', 'created_at', 'updated_at'))
       record.save(validate: false)
@@ -60,19 +57,17 @@ class ActivityLog < ApplicationRecord
   end
 
   class << self
-    # 记录创建操作
     def log_create(item, whodunnit: nil, ip_address: nil, description: nil)
       create!(
         item: item,
         action: 'create',
-        changes: item.attributes.to_json,
+        changeset: item.attributes.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,
         description: description || "创建 #{item.class.name}"
       )
     end
 
-    # 记录更新操作
     def log_update(item, whodunnit: nil, ip_address: nil, description: nil)
       return unless item.saved_changes.present?
       
@@ -82,19 +77,18 @@ class ActivityLog < ApplicationRecord
       create!(
         item: item,
         action: 'update',
-        changes: filtered_changes.to_json,
+        changeset: filtered_changes.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,
         description: description || generate_update_description(filtered_changes)
       )
     end
 
-    # 记录删除操作
     def log_destroy(item, whodunnit: nil, ip_address: nil, description: nil)
       create!(
         item: item,
         action: 'destroy',
-        changes: item.attributes.to_json,
+        changeset: item.attributes.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,
         description: description || "删除 #{item.class.name}"
