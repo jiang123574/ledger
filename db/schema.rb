@@ -425,16 +425,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_01_100001) do
     t.index ["user_modified"], name: "idx_trans_user_modified", where: "(user_modified = true)"
   end
 
-  create_table "versions", force: :cascade do |t|
-    t.datetime "created_at"
-    t.string "event", null: false
-    t.bigint "item_id", null: false
-    t.string "item_type", null: false
-    t.text "object"
-    t.string "whodunnit"
-    t.index ["item_type", "item_id"], name: "index_versions_on_item_type_and_item_id"
-  end
-
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "attachments", "transactions"

@@ -42,7 +42,7 @@
       </div>
 
       <!-- 变更内容 -->
-      <% if @activity_log.action == 'update' && @activity_log.changes.present? %>
+      <% if @activity_log.action == 'update' && @activity_log.changeset.present? %>
         <div>
           <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider mb-2">变更内容</h3>
           <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4">
@@ -52,10 +52,10 @@
       <% end %>
 
       <!-- 完整数据 (JSON) -->
-      <% if @activity_log.changes.present? %>
+      <% if @activity_log.changeset.present? %>
         <div>
           <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider mb-2">完整数据 (JSON)</h3>
-          <pre class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4 text-xs overflow-x-auto"><%= JSON.pretty_generate(JSON.parse(@activity_log.changes)) rescue @activity_log.changes %></pre>
+          <pre class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4 text-xs overflow-x-auto"><%= JSON.pretty_generate(JSON.parse(@activity_log.changeset)) rescue @activity_log.changeset %></pre>
         </div>
       <% end %>
 

@@ -4,6 +4,7 @@ class ActivityLog < ApplicationRecord
   belongs_to :item, polymorphic: true
 
   ACTIONS = %w[create update destroy].freeze
+  SENSITIVE_FIELDS = %w[password encrypted_password token api_key secret].freeze
 
   validates :action, presence: true, inclusion: { in: ACTIONS }
   validates :item_type, presence: true
@@ -49,8 +50,11 @@ class ActivityLog < ApplicationRecord
       
       parsed = changeset.is_a?(String) ? JSON.parse(changeset) : changeset
       
-      record = item_class.new(parsed.except('id', 'created_at', 'updated_at'))
+      record = item_class.new(parsed.except('created_at', 'updated_at'))
+      record.id = parsed['id']
       record.save(validate: false)
+      
+      update!(item_id: record.id) if record.persisted?
     end
     
     record
@@ -58,10 +62,12 @@ class ActivityLog < ApplicationRecord
 
   class << self
     def log_create(item, whodunnit: nil, ip_address: nil, description: nil)
+      attrs = filter_sensitive_fields(item.attributes)
+      
       create!(
         item: item,
         action: 'create',
-        changeset: item.attributes.to_json,
+        changeset: attrs.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,
         description: description || "创建 #{item.class.name}"
@@ -72,6 +78,7 @@ class ActivityLog < ApplicationRecord
       return unless item.saved_changes.present?
       
       filtered_changes = item.saved_changes.except('updated_at', 'created_at')
+      filtered_changes = filter_sensitive_fields_from_changes(filtered_changes)
       return if filtered_changes.empty?
       
       create!(
@@ -85,10 +92,12 @@ class ActivityLog < ApplicationRecord
     end
 
     def log_destroy(item, whodunnit: nil, ip_address: nil, description: nil)
+      attrs = filter_sensitive_fields(item.attributes)
+      
       create!(
         item: item,
         action: 'destroy',
-        changeset: item.attributes.to_json,
+        changeset: attrs.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,
         description: description || "删除 #{item.class.name}"
@@ -96,6 +105,14 @@ class ActivityLog < ApplicationRecord
     end
 
     private
+
+    def filter_sensitive_fields(attributes)
+      attributes.except(*SENSITIVE_FIELDS)
+    end
+
+    def filter_sensitive_fields_from_changes(changes)
+      changes.except(*SENSITIVE_FIELDS)
+    end
 
     def generate_update_description(changes)
       fields = changes.keys.reject { |k| k.in?(%w[updated_at created_at]) }
