@@ -33,6 +33,7 @@ pin "controllers/theme_controller", to: "controllers/theme_controller.js"
 pin "controllers/time_series_chart_controller", to: "controllers/time_series_chart_controller.js"
 pin "controllers/tooltip_controller", to: "controllers/tooltip_controller.js"
 pin "controllers/account_sort_controller", to: "controllers/account_sort_controller.js"
+pin "controllers/stats_loader_controller", to: "controllers/stats_loader_controller.js"
 pin "controllers/trend_line_chart_controller", to: "controllers/trend_line_chart_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 

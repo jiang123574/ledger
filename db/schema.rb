@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_01_091533) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -22,13 +22,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
     t.integer "due_day"
     t.string "due_day_mode", default: "fixed"
     t.integer "due_day_offset"
+    t.jsonb "extra", default: {}
     t.integer "hidden", default: 0
     t.integer "include_in_total", default: 1
     t.decimal "initial_balance", precision: 10, scale: 2, default: "0.0"
+    t.date "last_transaction_date"
+    t.jsonb "locked_attributes", default: {}
     t.string "name", null: false
     t.integer "sort_order", default: 0
+    t.integer "transactions_count", default: 0, null: false
     t.string "type"
+    t.index ["extra"], name: "idx_accounts_extra_gin", using: :gin
+    t.index ["hidden", "include_in_total", "type"], name: "idx_accounts_visibility_type"
     t.index ["hidden", "include_in_total"], name: "index_accounts_visibility"
+    t.index ["last_transaction_date"], name: "idx_accounts_last_trans_date"
+    t.index ["locked_attributes"], name: "idx_accounts_locked_gin", using: :gin
     t.index ["name"], name: "index_accounts_on_name", unique: true
   end
 
@@ -70,6 +78,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
     t.string "thumbnail_path", limit: 500
     t.integer "transaction_id", null: false
     t.datetime "updated_at", null: false
+    t.index ["transaction_id", "file_type"], name: "idx_attachments_trans_type"
     t.index ["transaction_id"], name: "index_attachments_on_transaction_id"
   end
 
@@ -106,6 +115,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
     t.string "month", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_budgets_on_category_id"
+    t.index ["month", "category_id"], name: "idx_budgets_month_category"
     t.index ["month", "category_id"], name: "index_budgets_month_category"
     t.index ["month"], name: "index_budgets_on_month"
   end
@@ -113,12 +123,14 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
   create_table "categories", force: :cascade do |t|
     t.boolean "active", default: true
     t.string "color", limit: 7, default: "#6b7280"
+    t.jsonb "extra", default: {}
     t.string "icon"
     t.integer "level", default: 0
     t.string "name", null: false
     t.integer "parent_id"
     t.integer "sort_order", default: 0
     t.string "type"
+    t.index ["active", "type"], name: "idx_categories_active_type"
     t.index ["active"], name: "index_categories_on_active"
     t.index ["name", "parent_id"], name: "index_categories_on_name_and_parent_id", unique: true
     t.index ["parent_id"], name: "index_categories_on_parent_id"
@@ -143,6 +155,76 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
     t.string "symbol", limit: 10, null: false
     t.datetime "updated_at", null: false
     t.index ["code"], name: "index_currencies_on_code", unique: true
+  end
+
+  create_table "entries", force: :cascade do |t|
+    t.integer "account_id", null: false
+    t.decimal "amount", precision: 19, scale: 4, null: false
+    t.datetime "created_at", null: false
+    t.string "currency", default: "CNY", null: false
+    t.date "date", null: false
+    t.integer "entryable_id", null: false
+    t.string "entryable_type", null: false
+    t.boolean "excluded", default: false, null: false
+    t.string "external_id"
+    t.jsonb "extra", default: {}
+    t.integer "import_id"
+    t.boolean "import_locked", default: false, null: false
+    t.jsonb "locked_attributes", default: {}
+    t.string "name", null: false
+    t.text "notes"
+    t.integer "parent_entry_id"
+    t.string "source"
+    t.integer "transfer_id"
+    t.datetime "updated_at", null: false
+    t.boolean "user_modified", default: false, null: false
+    t.index "lower((name)::text)", name: "idx_entries_name_lower"
+    t.index ["account_id", "date", "entryable_type"], name: "idx_entries_account_date_type"
+    t.index ["account_id", "date"], name: "idx_entries_account_date"
+    t.index ["account_id", "source", "external_id"], name: "idx_entries_external_unique", unique: true, where: "((external_id IS NOT NULL) AND (source IS NOT NULL))"
+    t.index ["date", "entryable_type"], name: "idx_entries_date_type"
+    t.index ["entryable_type", "entryable_id"], name: "idx_entries_entryable"
+    t.index ["excluded"], name: "idx_entries_excluded", where: "(excluded = true)"
+    t.index ["extra"], name: "idx_entries_extra_gin", using: :gin
+    t.index ["id"], name: "index_entries_on_id", unique: true
+    t.index ["import_id"], name: "idx_entries_import"
+    t.index ["import_locked"], name: "idx_entries_import_locked", where: "(import_locked = true)"
+    t.index ["locked_attributes"], name: "idx_entries_locked_gin", using: :gin
+    t.index ["parent_entry_id"], name: "idx_entries_parent"
+    t.index ["transfer_id"], name: "idx_entries_transfer"
+    t.index ["user_modified"], name: "idx_entries_user_modified", where: "(user_modified = true)"
+  end
+
+  create_table "entryable_trades", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "extra", default: {}
+    t.jsonb "locked_attributes", default: {}
+    t.decimal "price", precision: 19, scale: 4
+    t.decimal "qty", precision: 19, scale: 4
+    t.integer "security_id"
+    t.datetime "updated_at", null: false
+    t.index ["security_id"], name: "idx_trades_security"
+  end
+
+  create_table "entryable_transactions", force: :cascade do |t|
+    t.integer "category_id"
+    t.datetime "created_at", null: false
+    t.jsonb "extra", default: {}
+    t.string "kind"
+    t.jsonb "locked_attributes", default: {}
+    t.integer "merchant_id"
+    t.jsonb "tags", default: []
+    t.datetime "updated_at", null: false
+    t.index ["category_id"], name: "idx_trans_category"
+    t.index ["merchant_id"], name: "idx_trans_merchant"
+    t.index ["tags"], name: "idx_trans_tags_gin", using: :gin
+  end
+
+  create_table "entryable_valuations", force: :cascade do |t|
+    t.datetime "created_at", null: false
+    t.jsonb "extra", default: {}
+    t.jsonb "locked_attributes", default: {}
+    t.datetime "updated_at", null: false
   end
 
   create_table "exchange_rates", force: :cascade do |t|
@@ -231,6 +313,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
     t.string "note"
     t.string "type", null: false
     t.datetime "updated_at", null: false
+    t.index ["account_id", "is_active"], name: "idx_recurring_active"
     t.index ["account_id"], name: "index_recurring_transactions_on_account_id"
     t.index ["category_id"], name: "index_recurring_transactions_on_category_id"
   end
@@ -264,6 +347,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
   create_table "transaction_tags", id: false, force: :cascade do |t|
     t.integer "tag_id", null: false
     t.integer "transaction_id", null: false
+    t.index ["tag_id", "transaction_id"], name: "idx_trans_tags_tag_trans"
     t.index ["tag_id"], name: "index_transaction_tags_on_tag_id"
     t.index ["transaction_id", "tag_id"], name: "index_transaction_tags_on_transaction_id_and_tag_id", unique: true
     t.index ["transaction_id"], name: "index_transaction_tags_on_transaction_id"
@@ -279,7 +363,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
     t.datetime "date"
     t.string "dedupe_key", limit: 40
     t.decimal "exchange_rate", precision: 12, scale: 6
+    t.jsonb "extra", default: {}
     t.integer "link_id"
+    t.jsonb "locked_attributes", default: {}
     t.string "note"
     t.decimal "original_amount", precision: 12, scale: 6
     t.integer "receivable_id"
@@ -288,19 +374,33 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
     t.integer "target_account_id"
     t.string "type"
     t.datetime "updated_at", null: false
+    t.boolean "user_modified", default: false, null: false
+    t.index ["account_id", "date", "amount", "type"], name: "idx_trans_unique_check", where: "(dedupe_key IS NULL)"
     t.index ["account_id", "date", "type"], name: "index_transactions_on_account_id_and_date_and_type"
+    t.index ["account_id", "date"], name: "idx_trans_account_date"
     t.index ["account_id", "date"], name: "index_transactions_account_date"
+    t.index ["account_id", "type", "date"], name: "idx_trans_account_type_date"
     t.index ["account_id"], name: "index_transactions_on_account_id"
     t.index ["category"], name: "index_transactions_on_category"
+    t.index ["category_id", "date", "type"], name: "idx_trans_category_date_type"
     t.index ["category_id"], name: "index_transactions_on_category_id"
+    t.index ["date", "type"], name: "idx_trans_date_type"
+    t.index ["date"], name: "idx_trans_date_expense", where: "((type)::text = 'EXPENSE'::text)"
+    t.index ["date"], name: "idx_trans_date_income", where: "((type)::text = 'INCOME'::text)"
     t.index ["date"], name: "index_transactions_on_date"
     t.index ["dedupe_key"], name: "index_transactions_on_dedupe_key"
+    t.index ["extra"], name: "idx_trans_extra_gin", using: :gin
     t.index ["link_id"], name: "index_transactions_on_link_id"
+    t.index ["locked_attributes"], name: "idx_trans_locked_gin", using: :gin
     t.index ["receivable_id"], name: "index_transactions_on_receivable_id"
+    t.index ["target_account_id", "date"], name: "idx_trans_target_date"
     t.index ["target_account_id", "date"], name: "index_transactions_on_target_account_id_and_date"
+    t.index ["target_account_id", "type", "date"], name: "idx_trans_target_type_date"
     t.index ["target_account_id"], name: "index_transactions_on_target_account_id"
+    t.index ["type", "date", "account_id"], name: "idx_trans_type_date_account"
     t.index ["type", "date"], name: "index_transactions_type_date"
     t.index ["type"], name: "index_transactions_on_type"
+    t.index ["user_modified"], name: "idx_trans_user_modified", where: "(user_modified = true)"
   end
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
@@ -309,6 +409,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_31_100000) do
   add_foreign_key "budget_items", "single_budgets"
   add_foreign_key "budgets", "categories"
   add_foreign_key "categories", "categories", column: "parent_id"
+  add_foreign_key "entries", "accounts", on_delete: :cascade
+  add_foreign_key "entries", "entries", column: "parent_entry_id", on_delete: :nullify
+  add_foreign_key "entryable_transactions", "categories", on_delete: :nullify
   add_foreign_key "one_time_budgets", "categories"
   add_foreign_key "plans", "accounts"
   add_foreign_key "receivables", "accounts"

@@ -83,6 +83,28 @@
               }
             } %>
       </div>
+      
+      <!-- 上传恢复 -->
+      <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-lg p-3 mb-3">
+        <p class="text-sm font-medium text-orange-800 dark:text-orange-300 mb-2">📤 从备份文件恢复</p>
+        <p class="text-xs text-orange-700 dark:text-orange-400 mb-3">上传 .sql 备份文件恢复数据，当前数据将被覆盖</p>
+        <%= form_with url: restore_upload_settings_backup_path, method: :post, multipart: true, local: true,
+              data: {
+                controller: "loading-button",
+                action: "submit->loading-button#showLoading",
+                loading_button_loading_text_value: "恢复中..."
+              } do |f| %>
+          <div class="flex items-center gap-3">
+            <%= f.file_field :backup_file, accept: ".sql", class: "text-sm text-primary dark:text-primary-dark border border-orange-300 dark:border-orange-700 rounded-lg p-2 bg-white dark:bg-container-dark", required: true %>
+            <%= f.submit "恢复", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-smooth btn-modern", 
+                data: { 
+                  turbo_confirm: "确定要从上传的备份文件恢复吗？\n\n⚠️ 警告：当前数据将被完全覆盖！",
+                  loading_button_target: "button"
+                } %>
+          </div>
+        <% end %>
+      </div>
+      
       <% if @backups.any? %>
         <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3">
           <p class="text-xs font-medium text-secondary dark:text-secondary-dark mb-2">最近的备份：</p>
@@ -92,7 +114,16 @@
                 <span class="text-secondary dark:text-secondary-dark">
                   <%= backup[:name] %> (<%= number_to_human_size(backup[:size]) %>)
                 </span>
-                <%= link_to "下载", download_settings_backup_path(backup[:name]), class: "text-primary dark:text-primary-dark hover:text-secondary dark:text-secondary-dark dark:hover:text-secondary dark:text-secondary-dark" %>
+                <div class="flex items-center gap-2">
+                  <%= link_to "下载", download_settings_backup_path(backup[:name]), class: "text-primary dark:text-primary-dark hover:text-secondary dark:text-secondary-dark" %>
+                  <%= link_to "恢复", restore_backup_path(backup[:id]), 
+                      method: :post,
+                      data: { 
+                        turbo_confirm: "确定要从备份 #{backup[:name]} 恢复数据吗？\n\n⚠️ 警告：当前数据将被覆盖！",
+                        turbo_method: :post 
+                      },
+                      class: "text-orange-600 hover:text-orange-700" %>
+                </div>
               </li>
             <% end %>
           </ul>

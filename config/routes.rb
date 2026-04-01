@@ -14,6 +14,9 @@ Rails.application.routes.draw do
   end
 
   resources :accounts do
+    collection do
+      get :stats
+    end
     member do
       patch :reorder
     end
@@ -103,7 +106,8 @@ Rails.application.routes.draw do
   post "/settings/import", to: "settings#import_transactions", as: :import_transactions
   post "/settings/validate_import", to: "settings#validate_import", as: :validate_import
   post "/settings/backup", to: "settings#create_backup", as: :create_backup
-  get "/settings/backup/:name", to: "settings#download_backup", as: :download_settings_backup
+  post "/settings/restore_upload", to: "settings#restore_upload", as: :restore_upload_settings_backup
+  get "/settings/backup/:name", to: "settings#download_backup", as: :download_settings_backup, constraints: { name: /[^\/]+/ }
   post "/settings/clear_data", to: "settings#clear_all_data", as: :clear_all_data
   post "/settings/shortcuts/reset", to: "settings#reset_shortcuts", as: :reset_shortcuts
 

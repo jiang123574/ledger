@@ -22,6 +22,7 @@ class Account < ApplicationRecord
   scope :included_in_total, -> { where(include_in_total: true) }
   scope :by_type, ->(type) { where(type: type) if type.present? }
   scope :by_currency, ->(currency) { where(currency: currency) if currency.present? }
+  scope :by_last_activity, -> { order(last_transaction_date: :desc) }
 
   # 获取默认货币
   def self.default_currency
@@ -102,5 +103,16 @@ class Account < ApplicationRecord
     income = sent_transactions.income.where(date: from_date..to_date).sum(:amount)
     expense = sent_transactions.expense.where(date: from_date..to_date).sum(:amount)
     { income: income, expense: expense, net: income - expense }
+  end
+
+  def update_transactions_cache!
+    update(
+      transactions_count: sent_transactions.count + received_transactions.count,
+      last_transaction_date: [sent_transactions.maximum(:date), received_transactions.maximum(:date)].compact.max
+    )
+  end
+
+  def self.bulk_update_cache
+    find_each { |account| account.update_transactions_cache! }
   end
 end
