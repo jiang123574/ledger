@@ -762,21 +762,7 @@ function confirmDeleteAccount(id, name) {
                 </div>
                 <div id="target-account-options" class="py-1"></div>
               </div>
-            </div>
-          </div>
-          <div id="funding-account-field">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">实际资金来源（可选）</label>
-            <%= select_tag :funding_account_id,
-                  options_for_select(funding_source_accounts.map { |a| [a.name, a.id] }),
-                  include_blank: "不补记资金来源",
-                  id: "funding-account-select",
-                  class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
-            <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">选择后会自动创建“来源账户 → 当前账户”的转账，再记录这笔支出。</p>
-          </div>
-          <div id="target-account-field" class="hidden">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">转入账户 *</label>
-            <%= f.collection_select :target_account_id, @accounts, :id, :name, { include_blank: "选择转入账户" }, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
-          </div>
+</div>
           <div id="transaction-category-field">
             <label id="transaction-category-label" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">支出分类</label>
             <input type="hidden" name="transaction[category_id]" id="transaction_category_id" value="">
@@ -1607,6 +1593,12 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   }
   
   if (filterInput) {
+    filterInput.addEventListener('focus', function() {
+      this.placeholder = '';
+    });
+    filterInput.addEventListener('blur', function() {
+      this.placeholder = '搜索账户...';
+    });
     filterInput.addEventListener('input', function() {
       updateOptions();
     });
