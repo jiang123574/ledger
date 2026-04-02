@@ -1511,7 +1511,7 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
     var filtered = allAccounts.filter(function(acc) {
       if (!filterText) return true;
       var query = filterText.toLowerCase();
-      if (acc.name.toLowerCase().includes(query)) return true;
+      if (acc.name && acc.name.toLowerCase().includes(query)) return true;
       if (acc.pinyin && acc.pinyin.includes(query)) return true;
       return false;
     });
