@@ -181,6 +181,15 @@ class AccountsController < ApplicationController
   def build_filter_cache_key
     "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}"
   end
+
+  def apply_entry_filters(query, filter_type, category_ids)
+    return query if filter_type.blank? && category_ids.blank?
+
+    query = query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+    query = query.where(entryable_transactions: { kind: filter_type.downcase }) if filter_type.present?
+    query = query.where(entryable_transactions: { category_id: category_ids }) if category_ids.present?
+    query
+  end
   
   def load_transactions_with_balance
     paginated_transactions = @transactions.limit(@per_page).offset((@page - 1) * @per_page).to_a
@@ -236,8 +245,15 @@ class AccountsController < ApplicationController
       return paginated_entries.map { |e| [e, nil] }
     end
     
-    earliest_date = paginated_entries.map(&:date).min
-    earliest_id = paginated_entries.map(&:id).min
+    earliest = paginated_entries.first
+    earliest_date = earliest.date
+    earliest_id = earliest.id
+    paginated_entries.each do |e|
+      if e.date < earliest_date || (e.date == earliest_date && e.id < earliest_id)
+        earliest_date = e.date
+        earliest_id = e.id
+      end
+    end
     
     all_prior_entries = Entry.where(entryable_type: 'Entryable::Transaction')
       .joins(:account)
@@ -351,72 +367,30 @@ class AccountsController < ApplicationController
   end
 
   def calculate_entry_stats(account_id, period_type, period_value, filter_type, category_ids = nil)
-    if account_id.present?
-      account = Account.find_by(id: account_id)
-      account_balance = account&.current_balance || 0
-
-      entries_query = apply_period_filter(
-        Entry.where(account_id: account_id, entryable_type: 'Entryable::Transaction'),
-        period_type, period_value
-      )
-      
-      if filter_type.present? || category_ids.present?
-        entries_query = entries_query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-        
-        if filter_type.present?
-          kind = filter_type.downcase
-          entries_query = entries_query.where(entryable_transactions: { kind: kind })
-        end
-        
-        if category_ids.present?
-          entries_query = entries_query.where(entryable_transactions: { category_id: category_ids })
-        end
-      end
-
-      stats = entries_query.select(
-        "SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as total_income",
-        "SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END) as total_expense"
-      ).to_a.first
-
-      {
-        account_balance: account_balance,
-        total_income: stats&.total_income || 0,
-        total_expense: stats&.total_expense || 0,
-        total_balance: (stats&.total_income || 0) - (stats&.total_expense || 0)
-      }
+    account_balance = if account_id.present?
+      Account.find_by(id: account_id)&.current_balance || 0
     else
-      account_balance = Account.visible.included_in_total.sum { |a| a.current_balance }
-
-      entries_query = apply_period_filter(
-        Entry.where(entryable_type: 'Entryable::Transaction'),
-        period_type, period_value
-      )
-      
-      if filter_type.present? || category_ids.present?
-        entries_query = entries_query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-        
-        if filter_type.present?
-          kind = filter_type.downcase
-          entries_query = entries_query.where(entryable_transactions: { kind: kind })
-        end
-        
-        if category_ids.present?
-          entries_query = entries_query.where(entryable_transactions: { category_id: category_ids })
-        end
-      end
-
-      stats = entries_query.select(
-        "SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as total_income",
-        "SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END) as total_expense"
-      ).to_a.first
-
-      {
-        account_balance: account_balance,
-        total_income: stats&.total_income || 0,
-        total_expense: stats&.total_expense || 0,
-        total_balance: (stats&.total_income || 0) - (stats&.total_expense || 0)
-      }
+      Account.visible.included_in_total.sum { |a| a.current_balance }
     end
+
+    entries_query = apply_period_filter(
+      Entry.where(entryable_type: 'Entryable::Transaction'),
+      period_type, period_value
+    )
+    entries_query = entries_query.where(account_id: account_id) if account_id.present?
+    entries_query = apply_entry_filters(entries_query, filter_type, category_ids)
+
+    stats = entries_query.select(
+      "SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END) as total_income",
+      "SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END) as total_expense"
+    ).to_a.first
+
+    {
+      account_balance: account_balance,
+      total_income: stats&.total_income || 0,
+      total_expense: stats&.total_expense || 0,
+      total_balance: (stats&.total_income || 0) - (stats&.total_expense || 0)
+    }
   end
 
   def calculate_stats(account_id, period_type, period_value, filter_type, category_ids = nil)
