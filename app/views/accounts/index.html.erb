@@ -646,6 +646,15 @@ function confirmDeleteAccount(id, name) {
 <!-- 新建交易弹窗 -->
 <% expense_transaction_categories = @categories.select { |c| c.category_type == "EXPENSE" || c.type == "EXPENSE" } %>
 <% income_transaction_categories = @categories.select { |c| c.category_type == "INCOME" || c.type == "INCOME" } %>
+
+<!-- 分类数据（用于 JavaScript） -->
+<script id="expense-categories-data" type="application/json">
+  <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+</script>
+<script id="income-categories-data" type="application/json">
+  <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+</script>
+
 <% funding_source_accounts = @accounts %>
 <div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
@@ -699,7 +708,26 @@ function confirmDeleteAccount(id, name) {
           </div>
           <div id="transaction-category-field">
             <label id="transaction-category-label" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">支出分类</label>
-            <%= f.select :category_id, options_for_select(expense_transaction_categories.map { |c| [c.name, c.id] }), { include_blank: "选择支出分类" }, id: "transaction-category-select", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+            <input type="hidden" name="transaction[category_id]" id="transaction_category_id" value="">
+            <div class="relative">
+              <input type="text" id="category-search-input" 
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择支出分类"
+                     autocomplete="off"
+                     readonly>
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="category-filter-input" 
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="搜索分类..."
+                         autocomplete="off">
+                </div>
+                <div id="category-options" class="py-1"></div>
+              </div>
+            </div>
           </div>
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
@@ -1194,8 +1222,6 @@ document.getElementById('confirm-category-filter')?.addEventListener('click', fu
 
 updateCategoryFilterButtonLabel();
 
-var expenseCategoryOptions = <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
-var incomeCategoryOptions = <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
 var transactionTypeInput = document.getElementById('transaction-type-input');
 var transactionTypeCards = document.querySelectorAll('#transaction-type-cards .transaction-type-card');
 var targetAccountField = document.getElementById('target-account-field');
@@ -1204,23 +1230,6 @@ var fundingAccountField = document.getElementById('funding-account-field');
 var fundingAccountSelect = document.getElementById('funding-account-select');
 var categoryField = document.getElementById('transaction-category-field');
 var categoryLabel = document.getElementById('transaction-category-label');
-var categorySelect = document.getElementById('transaction-category-select');
-
-function setCategoryOptions(options, placeholder) {
-  if (!categorySelect) return;
-  categorySelect.innerHTML = '';
-  var blankOption = document.createElement('option');
-  blankOption.value = '';
-  blankOption.textContent = placeholder;
-  categorySelect.appendChild(blankOption);
-
-  options.forEach((option) => {
-    var el = document.createElement('option');
-    el.value = option.id;
-    el.textContent = option.name;
-    categorySelect.appendChild(el);
-  });
-}
 
 function applyTransactionTypeUI() {
   var type = transactionTypeInput?.value || 'EXPENSE';
@@ -1250,22 +1259,157 @@ function applyTransactionTypeUI() {
     if (!showFunding) fundingAccountSelect.value = '';
   }
 
-  if (categoryField && categorySelect && categoryLabel) {
+  if (categoryField) {
     categoryField.classList.toggle('hidden', isTransfer);
-    if (isTransfer) {
-      categorySelect.required = false;
-      categorySelect.value = '';
-    } else if (isIncome) {
-      categoryLabel.textContent = '收入分类';
-      setCategoryOptions(incomeCategoryOptions, '选择收入分类');
-      categorySelect.required = true;
-    } else {
-      categoryLabel.textContent = '支出分类';
-      setCategoryOptions(expenseCategoryOptions, '选择支出分类');
-      categorySelect.required = true;
+    if (categoryLabel) {
+      categoryLabel.textContent = isIncome ? '收入分类' : '支出分类';
+    }
+    if (categorySearchInput) {
+      categorySearchInput.placeholder = isIncome ? '选择收入分类' : '选择支出分类';
+      categorySearchInput.value = '';
+    }
+    if (categoryHiddenInput) {
+      categoryHiddenInput.value = '';
+    }
+    if (!isTransfer) {
+      switchCategoryType(type);
     }
   }
 }
+
+// 分类选择器逻辑
+var categorySearchInput = document.getElementById('category-search-input');
+var categoryDropdown = document.getElementById('category-dropdown');
+var categoryFilterInput = document.getElementById('category-filter-input');
+var categoryOptions = document.getElementById('category-options');
+var categoryHiddenInput = document.getElementById('transaction_category_id');
+var currentCategories = [];
+
+// 拼音首字母匹配函数
+function matchPinyin(text, query) {
+  if (!query) return true;
+  query = query.toLowerCase();
+  text = text.toLowerCase();
+  
+  // 直接匹配
+  if (text.includes(query)) return true;
+  
+  // 简单的拼音首字母映射（常用字）
+  var pinyinMap = {
+    '一': 'y', '二': 'e', '三': 's', '四': 's', '五': 'w', '六': 'l', '七': 'q', '八': 'b', '九': 'j', '十': 's',
+    '餐': 'c', '交': 'j', '人': 'r', '休': 'x', '保': 'b', '信': 'x', '倒': 'd', '停': 't', '儿': 'e', '其': 'q',
+    '包': 'b', '医': 'y', '卫': 'w', '发': 'f', '吃': 'c', '坏': 'h', '基': 'j', '奶': 'n', '婴': 'y', '学': 'x',
+    '宝': 'b', '宵': 'x', '家': 'j', '宽': 'k', '封': 'f', '小': 'x', '尿': 'n', '工': 'g', '开': 'k', '打': 'd',
+    '投': 't', '报': 'b', '数': 's', '旅': 'l', '日': 'r', '柜': 'g', '水': 's', '汽': 'q', '洗': 'x', '淘': 't',
+    '物': 'w', '玩': 'w', '理': 'l', '瓷': 'c', '生': 's', '电': 'd', '眼': 'y', '石': 's', '空': 'k', '穿': 'c',
+    '粉': 'f', '结': 'j', '维': 'w', '美': 'm', '耗': 'h', '耳': 'e', '育': 'y', '药': 'y', '蚁': 'y', '螺': 'l',
+    '衣': 'y', '袜': 'w', '装': 'z', '门': 'm', '计': 'j', '话': 'h', '超': 'c', '车': 'c', '软': 'r', '过': 'g',
+    '违': 'w', '酒': 'j', '闪': 's', '零': 'l', '鞋': 'x', '饮': 'y', '驱': 'q', '借': 'j', '垫': 'd', '场': 'c',
+    '公': 'g', '单': 'd', '套': 't', '评': 'p', '押': 'y'
+  };
+  
+  // 获取拼音首字母
+  var pinyinInitials = '';
+  for (var i = 0; i < text.length; i++) {
+    var char = text[i];
+    if (/[a-z0-9]/.test(char)) {
+      pinyinInitials += char;
+    } else if (pinyinMap[char]) {
+      pinyinInitials += pinyinMap[char];
+    }
+  }
+  
+  // 模糊匹配：查询字符串的每个字符都按顺序在拼音首字母中出现
+  var queryIndex = 0;
+  for (var i = 0; i < pinyinInitials.length && queryIndex < query.length; i++) {
+    if (pinyinInitials[i] === query[queryIndex]) {
+      queryIndex++;
+    }
+  }
+  
+  return queryIndex === query.length;
+}
+
+// 渲染分类选项
+function renderCategoryOptions(categories, filterText) {
+  if (!categoryOptions) return '';
+  
+  var filtered = categories.filter(function(cat) {
+    if (!filterText) return true;
+    return matchPinyin(cat.full_name, filterText) || matchPinyin(cat.name, filterText);
+  });
+  
+  if (filtered.length === 0) {
+    return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
+  }
+  
+  return filtered.map(function(cat) {
+    var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
+    var selected = categoryHiddenInput && categoryHiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+    return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + cat.full_name + '">' +
+             cat.full_name +
+           '</div>';
+  }).join('');
+}
+
+// 更新分类选项
+function updateCategoryOptions() {
+  if (!categoryOptions) return;
+  var filterText = categoryFilterInput ? categoryFilterInput.value : '';
+  categoryOptions.innerHTML = renderCategoryOptions(currentCategories, filterText);
+  
+  // 绑定点击事件
+  categoryOptions.querySelectorAll('.category-option').forEach(function(option) {
+    option.addEventListener('click', function() {
+      var id = this.dataset.id;
+      var name = this.dataset.name;
+      if (categoryHiddenInput) categoryHiddenInput.value = id;
+      if (categorySearchInput) categorySearchInput.value = name;
+      if (categoryDropdown) categoryDropdown.classList.add('hidden');
+      if (categoryFilterInput) categoryFilterInput.value = '';
+    });
+  });
+}
+
+// 切换分类类型
+function switchCategoryType(type) {
+  var expenseData = document.getElementById('expense-categories-data');
+  var incomeData = document.getElementById('income-categories-data');
+  
+  if (type === 'INCOME' && incomeData) {
+    currentCategories = JSON.parse(incomeData.textContent);
+  } else if (expenseData) {
+    currentCategories = JSON.parse(expenseData.textContent);
+  }
+  
+  updateCategoryOptions();
+}
+
+// 绑定事件
+if (categorySearchInput) {
+  categorySearchInput.addEventListener('click', function() {
+    if (categoryDropdown) {
+      categoryDropdown.classList.toggle('hidden');
+      if (!categoryDropdown.classList.contains('hidden')) {
+        updateCategoryOptions();
+        if (categoryFilterInput) categoryFilterInput.focus();
+      }
+    }
+  });
+}
+
+if (categoryFilterInput) {
+  categoryFilterInput.addEventListener('input', function() {
+    updateCategoryOptions();
+  });
+}
+
+// 点击外部关闭下拉框
+document.addEventListener('click', function(e) {
+  if (categoryDropdown && !categoryDropdown.contains(e.target) && e.target !== categorySearchInput) {
+    categoryDropdown.classList.add('hidden');
+  }
+});
 
 transactionTypeCards.forEach((card) => {
   card.addEventListener('click', function() {
@@ -1319,4 +1463,7 @@ function confirmDeleteTransaction(id, name) {
 <% if params[:open_new_transaction] == "1" %>
 document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 <% end %>
+
+// 初始化分类选择器
+switchCategoryType('EXPENSE');
 </script>
