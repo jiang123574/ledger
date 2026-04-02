@@ -146,32 +146,36 @@ class TransactionsController < ApplicationController
     end
   end
 
-  def build_transaction_from_entry(entry)
-    t = Transaction.new
-    t.id = entry.id
-    t.account_id = entry.account_id
-    t.account = entry.account
-    t.date = entry.date
-    t.amount = entry.amount.abs
-    t.currency = entry.currency
-    t.note = entry.notes || entry.name
-    
-    if entry.transfer_id.present?
-      t.type = 'TRANSFER'
-    elsif entry.entryable.respond_to?(:kind)
-      t.type = entry.entryable.kind.upcase
-      if entry.entryable.respond_to?(:category)
-        t.category = entry.entryable.category
-        t.category_id = entry.entryable.category_id
-      end
+def build_transaction_from_entry(entry)
+  t = Transaction.new
+  t.id = entry.id
+  t.account_id = entry.account_id
+  t.account = entry.account
+  t.date = entry.date
+  t.amount = entry.amount.abs
+  t.currency = entry.currency
+  t.note = entry.notes || entry.name
+  
+  if entry.transfer_id.present?
+    t.type = 'TRANSFER'
+  elsif entry.entryable.respond_to?(:kind)
+    t.type = entry.entryable.kind.upcase
+    if entry.entryable.respond_to?(:category)
+      t.category = entry.entryable.category
+      t.category_id = entry.entryable.category_id
     end
-    
-    # 让这个对象表现得像一个已持久化的记录
-    t.define_singleton_method(:persisted?) { true }
-    t.define_singleton_method(:new_record?) { false }
-    
-    t
   end
+  
+  # 让这个对象表现得像一个已持久化的记录
+  t.define_singleton_method(:persisted?) { true }
+  t.define_singleton_method(:new_record?) { false }
+  
+  # 正确处理路由
+  t.define_singleton_method(:to_param) { entry.id.to_s }
+  t.define_singleton_method(:model_name) { ActiveModel::Name.new(Transaction, nil, 'transaction') }
+  
+  t
+end
 
   def update_entry
     return false unless @entry
