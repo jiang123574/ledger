@@ -75,3 +75,5 @@ group :development do
 end
 
 gem "lucide-rails", "~> 0.2.0", github: "maybe-finance/lucide-rails"
+
+gem "ruby-pinyin"

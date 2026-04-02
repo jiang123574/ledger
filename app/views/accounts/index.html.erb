@@ -649,15 +649,15 @@ function confirmDeleteAccount(id, name) {
 
 <!-- 分类数据（用于 JavaScript） -->
 <script id="expense-categories-data" type="application/json">
-  <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+  <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
 </script>
 <script id="income-categories-data" type="application/json">
-  <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+  <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
 </script>
 
 <!-- 账户数据（用于 JavaScript） -->
 <script id="accounts-data" type="application/json">
-  <%= raw @accounts.map { |a| { id: a.id, name: a.name } }.to_json %>
+  <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 
 <% funding_source_accounts = @accounts %>
@@ -1349,72 +1349,17 @@ var categoryOptions = document.getElementById('category-options');
 var categoryHiddenInput = document.getElementById('transaction_category_id');
 var currentCategories = [];
 
-// 拼音首字母匹配函数
-function matchPinyin(text, query) {
-  if (!query) return true;
-  query = query.toLowerCase();
-  text = text.toLowerCase();
-  
-  // 直接匹配
-  if (text.includes(query)) return true;
-  
-  // 简单的拼音首字母映射（常用字）
-  var pinyinMap = {
-    // 数字
-    '一': 'y', '二': 'e', '三': 's', '四': 's', '五': 'w', '六': 'l', '七': 'q', '八': 'b', '九': 'j', '十': 's',
-    // 分类相关
-    '餐': 'c', '交': 'j', '人': 'r', '休': 'x', '保': 'b', '信': 'x', '倒': 'd', '停': 't', '儿': 'e', '其': 'q',
-    '包': 'b', '医': 'y', '卫': 'w', '发': 'f', '吃': 'c', '坏': 'h', '基': 'j', '奶': 'n', '婴': 'y', '学': 'x',
-    '宝': 'b', '宵': 'x', '家': 'j', '宽': 'k', '封': 'f', '小': 'x', '尿': 'n', '工': 'g', '开': 'k', '打': 'd',
-    '投': 't', '报': 'b', '数': 's', '旅': 'l', '日': 'r', '柜': 'g', '水': 's', '汽': 'q', '洗': 'x', '淘': 't',
-    '物': 'w', '玩': 'w', '理': 'l', '瓷': 'c', '生': 's', '电': 'd', '眼': 'y', '石': 's', '空': 'k', '穿': 'c',
-    '粉': 'f', '结': 'j', '维': 'w', '美': 'm', '耗': 'h', '耳': 'e', '育': 'y', '药': 'y', '蚁': 'y', '螺': 'l',
-    '衣': 'y', '袜': 'w', '装': 'z', '门': 'm', '计': 'j', '话': 'h', '超': 'c', '车': 'c', '软': 'r', '过': 'g',
-    '违': 'w', '酒': 'j', '闪': 's', '零': 'l', '鞋': 'x', '饮': 'y', '驱': 'q', '借': 'j', '垫': 'd', '场': 'c',
-    '公': 'g', '单': 'd', '套': 't', '评': 'p', '押': 'y',
-    // 银行、账户相关
-    '中': 'z', '农': 'n', '建': 'j', '招': 'z', '平': 'p', '商': 's', '民': 'm', '兴': 'x', '浦': 'p', '华': 'h',
-    '夏': 'x', '光': 'g', '海': 'h', '深': 's', '发': 'f', '展': 'z', '邮': 'y', '储': 'c', '蓄': 'x', '贷': 'd',
-    '款': 'k', '存': 'c', '取': 'q', '现': 'x', '金': 'j', '银': 'y', '行': 'h', '卡': 'k', '账': 'z', '户': 'h',
-    '余': 'y', '额': 'e', '利': 'l', '宝': 'b', '微': 'w', '支': 'z', '付': 'f', '宝': 'b', '京': 'j', '东': 'd',
-    '云': 'y', '闪': 's', '拼': 'p', '多': 'd', '美': 'm', '团': 't', '饿': 'e', '么': 'm', '滴': 'd', '打': 'd',
-    '货': 'h', '币': 'b', '钱': 'q', '财': 'c', '富': 'f', '资': 'z', '金': 'j', '应': 'y', '收': 's', '付': 'f',
-    '进': 'j', '货': 'h', '批': 'p', '零': 'l', '售': 's', '买': 'm', '卖': 'm', '价': 'j', '格': 'g', '费': 'f',
-    // 常用字
-    '网': 'w', '络': 'l', '线': 'x', '路': 'l', '城': 'c', '市': 's', '区': 'q', '县': 'x', '镇': 'z', '村': 'c',
-    '街': 'j', '道': 'd', '楼': 'l', '层': 'c', '房': 'f', '屋': 'w', '租': 'z', '店': 'd', '铺': 'p', '厂': 'c',
-    '司': 's', '厂': 'c', '业': 'y', '企': 'q', '单': 'd', '位': 'w', '部': 'b', '处': 'c', '科': 'k', '室': 's'
-  };
-  
-  // 获取拼音首字母
-  var pinyinInitials = '';
-  for (var i = 0; i < text.length; i++) {
-    var char = text[i];
-    if (/[a-z0-9]/.test(char)) {
-      pinyinInitials += char;
-    } else if (pinyinMap[char]) {
-      pinyinInitials += pinyinMap[char];
-    }
-  }
-  
-  // 模糊匹配：查询字符串的每个字符都按顺序在拼音首字母中出现
-  var queryIndex = 0;
-  for (var i = 0; i < pinyinInitials.length && queryIndex < query.length; i++) {
-    if (pinyinInitials[i] === query[queryIndex]) {
-      queryIndex++;
-    }
-  }
-  
-  return queryIndex === query.length;
-}
-
 // 渲染分类选项
 function renderCategoryOptions(categories, filterText) {
   if (!categoryOptions) return '';
   
   var filtered = categories.filter(function(cat) {
     if (!filterText) return true;
-    return matchPinyin(cat.full_name, filterText) || matchPinyin(cat.name, filterText);
+    var query = filterText.toLowerCase();
+    if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
+    if (cat.name && cat.name.toLowerCase().includes(query)) return true;
+    if (cat.pinyin && cat.pinyin.includes(query)) return true;
+    return false;
   });
   
   if (filtered.length === 0) {
@@ -1565,7 +1510,10 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   function renderOptions(filterText) {
     var filtered = allAccounts.filter(function(acc) {
       if (!filterText) return true;
-      return matchPinyin(acc.name, filterText);
+      var query = filterText.toLowerCase();
+      if (acc.name.toLowerCase().includes(query)) return true;
+      if (acc.pinyin && acc.pinyin.includes(query)) return true;
+      return false;
     });
     
     if (filtered.length === 0) {
