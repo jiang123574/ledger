@@ -333,6 +333,7 @@
       var percentage = item.amount > 0 ? (item.spent_amount / item.amount * 100).toFixed(1) : 0;
       var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income');
       var remainingColor = remaining >= 0 ? 'text-income' : 'text-expense';
+      var escapedNotes = (item.notes || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
       return '<tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">' +
         '<td class="py-2.5 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + (item.category_name || item.name) + '</span></td>' +
         '<td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark">' + item.formatted_amount + '</td>' +
@@ -344,7 +345,7 @@
               '<div class="h-full rounded-full ' + progressColor + '" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
             '</div>' +
             '<span class="text-xs ' + (percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-secondary dark:text-secondary-dark')) + '">' + percentage + '%</span>' +
-            '<button onclick="openEditItemModal(' + item.id + ', ' + item.category_id + ', ' + item.amount + ', \'' + (item.notes || '') + '\')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">' +
+            '<button onclick="openEditItemModal(' + item.id + ', ' + item.category_id + ', ' + item.amount + ', \'' + escapedNotes + '\')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">' +
               '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>' +
             '</button>' +
             '<form action="/single_budgets/' + budgetId + '/budget_items/' + item.id + '" method="post" style="display:inline" onsubmit="if(!confirm(\'确定删除此项目？\')) return false">' +

@@ -67,9 +67,10 @@ class AccountsController < ApplicationController
     @transactions_with_balance = @entries_with_balance.map { |e, balance| [build_transaction_from_entry(e), balance] }
     @transactions = @transactions_with_balance.map(&:first)
 
-    stats_cache_key = "stats_#{params[:account_id] || 'all'}_#{period_type}_#{period_value}_#{params[:type]}_#{Array(params[:category_ids]).reject(&:blank?).sort.join(',')}"
+    category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
+    stats_cache_key = "stats_#{params[:account_id] || 'all'}_#{period_type}_#{period_value}_#{params[:type]}_#{category_ids.empty? ? 'no_cat' : category_ids.sort.join(',')}"
     stats_data = Rails.cache.fetch(stats_cache_key, expires_in: 1.minute) do
-      calculate_entry_stats(params[:account_id].presence, period_type, period_value, params[:type].presence, Array(params[:category_ids]).reject(&:blank?))
+      calculate_entry_stats(params[:account_id].presence, period_type, period_value, params[:type].presence, category_ids)
     end
     
     @account_balance = stats_data[:account_balance]
@@ -91,9 +92,9 @@ class AccountsController < ApplicationController
       else Date.current.strftime("%Y-%m")
       end
     filter_type = params[:type].presence
-    category_ids = Array(params[:category_ids]).reject(&:blank?)
+    category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
 
-    cache_key = "stats_#{account_id || 'all'}_#{period_type}_#{period_value}_#{filter_type}_#{category_ids.sort.join(',')}"
+    cache_key = "stats_#{account_id || 'all'}_#{period_type}_#{period_value}_#{filter_type}_#{category_ids.empty? ? 'no_cat' : category_ids.sort.join(',')}"
     stats_data = Rails.cache.fetch(cache_key, expires_in: 1.minute) do
       calculate_stats(account_id, period_type, period_value, filter_type, category_ids)
     end

@@ -1,5 +1,5 @@
 class BudgetsController < ApplicationController
-  before_action :set_no_cache
+  before_action :set_no_cache, only: [:index, :data]
 
   def index
     @month = params[:month] || Date.today.strftime("%Y-%m")
