@@ -1,6 +1,6 @@
 class ReceivablesController < ApplicationController
-  before_action :set_receivable, only: %i[show edit update destroy settle revert]
-  before_action :check_not_settled, only: %i[edit update destroy]
+  before_action :set_receivable, only: %i[show update destroy settle revert]
+  before_action :check_not_settled, only: %i[update destroy]
 
   def index
     @receivables = Receivable.includes(:source_transaction, :counterparty, :account)
@@ -13,11 +13,6 @@ class ReceivablesController < ApplicationController
   end
 
   def show
-  end
-
-  def new
-    # 重定向到 receivables#index，使用模态框添加
-    redirect_to receivables_path
   end
 
   def create
@@ -38,9 +33,6 @@ class ReceivablesController < ApplicationController
     else
       redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
     end
-  end
-
-  def edit
   end
 
   def update

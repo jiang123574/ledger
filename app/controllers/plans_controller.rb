@@ -1,5 +1,5 @@
 class PlansController < ApplicationController
-  before_action :set_plan, only: %i[edit update destroy execute]
+  before_action :set_plan, only: %i[update destroy execute]
 
   def index
     @plans = Plan.includes(:account).order(:name)
@@ -10,18 +10,6 @@ class PlansController < ApplicationController
 
   def show
     @plan = Plan.includes(:account).find(params[:id])
-  end
-
-  def new
-    @plan = Plan.new(
-      type: Plan::RECURRING,
-      currency: "CNY",
-      day_of_month: 1,
-      installments_total: 1,
-      installments_completed: 0,
-      active: true
-    )
-    @accounts = Account.order(:name)
   end
 
   def create
@@ -41,10 +29,6 @@ class PlansController < ApplicationController
     else
       redirect_to plans_path, alert: @plan.errors.full_messages.join(", ")
     end
-  end
-
-  def edit
-    @accounts = Account.order(:name)
   end
 
   def update

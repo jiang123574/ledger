@@ -2,7 +2,7 @@
 
 class TransactionsController < ApplicationController
   before_action :set_transaction, only: [:show, :edit, :update, :destroy]
-  before_action :load_lookups, only: [:new, :edit, :create, :update]
+  before_action :load_lookups, only: [:edit, :create, :update]
 
   def index
     redirect_to accounts_path(request.query_parameters)
@@ -10,10 +10,6 @@ class TransactionsController < ApplicationController
 
   def show
     redirect_to transactions_path
-  end
-
-  def new
-    redirect_to accounts_path(open_new_transaction: 1)
   end
 
   def edit

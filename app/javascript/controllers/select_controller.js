@@ -65,8 +65,13 @@ export default class extends Controller {
     const value = selectedElement.dataset.value
     const label = selectedElement.dataset.filterName || selectedElement.textContent.trim()
 
-    // Update button text
-    this.buttonTarget.textContent = label
+    // Update button text (look for span first, then update button)
+    const spanElement = this.buttonTarget.querySelector('span')
+    if (spanElement) {
+      spanElement.textContent = label
+    } else {
+      this.buttonTarget.textContent = label
+    }
 
     // Update hidden input
     if (this.hasInputTarget) {
@@ -78,11 +83,11 @@ export default class extends Controller {
     const previousSelected = this.menuTarget.querySelector("[aria-selected='true']")
     if (previousSelected) {
       previousSelected.setAttribute("aria-selected", "false")
-      previousSelected.classList.remove("bg-gray-100")
+      previousSelected.classList.remove("bg-gray-100", "dark:bg-gray-700")
     }
 
     selectedElement.setAttribute("aria-selected", "true")
-    selectedElement.classList.add("bg-gray-100")
+    selectedElement.classList.add("bg-gray-100", "dark:bg-gray-700")
 
     // Dispatch custom event
     this.element.dispatchEvent(new CustomEvent("dropdown:select", {

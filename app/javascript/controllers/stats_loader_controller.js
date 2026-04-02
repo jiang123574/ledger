@@ -21,6 +21,10 @@ export default class extends Controller {
       params.append('period_value', this.periodValueValue || this.getDefaultPeriodValue())
     }
     if (this.typeValue) params.append('type', this.typeValue)
+    // include selected category filters if present on page
+    if (window.selectedCategoryIds && Array.isArray(window.selectedCategoryIds) && window.selectedCategoryIds.length > 0) {
+      window.selectedCategoryIds.forEach(id => params.append('category_ids[]', id));
+    }
 
     fetch(`/accounts/stats?${params}`)
       .then(response => response.json())

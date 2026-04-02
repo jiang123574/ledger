@@ -242,7 +242,7 @@ transactionTypeCards.forEach((card) => {
 
 applyTransactionTypeUI();
 
-<% if params[:open_new_transaction] == "1" %>
+<% if params[:open_modal] == "true" || params[:open_new_transaction] == "1" %>
 document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 <% end %>
 

@@ -7,6 +7,7 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="application-name" content="<%= t("app_name") %>">
     <meta name="mobile-web-app-capable" content="yes">
+    <%= yield :head %>
     <%# PWA Manifest %>
     <link rel="manifest" href="/manifest.json">
     <meta name="theme-color" content="#1a1a1a">
@@ -387,7 +388,7 @@
             <span class="font-semibold text-primary dark:text-primary-dark truncate"><%= content_for(:title) || t("app_name") %></span>
 
             <%# Quick Action Button %>
-            <%= link_to new_transaction_path, class: "p-2 -mr-2 text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" do %>
+            <%= link_to transactions_path(open_modal: true), class: "p-2 -mr-2 text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" do %>
               <%= render(Ds::IconComponent.new(name: "plus", size: :md)) %>
             <% end %>
           </div>

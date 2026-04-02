@@ -6,10 +6,13 @@
       <div>
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark">账户管理</h2>
         <div class="text-xs text-secondary dark:text-secondary-dark mt-0.5">
-          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.included_in_total.sum(&:current_balance)) %></span>
+          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.visible.included_in_total.sum(&:current_balance)) %></span>
         </div>
       </div>
       <div class="flex items-center gap-2">
+        <button onclick="toggleShowHidden()" class="p-2 rounded-lg <%= params[:show_hidden] == 'true' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark' %>">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+        </button>
         <button onclick="document.getElementById('add-account-modal').classList.remove('hidden')" class="p-2 rounded-lg bg-inverse text-white text-sm">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
         </button>
@@ -23,12 +26,17 @@
     <div class="hidden lg:block p-4 border-b border-border dark:border-border-dark">
       <div class="flex items-center justify-between mb-2">
         <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">账户管理</h2>
-        <button onclick="document.getElementById('add-account-modal').classList.remove('hidden')" class="p-1.5 rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-        </button>
+        <div class="flex items-center gap-2">
+          <button onclick="toggleShowHidden()" class="p-1.5 rounded-lg <%= params[:show_hidden] == 'true' ? 'bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark' %> hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" title="显示隐藏账户">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+          </button>
+          <button onclick="document.getElementById('add-account-modal').classList.remove('hidden')" class="p-1.5 rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+          </button>
+        </div>
       </div>
       <div class="text-sm text-secondary dark:text-secondary-dark">
-        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.included_in_total.sum(&:current_balance)) %></span>
+        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.visible.included_in_total.sum(&:current_balance)) %></span>
       </div>
     </div>
     
@@ -45,7 +53,7 @@
           <!-- 该类型的账户列表 -->
           <div class="account-group" data-account-type="<%= type %>">
             <% accounts.sort_by(&:sort_order).each do |account| %>
-              <div class="p-3 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth group cursor-pointer <%= params[:account_id].to_i == account.id ? 'bg-surface-inset dark:bg-surface-dark-inset' : '' %>" 
+              <div class="p-3 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth group cursor-pointer <%= params[:account_id].to_i == account.id ? 'bg-surface-inset dark:bg-surface-dark-inset' : '' %> <%= account.hidden == 1 ? 'opacity-60' : '' %>" 
                    data-account-id="<%= account.id %>"
                    onclick="filterByAccount(<%= account.id %>)"
                    draggable="true"
@@ -57,6 +65,9 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                       <p class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= account.name %></p>
+                      <% if account.hidden == 1 %>
+                        <span class="text-[10px] px-1 py-0.5 rounded bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300">隐藏</span>
+                      <% end %>
                       <% if account.include_in_total != 1 %>
                         <span class="text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">不计资产</span>
                       <% end %>
@@ -73,6 +84,7 @@
                             data-type="<%= account.type %>"
                             data-initial-balance="<%= account.initial_balance || 0 %>"
                             data-include-in-total="<%= account.include_in_total %>"
+                            data-hidden="<%= account.hidden %>"
                             data-currency="<%= account.currency %>"
                             data-credit-limit="<%= account.credit_limit || '' %>"
                             data-billing-day="<%= account.billing_day || '' %>"
@@ -121,16 +133,26 @@
       <div class="flex flex-wrap gap-2 items-end">
         <div class="flex-1 min-w-[140px]">
           <input type="text" id="search-input" placeholder="搜索备注、分类..." value="<%= params[:search] %>" 
-                 class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                 class="w-full px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
         </div>
-        <div class="w-24">
+        <div class="w-24 relative" data-controller="select">
           <% selected_period_type = params[:period_type].presence || "month" %>
-          <select id="period-type-filter" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
-            <option value="all" <%= selected_period_type == 'all' ? 'selected' : '' %>>全部</option>
-            <option value="week" <%= selected_period_type == 'week' ? 'selected' : '' %>>按周</option>
-            <option value="month" <%= selected_period_type == 'month' ? 'selected' : '' %>>按月</option>
-            <option value="year" <%= selected_period_type == 'year' ? 'selected' : '' %>>按年</option>
-          </select>
+          <% period_type_labels = { 'all' => '全部', 'week' => '按周', 'month' => '按月', 'year' => '按年' } %>
+          <input type="hidden" id="period-type-filter" data-select-target="input" name="period_type" value="<%= selected_period_type %>">
+          <button type="button" id="period-type-btn" data-select-target="button" data-action="click->select#toggle"
+                  class="w-full px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-between">
+            <span><%= period_type_labels[selected_period_type] %></span>
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          <div data-select-target="menu" class="hidden absolute left-0 top-full mt-1 w-full z-20 bg-white dark:bg-surface-dark border border-border dark:border-border-dark rounded-lg shadow-lg py-1 max-h-60 overflow-auto">
+            <% period_type_labels.each do |value, label| %>
+              <div data-action="click->select#select" data-value="<%= value %>"
+                   class="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover <%= 'bg-gray-100 dark:bg-gray-700' if selected_period_type == value %>"
+                   aria-selected="<%= selected_period_type == value %>">
+                <%= label %>
+              </div>
+            <% end %>
+          </div>
         </div>
         <div class="w-[220px]" id="period-value-container" style="<%= selected_period_type == 'all' ? 'display:none' : '' %>">
           <% selected_period_value = params[:period_value].presence || case selected_period_type
@@ -138,44 +160,68 @@
              when "week" then Date.current.strftime("%G-W%V")
              else Date.current.strftime("%Y-%m")
              end %>
-          <div class="flex items-center gap-1">
+          <input type="hidden" id="period-value-filter" value="<%= selected_period_value %>">
+          <div class="flex items-center gap-1 relative">
             <button type="button"
                     id="period-prev-btn"
                     onclick="shiftPeriod(-1)"
-                    class="px-2.5 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"
+                    class="px-2.5 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"
                     aria-label="上一期">
               ‹
             </button>
-<input id="period-value-filter"
-                    type="text"
-                    value="<%= selected_period_value %>"
-                    class="flex-1 min-w-0 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
+            <div id="period-value-display"
+                 class="flex-1 min-w-0 px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark flex items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth relative"
+                 onclick="togglePeriodPicker()">
+            </div>
+            <div id="period-picker-panel" class="hidden absolute left-8 top-full mt-1 z-30 bg-white dark:bg-surface-dark border border-border dark:border-border-dark rounded-lg shadow-lg p-2 w-[200px]">
+              <div class="flex items-center justify-between mb-2">
+                <button type="button" onclick="shiftPickerYear(-1)" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                </button>
+                <span id="picker-year-display" class="text-sm font-medium text-primary dark:text-primary-dark"></span>
+                <button type="button" onclick="shiftPickerYear(1)" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                </button>
+              </div>
+              <div id="picker-months-grid" class="grid grid-cols-4 gap-1">
+              </div>
+            </div>
             <button type="button"
                     id="period-next-btn"
                     onclick="shiftPeriod(1)"
-                    class="px-2.5 py-2 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"
+                    class="px-2.5 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"
                     aria-label="下一期">
               ›
             </button>
           </div>
         </div>
-        <div class="w-28">
-          <select id="type-filter" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark">
-            <option value="">全部类型</option>
-            <option value="INCOME" <%= params[:type] == 'INCOME' ? 'selected' : '' %>>收入</option>
-            <option value="EXPENSE" <%= params[:type] == 'EXPENSE' ? 'selected' : '' %>>支出</option>
-            <option value="TRANSFER" <%= params[:type] == 'TRANSFER' ? 'selected' : '' %>>转账</option>
-          </select>
+        <div class="w-28 relative" data-controller="select">
+          <% type_labels = { '' => '全部类型', 'INCOME' => '收入', 'EXPENSE' => '支出', 'TRANSFER' => '转账' } %>
+          <input type="hidden" id="type-filter" data-select-target="input" name="type" value="<%= params[:type].to_s %>">
+          <button type="button" id="type-btn" data-select-target="button" data-action="click->select#toggle"
+                  class="w-full px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-between">
+            <span><%= type_labels[params[:type].to_s] %></span>
+            <svg class="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+          </button>
+          <div data-select-target="menu" class="hidden absolute left-0 top-full mt-1 w-full z-20 bg-white dark:bg-surface-dark border border-border dark:border-border-dark rounded-lg shadow-lg py-1 max-h-60 overflow-auto">
+            <% type_labels.each do |value, label| %>
+              <div data-action="click->select#select" data-value="<%= value %>"
+                   class="px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover <%= 'bg-gray-100 dark:bg-gray-700' if params[:type].to_s == value %>"
+                   aria-selected="<%= params[:type].to_s == value %>">
+                <%= label %>
+              </div>
+            <% end %>
+          </div>
         </div>
         <div class="min-w-[120px]">
           <% selected_category_ids = Array(params[:category_ids]).reject(&:blank?) %>
           <button type="button" id="open-category-filter"
-                  class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+                  class="w-full px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
             分类筛选<%= selected_category_ids.any? ? " (#{selected_category_ids.size})" : "" %>
           </button>
         </div>
         <% if params[:search] || params[:type] || params[:period_type] || params[:period_value] || params[:category_ids].present? || params[:account_id] %>
-          <button onclick="clearFilters()" class="px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">
+          <button onclick="clearFilters()" class="px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">
             清除
           </button>
         <% end %>
@@ -429,6 +475,10 @@ document.addEventListener('DOMContentLoaded', function() {
             <%= f.check_box :include_in_total, { id: 'account-include-in-total', class: "w-4 h-4 rounded border-border dark:border-border-dark text-blue-600 focus:ring-blue-500" }, 1, 0 %>
             <label for="account-include-in-total" class="text-sm text-primary dark:text-primary-dark">计入资产总额</label>
           </div>
+          <div class="flex items-center gap-2">
+            <%= f.check_box :hidden, { id: 'account-hidden', class: "w-4 h-4 rounded border-border dark:border-border-dark text-blue-600 focus:ring-blue-500" }, 1, 0 %>
+            <label for="account-hidden" class="text-sm text-primary dark:text-primary-dark">隐藏此账户</label>
+          </div>
           
           <!-- 信用卡字段 -->
           <div id="credit-card-fields" class="hidden space-y-4 pt-4 border-t border-border dark:border-border-dark">
@@ -516,6 +566,10 @@ function openEditAccountModal(btn) {
   var includeInTotalCheckbox = document.getElementById('account-include-in-total');
   includeInTotalCheckbox.checked = includeInTotal == 1;
   
+  // 设置是否隐藏账户
+  var hiddenCheckbox = document.getElementById('account-hidden');
+  hiddenCheckbox.checked = btn.dataset.hidden == '1';
+  
   // 添加删除按钮
   var deleteContainer = document.getElementById('delete-account-btn-container');
   deleteContainer.innerHTML = '<button type="button" onclick="confirmDeleteAccount(' + id + ', \'' + name + '\')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-smooth">删除账户</button>';
@@ -535,6 +589,7 @@ function closeAccountModal() {
   document.getElementById('account-type').value = '';
   document.getElementById('account-initial-balance').value = '';
   document.getElementById('account-include-in-total').checked = true;
+  document.getElementById('account-hidden').checked = false;
   document.getElementById('delete-account-btn-container').innerHTML = '';
   // 重置信用卡字段
   document.getElementById('account-credit-limit').value = '';
@@ -788,6 +843,16 @@ function clearAccountFilter() {
   window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
+function toggleShowHidden() {
+  var params = new URLSearchParams(window.location.search);
+  if (params.get('show_hidden') === 'true') {
+    params.delete('show_hidden');
+  } else {
+    params.set('show_hidden', 'true');
+  }
+  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+}
+
 // 回车搜索
 document.getElementById('search-input')?.addEventListener('keypress', function(e) {
   if (e.key === 'Enter') {
@@ -816,7 +881,6 @@ function syncPeriodInputType() {
   var today = new Date();
 
   if (periodType === 'week') {
-    periodValueEl.type = 'week';
     if (!periodValueEl.value || !/^\d{4}-W\d{2}$/.test(periodValueEl.value)) {
       var temp = new Date(today.getTime());
       temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
@@ -826,24 +890,225 @@ function syncPeriodInputType() {
       periodValueEl.value = `${weekYear}-W${String(weekNumber).padStart(2, '0')}`;
     }
   } else if (periodType === 'year') {
-    periodValueEl.type = 'number';
-    periodValueEl.min = '2000';
-    periodValueEl.max = '2100';
-    periodValueEl.step = '1';
     var yearValue = parseInt(periodValueEl.value, 10);
     if (!yearValue || yearValue < 2000 || yearValue > 2100) {
       periodValueEl.value = String(today.getFullYear());
     }
   } else {
-    periodValueEl.type = 'month';
-    periodValueEl.min = '';
-    periodValueEl.max = '';
-    periodValueEl.step = '';
     if (!/^\d{4}-\d{2}$/.test(periodValueEl.value)) {
       periodValueEl.value = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
     }
   }
+  updatePeriodValueDisplay();
 }
+
+function formatPeriodValue(value, type) {
+  if (type === 'year') {
+    return value + '年';
+  } else if (type === 'month') {
+    var match = value.match(/^(\d{4})-(\d{2})$/);
+    if (match) {
+      return match[1] + '年' + parseInt(match[2]) + '月';
+    }
+    return value;
+  } else if (type === 'week') {
+    var match = value.match(/^(\d{4})-W(\d{2})$/);
+    if (match) {
+      return match[1] + '年 第' + parseInt(match[2]) + '周';
+    }
+    return value;
+  }
+  return value;
+}
+
+function updatePeriodValueDisplay() {
+  var periodTypeEl = document.getElementById('period-type-filter');
+  var periodValueEl = document.getElementById('period-value-filter');
+  var displayEl = document.getElementById('period-value-display');
+  if (!periodTypeEl || !periodValueEl || !displayEl) return;
+  
+  displayEl.textContent = formatPeriodValue(periodValueEl.value, periodTypeEl.value);
+}
+
+var pickerCurrentYear = new Date().getFullYear();
+var pickerPanelOpen = false;
+
+function togglePeriodPicker() {
+  var panel = document.getElementById('period-picker-panel');
+  if (!panel) return;
+  
+  if (pickerPanelOpen) {
+    closePeriodPicker();
+  } else {
+    openPeriodPickerPanel();
+  }
+}
+
+function openPeriodPickerPanel() {
+  var panel = document.getElementById('period-picker-panel');
+  var periodTypeEl = document.getElementById('period-type-filter');
+  var periodValueEl = document.getElementById('period-value-filter');
+  
+  if (!panel || !periodTypeEl) return;
+  
+  var periodType = periodTypeEl.value;
+  var currentValue = periodValueEl.value;
+  
+  // 根据类型初始化
+  if (periodType === 'month') {
+    var parts = currentValue.split('-');
+    pickerCurrentYear = parseInt(parts[0]) || new Date().getFullYear();
+    renderMonthPicker();
+  } else if (periodType === 'year') {
+    pickerCurrentYear = parseInt(currentValue) || new Date().getFullYear();
+    renderYearPicker();
+  } else if (periodType === 'week') {
+    var match = currentValue.match(/^(\d{4})-W(\d{2})$/);
+    pickerCurrentYear = match ? parseInt(match[1]) : new Date().getFullYear();
+    renderWeekPicker();
+  }
+  
+  panel.classList.remove('hidden');
+  pickerPanelOpen = true;
+}
+
+function closePeriodPicker() {
+  var panel = document.getElementById('period-picker-panel');
+  if (panel) {
+    panel.classList.add('hidden');
+  }
+  pickerPanelOpen = false;
+}
+
+function shiftPickerYear(direction) {
+  pickerCurrentYear += direction;
+  var periodTypeEl = document.getElementById('period-type-filter');
+  if (periodTypeEl.value === 'month') {
+    renderMonthPicker();
+  } else if (periodTypeEl.value === 'year') {
+    renderYearPicker();
+  } else if (periodTypeEl.value === 'week') {
+    renderWeekPicker();
+  }
+}
+
+function renderMonthPicker() {
+  var yearDisplay = document.getElementById('picker-year-display');
+  var monthsGrid = document.getElementById('picker-months-grid');
+  var periodValueEl = document.getElementById('period-value-filter');
+  
+  if (!yearDisplay || !monthsGrid) return;
+  
+  yearDisplay.textContent = pickerCurrentYear + '年';
+  
+  var currentMonth = '';
+  if (periodValueEl && periodValueEl.value) {
+    var match = periodValueEl.value.match(/^(\d{4})-(\d{2})$/);
+    if (match && parseInt(match[1]) === pickerCurrentYear) {
+      currentMonth = match[2];
+    }
+  }
+  
+  var months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+  monthsGrid.innerHTML = months.map(function(m, i) {
+    var monthNum = String(i + 1).padStart(2, '0');
+    var isSelected = currentMonth === monthNum;
+    return '<button type="button" onclick="selectPickerMonth(' + monthNum + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
+      (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">' + m + '</button>';
+  }).join('');
+}
+
+function renderYearPicker() {
+  var yearDisplay = document.getElementById('picker-year-display');
+  var monthsGrid = document.getElementById('picker-months-grid');
+  var periodValueEl = document.getElementById('period-value-filter');
+  
+  if (!yearDisplay || !monthsGrid) return;
+  
+  yearDisplay.textContent = '选择年份';
+  
+  var currentYear = periodValueEl ? parseInt(periodValueEl.value) : new Date().getFullYear();
+  
+  // 显示年份范围
+  var startYear = pickerCurrentYear - 4;
+  var years = [];
+  for (var i = 0; i < 9; i++) {
+    years.push(startYear + i);
+  }
+  
+  monthsGrid.innerHTML = years.map(function(y) {
+    var isSelected = y === currentYear;
+    return '<button type="button" onclick="selectPickerYear(' + y + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
+      (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">' + y + '</button>';
+  }).join('');
+}
+
+function renderWeekPicker() {
+  var yearDisplay = document.getElementById('picker-year-display');
+  var monthsGrid = document.getElementById('picker-months-grid');
+  var periodValueEl = document.getElementById('period-value-filter');
+  
+  if (!yearDisplay || !monthsGrid) return;
+  
+  yearDisplay.textContent = pickerCurrentYear + '年';
+  
+  var currentWeek = '';
+  if (periodValueEl && periodValueEl.value) {
+    var match = periodValueEl.value.match(/^(\d{4})-W(\d{2})$/);
+    if (match && parseInt(match[1]) === pickerCurrentYear) {
+      currentWeek = match[2];
+    }
+  }
+  
+  // 显示周（假设一年最多53周）
+  var weeksHtml = '';
+  for (var i = 1; i <= 53; i++) {
+    var weekNum = String(i).padStart(2, '0');
+    var isSelected = currentWeek === weekNum;
+    weeksHtml += '<button type="button" onclick="selectPickerWeek(' + weekNum + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
+      (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">W' + i + '</button>';
+  }
+  monthsGrid.innerHTML = weeksHtml;
+}
+
+function selectPickerMonth(month) {
+  var periodValueEl = document.getElementById('period-value-filter');
+  if (periodValueEl) {
+    periodValueEl.value = pickerCurrentYear + '-' + String(month).padStart(2, '0');
+    updatePeriodValueDisplay();
+    closePeriodPicker();
+    applyFilters();
+  }
+}
+
+function selectPickerYear(year) {
+  var periodValueEl = document.getElementById('period-value-filter');
+  if (periodValueEl) {
+    periodValueEl.value = String(year);
+    updatePeriodValueDisplay();
+    closePeriodPicker();
+    applyFilters();
+  }
+}
+
+function selectPickerWeek(week) {
+  var periodValueEl = document.getElementById('period-value-filter');
+  if (periodValueEl) {
+    periodValueEl.value = pickerCurrentYear + '-W' + String(week).padStart(2, '0');
+    updatePeriodValueDisplay();
+    closePeriodPicker();
+    applyFilters();
+  }
+}
+
+// 点击外部关闭面板
+document.addEventListener('click', function(e) {
+  var panel = document.getElementById('period-picker-panel');
+  var display = document.getElementById('period-value-display');
+  if (pickerPanelOpen && panel && display && !panel.contains(e.target) && !display.contains(e.target)) {
+    closePeriodPicker();
+  }
+});
 
 function shiftPeriod(direction) {
   var periodTypeEl = document.getElementById('period-type-filter');
@@ -859,6 +1124,7 @@ function shiftPeriod(direction) {
       var newYear = year + direction;
       if (newYear >= 2000 && newYear <= 2100) {
         periodValueEl.value = String(newYear);
+        updatePeriodValueDisplay();
         applyFilters();
       }
     }
@@ -875,6 +1141,7 @@ function shiftPeriod(direction) {
         year += 1;
       }
       periodValueEl.value = `${year}-${String(month).padStart(2, '0')}`;
+      updatePeriodValueDisplay();
       applyFilters();
     }
   } else if (periodType === 'week') {
@@ -885,6 +1152,7 @@ function shiftPeriod(direction) {
       var monday = Date.fromISOWeek(isoYear, isoWeek);
       monday.setDate(monday.getDate() + (direction * 7));
       periodValueEl.value = monday.toISOWeekString();
+      updatePeriodValueDisplay();
       applyFilters();
     }
   }
@@ -911,7 +1179,6 @@ Date.prototype.toISOWeekString = function() {
 document.getElementById('period-type-filter')?.addEventListener('change', syncPeriodInputType);
 syncPeriodInputType();
 document.getElementById('period-type-filter')?.addEventListener('change', applyFilters);
-document.getElementById('period-value-filter')?.addEventListener('change', applyFilters);
 document.getElementById('type-filter')?.addEventListener('change', applyFilters);
 
 document.getElementById('open-category-filter')?.addEventListener('click', function() {

@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class TagsController < ApplicationController
-  before_action :set_tag, only: [ :edit, :update, :destroy ]
+  before_action :set_tag, only: [ :update, :destroy ]
 
   def index
     @tags = Tag.alphabetically
@@ -16,9 +16,6 @@ class TagsController < ApplicationController
       @tags = Tag.alphabetically
       render :index, status: :unprocessable_entity
     end
-  end
-
-  def edit
   end
 
   def update

@@ -2,8 +2,12 @@ class AccountsController < ApplicationController
   before_action :set_account, only: [:show, :edit, :update, :destroy]
 
   def index
-    @accounts = Rails.cache.fetch("accounts_list", expires_in: 10.minutes) do
-      Account.order(:sort_order, :name).to_a
+    @accounts = Rails.cache.fetch("accounts_list_#{params[:show_hidden]}", expires_in: 10.minutes) do
+      if params[:show_hidden] == 'true'
+        Account.order(:sort_order, :name).to_a
+      else
+        Account.visible.order(:sort_order, :name).to_a
+      end
     end
     
     @categories = Rails.cache.fetch("categories_active", expires_in: 1.hour) do
@@ -62,9 +66,9 @@ class AccountsController < ApplicationController
     @transactions_with_balance = @entries_with_balance.map { |e, balance| [build_transaction_from_entry(e), balance] }
     @transactions = @transactions_with_balance.map(&:first)
 
-    stats_cache_key = "stats_#{params[:account_id] || 'all'}_#{period_type}_#{period_value}_#{params[:type]}"
+    stats_cache_key = "stats_#{params[:account_id] || 'all'}_#{period_type}_#{period_value}_#{params[:type]}_#{Array(params[:category_ids]).reject(&:blank?).sort.join(',')}"
     stats_data = Rails.cache.fetch(stats_cache_key, expires_in: 1.minute) do
-      calculate_entry_stats(params[:account_id].presence, period_type, period_value, params[:type].presence)
+      calculate_entry_stats(params[:account_id].presence, period_type, period_value, params[:type].presence, Array(params[:category_ids]).reject(&:blank?))
     end
     
     @account_balance = stats_data[:account_balance]
@@ -86,12 +90,11 @@ class AccountsController < ApplicationController
       else Date.current.strftime("%Y-%m")
       end
     filter_type = params[:type].presence
+    category_ids = Array(params[:category_ids]).reject(&:blank?)
 
-    range = calculate_period_range(period_type, period_value)
-
-    cache_key = "stats_#{account_id || 'all'}_#{period_type}_#{period_value}_#{filter_type}"
+    cache_key = "stats_#{account_id || 'all'}_#{period_type}_#{period_value}_#{filter_type}_#{category_ids.sort.join(',')}"
     stats_data = Rails.cache.fetch(cache_key, expires_in: 1.minute) do
-      calculate_stats(account_id, range, filter_type)
+      calculate_stats(account_id, period_type, period_value, filter_type, category_ids)
     end
 
     render json: stats_data
@@ -345,7 +348,7 @@ class AccountsController < ApplicationController
     source_entry&.account_id
   end
 
-  def calculate_entry_stats(account_id, period_type, period_value, filter_type)
+  def calculate_entry_stats(account_id, period_type, period_value, filter_type, category_ids = nil)
     if account_id.present?
       account = Account.find_by(id: account_id)
       account_balance = account&.current_balance || 0
@@ -355,10 +358,17 @@ class AccountsController < ApplicationController
         period_type, period_value
       )
       
-      if filter_type.present?
-        kind = filter_type.downcase
+      if filter_type.present? || category_ids.present?
         entries_query = entries_query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-                                     .where(entryable_transactions: { kind: kind })
+        
+        if filter_type.present?
+          kind = filter_type.downcase
+          entries_query = entries_query.where(entryable_transactions: { kind: kind })
+        end
+        
+        if category_ids.present?
+          entries_query = entries_query.where(entryable_transactions: { category_id: category_ids })
+        end
       end
 
       stats = entries_query.select(
@@ -380,10 +390,17 @@ class AccountsController < ApplicationController
         period_type, period_value
       )
       
-      if filter_type.present?
-        kind = filter_type.downcase
+      if filter_type.present? || category_ids.present?
         entries_query = entries_query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-                                     .where(entryable_transactions: { kind: kind })
+        
+        if filter_type.present?
+          kind = filter_type.downcase
+          entries_query = entries_query.where(entryable_transactions: { kind: kind })
+        end
+        
+        if category_ids.present?
+          entries_query = entries_query.where(entryable_transactions: { category_id: category_ids })
+        end
       end
 
       stats = entries_query.select(
@@ -400,7 +417,7 @@ class AccountsController < ApplicationController
     end
   end
 
-  def calculate_stats(account_id, period_type, period_value, filter_type)
+  def calculate_stats(account_id, period_type, period_value, filter_type, category_ids = nil)
     if account_id.present?
       account = Account.find_by(id: account_id)
       account_balance = account&.current_balance || 0
@@ -412,6 +429,7 @@ class AccountsController < ApplicationController
       ).by_period(period_type, period_value)
       
       stats_query = stats_query.where(type: filter_type) if filter_type.present?
+      stats_query = stats_query.where(category_id: category_ids) if category_ids.present?
 
       stats = stats_query.select(
         "SUM(CASE WHEN (type = 'INCOME' OR (type = 'TRANSFER' AND target_account_id = #{account_id})) THEN amount ELSE 0 END) as total_income",
@@ -429,6 +447,7 @@ class AccountsController < ApplicationController
 
       base_query = Transaction.where.not(type: "TRANSFER").by_period(period_type, period_value)
       base_query = base_query.where(type: filter_type) if filter_type.present?
+      base_query = base_query.where(category_id: category_ids) if category_ids.present?
 
       stats = base_query.select(
         "SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as total_income",
