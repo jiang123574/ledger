@@ -44,7 +44,8 @@ class AccountsController < ApplicationController
     @entries = apply_period_filter(@entries, period_type, period_value)
 
     if params[:search].present?
-      @entries = @entries.where("entries.name LIKE ? OR entries.notes LIKE ?", "%#{params[:search]}%", "%#{params[:search]}%")
+      search_term = "%#{params[:search].to_s.gsub(/[%_]/) { |char| "\\#{char}" }}%"
+      @entries = @entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
     end
 
     @entries = @entries.reverse_chronological.includes(:account)
@@ -431,10 +432,10 @@ class AccountsController < ApplicationController
       stats_query = stats_query.where(type: filter_type) if filter_type.present?
       stats_query = stats_query.where(category_id: category_ids) if category_ids.present?
 
-      stats = stats_query.select(
-        "SUM(CASE WHEN (type = 'INCOME' OR (type = 'TRANSFER' AND target_account_id = #{account_id})) THEN amount ELSE 0 END) as total_income",
-        "SUM(CASE WHEN (type = 'EXPENSE' OR (type = 'TRANSFER' AND account_id = #{account_id} AND target_account_id != #{account_id})) THEN amount ELSE 0 END) as total_expense"
-      ).to_a.first
+      income_case = sanitize_sql_array(["SUM(CASE WHEN (type = 'INCOME' OR (type = 'TRANSFER' AND target_account_id = ?)) THEN amount ELSE 0 END) as total_income", account_id])
+      expense_case = sanitize_sql_array(["SUM(CASE WHEN (type = 'EXPENSE' OR (type = 'TRANSFER' AND account_id = ? AND target_account_id != ?)) THEN amount ELSE 0 END) as total_expense", account_id, account_id])
+
+      stats = stats_query.select(income_case, expense_case).to_a.first
 
       {
         account_balance: account_balance,

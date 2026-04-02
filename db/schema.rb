@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_02_085929) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_02_103924) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -132,7 +132,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_085929) do
     t.string "month", null: false
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_budgets_on_category_id"
-    t.index ["month", "category_id"], name: "idx_budgets_month_category"
     t.index ["month", "category_id"], name: "index_budgets_month_category"
     t.index ["month"], name: "index_budgets_on_month"
   end
@@ -404,7 +403,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_085929) do
     t.boolean "user_modified", default: false, null: false
     t.index ["account_id", "date", "amount", "type"], name: "idx_trans_unique_check", where: "(dedupe_key IS NULL)"
     t.index ["account_id", "date", "type"], name: "index_transactions_on_account_id_and_date_and_type"
-    t.index ["account_id", "date"], name: "idx_trans_account_date"
     t.index ["account_id", "date"], name: "index_transactions_account_date"
     t.index ["account_id", "type", "date"], name: "idx_trans_account_type_date"
     t.index ["account_id"], name: "index_transactions_on_account_id"

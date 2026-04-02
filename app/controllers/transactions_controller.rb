@@ -44,20 +44,22 @@ class TransactionsController < ApplicationController
   def create_regular_entry(type, account_id, amount, date, currency, note, category_id)
     kind = type.downcase
 
-    entryable = Entryable::Transaction.create!(
-      kind: kind,
-      category_id: category_id
-    )
+    Entry.transaction do
+      entryable = Entryable::Transaction.create!(
+        kind: kind,
+        category_id: category_id
+      )
 
-    entry = Entry.create!(
-      account_id: account_id,
-      date: date,
-      name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
-      amount: kind == 'income' ? amount : -amount,
-      currency: currency,
-      notes: note,
-      entryable: entryable
-    )
+      entry = Entry.create!(
+        account_id: account_id,
+        date: date,
+        name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
+        amount: kind == 'income' ? amount : -amount,
+        currency: currency,
+        notes: note,
+        entryable: entryable
+      )
+    end
 
     expire_transactions_cache
     handle_successful_save("交易已创建")
@@ -69,30 +71,32 @@ class TransactionsController < ApplicationController
     from_account = Account.find(from_account_id)
     to_account = Account.find(to_account_id)
 
-    transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
+    transfer_id = SecureRandom.random_number(2**31)
     transfer_note = note.presence || "转账: #{from_account.name} → #{to_account.name}"
 
-    entry_out = Entry.create!(
-      account_id: from_account_id,
-      date: date,
-      name: transfer_note,
-      amount: -amount,
-      currency: currency,
-      notes: transfer_note,
-      entryable: Entryable::Transaction.create!(kind: 'expense'),
-      transfer_id: transfer_id
-    )
+    Entry.transaction do
+      entry_out = Entry.create!(
+        account_id: from_account_id,
+        date: date,
+        name: transfer_note,
+        amount: -amount,
+        currency: currency,
+        notes: transfer_note,
+        entryable: Entryable::Transaction.create!(kind: 'expense'),
+        transfer_id: transfer_id
+      )
 
-    entry_in = Entry.create!(
-      account_id: to_account_id,
-      date: date,
-      name: transfer_note,
-      amount: amount,
-      currency: currency,
-      notes: transfer_note,
-      entryable: Entryable::Transaction.create!(kind: 'income'),
-      transfer_id: transfer_id
-    )
+      entry_in = Entry.create!(
+        account_id: to_account_id,
+        date: date,
+        name: transfer_note,
+        amount: amount,
+        currency: currency,
+        notes: transfer_note,
+        entryable: Entryable::Transaction.create!(kind: 'income'),
+        transfer_id: transfer_id
+      )
+    end
 
     expire_transactions_cache
     handle_successful_save("转账已创建")

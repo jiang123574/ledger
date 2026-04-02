@@ -5,7 +5,6 @@ class BudgetItem < ApplicationRecord
   validates :name, length: { maximum: 100 }, allow_nil: true
   validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :spent_amount, numericality: { greater_than_or_equal_to: 0 }
-  validates :category_id, presence: true
 
   before_validation :set_name_from_category
 
