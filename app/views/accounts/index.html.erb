@@ -1,3 +1,8 @@
+<% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
+  <meta name="turbo-visit-control" content="reload">
+<% end %>
+
 <div class="flex flex-col lg:flex-row gap-4 h-auto lg:h-[calc(100vh-8rem)]">
   <!-- 左侧栏 - 账户管理 (移动端: 可折叠，桌面端: 固定) -->
   <div class="lg:w-80 shrink-0 flex flex-col bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
@@ -804,9 +809,9 @@ function confirmDeleteAccount(id, name) {
 <!-- 编辑交易弹窗 -->
 <div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')"></div>
-  <div class="flex items-center justify-center min-h-screen p-4">
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8">
-      <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-colors">
+  <div class="relative min-h-screen flex items-center justify-center p-4">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8 z-10">
+      <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-colors z-20">
         <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
         </svg>
@@ -1369,8 +1374,10 @@ function renderCategoryOptions(categories, filterText) {
   return filtered.map(function(cat) {
     var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
     var selected = categoryHiddenInput && categoryHiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-    return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + cat.full_name + '">' +
-             cat.full_name +
+    // 使用 escapeHtml 防止 XSS
+    var escapedName = escapeHtml(cat.full_name);
+    return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
+             escapedName +
            '</div>';
   }).join('');
 }
@@ -1490,6 +1497,17 @@ document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 // 初始化分类选择器
 switchCategoryType('EXPENSE');
 
+// HTML 转义函数，防止 XSS
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // 账户选择器逻辑
 var allAccounts = [];
 var accountsDataEl = document.getElementById('accounts-data');
@@ -1522,8 +1540,10 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
     
     return filtered.map(function(acc) {
       var selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-      return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + acc.name + '">' +
-               acc.name +
+      // 使用 escapeHtml 防止 XSS
+      var escapedName = escapeHtml(acc.name);
+      return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + escapedName + '">' +
+               escapedName +
              '</div>';
     }).join('');
   }
@@ -1577,4 +1597,22 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
 initAccountSelector('account-search-input', 'account-dropdown', 'account-filter-input', 'account-options', 'transaction_account_id', '选择账户');
 initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 'funding-account-filter-input', 'funding-account-options', 'funding_account_id', '不补记资金来源');
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
+
+// 修复 Turbo 缓存导致的 modal 嵌套问题
+function fixModalPositions() {
+  const modals = ['edit-transaction-modal', 'category-filter-modal'];
+  modals.forEach(function(id) {
+    const modal = document.getElementById(id);
+    if (modal && modal.parentElement && modal.parentElement.id === 'add-transaction-modal') {
+      document.body.appendChild(modal);
+    }
+  });
+}
+
+// DOM 加载完成后修复
+document.addEventListener('DOMContentLoaded', fixModalPositions);
+
+// Turbo 页面加载后修复
+document.addEventListener('turbo:load', fixModalPositions);
+document.addEventListener('turbo:render', fixModalPositions);
 </script>

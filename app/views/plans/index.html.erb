@@ -70,7 +70,7 @@
                   <% elsif ![Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
                     <%= button_to t('plans.execute', default: '执行'), execute_plan_path(plan), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
                   <% end %>
-                  <button onclick="openEditPlanModal(<%= plan.id %>, '<%= j plan.name %>', '<%= plan.type %>', '<%= plan.account_id %>', '<%= plan.amount %>', '<%= plan.total_amount || '' %>', '<%= plan.installments_total || '' %>', '<%= plan.installments_completed || 0 %>', '<%= plan.day_of_month %>', '<%= plan.currency || 'CNY' %>', <%= plan.active %>)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
+                  <button onclick="openEditPlanModal(<%= plan.id %>, '<%= j plan.name %>', '<%= plan.type %>', '<%= plan.account_id %>', '<%= j(plan.account&.name || '') %>', '<%= plan.amount %>', '<%= plan.total_amount || '' %>', '<%= plan.installments_total || '' %>', '<%= plan.installments_completed || 0 %>', '<%= plan.day_of_month %>', '<%= plan.currency || 'CNY' %>', <%= plan.active %>)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
                     <%= t('common.edit') %>
                   </button>
                   <%= button_to t('common.delete'), plan_path(plan), method: :delete, onclick: "if(!confirm('确定删除此计划？')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
@@ -170,12 +170,26 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">关联账户</label>
-              <select name="plan[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-                <option value="">选择账户...</option>
-                <% @accounts.each do |account| %>
-                  <option value="<%= account.id %>"><%= account.name %></option>
-                <% end %>
-              </select>
+              <input type="hidden" name="plan[account_id]" id="new-plan-account-id" value="">
+              <div class="relative">
+                <input type="text" id="new-plan-account-search" 
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                       placeholder="选择账户..."
+                       autocomplete="off"
+                       readonly>
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                <div id="new-plan-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                  <div class="p-2 border-b border-border dark:border-border-dark">
+                    <input type="text" id="new-plan-account-filter" 
+                           class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                           placeholder="搜索账户..."
+                           autocomplete="off">
+                  </div>
+                  <div id="new-plan-account-options" class="py-1"></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -294,12 +308,26 @@
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">关联账户</label>
-              <select id="edit-plan-account" name="plan[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-                <option value="">选择账户...</option>
-                <% @accounts.each do |account| %>
-                  <option value="<%= account.id %>"><%= account.name %></option>
-                <% end %>
-              </select>
+              <input type="hidden" name="plan[account_id]" id="edit-plan-account-id" value="">
+              <div class="relative">
+                <input type="text" id="edit-plan-account-search" 
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                       placeholder="选择账户..."
+                       autocomplete="off"
+                       readonly>
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                <div id="edit-plan-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                  <div class="p-2 border-b border-border dark:border-border-dark">
+                    <input type="text" id="edit-plan-account-filter" 
+                           class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                           placeholder="搜索账户..."
+                           autocomplete="off">
+                  </div>
+                  <div id="edit-plan-account-options" class="py-1"></div>
+                </div>
+              </div>
             </div>
           </div>
 
@@ -387,6 +415,11 @@
     </div>
   </div>
 </div>
+
+<!-- 账户数据（用于 JavaScript） -->
+<script id="accounts-data" type="application/json">
+  <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
+</script>
 
 <script>
   function setInputDisabled(id, disabled) {
@@ -500,7 +533,7 @@
     document.getElementById('new-plan-modal').classList.remove('hidden')
   }
 
-  function openEditPlanModal(id, name, type, accountId, amount, totalAmount, installments, completedInstallments, dayOfMonth, currency, active) {
+  function openEditPlanModal(id, name, type, accountId, accountName, amount, totalAmount, installments, completedInstallments, dayOfMonth, currency, active) {
     const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
     
@@ -511,7 +544,8 @@
     
     // Set fields
     document.getElementById('edit-plan-name').value = name
-    document.getElementById('edit-plan-account').value = accountId
+    document.getElementById('edit-plan-account-id').value = accountId
+    document.getElementById('edit-plan-account-search').value = accountName
     document.getElementById('edit-plan-day').value = dayOfMonth
     document.getElementById('edit-plan-currency').value = currency
     document.getElementById('edit-plan-active').checked = active
@@ -533,4 +567,103 @@
     
     document.getElementById('edit-plan-modal').classList.remove('hidden')
   }
+
+  // HTML 转义函数，防止 XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
+  // 账户选择器逻辑（带拼音搜索）
+  var allAccounts = [];
+  var accountsDataEl = document.getElementById('accounts-data');
+  if (accountsDataEl) {
+    allAccounts = JSON.parse(accountsDataEl.textContent);
+  }
+
+  function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
+    var searchInput = document.getElementById(searchInputId);
+    var dropdown = document.getElementById(dropdownId);
+    var filterInput = document.getElementById(filterInputId);
+    var optionsContainer = document.getElementById(optionsId);
+    var hiddenInput = document.getElementById(hiddenInputId);
+
+    if (!searchInput || !dropdown || !optionsContainer) return;
+
+    function renderOptions(filterText) {
+      var filtered = allAccounts.filter(function(acc) {
+        if (!filterText) return true;
+        var query = filterText.toLowerCase();
+        if (acc.name && acc.name.toLowerCase().includes(query)) return true;
+        if (acc.pinyin && acc.pinyin.includes(query)) return true;
+        return false;
+      });
+
+      if (filtered.length === 0) {
+        return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配账户</div>';
+      }
+
+      return filtered.map(function(acc) {
+        var selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+        // 使用 escapeHtml 防止 XSS
+        var escapedName = escapeHtml(acc.name);
+        return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + escapedName + '">' +
+                 escapedName +
+               '</div>';
+      }).join('');
+    }
+
+    function updateOptions() {
+      var filterText = filterInput ? filterInput.value : '';
+      optionsContainer.innerHTML = renderOptions(filterText);
+
+      optionsContainer.querySelectorAll('.account-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+          var id = this.dataset.id;
+          var name = this.dataset.name;
+          if (hiddenInput) hiddenInput.value = id;
+          if (searchInput) searchInput.value = name;
+          if (dropdown) dropdown.classList.add('hidden');
+          if (filterInput) filterInput.value = '';
+        });
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('click', function() {
+        dropdown.classList.toggle('hidden');
+        if (!dropdown.classList.contains('hidden')) {
+          updateOptions();
+          if (filterInput) filterInput.focus();
+        }
+      });
+    }
+
+    if (filterInput) {
+      filterInput.addEventListener('focus', function() {
+        this.placeholder = '';
+      });
+      filterInput.addEventListener('blur', function() {
+        this.placeholder = '搜索账户...';
+      });
+      filterInput.addEventListener('input', function() {
+        updateOptions();
+      });
+    }
+
+    document.addEventListener('click', function(e) {
+      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  }
+
+  // 初始化账户选择器
+  initAccountSelector('new-plan-account-search', 'new-plan-account-dropdown', 'new-plan-account-filter', 'new-plan-account-options', 'new-plan-account-id');
+  initAccountSelector('edit-plan-account-search', 'edit-plan-account-dropdown', 'edit-plan-account-filter', 'edit-plan-account-options', 'edit-plan-account-id');
 </script>

@@ -2,6 +2,7 @@
 
 pin "application"
 pin "web_vitals"
+pin "selectors"
 
 # Pin controllers manually (Propshaft compatibility)
 pin "controllers", to: "controllers/index.js"

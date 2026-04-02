@@ -33,18 +33,18 @@ class BudgetItem < ApplicationRecord
 
   def recalculate_spent_amount
     return spent_amount unless category && single_budget.start_date
-    
+
     start_date = single_budget.start_date
-    end_date = single_budget.end_date || start_date
-    
+    end_date = single_budget.end_date || Date.current
+
     category_ids = category.self_and_descendants.map(&:id)
-    
+
     spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
       .where(entryable_type: 'Entryable::Transaction')
       .where(entryable_transactions: { category_id: category_ids })
       .where(date: start_date..end_date)
       .sum('ABS(entries.amount)')
-    
+
     update(spent_amount: spent)
   end
 end

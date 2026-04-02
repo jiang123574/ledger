@@ -155,7 +155,7 @@ class TransactionsController < ApplicationController
     t.amount = entry.amount.abs
     t.currency = entry.currency
     t.note = entry.notes || entry.name
-    
+
     if entry.transfer_id.present?
       t.type = 'TRANSFER'
     elsif entry.entryable.respond_to?(:kind)
@@ -165,11 +165,15 @@ class TransactionsController < ApplicationController
         t.category_id = entry.entryable.category_id
       end
     end
-    
+
     # 让这个对象表现得像一个已持久化的记录
     t.define_singleton_method(:persisted?) { true }
     t.define_singleton_method(:new_record?) { false }
-    
+
+    # 正确处理路由
+    t.define_singleton_method(:to_param) { entry.id.to_s }
+    t.define_singleton_method(:model_name) { ActiveModel::Name.new(Transaction, nil, 'transaction') }
+
     t
   end
 
