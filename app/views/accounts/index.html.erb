@@ -1374,8 +1374,10 @@ function renderCategoryOptions(categories, filterText) {
   return filtered.map(function(cat) {
     var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
     var selected = categoryHiddenInput && categoryHiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-    return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + cat.full_name + '">' +
-             cat.full_name +
+    // 使用 escapeHtml 防止 XSS
+    var escapedName = escapeHtml(cat.full_name);
+    return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
+             escapedName +
            '</div>';
   }).join('');
 }
@@ -1495,6 +1497,17 @@ document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 // 初始化分类选择器
 switchCategoryType('EXPENSE');
 
+// HTML 转义函数，防止 XSS
+function escapeHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 // 账户选择器逻辑
 var allAccounts = [];
 var accountsDataEl = document.getElementById('accounts-data');
@@ -1527,8 +1540,10 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
     
     return filtered.map(function(acc) {
       var selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-      return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + acc.name + '">' +
-               acc.name +
+      // 使用 escapeHtml 防止 XSS
+      var escapedName = escapeHtml(acc.name);
+      return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + escapedName + '">' +
+               escapedName +
              '</div>';
     }).join('');
   }

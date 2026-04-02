@@ -26,28 +26,28 @@ class SingleBudget < ApplicationRecord
   scope :completed, -> { where(status: "completed") }
   scope :cancelled, -> { where(status: "cancelled") }
 
-def recalculate_spent_amount
-  # 先重新计算每个子预算项的支出
-  budget_items.each(&:recalculate_spent_amount)
-  
-  # 如果 SingleBudget 有自己的分类，则按分类统计
-  if category && start_date && end_date
-    category_ids = category.self_and_descendants.map(&:id)
-    end_date_val = end_date || Date.current
-    
-    # 使用 Entry 查询
-    spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-      .where(entryable_type: 'Entryable::Transaction')
-      .where(entryable_transactions: { category_id: category_ids })
-      .where(date: start_date..end_date_val)
-      .sum('ABS(entries.amount)')
-    
-    update(spent_amount: spent)
-  else
-    # 否则汇总子预算项的支出
-    update(spent_amount: budget_items.sum(:spent_amount))
+  def recalculate_spent_amount
+    # 先重新计算每个子预算项的支出
+    budget_items.each(&:recalculate_spent_amount)
+
+    # 如果 SingleBudget 有自己的分类，则按分类统计
+    if category && start_date
+      category_ids = category.self_and_descendants.map(&:id)
+      end_date_val = end_date || Date.current
+
+      # 使用 Entry 查询
+      spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+        .where(entryable_type: 'Entryable::Transaction')
+        .where(entryable_transactions: { category_id: category_ids })
+        .where(date: start_date..end_date_val)
+        .sum('ABS(entries.amount)')
+
+      update(spent_amount: spent)
+    else
+      # 否则汇总子预算项的支出
+      update(spent_amount: budget_items.sum(:spent_amount))
+    end
   end
-end
 
   def remaining_amount
     total_amount.to_d - spent_amount.to_d

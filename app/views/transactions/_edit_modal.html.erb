@@ -132,8 +132,6 @@
         </div>
       <% end %>
 
-</div>
-
 <!-- 账户和分类数据 -->
 <script id="accounts-data" type="application/json">
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
@@ -146,6 +144,17 @@
 </script>
 
 <script>
+  // HTML 转义函数，防止 XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   // 账户选择器逻辑（带拼音搜索）
   var allAccounts = [];
   var expenseCategories = [];
@@ -194,8 +203,10 @@
 
       return filtered.map(function(acc) {
         var selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + acc.name + '">' +
-                 acc.name +
+        // 使用 escapeHtml 防止 XSS
+        var escapedName = escapeHtml(acc.name);
+        return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + escapedName + '">' +
+                 escapedName +
                '</div>';
       }).join('');
     }
@@ -271,8 +282,10 @@
       return filtered.map(function(cat) {
         var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
         var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + cat.full_name + '">' +
-                 cat.full_name +
+        // 使用 escapeHtml 防止 XSS
+        var escapedName = escapeHtml(cat.full_name);
+        return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
+                 escapedName +
                '</div>';
       }).join('');
     }
@@ -348,6 +361,9 @@
         categoryField.classList.remove('hidden');
         targetAccountField.classList.add('hidden');
         if (accountLabelOut) accountLabelOut.textContent = '账户';
+        // 清空已选分类值（P1-6 修复）
+        document.getElementById('transaction_category_id').value = '';
+        document.getElementById('category-selector-search').value = '';
         // 根据类型切换分类列表
         var currentType = tab.dataset.type;
         var categoryList = currentType === 'EXPENSE' ? expenseCategories : incomeCategories;
@@ -393,3 +409,6 @@
     .catch(err => console.error('Error saving transaction:', err));
   });
 </script>
+
+</div>
+

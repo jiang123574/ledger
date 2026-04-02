@@ -462,8 +462,10 @@
       return filtered.map(function(cat) {
         var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
         var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + cat.full_name + '">' +
-                 cat.full_name +
+        // 使用 escapeHtml 防止 XSS
+        var escapedName = escapeHtml(cat.full_name);
+        return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
+                 escapedName +
                '</div>';
       }).join('');
     }

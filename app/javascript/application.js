@@ -3,6 +3,7 @@
 import "@hotwired/turbo-rails"
 import "controllers"
 import "web_vitals"
+import "selectors"
 
 // Register PWA service worker
 if ('serviceWorker' in navigator) {
