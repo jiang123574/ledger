@@ -153,7 +153,7 @@ class AccountsController < ApplicationController
   private
 
   def expire_accounts_cache
-    Rails.cache.delete("accounts_list")
+    Rails.cache.delete_matched("accounts_list*")
     Rails.cache.delete("categories_active")
   end
 
