@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_02_103924) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_02_105724) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -441,6 +441,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_103924) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "attachments", "transactions"
+  add_foreign_key "budget_items", "categories", on_delete: :nullify
   add_foreign_key "budget_items", "single_budgets"
   add_foreign_key "budgets", "categories"
   add_foreign_key "categories", "categories", column: "parent_id"

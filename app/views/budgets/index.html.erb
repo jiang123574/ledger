@@ -218,6 +218,16 @@
 <script>
   window.authToken = '<%= form_authenticity_token %>';
   
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+  
   window.selectBudget = function(budgetId) {
     if (window.currentBudgetId === budgetId) return;
     
@@ -333,12 +343,15 @@
       var percentage = item.amount > 0 ? (item.spent_amount / item.amount * 100).toFixed(1) : 0;
       var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income');
       var remainingColor = remaining >= 0 ? 'text-income' : 'text-expense';
-      var escapedNotes = (item.notes || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+      var escapedNotes = escapeHtml(item.notes || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+      var escapedCategoryName = escapeHtml(item.category_name || item.name || '');
+      var escapedAmount = escapeHtml(item.formatted_amount);
+      var escapedSpent = escapeHtml(item.formatted_spent);
       return '<tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">' +
-        '<td class="py-2.5 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + (item.category_name || item.name) + '</span></td>' +
-        '<td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark">' + item.formatted_amount + '</td>' +
-        '<td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark">' + item.formatted_spent + '</td>' +
-        '<td class="py-2.5 px-2 text-right font-medium ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + item.currency_symbol + Math.abs(remaining).toFixed(2) + '</td>' +
+        '<td class="py-2.5 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + escapedCategoryName + '</span></td>' +
+        '<td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark">' + escapedAmount + '</td>' +
+        '<td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark">' + escapedSpent + '</td>' +
+        '<td class="py-2.5 px-2 text-right font-medium ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + escapeHtml(item.currency_symbol) + Math.abs(remaining).toFixed(2) + '</td>' +
         '<td class="py-2.5 px-2">' +
           '<div class="flex items-center gap-2 justify-end">' +
             '<div class="w-20 h-2 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">' +

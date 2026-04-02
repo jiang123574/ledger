@@ -236,7 +236,7 @@ class TransactionsController < ApplicationController
     category_id = attrs[:category_id]
 
     Entry.transaction do
-      transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
+      transfer_id = SecureRandom.random_number(2**31)
       transfer_note = [
         "自动补记资金来源",
         source_account.name,
