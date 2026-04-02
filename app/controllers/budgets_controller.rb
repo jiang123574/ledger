@@ -1,4 +1,6 @@
 class BudgetsController < ApplicationController
+  before_action :set_no_cache, only: [:index, :data]
+
   def index
     @month = params[:month] || Date.today.strftime("%Y-%m")
     @budgets = Budget.for_month(@month).includes(:category)
@@ -30,21 +32,25 @@ class BudgetsController < ApplicationController
     items = budget.budget_items.map do |item|
       {
         id: item.id,
-        name: item.name,
+        name: item.display_name,
         amount: item.amount.to_f,
         spent_amount: item.spent_amount.to_f,
-        formatted_amount: "¥#{item.amount.to_f.round(2)}",
-        formatted_spent: "¥#{item.spent_amount.to_f.round(2)}",
-        currency_symbol: "¥"
+        formatted_amount: format_currency(item.amount),
+        formatted_spent: format_currency(item.spent_amount),
+        currency_symbol: "¥",
+        category_id: item.category_id,
+        category_name: item.category&.full_name || "",
+        notes: item.notes || ""
       }
     end
+    total = budget.budget_items.sum(:amount)
     render json: {
       id: budget.id,
       name: budget.name,
-      total_amount: budget.budget_items.sum(:amount).to_f,
+      total_amount: total.to_f,
       spent_amount: budget.spent_amount.to_f,
-      formatted_total: "¥#{budget.budget_items.sum(:amount).to_f.round(2)}",
-      formatted_spent: "¥#{budget.spent_amount.to_f.round(2)}",
+      formatted_total: format_currency(total),
+      formatted_spent: format_currency(budget.spent_amount),
       currency_symbol: "¥",
       items: items
     }
@@ -75,6 +81,10 @@ class BudgetsController < ApplicationController
   end
 
   private
+
+  def set_no_cache
+    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+  end
 
   def budget_params
     params.require(:budget).permit(:category_id, :month, :amount, :currency)

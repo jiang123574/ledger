@@ -160,13 +160,18 @@
 }
 
 .ie-icon-income {
-  background-color: color-mix(in srgb, var(--color-income, #22c55e) 14%, transparent) !important;
+  background-color: transparent !important;
   color: var(--color-income, #22c55e) !important;
 }
 
 .ie-icon-expense {
-  background-color: color-mix(in srgb, var(--color-expense, #ef4444) 14%, transparent) !important;
+  background-color: transparent !important;
   color: var(--color-expense, #ef4444) !important;
+}
+
+.ie-icon-transfer {
+  background-color: transparent !important;
+  color: var(--color-blue, #3b82f6) !important;
 }
 
 /* Additional dark mode fixes for hardcoded colors */

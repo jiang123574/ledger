@@ -1,3 +1,8 @@
+<% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-cache">
+  <meta name="turbo-visit-control" content="reload">
+<% end %>
+
 <div class="space-y-4 sm:space-y-6">
   <div class="flex flex-col gap-1">
     <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark">预算管理</h1>
@@ -148,7 +153,7 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border dark:border-border-dark">
-                  <th class="text-left py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">名称</th>
+                  <th class="text-left py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>
                   <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>
                   <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>
                   <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>
@@ -161,13 +166,8 @@
                     <% item_percentage = item.progress_percentage %>
                     <% item_remaining = item.remaining_amount %>
                     <tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-                      <td class="py-2.5 px-2">
-                        <div class="flex items-center gap-2">
-                          <span class="font-medium text-primary dark:text-primary-dark"><%= item.name %></span>
-                          <% if item.category %>
-                            <span class="text-xs px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= item.category %></span>
-                          <% end %>
-                        </div>
+<td class="py-2.5 px-2">
+                        <span class="font-medium text-primary dark:text-primary-dark"><%= item.category&.full_name || item.name %></span>
                       </td>
                       <td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark"><%= format_currency(item.amount) %></td>
                       <td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark"><%= format_currency(item.spent_amount) %></td>
@@ -178,7 +178,7 @@
                             <div class="h-full rounded-full <%= item_percentage > 100 ? 'bg-expense' : (item_percentage > 80 ? 'bg-expense-soft' : 'bg-income') %>" style="width: <%= [item_percentage, 100].min %>%"></div>
                           </div>
                           <span class="text-xs <%= item_percentage > 100 ? 'text-expense' : (item_percentage > 80 ? 'text-expense' : 'text-secondary dark:text-secondary-dark') %>"><%= item_percentage %>%</span>
-                          <button onclick="openEditItemModal(<%= item.id %>, '<%= j item.name %>', <%= item.amount %>, '<%= j(item.category || '') %>', '<%= j(item.notes || '') %>')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">
+                          <button onclick="openEditItemModal(<%= item.id %>, <%= item.category_id || 'null' %>, <%= item.amount %>, '<%= j(item.notes || '') %>')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                           </button>
                           <form action="/single_budgets/<%= @selected_budget.id %>/budget_items/<%= item.id %>" method="post" style="display:inline" onsubmit="if(!confirm('确定删除此项目？')) return false">
@@ -216,7 +216,21 @@
 </div>
 
 <script>
+  window.authToken = '<%= form_authenticity_token %>';
+  
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+  
   window.selectBudget = function(budgetId) {
+    if (window.currentBudgetId === budgetId) return;
+    
     document.querySelectorAll('.budget-nav-item').forEach(function(item) {
       if (item.dataset.budgetId == budgetId) {
         item.classList.add('bg-surface', 'dark:bg-surface-dark');
@@ -249,11 +263,10 @@
     document.getElementById('new-item-modal').classList.remove('hidden');
   };
 
-  window.openEditItemModal = function(itemId, name, amount, category, notes) {
+  window.openEditItemModal = function(itemId, categoryId, amount, notes) {
     var form = document.getElementById('edit-item-form');
     form.action = '/single_budgets/' + window.currentBudgetId + '/budget_items/' + itemId;
-    document.getElementById('edit-item-category').value = category || '';
-    document.getElementById('edit-item-name').value = name || '';
+    document.getElementById('edit-item-category').value = categoryId || '';
     document.getElementById('edit-item-amount').value = amount;
     document.getElementById('edit-item-notes').value = notes || '';
     document.getElementById('edit-item-modal').classList.remove('hidden');
@@ -298,9 +311,8 @@
     var container = document.getElementById('budget-items-table');
     if (!container) return;
     
-    // 保存添加按钮的引用
     var addBtn = document.getElementById('add-item-btn');
-    var addBtnContainer = addBtn ? addBtn.parentElement : null;
+    var budgetId = window.currentBudgetId;
     
     if (!items || items.length === 0) {
       container.innerHTML = 
@@ -312,7 +324,7 @@
           '<table class="w-full">' +
             '<thead>' +
               '<tr class="border-b border-border dark:border-border-dark">' +
-                '<th class="text-left py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">名称</th>' +
+                '<th class="text-left py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>' +
                 '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>' +
                 '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>' +
                 '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>' +
@@ -331,17 +343,31 @@
       var percentage = item.amount > 0 ? (item.spent_amount / item.amount * 100).toFixed(1) : 0;
       var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income');
       var remainingColor = remaining >= 0 ? 'text-income' : 'text-expense';
+      var escapedNotes = escapeHtml(item.notes || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
+      var escapedCategoryName = escapeHtml(item.category_name || item.name || '');
+      var escapedAmount = escapeHtml(item.formatted_amount);
+      var escapedSpent = escapeHtml(item.formatted_spent);
       return '<tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">' +
-        '<td class="py-2.5 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + item.name + '</span></td>' +
-        '<td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark">' + item.formatted_amount + '</td>' +
-        '<td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark">' + item.formatted_spent + '</td>' +
-        '<td class="py-2.5 px-2 text-right font-medium ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + item.currency_symbol + Math.abs(remaining).toFixed(2) + '</td>' +
+        '<td class="py-2.5 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + escapedCategoryName + '</span></td>' +
+        '<td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark">' + escapedAmount + '</td>' +
+        '<td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark">' + escapedSpent + '</td>' +
+        '<td class="py-2.5 px-2 text-right font-medium ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + escapeHtml(item.currency_symbol) + Math.abs(remaining).toFixed(2) + '</td>' +
         '<td class="py-2.5 px-2">' +
           '<div class="flex items-center gap-2 justify-end">' +
             '<div class="w-20 h-2 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">' +
               '<div class="h-full rounded-full ' + progressColor + '" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
             '</div>' +
             '<span class="text-xs ' + (percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-secondary dark:text-secondary-dark')) + '">' + percentage + '%</span>' +
+            '<button onclick="openEditItemModal(' + item.id + ', ' + item.category_id + ', ' + item.amount + ', \'' + escapedNotes + '\')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">' +
+              '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>' +
+            '</button>' +
+            '<form action="/single_budgets/' + budgetId + '/budget_items/' + item.id + '" method="post" style="display:inline" onsubmit="if(!confirm(\'确定删除此项目？\')) return false">' +
+              '<input type="hidden" name="authenticity_token" value="' + window.authToken + '">' +
+              '<input type="hidden" name="_method" value="delete">' +
+              '<button type="submit" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth" title="删除">' +
+                '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>' +
+              '</button>' +
+            '</form>' +
           '</div>' +
         '</td>' +
       '</tr>';
@@ -355,7 +381,7 @@
         '<table class="w-full">' +
           '<thead>' +
             '<tr class="border-b border-border dark:border-border-dark">' +
-              '<th class="text-left py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">名称</th>' +
+              '<th class="text-left py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>' +
               '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>' +
               '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>' +
               '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>' +
@@ -369,21 +395,28 @@
 
   document.addEventListener('DOMContentLoaded', function() {
     var select = document.getElementById('budget-select');
-    if (select) {
-      if (select.value) {
-        document.getElementById('add-item-btn').classList.remove('hidden');
-        if (!window.currentBudgetId) {
-          window.selectBudget(parseInt(select.value, 10));
-        }
+    var addBtn = document.getElementById('add-item-btn');
+    
+    if (select && select.value) {
+      window.currentBudgetId = parseInt(select.value, 10);
+      if (addBtn) {
+        addBtn.classList.remove('hidden');
+        addBtn.dataset.budgetId = select.value;
       }
-      
+    }
+    
+    if (select) {
       select.addEventListener('change', function() {
         var id = this.value;
         if (id) {
           window.selectBudget(parseInt(id));
-          document.getElementById('add-item-btn').classList.remove('hidden');
+          if (addBtn) {
+            addBtn.classList.remove('hidden');
+          }
         } else {
-          document.getElementById('add-item-btn').classList.add('hidden');
+          if (addBtn) {
+            addBtn.classList.add('hidden');
+          }
         }
       });
     }
@@ -528,13 +561,12 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
-            <select name="budget_item[category]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" onchange="this.nextElementSibling.value = this.value">
+            <select name="budget_item[category_id]" id="new-item-category" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择分类</option>
               <% Category.expense.each do |cat| %>
-                <option value="<%= cat.name %>"><%= cat.full_name %></option>
+                <option value="<%= cat.id %>"><%= cat.full_name %></option>
               <% end %>
             </select>
-            <input type="hidden" name="budget_item[name]" value="">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>
@@ -574,13 +606,12 @@
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
-            <select id="edit-item-category" name="budget_item[category]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select id="edit-item-category" name="budget_item[category_id]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择分类</option>
               <% Category.expense.each do |cat| %>
-                <option value="<%= cat.name %>"><%= cat.full_name %></option>
+                <option value="<%= cat.id %>"><%= cat.full_name %></option>
               <% end %>
             </select>
-            <input type="hidden" name="budget_item[name]" id="edit-item-name" value="">
           </div>
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算金额 *</label>

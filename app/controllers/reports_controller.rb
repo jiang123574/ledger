@@ -24,6 +24,7 @@ class ReportsController < ApplicationController
 
     # 收支统计 - 使用 Entry
     entries = Entry.where(date: @start_date..@end_date, entryable_type: 'Entryable::Transaction')
+      .where("transfer_id IS NULL")
 
     @total_income = entries.where('amount > 0').sum(:amount)
     @total_expense = entries.where('amount < 0').sum('ABS(amount)')
@@ -70,6 +71,7 @@ class ReportsController < ApplicationController
     if @report_type == :yearly
       stats = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
         .where(entries: { entryable_type: 'Entryable::Transaction' })
+        .where("entries.transfer_id IS NULL")
         .where(date: @start_date..@end_date)
         .group("date_trunc('month', entries.date)", 'entryable_transactions.kind')
         .select("date_trunc('month', entries.date) as month_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
@@ -90,6 +92,7 @@ class ReportsController < ApplicationController
     else
       stats = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
         .where(entries: { entryable_type: 'Entryable::Transaction' })
+        .where("entries.transfer_id IS NULL")
         .where(date: @start_date..@end_date)
         .group("date_trunc('week', entries.date)", 'entryable_transactions.kind')
         .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
@@ -125,6 +128,7 @@ class ReportsController < ApplicationController
     Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
       .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
       .where(entries: { entryable_type: 'Entryable::Transaction' })
+      .where("entries.transfer_id IS NULL")
       .where(entryable_transactions: { kind: kind })
       .where(date: @start_date..@end_date)
       .group("categories.name")
@@ -139,6 +143,7 @@ class ReportsController < ApplicationController
     category_ids = @budgets.pluck(:category_id)
     spent_by_category = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
       .where(entries: { entryable_type: 'Entryable::Transaction' })
+      .where("entries.transfer_id IS NULL")
       .where(entryable_transactions: { kind: 'expense', category_id: category_ids })
       .where(date: @start_date..@end_date)
       .group('entryable_transactions.category_id')

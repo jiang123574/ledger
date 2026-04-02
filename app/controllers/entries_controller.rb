@@ -1,29 +1,11 @@
 # frozen_string_literal: true
 
 class EntriesController < ApplicationController
-  before_action :set_entry, only: [:show, :edit, :update, :destroy]
-  before_action :load_lookups, only: [:new, :edit, :create, :update]
+  before_action :set_entry, only: [:update, :destroy]
+  before_action :load_lookups, only: [:create, :update]
 
   def index
     redirect_to accounts_path(request.query_parameters)
-  end
-
-  def show
-    redirect_to accounts_path
-  end
-
-  def new
-    redirect_to accounts_path(open_new_entry: 1)
-  end
-
-  def edit
-    @entry = Entry.find(params[:id])
-    @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order
-    
-    if request.xhr?
-      render :edit_modal, layout: false
-    end
   end
 
   def create

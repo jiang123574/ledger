@@ -3,12 +3,6 @@ class RecurringController < ApplicationController
     @recurring = RecurringTransaction.includes(:account, :category).order(:next_date)
   end
 
-  def new
-    @recurring = RecurringTransaction.new
-    @accounts = Account.order(:name)
-    @categories = Category.order(:name)
-  end
-
   def create
     @recurring = RecurringTransaction.new(recurring_params)
     if @recurring.save
@@ -16,12 +10,6 @@ class RecurringController < ApplicationController
     else
       redirect_to recurring_index_path, alert: @recurring.errors.full_messages.join(", ")
     end
-  end
-
-  def edit
-    @recurring = RecurringTransaction.find(params[:id])
-    @accounts = Account.order(:name)
-    @categories = Category.order(:name)
   end
 
   def update

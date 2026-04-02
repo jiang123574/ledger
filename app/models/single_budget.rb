@@ -27,8 +27,12 @@ class SingleBudget < ApplicationRecord
   scope :cancelled, -> { where(status: "cancelled") }
 
   def recalculate_spent_amount
+    # 先重新计算每个子预算项的支出
+    budget_items.each(&:recalculate_spent_amount)
+    
+    # 如果 SingleBudget 有自己的分类，则按分类统计
     if category && start_date && end_date
-      category_ids = category.self_and_descendants.select(:id)
+      category_ids = category.self_and_descendants.map(&:id)
       end_date_val = end_date || start_date
       
       # 使用 Entry 查询
@@ -40,6 +44,7 @@ class SingleBudget < ApplicationRecord
       
       update(spent_amount: spent)
     else
+      # 否则汇总子预算项的支出
       update(spent_amount: budget_items.sum(:spent_amount))
     end
   end

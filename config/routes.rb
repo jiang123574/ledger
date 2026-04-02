@@ -7,13 +7,13 @@ Rails.application.routes.draw do
 
   root to: redirect("/accounts")
 
-  resources :transactions do
+  resources :transactions, only: [:index, :edit] do
     collection do
       post :bulk_destroy
     end
   end
 
-  resources :entries do
+  resources :entries, only: [:index, :create, :update, :destroy] do
     collection do
       post :bulk_destroy
     end
@@ -49,38 +49,25 @@ Rails.application.routes.draw do
   end
   # 单次预算功能已合并到预算管理 /budgets
   get "single_budgets" => redirect("/budgets")
-  resources :single_budgets, only: [] do
-    member do
-      get :edit
-      patch :update
-      delete :destroy
-    end
-    collection do
-      post :create
-    end
+  resources :single_budgets, only: [:create, :update, :destroy] do
     patch :start
     patch :complete
     patch :cancel
-    resources :budget_items do
-      member do
-        patch :update
-        delete :destroy
-      end
-    end
+    resources :budget_items, only: [:create, :update, :destroy]
   end
-  resources :plans do
+  resources :plans, only: [:index, :show, :create, :update, :destroy] do
     member do
       post :execute
     end
   end
-  resources :receivables do
+  resources :receivables, only: [:index, :show, :create, :update, :destroy] do
     member do
       get :settle
       post :settle
       post :revert
     end
   end
-  resources :recurring, controller: "recurring", only: [ :index, :new, :create, :edit, :update, :destroy ] do
+  resources :recurring, controller: "recurring", only: [:index, :create, :update, :destroy] do
     member do
       post :execute
     end

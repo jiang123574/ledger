@@ -22,6 +22,7 @@ class DashboardController < ApplicationController
     @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{@cache_key}", expires_in: 2.minutes) do
       Entry.includes(:account, :entryable)
         .where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
+        .where("transfer_id IS NULL")
         .reverse_chronological
         .limit(50)
         .to_a
@@ -33,6 +34,7 @@ class DashboardController < ApplicationController
     # Cache monthly stats - 使用 Entry
     @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}", expires_in: 5.minutes) do
       entries = Entry.where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
+        .where("transfer_id IS NULL")
       {
         income: entries.where('amount > 0').sum(:amount),
         expense: entries.where('amount < 0').sum('ABS(amount)'),
@@ -49,6 +51,7 @@ class DashboardController < ApplicationController
         .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
         .where(entries: { entryable_type: 'Entryable::Transaction' })
         .where(date: start_date..end_date)
+        .where("entries.transfer_id IS NULL")
         .where(entryable_transactions: { kind: 'expense' })
         .group("categories.name")
         .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
@@ -59,6 +62,7 @@ class DashboardController < ApplicationController
     @total_budget = @budgets.sum(:amount)
     @total_spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
       .where(entries: { entryable_type: 'Entryable::Transaction' })
+      .where("entries.transfer_id IS NULL")
       .where(entryable_transactions: { kind: 'expense', category_id: @budgets.pluck(:category_id) })
       .where(date: start_date..end_date)
       .sum('ABS(entries.amount)')
