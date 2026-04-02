@@ -19,6 +19,8 @@ class AccountsController < ApplicationController
       account_id = params[:account_id]
       @entries = @entries.where(account_id: account_id)
       @current_account_id = account_id
+    else
+      @entries = @entries.where("transfer_id IS NULL OR amount < 0")
     end
 
     if params[:type].present?
@@ -222,29 +224,47 @@ class AccountsController < ApplicationController
     initial_balance = if params[:account_id].present?
       Account.find_by(id: params[:account_id])&.initial_balance || 0
     else
-      Account.included_in_total.sum(&:initial_balance)
+      Account.included_in_total.sum { |a| a.initial_balance || 0 }
     end
     
-    result = []
-    if @page == 1 && paginated_entries.any?
-      sorted = paginated_entries.sort_by { |e| [e.date || Date.new(1970), e.id] }
-      running_balance = initial_balance.to_d
-      balance_map = {}
-      
-      sorted.each do |e|
+    if paginated_entries.empty?
+      return paginated_entries.map { |e| [e, nil] }
+    end
+    
+    earliest_date = paginated_entries.map(&:date).min
+    earliest_id = paginated_entries.map(&:id).min
+    
+    all_prior_entries = Entry.where(entryable_type: 'Entryable::Transaction')
+      .joins(:account)
+    
+    if params[:account_id].present?
+      all_prior_entries = all_prior_entries.where(account_id: params[:account_id])
+    else
+      all_prior_entries = all_prior_entries.where(accounts: { include_in_total: true })
+      all_prior_entries = all_prior_entries.where("transfer_id IS NULL")
+    end
+    
+    all_prior_entries = all_prior_entries
+      .where("entries.date < ? OR (entries.date = ? AND entries.id < ?)", earliest_date, earliest_date, earliest_id)
+      .select("SUM(entries.amount) as total_amount")
+      .to_a.first
+    
+    prior_total = all_prior_entries&.total_amount || 0
+    running_balance = initial_balance.to_d + prior_total.to_d
+    
+    sorted = paginated_entries.sort_by { |e| [e.date || Date.new(1970), e.id] }
+    balance_map = {}
+    
+    sorted.each do |e|
+      if e.transfer_id.present? && params[:account_id].blank?
+        balance_map[e.id] = running_balance
+      else
         running_balance += e.amount.to_d
         balance_map[e.id] = running_balance
       end
-      
-      paginated_entries.each do |e|
-        result << [e, balance_map[e.id] || running_balance]
-      end
-    else
-      paginated_entries.each do |e|
-        result << [e, nil]
-      end
     end
-    result
+    
+    paginated_entries.map { |e| [e, balance_map[e.id] || running_balance] }
   end
 
   def apply_period_filter(scope, period_type, period_value)
@@ -287,9 +307,16 @@ class AccountsController < ApplicationController
     if entry.transfer_id.present?
       t.type = 'TRANSFER'
       if entry.amount < 0
+        t.account_id = entry.account_id
+        t.account = entry.account
         t.target_account_id = find_transfer_target_account(entry)
+        t.target_account = Account.find_by(id: t.target_account_id)
       else
-        t.account_id = find_transfer_source_account(entry)
+        source_account_id = find_transfer_source_account(entry)
+        t.account_id = source_account_id
+        t.account = Account.find_by(id: source_account_id)
+        t.target_account_id = entry.account_id
+        t.target_account = entry.account
       end
     elsif entry.entryable.respond_to?(:kind)
       t.type = entry.entryable.kind.upcase

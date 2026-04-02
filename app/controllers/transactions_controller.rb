@@ -26,19 +26,84 @@ class TransactionsController < ApplicationController
   end
 
   def create
-    if create_expense_with_funding_transfer?
+    attrs = transaction_params
+    type = attrs[:type]
+    account_id = attrs[:account_id]
+    target_account_id = attrs[:target_account_id]
+    amount = attrs[:amount].to_d
+    date = attrs[:date]
+    currency = attrs[:currency] || "CNY"
+    note = attrs[:note]
+    category_id = attrs[:category_id]
+
+    if type == "TRANSFER"
+      create_transfer_entry(account_id, target_account_id, amount, date, currency, note)
+    elsif create_expense_with_funding_transfer?
       create_with_funding_transfer
-      return
-    end
-
-    @transaction = build_transaction
-
-    if @transaction.save
-      expire_transactions_cache
-      handle_successful_save("交易已创建")
     else
-      redirect_to accounts_path(filter_params), alert: @transaction.errors.full_messages.join(", ")
+      create_regular_entry(type, account_id, amount, date, currency, note, category_id)
     end
+  end
+
+  def create_regular_entry(type, account_id, amount, date, currency, note, category_id)
+    kind = type.downcase
+
+    entryable = Entryable::Transaction.create!(
+      kind: kind,
+      category_id: category_id
+    )
+
+    entry = Entry.create!(
+      account_id: account_id,
+      date: date,
+      name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
+      amount: kind == 'income' ? amount : -amount,
+      currency: currency,
+      notes: note,
+      entryable: entryable
+    )
+
+    expire_transactions_cache
+    handle_successful_save("交易已创建")
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to accounts_path(filter_params), alert: e.record.errors.full_messages.join(", ")
+  end
+
+  def create_transfer_entry(from_account_id, to_account_id, amount, date, currency, note)
+    from_account = Account.find(from_account_id)
+    to_account = Account.find(to_account_id)
+
+    transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
+    transfer_note = note.presence || "转账: #{from_account.name} → #{to_account.name}"
+
+    entry_out = Entry.create!(
+      account_id: from_account_id,
+      date: date,
+      name: transfer_note,
+      amount: -amount,
+      currency: currency,
+      notes: transfer_note,
+      entryable: Entryable::Transaction.create!(kind: 'expense'),
+      transfer_id: transfer_id
+    )
+
+    entry_in = Entry.create!(
+      account_id: to_account_id,
+      date: date,
+      name: transfer_note,
+      amount: amount,
+      currency: currency,
+      notes: transfer_note,
+      entryable: Entryable::Transaction.create!(kind: 'income'),
+      transfer_id: transfer_id
+    )
+
+    expire_transactions_cache
+    handle_successful_save("转账已创建")
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to accounts_path(filter_params), alert: e.record.errors.full_messages.join(", ")
+  rescue ActiveRecord::RecordNotFound => e
+    redirect_to accounts_path(filter_params), alert: "账户不存在"
   end
 
   def update
@@ -153,15 +218,6 @@ class TransactionsController < ApplicationController
     }[type] || type
   end
 
-  def build_transaction
-    attrs = transaction_params
-
-    tag_ids = attrs.delete(:tag_ids) || []
-    transaction = Transaction.new(attrs)
-    transaction.tag_ids = tag_ids.reject(&:blank?).map(&:to_i)
-    transaction
-  end
-
   def create_expense_with_funding_transfer?
     params.dig(:transaction, :type) == "EXPENSE" &&
       params[:funding_account_id].present? &&
@@ -173,9 +229,14 @@ class TransactionsController < ApplicationController
     attrs = transaction_params
     source_account = Account.find(params[:funding_account_id])
     destination_account = Account.find(attrs[:account_id])
+    amount = attrs[:amount].to_d
+    date = attrs[:date]
+    currency = attrs[:currency] || "CNY"
     note = attrs[:note]
+    category_id = attrs[:category_id]
 
-    Transaction.transaction do
+    Entry.transaction do
+      transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
       transfer_note = [
         "自动补记资金来源",
         source_account.name,
@@ -184,19 +245,45 @@ class TransactionsController < ApplicationController
         (note.present? ? "（#{note}）" : nil)
       ].compact.join(" ")
 
-      transfer_out = Transaction.create_transfer!(
-        from_account: source_account,
-        to_account: destination_account,
-        amount: attrs[:amount],
-        date: attrs[:date],
-        note: transfer_note
+      Entry.create!(
+        account_id: source_account.id,
+        date: date,
+        name: transfer_note,
+        amount: -amount,
+        currency: currency,
+        notes: transfer_note,
+        entryable: Entryable::Transaction.create!(kind: 'expense'),
+        transfer_id: transfer_id
       )
 
-      @transaction = build_transaction
-      @transaction.link = transfer_out
-      @transaction.save!
+      Entry.create!(
+        account_id: destination_account.id,
+        date: date,
+        name: transfer_note,
+        amount: amount,
+        currency: currency,
+        notes: transfer_note,
+        entryable: Entryable::Transaction.create!(kind: 'income'),
+        transfer_id: transfer_id
+      )
+
+      expense_entryable = Entryable::Transaction.create!(
+        kind: 'expense',
+        category_id: category_id
+      )
+
+      Entry.create!(
+        account_id: destination_account.id,
+        date: date,
+        name: note.presence || "支出 #{amount}",
+        amount: -amount,
+        currency: currency,
+        notes: note,
+        entryable: expense_entryable
+      )
     end
 
+    expire_transactions_cache
     handle_successful_save("交易已创建（已自动补记资金来源转账）")
   rescue ActiveRecord::RecordInvalid => e
     redirect_to accounts_path(filter_params), alert: e.record.errors.full_messages.join(", ")
