@@ -344,35 +344,6 @@
         categoryField.classList.add('hidden');
         targetAccountField.classList.remove('hidden');
         if (accountLabelOut) accountLabelOut.textContent = '转出账户';
-        // 切换到转账时使用通用账户列表
-      } else {
-        categoryField.classList.remove('hidden');
-        targetAccountField.classList.add('hidden');
-        if (accountLabelOut) accountLabelOut.textContent = '账户';
-        // 根据类型切换分类列表
-        var categoryList = tab.dataset.type === 'EXPENSE' ? expenseCategories : incomeCategories;
-        initCategorySelector('category-selector-search', 'category-selector-dropdown', 'category-selector-filter', 'category-selector-options', 'transaction_category_id', categoryList, '选择分类');
-      }
-    });
-  });
-  
-  // 监听交易类型切换
-  document.querySelectorAll('.type-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.type-tab').forEach(function(t) {
-        t.classList.remove('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-blue-500');
-      });
-      tab.classList.add('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-blue-500');
-      document.getElementById('transaction_type').value = tab.dataset.type;
-      
-      const categoryField = document.getElementById('category-field');
-      const targetAccountField = document.getElementById('target-account-field');
-      const accountLabelOut = document.getElementById('account-label-out');
-      
-      if (tab.dataset.type === 'TRANSFER') {
-        categoryField.classList.add('hidden');
-        targetAccountField.classList.remove('hidden');
-        if (accountLabelOut) accountLabelOut.textContent = '转出账户';
       } else {
         categoryField.classList.remove('hidden');
         targetAccountField.classList.add('hidden');
