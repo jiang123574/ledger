@@ -151,19 +151,23 @@
   var expenseCategories = [];
   var incomeCategories = [];
   
-  var accountsDataEl = document.getElementById('accounts-data');
-  if (accountsDataEl) {
-    allAccounts = JSON.parse(accountsDataEl.textContent);
-  }
-  
-  var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
-  if (expenseCategoriesDataEl) {
-    expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
-  }
-  
-  var incomeCategoriesDataEl = document.getElementById('income-categories-data');
-  if (incomeCategoriesDataEl) {
-    incomeCategories = JSON.parse(incomeCategoriesDataEl.textContent);
+  try {
+    var accountsDataEl = document.getElementById('accounts-data');
+    if (accountsDataEl && accountsDataEl.textContent) {
+      allAccounts = JSON.parse(accountsDataEl.textContent);
+    }
+    
+    var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
+    if (expenseCategoriesDataEl && expenseCategoriesDataEl.textContent) {
+      expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
+    }
+    
+    var incomeCategoriesDataEl = document.getElementById('income-categories-data');
+    if (incomeCategoriesDataEl && incomeCategoriesDataEl.textContent) {
+      incomeCategories = JSON.parse(incomeCategoriesDataEl.textContent);
+    }
+  } catch (e) {
+    console.error('Error parsing category/account data:', e);
   }
 
   function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, placeholder) {
