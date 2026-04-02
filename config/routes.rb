@@ -13,7 +13,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :entries do
+  resources :entries, only: [:index, :create, :update, :destroy] do
     collection do
       post :bulk_destroy
     end
