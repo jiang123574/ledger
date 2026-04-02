@@ -807,7 +807,7 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <!-- 编辑交易弹窗 -->
-<div id="edit-transaction-modal" data-turbo-permanent class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')"></div>
   <div class="relative min-h-screen flex items-center justify-center p-4">
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8 z-10">
@@ -1582,4 +1582,22 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
 initAccountSelector('account-search-input', 'account-dropdown', 'account-filter-input', 'account-options', 'transaction_account_id', '选择账户');
 initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 'funding-account-filter-input', 'funding-account-options', 'funding_account_id', '不补记资金来源');
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
+
+// 修复 Turbo 缓存导致的 modal 嵌套问题
+function fixModalPositions() {
+  const modals = ['edit-transaction-modal', 'category-filter-modal'];
+  modals.forEach(function(id) {
+    const modal = document.getElementById(id);
+    if (modal && modal.parentElement && modal.parentElement.id === 'add-transaction-modal') {
+      document.body.appendChild(modal);
+    }
+  });
+}
+
+// DOM 加载完成后修复
+document.addEventListener('DOMContentLoaded', fixModalPositions);
+
+// Turbo 页面加载后修复
+document.addEventListener('turbo:load', fixModalPositions);
+document.addEventListener('turbo:render', fixModalPositions);
 </script>
