@@ -233,6 +233,14 @@ module.exports = {
         destructive: {
           DEFAULT: '#ec2222',
           hover: '#f13636'
+        },
+        spent: {
+          DEFAULT: '#22c55e',
+          dark: '#22c55e'
+        },
+        remaining: {
+          DEFAULT: '#8b5cf6',
+          dark: '#a78bfa'
         }
       },
       fontFamily: {

@@ -767,10 +767,11 @@ function confirmDeleteAccount(id, name) {
                 </div>
                 <div id="target-account-options" class="py-1"></div>
               </div>
-</div>
+            </div>
+          </div>
           <div id="transaction-category-field">
             <label id="transaction-category-label" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">支出分类</label>
-            <input type="hidden" name="transaction[category_id]" id="transaction_category_id" value="">
+            <input type="hidden" name="transaction[category_id]" id="new_transaction_category_id" value="">
             <div class="relative">
               <input type="text" id="category-search-input" 
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -832,14 +833,25 @@ function confirmDeleteAccount(id, name) {
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <div class="max-h-80 overflow-y-auto space-y-2 border border-border dark:border-border-dark rounded-lg p-3">
-        <% @categories.each do |category| %>
-          <label class="flex items-center gap-2 py-1 cursor-pointer">
-            <input type="checkbox" class="category-filter-option w-4 h-4 rounded border-border dark:border-border-dark"
-                   value="<%= category.id %>"
-                   <%= selected_category_ids.include?(category.id.to_s) ? "checked" : "" %>>
-            <span class="text-sm text-primary dark:text-primary-dark"><%= category.name %></span>
-          </label>
+      <input type="text" id="category-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <div id="category-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
+        <% 
+        expense_categories = @categories.select { |c| c.category_type == 'EXPENSE' }
+        income_categories = @categories.select { |c| c.category_type == 'INCOME' }
+        %>
+        
+        <% if expense_categories.any? %>
+          <div class="category-type-section border-b border-border dark:border-border-dark">
+            <div class="px-3 py-2 bg-expense-light dark:bg-expense-light text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
+            <%= render_category_filter_tree(expense_categories.select { |c| c.parent_id.nil? }, selected_category_ids) %>
+          </div>
+        <% end %>
+        
+        <% if income_categories.any? %>
+          <div class="category-type-section">
+            <div class="px-3 py-2 bg-income-light dark:bg-income-light text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
+            <%= render_category_filter_tree(income_categories.select { |c| c.parent_id.nil? }, selected_category_ids) %>
+          </div>
         <% end %>
       </div>
       <div class="flex justify-end gap-3 mt-4">
@@ -1273,7 +1285,47 @@ document.getElementById('type-filter')?.addEventListener('change', applyFilters)
 
 document.getElementById('open-category-filter')?.addEventListener('click', function() {
   document.getElementById('category-filter-modal').classList.remove('hidden');
+  document.getElementById('category-filter-search').value = '';
+  document.getElementById('category-filter-search').focus();
+  var sections = document.querySelectorAll('.category-type-section');
+  sections.forEach(function(section) {
+    section.style.removeProperty('display');
+  });
+  var items = document.querySelectorAll('.category-filter-item');
+  items.forEach(function(item) {
+    item.style.removeProperty('display');
+  });
 });
+
+document.getElementById('category-filter-search')?.addEventListener('input', function(e) {
+  filterCategoryOptions(e.target.value);
+});
+
+function filterCategoryOptions(query) {
+  var items = document.querySelectorAll('.category-filter-item');
+  var sections = document.querySelectorAll('.category-type-section');
+  var lowerQuery = query.toLowerCase();
+  
+  items.forEach(function(item) {
+    var name = item.dataset.name.toLowerCase();
+    var fullName = item.dataset.fullName.toLowerCase();
+    var pinyin = item.dataset.pinyin;
+    if (!query || name.includes(lowerQuery) || fullName.includes(lowerQuery) || (pinyin && pinyin.includes(lowerQuery))) {
+      item.style.removeProperty('display');
+    } else {
+      item.style.display = 'none';
+    }
+  });
+  
+  sections.forEach(function(section) {
+    var visibleItems = section.querySelectorAll('.category-filter-item:not([style*="display: none"])');
+    if (visibleItems.length > 0) {
+      section.style.removeProperty('display');
+    } else {
+      section.style.display = 'none';
+    }
+  });
+}
 
 document.getElementById('confirm-category-filter')?.addEventListener('click', function() {
   selectedCategoryIds = Array.from(document.querySelectorAll('.category-filter-option:checked')).map(el => el.value);
@@ -1351,7 +1403,7 @@ var categorySearchInput = document.getElementById('category-search-input');
 var categoryDropdown = document.getElementById('category-dropdown');
 var categoryFilterInput = document.getElementById('category-filter-input');
 var categoryOptions = document.getElementById('category-options');
-var categoryHiddenInput = document.getElementById('transaction_category_id');
+var categoryHiddenInput = document.getElementById('new_transaction_category_id');
 var currentCategories = [];
 
 // 渲染分类选项
@@ -1452,12 +1504,28 @@ transactionTypeCards.forEach((card) => {
 applyTransactionTypeUI();
 
 function openEditTransactionModal(id) {
+  // 先清理旧内容
+  const container = document.getElementById('edit-transaction-content');
+  container.innerHTML = '';
+  
   fetch(`/transactions/${id}/edit`, {
     headers: { 'Accept': 'text/html', 'X-Requested-With': 'XMLHttpRequest' }
   })
   .then(res => res.text())
   .then(html => {
-    document.getElementById('edit-transaction-content').innerHTML = html;
+    container.innerHTML = html;
+    // 手动执行脚本（innerHTML 不会自动执行 script 标签）
+    const scripts = container.querySelectorAll('script');
+    scripts.forEach(script => {
+      const newScript = document.createElement('script');
+      if (script.src) {
+        newScript.src = script.src;
+      } else {
+        newScript.textContent = script.textContent;
+      }
+      document.body.appendChild(newScript);
+      document.body.removeChild(newScript);
+    });
     document.getElementById('edit-transaction-modal').classList.remove('hidden');
   })
   .catch(err => console.error('Error loading transaction:', err));
@@ -1597,6 +1665,9 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
 initAccountSelector('account-search-input', 'account-dropdown', 'account-filter-input', 'account-options', 'transaction_account_id', '选择账户');
 initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 'funding-account-filter-input', 'funding-account-options', 'funding_account_id', '不补记资金来源');
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
+
+// 初始化分类选择器 - 加载支出分类数据
+switchCategoryType('EXPENSE');
 
 // 修复 Turbo 缓存导致的 modal 嵌套问题
 function fixModalPositions() {

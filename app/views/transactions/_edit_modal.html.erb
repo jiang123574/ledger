@@ -132,52 +132,21 @@
         </div>
       <% end %>
 
-<!-- 账户和分类数据 -->
-<script id="accounts-data" type="application/json">
-  <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
-</script>
-<script id="expense-categories-data" type="application/json">
-  <%= raw @categories.select(&:expense?).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
-</script>
-<script id="income-categories-data" type="application/json">
-  <%= raw @categories.select(&:income?).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
-</script>
-
 <script>
-  // HTML 转义函数，防止 XSS
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  // 账户选择器逻辑（带拼音搜索）
-  var allAccounts = [];
-  var expenseCategories = [];
-  var incomeCategories = [];
-  
-  try {
-    var accountsDataEl = document.getElementById('accounts-data');
-    if (accountsDataEl && accountsDataEl.textContent) {
-      allAccounts = JSON.parse(accountsDataEl.textContent);
-    }
+  (function() {
+    var allAccounts = <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>;
+    var expenseCategories = <%= raw @categories.select(&:expense?).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>;
+    var incomeCategories = <%= raw @categories.select(&:income?).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>;
     
-    var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
-    if (expenseCategoriesDataEl && expenseCategoriesDataEl.textContent) {
-      expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
     }
-    
-    var incomeCategoriesDataEl = document.getElementById('income-categories-data');
-    if (incomeCategoriesDataEl && incomeCategoriesDataEl.textContent) {
-      incomeCategories = JSON.parse(incomeCategoriesDataEl.textContent);
-    }
-  } catch (e) {
-    console.error('Error parsing category/account data:', e);
-  }
 
   function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, placeholder) {
     var searchInput = document.getElementById(searchInputId);
@@ -265,6 +234,14 @@
 
     if (!searchInput || !dropdown || !optionsContainer) return;
 
+    // 移除旧的事件监听器（通过克隆元素）
+    var newSearchInput = searchInput.cloneNode(true);
+    searchInput.parentNode.replaceChild(newSearchInput, searchInput);
+    searchInput = newSearchInput;
+    
+    // 重置下拉菜单状态
+    dropdown.classList.add('hidden');
+
     function renderOptions(filterText) {
       var filtered = categories.filter(function(cat) {
         if (!filterText) return true;
@@ -307,7 +284,8 @@
     }
 
     if (searchInput) {
-      searchInput.addEventListener('click', function() {
+      searchInput.addEventListener('click', function(e) {
+        e.stopPropagation();
         dropdown.classList.toggle('hidden');
         if (!dropdown.classList.contains('hidden')) {
           updateOptions();
@@ -328,11 +306,17 @@
       });
     }
 
-    document.addEventListener('click', function(e) {
+    // 使用命名函数以便移除
+    var closeDropdownHandler = function(e) {
       if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
         dropdown.classList.add('hidden');
       }
-    });
+    };
+    
+    // 移除旧的处理器（如果存在）
+    document.removeEventListener('click', window._categoryCloseDropdownHandler);
+    window._categoryCloseDropdownHandler = closeDropdownHandler;
+    document.addEventListener('click', closeDropdownHandler);
   }
 
   // 初始化选择器
@@ -408,6 +392,7 @@
     })
     .catch(err => console.error('Error saving transaction:', err));
   });
+  })();
 </script>
 
 </div>

@@ -159,7 +159,6 @@ module ApplicationHelper
       prefix = "　" * level + (level > 0 ? "└ " : "")
       options << [ "#{prefix}#{category.name}", category.id ]
 
-      # 递归添加子分类
       children = categories.select { |c| c.parent_id == category.id }
       if children.any?
         options += build_category_tree_options(categories, category.id, level + 1)
@@ -167,5 +166,25 @@ module ApplicationHelper
     end
 
     options
+  end
+
+  def render_category_filter_tree(categories, selected_ids)
+    safe_join(categories.map do |cat|
+      indent = 'padding-left: ' + (cat.level * 16 + 12).to_s + 'px'
+      
+      content_tag(:label, class: 'flex items-center gap-2 py-1.5 px-3 cursor-pointer category-filter-item hover:bg-surface-hover dark:hover:bg-surface-dark-hover border-b border-border dark:border-border-dark last:border-b-0', 
+                  data: { name: cat.name, full_name: cat.full_name, pinyin: PinYin.abbr(cat.full_name).downcase, type: cat.category_type }, 
+                  style: indent) do
+        safe_join([
+          check_box_tag('category_ids[]', cat.id, selected_ids.include?(cat.id.to_s), class: 'category-filter-option w-4 h-4 rounded border-border dark:border-border-dark'),
+          content_tag(:span, cat.full_name, class: 'text-sm text-primary dark:text-primary-dark')
+        ])
+      end.html_safe +
+      if cat.children.active.by_sort_order.to_a.any?
+        render_category_filter_tree(cat.children.active.by_sort_order, selected_ids)
+      else
+        ''.html_safe
+      end
+    end)
   end
 end

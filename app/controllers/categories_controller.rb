@@ -1,36 +1,26 @@
 class CategoriesController < ApplicationController
-  before_action :set_category, only: [ :edit, :update, :destroy ]
-
-  def index
-    @categories = Category.includes(:parent).order(:sort_order, :name)
-    @category = Category.new
-  end
-
-  def edit
-    @categories = Category.includes(:parent).order(:sort_order, :name)
-  end
+  before_action :set_category, only: [ :update, :destroy ]
 
   def create
     @category = Category.new(category_params)
     if @category.save
-      redirect_to categories_path, notice: "分类已创建"
+      redirect_to settings_path(section: 'categories'), notice: "分类已创建"
     else
-      @categories = Category.includes(:parent).order(:sort_order, :name)
-      render :index
+      redirect_to settings_path(section: 'categories'), alert: @category.errors.full_messages.join(', ')
     end
   end
 
   def update
     if @category.update(category_params)
-      redirect_to categories_path, notice: "分类已更新"
+      redirect_to settings_path(section: 'categories'), notice: "分类已更新"
     else
-      render :edit
+      redirect_to settings_path(section: 'categories'), alert: @category.errors.full_messages.join(', ')
     end
   end
 
   def destroy
     @category.destroy
-    redirect_to categories_url, notice: "分类已删除"
+    redirect_to settings_path(section: 'categories'), notice: "分类已删除"
   end
 
   private

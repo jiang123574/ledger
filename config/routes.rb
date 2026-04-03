@@ -7,7 +7,7 @@ Rails.application.routes.draw do
 
   root to: redirect("/accounts")
 
-  resources :transactions, only: [:index, :edit, :update, :destroy] do
+  resources :transactions, only: [:index, :create, :edit, :update, :destroy] do
     collection do
       post :bulk_destroy
     end
@@ -39,7 +39,7 @@ Rails.application.routes.draw do
       patch :reorder
     end
   end
-  resources :categories
+  resources :categories, only: [ :create, :update, :destroy ]
   resources :tags, only: [ :index, :create, :update, :destroy ]
   resources :counterparties
   resources :budgets, only: [ :index, :create, :update, :destroy ] do
