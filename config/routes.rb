@@ -7,7 +7,7 @@ Rails.application.routes.draw do
 
   root to: redirect("/accounts")
 
-  resources :transactions, only: [:index, :edit, :update, :destroy] do
+  resources :transactions, only: [:index, :create, :edit, :update, :destroy] do
     collection do
       post :bulk_destroy
     end
