@@ -39,7 +39,7 @@ Rails.application.routes.draw do
       patch :reorder
     end
   end
-  resources :categories
+  resources :categories, only: [ :create, :update, :destroy ]
   resources :tags, only: [ :index, :create, :update, :destroy ]
   resources :counterparties
   resources :budgets, only: [ :index, :create, :update, :destroy ] do

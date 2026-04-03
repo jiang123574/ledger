@@ -140,6 +140,78 @@
   border-color: color-mix(in srgb, var(--color-expense, #ef4444) 35%, transparent) !important;
 }
 
+.text-remaining {
+  color: #8b5cf6 !important;
+}
+
+.bg-remaining {
+  background-color: #8b5cf6 !important;
+}
+
+.bg-remaining-soft {
+  background-color: rgba(139, 92, 246, 0.1) !important;
+}
+
+.border-remaining-soft {
+  border-color: rgba(139, 92, 246, 0.35) !important;
+}
+
+.dark .text-remaining,
+[data-theme="dark"] .text-remaining {
+  color: #a78bfa !important;
+}
+
+.dark .bg-remaining,
+[data-theme="dark"] .bg-remaining {
+  background-color: #a78bfa !important;
+}
+
+.dark .bg-remaining-soft,
+[data-theme="dark"] .bg-remaining-soft {
+  background-color: rgba(167, 139, 250, 0.1) !important;
+}
+
+.dark .border-remaining-soft,
+[data-theme="dark"] .border-remaining-soft {
+  border-color: rgba(167, 139, 250, 0.35) !important;
+}
+
+.text-spent {
+  color: #22c55e !important;
+}
+
+.bg-spent {
+  background-color: #22c55e !important;
+}
+
+.bg-spent-soft {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+.border-spent-soft {
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+.dark .text-spent,
+[data-theme="dark"] .text-spent {
+  color: #22c55e !important;
+}
+
+.dark .bg-spent,
+[data-theme="dark"] .bg-spent {
+  background-color: #22c55e !important;
+}
+
+.dark .bg-spent-soft,
+[data-theme="dark"] .bg-spent-soft {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+.dark .border-spent-soft,
+[data-theme="dark"] .border-spent-soft {
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
 /* Unified income/expense icon chips */
 .ie-icon-chip {
   display: inline-flex;

@@ -58,8 +58,8 @@
               <span><%= budget.budget_items.count %>项</span>
             </div>
             <% percentage = budget.progress_percentage %>
-            <div class="mt-2 h-1.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
-              <div class="h-full rounded-full <%= percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income') %>" style="width: <%= [percentage, 100].min %>%"></div>
+            <div class="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+              <div class="h-full rounded-full <%= percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-yellow-500' : 'bg-income') %>" style="width: <%= [percentage, 100].min %>%"></div>
             </div>
           </button>
         <% end %>
@@ -116,22 +116,22 @@
                 <div class="text-xs font-medium text-secondary dark:text-secondary-dark mb-1">预算总额</div>
                 <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= format_currency(total_amount) %></div>
               </div>
-              <div class="bg-expense-soft rounded-xl p-3 border border-expense-soft">
-                <div class="text-xs font-medium text-expense mb-1">已支出</div>
-                <div class="text-2xl font-bold text-expense"><%= format_currency(spent_amount) %></div>
+              <div class="bg-spent-soft rounded-xl p-3 border border-spent-soft">
+                <div class="text-xs font-medium text-spent mb-1">已支出</div>
+                <div class="text-2xl font-bold text-spent"><%= format_currency(spent_amount) %></div>
               </div>
-              <div class="<%= remaining >= 0 ? 'bg-income-soft border-income-soft' : 'bg-expense-soft border-expense-soft' %> rounded-xl p-3 border">
-                <div class="text-xs font-medium <%= remaining >= 0 ? 'text-income' : 'text-expense' %> mb-1">剩余</div>
-                <div class="text-2xl font-bold <%= remaining >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(remaining.abs) %></div>
+              <div class="bg-remaining-soft border-remaining-soft rounded-xl p-3 border">
+                <div class="text-xs font-medium text-remaining mb-1">剩余</div>
+                <div class="text-2xl font-bold text-remaining"><%= remaining >= 0 ? '' : '-' %><%= format_currency(remaining.abs) %></div>
               </div>
             </div>
             <div class="mt-4">
               <div class="flex justify-between text-sm mb-2">
                 <span class="text-secondary dark:text-secondary-dark">执行进度</span>
-                <span class="font-medium <%= percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-income') %>"><%= percentage %>%</span>
+                <span class="font-medium <%= percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-yellow-600 dark:text-yellow-400' : 'text-income') %>"><%= percentage %>%</span>
               </div>
-              <div class="h-4 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
-                <div class="h-full rounded-full <%= percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income') %> transition-all" style="width: <%= [percentage, 100].min %>%"></div>
+              <div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                <div class="h-full rounded-full <%= percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-yellow-500' : 'bg-income') %> transition-all" style="width: <%= [percentage, 100].min %>%"></div>
               </div>
             </div>
           <% else %>
@@ -153,11 +153,11 @@
             <table class="w-full">
               <thead>
                 <tr class="border-b border-border dark:border-border-dark">
-                  <th class="text-left py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>
-                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>
-                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>
-                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>
-                  <th class="text-right py-2.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">进度</th>
+                  <th class="text-left py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>
+                  <th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>
+                  <th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>
+                  <th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>
+                  <th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">进度</th>
                 </tr>
               </thead>
               <tbody>
@@ -166,28 +166,32 @@
                     <% item_percentage = item.progress_percentage %>
                     <% item_remaining = item.remaining_amount %>
                     <tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-<td class="py-2.5 px-2">
-                        <span class="font-medium text-primary dark:text-primary-dark"><%= item.category&.full_name || item.name %></span>
+<td class="py-1.5 px-2">
+                        <span class="text-xs font-medium text-primary dark:text-primary-dark"><%= item.category&.full_name || item.name %></span>
                       </td>
-                      <td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark"><%= format_currency(item.amount) %></td>
-                      <td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark"><%= format_currency(item.spent_amount) %></td>
-                      <td class="py-2.5 px-2 text-right font-medium <%= item_remaining >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(item_remaining.abs) %></td>
-                      <td class="py-2.5 px-2">
-                        <div class="flex items-center gap-2 justify-end">
-                          <div class="w-20 h-2 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
-                            <div class="h-full rounded-full <%= item_percentage > 100 ? 'bg-expense' : (item_percentage > 80 ? 'bg-expense-soft' : 'bg-income') %>" style="width: <%= [item_percentage, 100].min %>%"></div>
+                      <td class="py-1.5 px-2 text-right text-xs font-medium text-primary dark:text-primary-dark"><%= format_currency(item.amount) %></td>
+                      <td class="py-1.5 px-2 text-right text-xs text-spent"><%= format_currency(item.spent_amount) %></td>
+                      <td class="py-1.5 px-2 text-right text-xs font-medium text-remaining"><%= item_remaining >= 0 ? '' : '-' %><%= format_currency(item_remaining.abs) %></td>
+                      <td class="py-1.5 px-2">
+                        <div class="flex items-center gap-2">
+                          <div class="flex-1 flex items-center gap-2">
+                            <div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                              <div class="h-full rounded-full <%= item_percentage > 100 ? 'bg-expense' : (item_percentage > 80 ? 'bg-yellow-500' : 'bg-income') %>" style="width: <%= [item_percentage, 100].min %>%"></div>
+                            </div>
+                            <span class="text-xs w-12 text-right <%= item_percentage > 100 ? 'text-expense' : (item_percentage > 80 ? 'text-yellow-600 dark:text-yellow-400' : 'text-secondary dark:text-secondary-dark') %>"><%= item_percentage %>%</span>
                           </div>
-                          <span class="text-xs <%= item_percentage > 100 ? 'text-expense' : (item_percentage > 80 ? 'text-expense' : 'text-secondary dark:text-secondary-dark') %>"><%= item_percentage %>%</span>
-                          <button onclick="openEditItemModal(<%= item.id %>, <%= item.category_id || 'null' %>, '<%= j(item.category&.full_name || '') %>', <%= item.amount %>, '<%= j(item.notes || '') %>')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                          </button>
-                          <form action="/single_budgets/<%= @selected_budget.id %>/budget_items/<%= item.id %>" method="post" style="display:inline" onsubmit="if(!confirm('确定删除此项目？')) return false">
-                            <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-                            <input type="hidden" name="_method" value="delete">
-                            <button type="submit" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth" title="删除">
-                              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                          <div class="flex items-center gap-1">
+                            <button onclick="openEditItemModal(<%= item.id %>, <%= item.category_id || 'null' %>, '<%= j(item.category&.full_name || '') %>', <%= item.amount %>, '<%= j(item.notes || '') %>')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">
+                              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                             </button>
-                          </form>
+                            <form action="/single_budgets/<%= @selected_budget.id %>/budget_items/<%= item.id %>" method="post" style="display:inline" onsubmit="if(!confirm('确定删除此项目？')) return false">
+                              <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+                              <input type="hidden" name="_method" value="delete">
+                              <button type="submit" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth" title="删除">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                              </button>
+                            </form>
+                          </div>
                         </div>
                       </td>
                     </tr>
@@ -283,23 +287,21 @@
     if (!container || !data) return;
     var remaining = data.total_amount - data.spent_amount;
     var percentage = data.total_amount > 0 ? (data.spent_amount / data.total_amount * 100).toFixed(1) : 0;
-    var remainingCardClass = remaining >= 0 ? 'bg-income-soft border border-income-soft' : 'bg-expense-soft border border-expense-soft';
-    var remainingColor = remaining >= 0 ? 'text-income' : 'text-expense';
-    var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income');
-    var progressTextColor = percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-income');
+    var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-yellow-500' : 'bg-income');
+    var progressTextColor = percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-yellow-600 dark:text-yellow-400' : 'text-income');
     container.innerHTML = 
       '<div class="grid grid-cols-1 sm:grid-cols-3 gap-3">' +
         '<div class="bg-surface dark:bg-surface-dark rounded-xl p-3 border border-border dark:border-border-dark">' +
           '<div class="text-xs font-medium text-secondary dark:text-secondary-dark mb-1">预算总额</div>' +
           '<div class="text-2xl font-bold text-primary dark:text-primary-dark">' + data.formatted_total + '</div>' +
         '</div>' +
-        '<div class="bg-expense-soft rounded-xl p-3 border border-expense-soft">' +
-          '<div class="text-xs font-medium text-expense mb-1">已支出</div>' +
-          '<div class="text-2xl font-bold text-expense">' + data.formatted_spent + '</div>' +
+        '<div class="bg-spent-soft rounded-xl p-3 border border-spent-soft">' +
+          '<div class="text-xs font-medium text-spent mb-1">已支出</div>' +
+          '<div class="text-2xl font-bold text-spent">' + data.formatted_spent + '</div>' +
         '</div>' +
-        '<div class="' + remainingCardClass + ' rounded-xl p-3">' +
-          '<div class="text-xs font-medium ' + remainingColor + ' mb-1">剩余</div>' +
-          '<div class="text-2xl font-bold ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + data.currency_symbol + Math.abs(remaining).toFixed(2) + '</div>' +
+        '<div class="bg-remaining-soft border-remaining-soft rounded-xl p-3 border">' +
+          '<div class="text-xs font-medium text-remaining mb-1">剩余</div>' +
+          '<div class="text-2xl font-bold text-remaining">' + (remaining >= 0 ? '' : '-') + data.currency_symbol + Math.abs(remaining).toFixed(2) + '</div>' +
         '</div>' +
       '</div>' +
       '<div class="mt-4">' +
@@ -307,7 +309,7 @@
           '<span class="text-secondary dark:text-secondary-dark">执行进度</span>' +
           '<span class="font-medium ' + progressTextColor + '">' + percentage + '%</span>' +
         '</div>' +
-        '<div class="h-4 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">' +
+        '<div class="h-4 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">' +
           '<div class="h-full rounded-full ' + progressColor + ' transition-all" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
         '</div>' +
       '</div>';
@@ -330,11 +332,11 @@
           '<table class="w-full">' +
             '<thead>' +
               '<tr class="border-b border-border dark:border-border-dark">' +
-                '<th class="text-left py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>' +
-                '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>' +
-                '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>' +
-                '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>' +
-                '<th class="text-right py-3 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">进度</th>' +
+                '<th class="text-left py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">分类</th>' +
+                '<th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">预算</th>' +
+                '<th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">已支</th>' +
+                '<th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">剩余</th>' +
+                '<th class="text-right py-1.5 px-2 text-xs font-medium text-secondary dark:text-secondary-dark">进度</th>' +
               '</tr>' +
             '</thead>' +
             '<tbody>' +
@@ -347,34 +349,38 @@
     var rows = items.map(function(item) {
       var remaining = item.amount - item.spent_amount;
       var percentage = item.amount > 0 ? (item.spent_amount / item.amount * 100).toFixed(1) : 0;
-      var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-expense-soft' : 'bg-income');
-      var remainingColor = remaining >= 0 ? 'text-income' : 'text-expense';
+      var progressColor = percentage > 100 ? 'bg-expense' : (percentage > 80 ? 'bg-yellow-500' : 'bg-income');
+      var progressTextColor = percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-yellow-600 dark:text-yellow-400' : 'text-secondary dark:text-secondary-dark');
       var escapedNotes = escapeHtml(item.notes || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
       var escapedCategoryName = escapeHtml(item.category_name || item.name || '');
       var escapedCategoryNameForOnclick = (item.category_name || item.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
       var escapedAmount = escapeHtml(item.formatted_amount);
       var escapedSpent = escapeHtml(item.formatted_spent);
       return '<tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">' +
-        '<td class="py-2.5 px-2"><span class="font-medium text-primary dark:text-primary-dark">' + escapedCategoryName + '</span></td>' +
-        '<td class="py-2.5 px-2 text-right font-medium text-primary dark:text-primary-dark">' + escapedAmount + '</td>' +
-        '<td class="py-2.5 px-2 text-right text-secondary dark:text-secondary-dark">' + escapedSpent + '</td>' +
-        '<td class="py-2.5 px-2 text-right font-medium ' + remainingColor + '">' + (remaining >= 0 ? '' : '-') + escapeHtml(item.currency_symbol) + Math.abs(remaining).toFixed(2) + '</td>' +
-        '<td class="py-2.5 px-2">' +
-          '<div class="flex items-center gap-2 justify-end">' +
-            '<div class="w-20 h-2 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">' +
-              '<div class="h-full rounded-full ' + progressColor + '" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
+        '<td class="py-1.5 px-2"><span class="text-xs font-medium text-primary dark:text-primary-dark">' + escapedCategoryName + '</span></td>' +
+        '<td class="py-1.5 px-2 text-right text-xs font-medium text-primary dark:text-primary-dark">' + escapedAmount + '</td>' +
+        '<td class="py-1.5 px-2 text-right text-xs text-spent">' + escapedSpent + '</td>' +
+        '<td class="py-1.5 px-2 text-right text-xs font-medium text-remaining">' + (remaining >= 0 ? '' : '-') + escapeHtml(item.currency_symbol) + Math.abs(remaining).toFixed(2) + '</td>' +
+        '<td class="py-1.5 px-2">' +
+          '<div class="flex items-center gap-2">' +
+            '<div class="flex-1 flex items-center gap-2">' +
+              '<div class="flex-1 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">' +
+                '<div class="h-full rounded-full ' + progressColor + '" style="width: ' + Math.min(percentage, 100) + '%"></div>' +
+              '</div>' +
+              '<span class="text-xs w-12 text-right ' + progressTextColor + '">' + percentage + '%</span>' +
             '</div>' +
-            '<span class="text-xs ' + (percentage > 100 ? 'text-expense' : (percentage > 80 ? 'text-expense' : 'text-secondary dark:text-secondary-dark')) + '">' + percentage + '%</span>' +
-            '<button onclick="openEditItemModal(' + item.id + ', ' + item.category_id + ', \'' + escapedCategoryNameForOnclick + '\', ' + item.amount + ', \'' + escapedNotes + '\')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">' +
-              '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>' +
-            '</button>' +
-            '<form action="/single_budgets/' + budgetId + '/budget_items/' + item.id + '" method="post" style="display:inline" onsubmit="if(!confirm(\'确定删除此项目？\')) return false">' +
-              '<input type="hidden" name="authenticity_token" value="' + window.authToken + '">' +
-              '<input type="hidden" name="_method" value="delete">' +
-              '<button type="submit" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth" title="删除">' +
-                '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>' +
+            '<div class="flex items-center gap-1">' +
+              '<button onclick="openEditItemModal(' + item.id + ', ' + item.category_id + ', \'' + escapedCategoryNameForOnclick + '\', ' + item.amount + ', \'' + escapedNotes + '\')" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth" title="编辑">' +
+                '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>' +
               '</button>' +
-            '</form>' +
+              '<form action="/single_budgets/' + budgetId + '/budget_items/' + item.id + '" method="post" style="display:inline" onsubmit="if(!confirm(\'确定删除此项目？\')) return false">' +
+                '<input type="hidden" name="authenticity_token" value="' + window.authToken + '">' +
+                '<input type="hidden" name="_method" value="delete">' +
+                '<button type="submit" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth" title="删除">' +
+                  '<svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>' +
+                '</button>' +
+              '</form>' +
+            '</div>' +
           '</div>' +
         '</td>' +
       '</tr>';
@@ -514,10 +520,6 @@
       }
     });
   }
-
-  // 初始化分类选择器
-  initCategorySelector('new-item-category-search', 'new-item-category-dropdown', 'new-item-category-filter', 'new-item-category-options', 'new-item-category-id');
-  initCategorySelector('edit-item-category-search', 'edit-item-category-dropdown', 'edit-item-category-filter', 'edit-item-category-options', 'edit-item-category-id');
 </script>
 
 <!-- 新建预算弹窗 -->
@@ -758,3 +760,9 @@
     </div>
   </div>
 </div>
+
+<script>
+  // 初始化分类选择器（在 DOM 元素之后）
+  initCategorySelector('new-item-category-search', 'new-item-category-dropdown', 'new-item-category-filter', 'new-item-category-options', 'new-item-category-id');
+  initCategorySelector('edit-item-category-search', 'edit-item-category-dropdown', 'edit-item-category-filter', 'edit-item-category-options', 'edit-item-category-id');
+</script>
