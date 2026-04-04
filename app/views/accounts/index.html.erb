@@ -695,7 +695,7 @@ function confirmDeleteAccount(id, name) {
           <!-- 1. 分类（收支合并 + 转账切换） -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark">分类 *</label>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark" id="category-field-label">分类 *</label>
               <button type="button" id="toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
             </div>
             <!-- 收支分类选择器（默认显示） -->
@@ -727,7 +727,7 @@ function confirmDeleteAccount(id, name) {
               <div class="relative">
                 <input type="text" id="target-account-search-input" 
                        class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                       placeholder="选择转入账户"
+                       placeholder="选择转出账户"
                        autocomplete="off"
                        readonly>
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -760,9 +760,9 @@ function confirmDeleteAccount(id, name) {
               <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
           </div>
-          <!-- 3. 账户 -->
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
+          <!-- 3. 账户（转账时显示为"转出账户"） -->
+          <div id="account-field-wrapper">
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5" id="account-field-label">账户 *</label>
             <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="">
             <div class="relative">
               <input type="text" id="account-search-input" 
@@ -1380,6 +1380,10 @@ var transactionMode = 'category';
 
 // 切换转账模式
 function toggleTransferMode() {
+  var accountLabel = document.getElementById('account-field-label');
+  var accountSearchInputEl = document.getElementById('account-search-input');
+  var categoryLabel = document.getElementById('category-field-label');
+  
   if (transactionMode === 'transfer') {
     // 切回收支模式
     transactionMode = 'category';
@@ -1388,6 +1392,11 @@ function toggleTransferMode() {
     toggleTransferBtn.textContent = '转账';
     if (targetAccountHiddenInput) targetAccountHiddenInput.value = '';
     if (targetAccountSearchInput) targetAccountSearchInput.value = '';
+    // 还原账户 label
+    if (accountLabel) accountLabel.textContent = '账户 *';
+    if (accountSearchInputEl) accountSearchInputEl.placeholder = '选择账户';
+    // 还原分类 label
+    if (categoryLabel) categoryLabel.textContent = '分类 *';
   } else {
     // 切到转账模式
     transactionMode = 'transfer';
@@ -1396,10 +1405,16 @@ function toggleTransferMode() {
     toggleTransferBtn.textContent = '记收支';
     if (categoryHiddenInput) categoryHiddenInput.value = '';
     if (categorySearchInput) categorySearchInput.value = '';
+    // 账户 label 改为"转入账户"（下面是转入）
+    if (accountLabel) accountLabel.textContent = '转入账户 *';
+    if (accountSearchInputEl) accountSearchInputEl.placeholder = '选择转入账户';
+    // 分类 label 改为"转出账户"（上面是转出）
+    if (categoryLabel) categoryLabel.textContent = '转出账户 *';
+    if (categorySearchInput) categorySearchInput.placeholder = '选择转出账户';
   }
   // 同步 type
   transactionTypeInput.value = transactionMode === 'transfer' ? 'TRANSFER' : (currentCategoryType || 'EXPENSE');
-  // 更新资金来源可见性
+  // 更新资金来源可见性（转账时隐藏）
   updateFundingVisibility();
 }
 
