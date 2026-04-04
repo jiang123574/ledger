@@ -98,6 +98,79 @@ class Entry < ApplicationRecord
   def classification
     amount.negative? ? 'expense' : 'income'
   end
+
+  # ============ 视图展示方法（替代 TransactionPresenter） ============
+
+  # 交易类型大写标识（EXPENSE/INCOME/TRANSFER）
+  def display_entry_type
+    if transfer_id.present?
+      'TRANSFER'
+    elsif entryable.respond_to?(:kind)
+      entryable.kind.upcase
+    else
+      'EXPENSE'
+    end
+  end
+
+  # 中文类型标签（收入/支出）
+  def display_type_label
+    TransactionTypeDisplay.label(display_entry_type)
+  end
+
+  # 交易金额绝对值（视图展示用）
+  def display_amount
+    amount.abs
+  end
+
+  # 分类（兼容旧视图）
+  def display_category
+    entryable.respond_to?(:category) ? entryable.category : nil
+  end
+
+  def display_category_id
+    entryable.respond_to?(:category_id) ? entryable.category_id : nil
+  end
+
+  # 转账对方账户
+  def target_account_for_display
+    return nil unless transfer_id.present?
+
+    target_entry = Entry.where(transfer_id: transfer_id)
+                        .where.not(id: id)
+                        .where(amount > 0)
+                        .first
+    Account.find_by(id: target_entry&.account_id)
+  end
+
+  def target_account_id_for_display
+    target_account_for_display&.id
+  end
+
+  # 转出方向账户（转账时返回实际的"源头"账户）
+  def source_account_for_transfer
+    return account unless transfer_id.present?
+    return account if amount < 0
+
+    source_entry = Entry.where(transfer_id: transfer_id)
+                        .where.not(id: id)
+                        .where('amount < 0')
+                        .first
+    Account.find_by(id: source_entry&.account_id) || account
+  end
+
+  def source_account_id_for_transfer
+    source_account_for_transfer&.id
+  end
+
+  # 备注显示（notes 或 name）
+  def display_note
+    notes || name
+  end
+
+  # 账户名
+  def account_name
+    account&.name || "未知账户"
+  end
   
   def lock_attribute!(attr_name)
     self.locked_attributes ||= {}

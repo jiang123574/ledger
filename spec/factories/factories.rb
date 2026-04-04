@@ -115,13 +115,16 @@ FactoryBot.define do
     currency { 'CNY' }
     date { Date.current }
     excluded { false }
+    entryable { association(:entryable_transaction) }
 
     trait :income do
       amount { 500.00 }
+      entryable { association(:entryable_transaction, :income) }
     end
 
     trait :expense do
       amount { -100.50 }
+      entryable { association(:entryable_transaction, :expense) }
     end
   end
 

@@ -6,29 +6,29 @@
 </div>
 
 <!-- 表单 -->
-<%= form_with model: @transaction, local: false, id: "transaction-edit-form", class: "space-y-6" do |f| %>
+<%= form_with model: @entry, url: transaction_path(@entry), method: :patch, local: false, id: "transaction-edit-form", class: "space-y-6", namespace: "transaction" do |f| %>
         <!-- Transaction Type Tabs -->
         <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-1 flex">
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @transaction.type == 'EXPENSE' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="EXPENSE">
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @entry.display_entry_type == 'EXPENSE' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="EXPENSE">
             <span class="flex items-center justify-center gap-2">
               <%= render(Ds::IconComponent.new(name: "minus-circle", size: :sm, color: :expense)) %>
               支出
             </span>
           </button>
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @transaction.type == 'INCOME' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="INCOME">
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @entry.display_entry_type == 'INCOME' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="INCOME">
             <span class="flex items-center justify-center gap-2">
               <%= render(Ds::IconComponent.new(name: "plus-circle", size: :sm, color: :income)) %>
               收入
             </span>
           </button>
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @transaction.type == 'TRANSFER' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="TRANSFER">
+          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @entry.display_entry_type == 'TRANSFER' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="TRANSFER">
             <span class="flex items-center justify-center gap-2">
               <%= render(Ds::IconComponent.new(name: "arrow-right-left", size: :sm)) %>
               转账
             </span>
           </button>
         </div>
-        <%= f.hidden_field :type, id: "transaction_type", value: @transaction.type %>
+        <%= hidden_field_tag :type, @entry.display_entry_type, id: "transaction_type" %>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -43,14 +43,14 @@
 
           <div id="account-field-out">
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5" id="account-label-out">账户</label>
-            <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="<%= @transaction.account_id %>">
+            <input type="hidden" name="account_id" id="transaction_account_id" value="<%= @entry.source_account_id_for_transfer %>">
             <div class="relative">
               <input type="text" id="account-selector-search" 
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      placeholder="选择账户"
                      autocomplete="off"
                      readonly
-                     value="<%= @transaction.account&.name || '' %>">
+                     value="<%= @entry.source_account_for_transfer&.name || '' %>">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -68,14 +68,14 @@
 
           <div id="category-field">
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类</label>
-            <input type="hidden" name="transaction[category_id]" id="transaction_category_id" value="<%= @transaction.category_id %>">
+            <input type="hidden" name="category_id" id="transaction_category_id" value="<%= @entry.display_category_id %>">
             <div class="relative">
               <input type="text" id="category-selector-search" 
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      placeholder="选择分类"
                      autocomplete="off"
                      readonly
-                     value="<%= @transaction.category&.full_name || '' %>">
+                     value="<%= @entry.display_category&.full_name || '' %>">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
@@ -93,14 +93,14 @@
 
           <div id="target-account-field" class="hidden">
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">转入账户</label>
-            <input type="hidden" name="transaction[target_account_id]" id="transaction_target_account_id" value="<%= @transaction.target_account_id %>">
+            <input type="hidden" name="target_account_id" id="transaction_target_account_id" value="<%= @entry.target_account_id_for_display %>">
             <div class="relative">
               <input type="text" id="target-account-selector-search" 
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      placeholder="选择转入账户"
                      autocomplete="off"
                      readonly
-                     value="<%= @transaction.target_account&.name || '' %>">
+                     value="<%= @entry.target_account_for_display&.name || '' %>">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>

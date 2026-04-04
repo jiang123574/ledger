@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 class TransactionsController < ApplicationController
-  before_action :set_transaction, only: [:show, :edit, :update, :destroy]
-  before_action :load_lookups, only: [:edit, :create, :update]
+  before_action :set_entry, only: [:show, :edit, :update, :destroy]
+  before_action :set_new_transaction, only: [:index]
+  before_action :load_lookups, only: [:edit, :create, :update, :index]
 
   def index
     redirect_to accounts_path(request.query_parameters)
@@ -97,11 +98,19 @@ class TransactionsController < ApplicationController
 
   private
 
-  def set_transaction
+  def set_entry
     @entry = Entry.find_by(id: params[:id])
     raise ActiveRecord::RecordNotFound unless @entry
+  end
 
-    @transaction = TransactionPresenter.from_entry(@entry)
+  def set_new_transaction
+    @entries = Entry.transactions_only.non_transfers.reverse_chronological.includes(:account, :entryable).limit(50)
+    @accounts = Account.visible.order(:name)
+    @categories = Category.active.by_sort_order
+    @new_transaction = OpenStruct.new(
+      type: "EXPENSE", persisted?: false,
+      model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
+    )
   end
 
   def update_entry

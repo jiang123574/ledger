@@ -163,23 +163,23 @@
       
       <!-- Section Content -->
       <div class="divide-y divide-border" data-dashboard-section-target="content">
-        <% @transactions.first(8).each do |t| %>
-          <%= link_to transaction_path(t), class: "flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
+        <% @entries.first(8).each do |e| %>
+          <%= link_to transaction_path(e), class: "flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3 min-w-0">
-              <div class="ie-icon-chip ie-icon-chip-md <%= t.type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
-                <%= render(Ds::IconComponent.new(name: t.type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: t.type == "INCOME" ? :income : :expense)) %>
+              <div class="ie-icon-chip ie-icon-chip-md <%= e.display_entry_type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
+                <%= render(Ds::IconComponent.new(name: e.display_entry_type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: e.display_entry_type == "INCOME" ? :income : :expense)) %>
               </div>
               <div class="min-w-0">
-                <p class="font-medium text-primary dark:text-primary-dark truncate"><%= t.category&.name || t("dashboard.uncategorized") %></p>
-                <p class="text-xs text-secondary dark:text-secondary-dark"><%= t.date&.strftime("%Y-%m-%d") %> · <%= t.account_name %></p>
+                <p class="font-medium text-primary dark:text-primary-dark truncate"><%= e.display_category&.name || t("dashboard.uncategorized") %></p>
+                <p class="text-xs text-secondary dark:text-secondary-dark"><%= e.date&.strftime("%Y-%m-%d") %> · <%= e.account_name %></p>
               </div>
             </div>
-            <span class="font-medium <%= t.type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
-              <%= format_currency_with_sign(t.amount, type: t.type) %>
+            <span class="font-medium <%= e.display_entry_type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
+              <%= format_currency_with_sign(e.display_amount, type: e.display_entry_type) %>
             </span>
           <% end %>
         <% end %>
-        <% if @transactions.empty? %>
+        <% if @entries.empty? %>
           <div class="p-8 text-center" data-dashboard-section-target="content">
             <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
               <%= render(Ds::IconComponent.new(name: "receipt", size: :lg, color: :secondary)) %>

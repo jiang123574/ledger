@@ -38,9 +38,6 @@ class AccountsController < ApplicationController
       )
     end
 
-    @transactions_with_balance = @entries_with_balance.map { |e, balance| [TransactionPresenter.from_entry(e), balance] }
-    @transactions = @transactions_with_balance.map(&:first)
-
     category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
     stats_cache_key = "stats/#{params[:account_id] || 'all'}/#{period_type}/#{period_value}/#{params[:type]}/#{category_ids.empty? ? 'no_cat' : category_ids.sort.join(',')}/#{ev}"
     stats_data = Rails.cache.fetch(stats_cache_key, expires_in: 1.minute) do
@@ -59,7 +56,11 @@ class AccountsController < ApplicationController
     @total_balance = stats_data[:total_balance]
 
     @entry = Entry.new(currency: "CNY", date: Date.today)
-    @transaction = TransactionPresenter.from_entry(@entry)
+    @new_transaction = OpenStruct.new(
+      type: "EXPENSE", account_id: nil, category_id: nil,
+      target_account_id: nil, account: nil, category: nil, target_account: nil,
+      persisted?: false, model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
+    )
   end
 
   def stats
