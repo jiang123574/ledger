@@ -5,7 +5,7 @@ class BudgetsController < ApplicationController
     ev = CacheBuster.version(:entries)
     sv = CacheBuster.version(:budgets)
 
-    @budgets = Rails.cache.fetch("budgets/monthly/#{@month}/#{sv}", expires_in: 5.minutes) do
+    @budgets = Rails.cache.fetch("budgets/monthly/#{@month}/#{sv}", expires_in: CacheConfig::MODERATE) do
       Budget.for_month(@month).includes(:category).to_a
     end
     @total_budget = @budgets.sum(:amount)
@@ -14,7 +14,7 @@ class BudgetsController < ApplicationController
     end_date = start_date.end_of_month
 
     budget_category_ids = @budgets.map(&:category_id).compact
-    @total_spent = Rails.cache.fetch("budgets/total_spent/#{@month}/#{ev}", expires_in: 2.minutes) do
+    @total_spent = Rails.cache.fetch("budgets/total_spent/#{@month}/#{ev}", expires_in: CacheConfig::MEDIUM) do
       if budget_category_ids.any?
         Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
           .where(entryable_type: 'Entryable::Transaction', date: start_date..end_date)
@@ -27,18 +27,18 @@ class BudgetsController < ApplicationController
     end
 
     # 缓存只存 IDs，预加载在缓存外做，避免 bullet 误报
-    @category_ids = Rails.cache.fetch("budgets/category_ids/#{sv}", expires_in: 1.hour) do
+    @category_ids = Rails.cache.fetch("budgets/category_ids/#{sv}", expires_in: CacheConfig::LONG) do
       Category.expense.pluck(:id)
     end
     @categories = Category.where(id: @category_ids).includes(:parent)
     cv = CacheBuster.version(:categories)
-    @categories_json = Rails.cache.fetch("budgets/categories_json/#{cv}", expires_in: 1.hour) do
+    @categories_json = Rails.cache.fetch("budgets/categories_json/#{cv}", expires_in: CacheConfig::LONG) do
       @categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json
     end
 
     status = params[:status]
     cache_key = "budgets/single_list/#{status}/#{sv}"
-    @single_budgets = Rails.cache.fetch(cache_key, expires_in: 5.minutes) do
+    @single_budgets = Rails.cache.fetch(cache_key, expires_in: CacheConfig::MODERATE) do
       scope = SingleBudget.all
       scope = scope.where(status: status) if status.present?
       scope.order(start_date: :desc).pluck(:id)

@@ -40,5 +40,9 @@ module Ledger
     config.generators.system_tests = nil
 
     config.i18n.default_locale = :"zh-CN"
+
+    # Slow request logging — 开发 500ms / 生产 200ms，通过 SLOW_REQUEST_THRESHOLD_MS 环境变量调整
+    require_relative "../app/middleware/slow_request_logger"
+    config.middleware.use SlowRequestLogger
   end
 end

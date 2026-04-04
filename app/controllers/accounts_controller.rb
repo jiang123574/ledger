@@ -5,7 +5,7 @@ class AccountsController < ApplicationController
     av = CacheBuster.version(:accounts)
     ev = CacheBuster.version(:entries)
 
-    @accounts = Rails.cache.fetch("accounts_list/#{params[:show_hidden]}/#{av}", expires_in: 10.minutes) do
+    @accounts = Rails.cache.fetch("accounts_list/#{params[:show_hidden]}/#{av}", expires_in: CacheConfig::TEN_MINUTES) do
       if params[:show_hidden] == 'true'
         Account.order(:sort_order, :name).to_a
       else
@@ -15,7 +15,7 @@ class AccountsController < ApplicationController
     @accounts_map = @accounts.index_by(&:id)
 
     # 预计算所有账户余额，避免视图中 N+1 查询
-    @account_balances = Rails.cache.fetch("account_balances/#{ev}", expires_in: 1.minute) do
+    @account_balances = Rails.cache.fetch("account_balances/#{ev}", expires_in: CacheConfig::SHORT) do
       account_ids = @accounts.map(&:id)
       results = Entry.where(account_id: account_ids, entryable_type: 'Entryable::Transaction')
                        .group(:account_id)
@@ -25,11 +25,11 @@ class AccountsController < ApplicationController
       end
     end
 
-    @total_assets = Rails.cache.fetch("total_assets/#{ev}", expires_in: 1.minute) do
+    @total_assets = Rails.cache.fetch("total_assets/#{ev}", expires_in: CacheConfig::SHORT) do
       Account.total_assets
     end
 
-    @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: 1.hour) do
+    @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: CacheConfig::LONG) do
       Category.active.by_sort_order.to_a
     end
 
@@ -40,7 +40,7 @@ class AccountsController < ApplicationController
 
     filter_cache_key = build_filter_cache_key
 
-    @total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: 30.seconds) do
+    @total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
       @entries.count
     end
 
@@ -48,7 +48,7 @@ class AccountsController < ApplicationController
     @per_page = [[params[:per_page].to_i, 5].max, 200].min
 
     entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
-    @entries_with_balance = Rails.cache.fetch(entries_cache_key, expires_in: 2.minutes) do
+    @entries_with_balance = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
       result = AccountStatsService.entries_with_balance(
         @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
       )
@@ -59,7 +59,7 @@ class AccountsController < ApplicationController
 
     category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
     stats_cache_key = "stats/#{params[:account_id] || 'all'}/#{period_type}/#{period_value}/#{params[:type]}/#{category_ids.empty? ? 'no_cat' : category_ids.sort.join(',')}/#{ev}"
-    stats_data = Rails.cache.fetch(stats_cache_key, expires_in: 1.minute) do
+    stats_data = Rails.cache.fetch(stats_cache_key, expires_in: CacheConfig::SHORT) do
       AccountStatsService.entry_stats(
         account_id: params[:account_id].presence,
         period_type: period_type,
@@ -91,7 +91,7 @@ class AccountsController < ApplicationController
     ev = CacheBuster.version(:entries)
 
     cache_key = "stats/#{account_id || 'all'}/#{period_type}/#{period_value}/#{filter_type}/#{category_ids.empty? ? 'no_cat' : category_ids.sort.join('/')}/#{ev}"
-    stats_data = Rails.cache.fetch(cache_key, expires_in: 1.minute) do
+    stats_data = Rails.cache.fetch(cache_key, expires_in: CacheConfig::SHORT) do
       AccountStatsService.entry_stats(
         account_id: account_id,
         period_type: period_type,
