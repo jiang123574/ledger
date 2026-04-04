@@ -83,6 +83,13 @@ class AccountStatsService
     paginated_entries.map { |e| [e, balance_map[e.id] || running_balance] }
   end
 
+  # 预加载转账配对账户信息（消除视图中的 N+1 查询）
+  # 在 entries_with_balance 之后调用
+  def self.preload_transfer_accounts_for(entries_with_balance)
+    entries = entries_with_balance.map(&:first)
+    Entry.preload_transfer_accounts(entries)
+  end
+
   class << self
     private
 

@@ -33,9 +33,12 @@ class AccountsController < ApplicationController
 
     entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
     @entries_with_balance = Rails.cache.fetch(entries_cache_key, expires_in: 2.minutes) do
-      AccountStatsService.entries_with_balance(
+      result = AccountStatsService.entries_with_balance(
         @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
       )
+      # 预加载转账配对账户，消除视图中的 N+1 查询
+      AccountStatsService.preload_transfer_accounts_for(result)
+      result
     end
 
     category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
