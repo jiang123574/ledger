@@ -3,7 +3,7 @@ class SettingsController < ApplicationController
     @currencies = Currency.order(:code)
     @backups = BackupService.list_backups.take(10)
     @shortcuts = default_shortcuts
-    @categories = Category.includes(:children).order(:sort_order, :name)
+    @categories = Category.includes(:children).order(:sort_order, :name)  # 预加载子分类避免 N+1
     @counterparties = Counterparty.all.order(:name).map do |cp|
       cp.define_singleton_method(:receivables_count) { Receivable.where(counterparty: cp.name).count }
       cp
@@ -57,7 +57,7 @@ class SettingsController < ApplicationController
       errors: errors,
       total_rows: CSV.read(params[:file].path).length - 1
     }
-  rescue => e
+  rescue StandardError => e
     render json: { valid: false, errors: [ e.message ] }
   end
 
@@ -96,6 +96,12 @@ class SettingsController < ApplicationController
       return
     end
 
+    # 二次确认：需要输入 AUTH_PASSWORD
+    unless confirm_with_password(params[:confirm_password])
+      redirect_to settings_path, alert: "确认密码错误，操作已取消"
+      return
+    end
+
     # 保存上传的文件到临时位置
     uploaded_file = params[:backup_file]
     temp_path = Rails.root.join("tmp", "backups", "restore_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql")
@@ -117,12 +123,18 @@ class SettingsController < ApplicationController
     else
       redirect_to settings_path, alert: "恢复失败: #{result[:error]}"
     end
-  rescue => e
+  rescue StandardError => e
     FileUtils.rm_f(temp_path) if temp_path
     redirect_to settings_path, alert: "恢复失败: #{e.message}"
   end
 
   def clear_all_data
+    # 二次确认：需要输入 AUTH_PASSWORD
+    unless confirm_with_password(params[:confirm_password])
+      redirect_to settings_path, alert: "确认密码错误，操作已取消"
+      return
+    end
+
     ActiveRecord::Base.transaction do
       Attachment.destroy_all
       ImportBatch.destroy_all
@@ -145,7 +157,7 @@ class SettingsController < ApplicationController
     Rails.cache.clear
 
     redirect_to settings_path, notice: "所有数据已清除"
-  rescue => e
+  rescue StandardError => e
     redirect_to settings_path, alert: "清除失败: #{e.message}"
   end
 
@@ -175,5 +187,14 @@ class SettingsController < ApplicationController
   def clear_custom_shortcuts
     file = Rails.root.join("tmp", "shortcuts.json")
     File.delete(file) if File.exist?(file)
+  end
+
+  # 敏感操作二次确认：验证 AUTH_PASSWORD
+  def confirm_with_password(input_password)
+    return false if input_password.blank?
+    auth_password = ENV["AUTH_PASSWORD"]
+    # 未设置 AUTH_PASSWORD 时，使用 "CONFIRM" 作为默认确认词
+    expected = auth_password.presence || "CONFIRM"
+    ActiveSupport::SecurityUtils.secure_compare(input_password, expected)
   end
 end

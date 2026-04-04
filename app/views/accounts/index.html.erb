@@ -45,6 +45,19 @@
       </div>
     </div>
     
+    <!-- 所有交易入口 -->
+    <div class="p-3 border-b border-border dark:border-border-dark">
+      <button onclick="viewAllTransactions()" class="w-full flex items-center justify-between p-2 rounded-lg <%= params[:account_id].blank? ? 'bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-300' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark' %> transition-smooth">
+        <div class="flex items-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+          </svg>
+          <span class="font-medium text-sm">所有交易</span>
+        </div>
+        <span class="text-xs text-secondary dark:text-secondary-dark"><%= Entry.count %> 笔</span>
+      </button>
+    </div>
+    
     <!-- 账户列表 -->
     <div id="account-list" class="hidden lg:block flex-1 overflow-y-auto" data-controller="account-sort">
       <% accounts_by_type = @accounts.group_by { |a| [a.type, a.type_name] }.sort_by { |(type, _), _| Account::ACCOUNT_TYPES.keys.index(type) || 999 } %>
@@ -121,15 +134,18 @@
     <div class="p-3 lg:p-4 border-b border-border dark:border-border-dark">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
         <div class="flex items-center gap-2">
-          <h2 class="text-base lg:text-lg font-semibold text-primary dark:text-primary-dark">交易记录</h2>
-          <% if params[:account_id] %>
-            <span class="px-2 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark">
-              <%= @accounts.find { |a| a.id == params[:account_id].to_i }&.name || '未知账户' %>
-              <button onclick="clearAccountFilter()" class="ml-1 hover:text-primary">×</button>
-            </span>
+          <h2 class="text-base lg:text-lg font-semibold text-primary dark:text-primary-dark">
+            <% if params[:account_id].present? %>
+              <%= @accounts.find { |a| a.id == params[:account_id].to_i }&.name || '未知账户' %>的交易记录
+            <% else %>
+              所有交易记录
+            <% end %>
+          </h2>
+          <% if params[:account_id].present? %>
+            <button onclick="viewAllTransactions()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">查看全部</button>
           <% end %>
         </div>
-        <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden'); if(typeof applyTransactionTypeUI==='function'){applyTransactionTypeUI();}" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern">
+        <button onclick="openNewTransactionModal()" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern">
           + 新建
         </button>
       </div>
@@ -361,7 +377,7 @@
             <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
           </div>
           <p class="text-secondary dark:text-secondary-dark text-sm">暂无交易记录</p>
-          <button onclick="document.getElementById('add-transaction-modal').classList.remove('hidden'); if(typeof applyTransactionTypeUI==='function'){applyTransactionTypeUI();}" class="mt-3 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
+          <button onclick="openNewTransactionModal()" class="mt-3 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">
             新建第一笔交易
           </button>
         </div>
@@ -768,6 +784,13 @@ function confirmDeleteAccount(id, name) {
                 <div id="target-account-options" class="py-1"></div>
               </div>
             </div>
+            <!-- 互换账户按钮 -->
+            <button type="button" onclick="swapTransferAccounts()" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+              互换转出/转入账户
+            </button>
           </div>
           <div id="transaction-category-field">
             <label id="transaction-category-label" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">支出分类</label>
@@ -799,7 +822,7 @@ function confirmDeleteAccount(id, name) {
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="submit" name="continue_entry" value="1" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">保存并继续</button>
+          <button type="button" onclick="submitAndContinue(event)" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">保存并继续</button>
           <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       <% end %>
@@ -937,6 +960,12 @@ function filterByAccount(id) {
   var params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
   window.location.href = '/accounts?' + params.toString();
+}
+
+function viewAllTransactions() {
+  var params = new URLSearchParams(window.location.search);
+  params.delete('account_id');
+  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
 function clearAccountFilter() {
@@ -1562,6 +1591,106 @@ function confirmDeleteTransaction(id, name) {
 document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 <% end %>
 
+// 打开新建交易弹窗
+function openNewTransactionModal() {
+  document.getElementById('add-transaction-modal')?.classList.remove('hidden');
+  if (typeof applyTransactionTypeUI === 'function') applyTransactionTypeUI();
+  if (typeof setDefaultAccount === 'function') setDefaultAccount();
+}
+
+// 保存并继续功能 - AJAX 提交，不刷新页面
+function submitAndContinue(event) {
+  event.preventDefault();
+  
+  var form = document.querySelector('#add-transaction-modal form');
+  if (!form) return;
+  
+  // 获取 CSRF token
+  var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  
+  // 收集表单数据
+  var formData = new FormData(form);
+  formData.append('continue_entry', '1');
+  formData.append('format', 'json');
+  
+  // 显示加载状态
+  var continueBtn = event.target;
+  var originalText = continueBtn.textContent;
+  continueBtn.textContent = '保存中...';
+  continueBtn.disabled = true;
+  
+  // AJAX 提交
+  fetch(form.action, {
+    method: 'POST',
+    headers: {
+      'X-CSRF-Token': csrfToken,
+      'Accept': 'application/json'
+    },
+    body: formData
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // 显示成功提示
+      showSuccessToast(data.message || '交易已创建，请继续录入');
+      
+      // 清空部分字段，保持选项不变
+      var amountInput = form.querySelector('input[name="transaction[amount]"]');
+      var noteInput = form.querySelector('input[name="transaction[note]"]');
+      
+      if (amountInput) amountInput.value = '';
+      if (noteInput) noteInput.value = '';
+      
+      // 更新日期为今天
+      var dateInput = form.querySelector('input[name="transaction[date]"]');
+      if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
+      
+      // 保持账户、分类、类型等选择不变
+      // 不关闭弹窗，不刷新页面
+    } else {
+      // 显示错误提示
+      showErrorToast(data.error || '保存失败');
+    }
+  })
+  .catch(error => {
+    console.error('Submit error:', error);
+    showErrorToast('网络错误，请重试');
+  })
+  .finally(() => {
+    // 恢复按钮状态
+    continueBtn.textContent = originalText;
+    continueBtn.disabled = false;
+  });
+}
+
+// 成功提示
+function showSuccessToast(message) {
+  var toast = document.createElement('div');
+  toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 2000);
+}
+
+// 错误提示
+function showErrorToast(message) {
+  var toast = document.createElement('div');
+  toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+  toast.textContent = message;
+  document.body.appendChild(toast);
+  
+  setTimeout(function() {
+    toast.style.opacity = '0';
+    toast.style.transition = 'opacity 0.3s';
+    setTimeout(function() { toast.remove(); }, 300);
+  }, 3000);
+}
+
 // 初始化分类选择器
 switchCategoryType('EXPENSE');
 
@@ -1666,8 +1795,59 @@ initAccountSelector('account-search-input', 'account-dropdown', 'account-filter-
 initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 'funding-account-filter-input', 'funding-account-options', 'funding_account_id', '不补记资金来源');
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
 
+// 设置默认账户（如果在某个账户的视图中）
+function setDefaultAccount() {
+  var urlParams = new URLSearchParams(window.location.search);
+  var accountId = urlParams.get('account_id');
+  
+  if (accountId) {
+    // 找到账户名称
+    var accountsData = document.getElementById('accounts-data');
+    if (accountsData) {
+      var accounts = JSON.parse(accountsData.textContent);
+      var account = accounts.find(function(acc) { return acc.id == accountId; });
+      
+      if (account) {
+        // 设置账户选择器的默认值
+        var accountHiddenInput = document.getElementById('transaction_account_id');
+        var accountSearchInput = document.getElementById('account-search-input');
+        
+        if (accountHiddenInput) accountHiddenInput.value = account.id;
+        if (accountSearchInput) accountSearchInput.value = account.name;
+        
+        console.log('Default account set:', account.name);
+      }
+    }
+  }
+}
+
+// 互换转账的转出和转入账户
+function swapTransferAccounts() {
+  var sourceHiddenInput = document.getElementById('transaction_account_id');
+  var sourceSearchInput = document.getElementById('account-search-input');
+  var targetHiddenInput = document.getElementById('target_account_id');
+  var targetSearchInput = document.getElementById('target-account-search-input');
+  
+  if (!sourceHiddenInput || !targetHiddenInput) return;
+  
+  // 交换值
+  var tempId = sourceHiddenInput.value;
+  var tempName = sourceSearchInput.value;
+  
+  sourceHiddenInput.value = targetHiddenInput.value;
+  sourceSearchInput.value = targetSearchInput.value;
+  
+  targetHiddenInput.value = tempId;
+  targetSearchInput.value = tempName;
+  
+  console.log('Accounts swapped');
+}
+
 // 初始化分类选择器 - 加载支出分类数据
 switchCategoryType('EXPENSE');
+
+// 设置默认账户
+setDefaultAccount();
 
 // 修复 Turbo 缓存导致的 modal 嵌套问题
 function fixModalPositions() {

@@ -37,7 +37,7 @@ class BudgetItem < ApplicationRecord
     start_date = single_budget.start_date
     end_date = single_budget.end_date || Date.current
 
-    category_ids = category.self_and_descendants.map(&:id)
+    category_ids = Category.descendant_ids_for([category.id])
 
     net_spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
       .where(entryable_type: 'Entryable::Transaction')

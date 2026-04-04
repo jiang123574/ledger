@@ -7,8 +7,10 @@
 # Ignore bundler config.
 /.bundle
 
-# Ignore all environment files.
-/.env*
+# Ignore all environment files except .env.example.
+/.env
+/.env.local
+/.env.*.local
 
 # Ignore all logfiles and tempfiles.
 /log/*
@@ -35,4 +37,10 @@
 
 # Ignore ledger CSV files
 貔貅记账*
+
+# Test coverage
+/coverage
+
+# WorkBuddy AI workspace
+/.workbuddy
 

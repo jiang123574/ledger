@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
 class Tag < ApplicationRecord
-  has_many :transaction_tags, dependent: :destroy
-  has_many :transactions, through: :transaction_tags, source: :transaction_record
   has_many :taggings, dependent: :destroy
 
   validates :name, presence: true, uniqueness: true, length: { maximum: 50 }
@@ -22,7 +20,7 @@ class Tag < ApplicationRecord
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[transactions transaction_tags taggings]
+    %w[taggings]
   end
 
   private

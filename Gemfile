@@ -69,9 +69,17 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
 end
 
+group :test do
+  # Test coverage monitoring
+  gem "simplecov", require: false
+end
+
 group :development do
   # Use console on exceptions pages [https://github.com/rails/web-console]
   gem "web-console"
+
+  # Detect N+1 queries in development
+  gem "bullet"
 end
 
 gem "lucide-rails", "~> 0.2.0", github: "maybe-finance/lucide-rails"

@@ -10,8 +10,6 @@ class Account < ApplicationRecord
     "DEBT" => "欠款"
   }.freeze
 
-  has_many :sent_transactions, class_name: "Transaction", foreign_key: "account_id", dependent: :destroy
-  has_many :received_transactions, class_name: "Transaction", foreign_key: "target_account_id", dependent: :destroy
   has_many :entries, dependent: :destroy
   has_many :transaction_entries, -> { where(entryable_type: 'Entryable::Transaction') }, class_name: 'Entry'
   has_many :valuation_entries, -> { where(entryable_type: 'Entryable::Valuation') }, class_name: 'Entry'
@@ -36,28 +34,43 @@ class Account < ApplicationRecord
     initial_balance.to_d + transaction_entries.sum(:amount).to_d
   end
 
+  # 已废弃：使用 current_balance（基于 Entry）
   def current_balance_from_transactions
-    balance = initial_balance.to_d
-
-    balance += sent_transactions.income.sum(:amount).to_d
-    balance -= sent_transactions.expense.sum(:amount).to_d
-    balance -= sent_transactions.where(type: "ADVANCE").sum(:amount).to_d
-    balance += sent_transactions.where(type: "REIMBURSE").sum(:amount).to_d
-    balance -= sent_transactions.transfers.sum(:amount).to_d
-    balance += received_transactions.transfers.sum(:amount).to_d
-
-    balance
+    current_balance
   end
 
+  # 优化：单次 SQL 查询，避免 N+1
   def self.total_assets
-    visible.included_in_total.sum do |account|
-      account.current_balance
-    end
+    result = visible.included_in_total
+      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
+      .group("accounts.id")
+      .pluck("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)")
+      .to_h
+
+    Account.visible.included_in_total
+      .where.not(id: result.keys)
+      .pluck(:id, :initial_balance)
+      .each { |id, balance| result[id] = balance }
+
+    result.values.sum(&:to_d)
   end
 
   def self.balance_by_type
-    visible.included_in_total.group(:type).sum do |account|
-      account.current_balance
+    accounts_by_type = visible.included_in_total.group(:type).pluck(:type)
+
+    accounts_by_type.each_with_object({}) do |type, hash|
+      result = visible.included_in_total.where(type: type)
+        .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
+        .group("accounts.id")
+        .pluck("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)")
+        .to_h
+
+      visible.included_in_total.where(type: type)
+        .where.not(id: result.keys)
+        .pluck(:id, :initial_balance)
+        .each { |id, balance| result[id] = balance }
+
+      hash[type] = result.values.sum(&:to_d)
     end
   end
 
@@ -75,9 +88,11 @@ class Account < ApplicationRecord
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
 
+    month_entries = transaction_entries.where(date: start_date..end_date).where("transfer_id IS NULL")
+
     {
-      income: sent_transactions.where(type: "INCOME", date: start_date..end_date).sum(:amount),
-      expense: sent_transactions.where(type: "EXPENSE", date: start_date..end_date).sum(:amount)
+      income: month_entries.where('amount > 0').sum(:amount),
+      expense: month_entries.where('amount < 0').sum('ABS(amount)')
     }
   end
 
@@ -90,16 +105,15 @@ class Account < ApplicationRecord
   end
 
   def cash_flow(from_date, to_date)
-    income = sent_transactions.income.where(date: from_date..to_date).sum(:amount)
-    expense = sent_transactions.expense.where(date: from_date..to_date).sum(:amount)
+    period_entries = transaction_entries.where(date: from_date..to_date).where("transfer_id IS NULL")
+    income = period_entries.where('amount > 0').sum(:amount)
+    expense = period_entries.where('amount < 0').sum('ABS(amount)')
     { income: income, expense: expense, net: income - expense }
   end
 
+  # 已废弃：使用 update_entries_cache!
   def update_transactions_cache!
-    update(
-      transactions_count: sent_transactions.count + received_transactions.count,
-      last_transaction_date: [sent_transactions.maximum(:date), received_transactions.maximum(:date)].compact.max
-    )
+    update_entries_cache!
   end
 
   def update_entries_cache!
@@ -110,10 +124,11 @@ class Account < ApplicationRecord
   end
 
   def self.bulk_update_cache
-    find_each { |account| account.update_transactions_cache! }
+    find_each { |account| account.update_entries_cache! }
   end
 
+  # 已废弃：统一用 bulk_update_cache
   def self.bulk_update_entries_cache
-    find_each { |account| account.update_entries_cache! }
+    bulk_update_cache
   end
 end

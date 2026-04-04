@@ -106,4 +106,50 @@ FactoryBot.define do
     contact { 'contact@example.com' }
     note { 'Test note' }
   end
+
+  # ============ Entry 新模型工厂 ============
+  factory :entry do
+    association :account
+    sequence(:name) { |n| "Entry #{n}" }
+    amount { -100.50 }
+    currency { 'CNY' }
+    date { Date.current }
+    excluded { false }
+
+    trait :income do
+      amount { 500.00 }
+    end
+
+    trait :expense do
+      amount { -100.50 }
+    end
+  end
+
+  factory :entryable_transaction, class: 'Entryable::Transaction' do
+    kind { 'expense' }
+    association :category, factory: :category
+
+    trait :income do
+      kind { 'income' }
+    end
+
+    trait :expense do
+      kind { 'expense' }
+    end
+  end
+
+  factory :single_budget do
+    sequence(:name) { |n| "Single Budget #{n}" }
+    start_date { Date.current }
+    end_date { 30.days.from_now }
+    total_amount { 5000 }
+    currency { 'CNY' }
+    status { 'pending' }
+  end
+
+  factory :budget_item do
+    association :single_budget
+    association :category, factory: :category
+    amount { 1000 }
+  end
 end

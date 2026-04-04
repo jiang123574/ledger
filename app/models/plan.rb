@@ -138,8 +138,8 @@ class Plan < ApplicationRecord
 
         begin
           plan.generate_transaction!
-        rescue => e
-          Rails.logger.error("Failed to generate plan #{plan.id}: #{e.message}")
+        rescue StandardError => e
+          Rails.logger.error("Failed to generate plan #{plan.id}: #{e.message}\n#{e.backtrace.first(3).join("\n")}")
         end
       end
     end

@@ -5,7 +5,7 @@
   <% next_period = current_period.next_month %>
 <% end %>
 
-<div class="space-y-4 sm:space-y-6">
+<div class="space-y-4 sm:space-y-6" data-controller="chart-visibility" data-chart-visibility-page-value="reports" data-chart-visibility-default-visible-value='["trend_chart", "expense_chart", "income_chart", "budget_progress"]'>
   <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
     <div>
       <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark"><%= year_label %>财务报表</h1>
@@ -18,6 +18,33 @@
       <%= link_to dashboard_path, class: "px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
         返回仪表盘
       <% end %>
+      <!-- Chart Configuration Button -->
+      <div class="relative">
+        <button type="button" data-action="click->chart-visibility#toggleDropdown" class="p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-smooth">
+          <%= render(Ds::IconComponent.new(name: "settings", size: :md)) %>
+        </button>
+        <div data-chart-visibility-target="dropdown" class="hidden absolute right-0 mt-2 w-48 bg-container dark:bg-container-dark rounded-lg shadow-lg border border-border dark:border-border-dark z-10">
+          <div class="p-3 space-y-2">
+            <p class="text-xs font-medium text-secondary dark:text-secondary-dark mb-2">显示图表</p>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="trend_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">收支趋势</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="expense_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">支出分类</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="income_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">收入分类</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="budget_progress" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">预算进度</span>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -81,7 +108,7 @@
   </div>
 
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all">
+    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="trend_chart">
       <div class="px-4 py-3 border-b border-border dark:border-border-dark">
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark"><%= @report_type == :yearly ? "月度趋势" : "周趋势" %></h2>
       </div>
@@ -101,7 +128,7 @@
       </div>
     </section>
 
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all">
+    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="expense_chart">
       <div class="px-4 py-3 border-b border-border dark:border-border-dark">
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark">支出分类</h2>
       </div>
@@ -118,7 +145,7 @@
       </div>
     </section>
 
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all">
+    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="income_chart">
       <div class="px-4 py-3 border-b border-border dark:border-border-dark">
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark">收入分类</h2>
       </div>
@@ -135,35 +162,8 @@
       </div>
     </section>
 
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all">
-      <div class="px-4 py-3 border-b border-border dark:border-border-dark">
-        <h2 class="text-base font-semibold text-primary dark:text-primary-dark">账户余额</h2>
-      </div>
-      <div class="divide-y divide-border">
-        <% if @account_balances.any? %>
-          <% @account_balances.each do |item| %>
-            <div class="flex justify-between items-center gap-2 min-w-0 p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-              <div class="flex items-center gap-2 min-w-0">
-                <div class="w-8 h-8 shrink-0 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
-                  <span class="text-xs font-semibold text-primary dark:text-primary-dark"><%= item[:account].name[0] %></span>
-                </div>
-                <span class="text-primary dark:text-primary-dark truncate"><%= item[:account].name %></span>
-              </div>
-              <span class="font-semibold text-primary dark:text-primary-dark shrink-0"><%= format_currency(item[:balance]) %></span>
-            </div>
-          <% end %>
-          <div class="p-4 flex justify-between items-center bg-surface/40 dark:bg-surface-dark/40">
-            <span class="font-medium text-primary dark:text-primary-dark">总资产</span>
-            <span class="text-lg font-semibold text-primary dark:text-primary-dark"><%= format_currency(@account_balances.sum { |i| i[:balance] }) %></span>
-          </div>
-        <% else %>
-          <div class="p-8 text-center text-secondary dark:text-secondary-dark">暂无账户数据</div>
-        <% end %>
-      </div>
-    </section>
-
     <% if @report_type == :monthly && @budget_progress&.any? %>
-      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="budget_progress">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">预算进度</h2>
         </div>

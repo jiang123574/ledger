@@ -3,6 +3,7 @@
 class EntrySearch
   include ActiveModel::Model
   include ActiveModel::Attributes
+  include PeriodFilterable
 
   attribute :start_date, :date
   attribute :end_date, :date
@@ -124,24 +125,10 @@ class EntrySearch
   end
 
   def apply_period_filter(scope)
-    return scope unless period_type.present? && period_value.present?
-    
-    case period_type
-    when 'year'
-      scope.by_date_range(Date.new(period_value.to_i, 1, 1), Date.new(period_value.to_i, 12, 31))
-    when 'month'
-      start = Date.parse("#{period_value}-01")
-      scope.by_date_range(start, start.end_of_month)
-    when 'week'
-      if (m = period_value.match(/\A(\d{4})-W(\d{2})\z/))
-        start_date = Date.commercial(m[1].to_i, m[2].to_i, 1)
-        scope.by_date_range(start_date, start_date + 6.days)
-      else
-        scope
-      end
-    else
-      scope
-    end
+    date_range = resolve_period(period_type, period_value)
+    return scope unless date_range
+
+    scope.by_date_range(date_range[0], date_range[1])
   end
 
   def apply_entryable_type_filter(scope)
@@ -149,15 +136,15 @@ class EntrySearch
     scope.where(entryable_type: entryable_type)
   end
 
-def apply_kind_filter(scope)
+  def apply_kind_filter(scope)
     return scope unless kind.present?
-    scope.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+    scope.with_entryable_transaction
          .where(entryable_transactions: { kind: kind })
   end
 
   def apply_category_filter(scope)
     return scope unless category_id
-    scope.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+    scope.with_entryable_transaction
          .where(entryable_transactions: { category_id: category_id })
   end
 

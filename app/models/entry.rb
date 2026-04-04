@@ -32,7 +32,7 @@ class Entry < ApplicationRecord
             if: -> { external_id.present? && source.present? }
   
   scope :visible, -> { joins(:account).where(accounts: { hidden: false }) }
-  
+
   scope :chronological, -> {
     order(
       date: :asc,
@@ -40,7 +40,7 @@ class Entry < ApplicationRecord
       created_at: :asc
     )
   }
-  
+
   scope :reverse_chronological, -> {
     order(
       date: :desc,
@@ -48,12 +48,40 @@ class Entry < ApplicationRecord
       created_at: :desc
     )
   }
-  
+
   scope :by_account, ->(account_id) { where(account_id: account_id) }
   scope :by_date_range, ->(start_date, end_date) { where(date: start_date..end_date) }
   scope :excluded, -> { where(excluded: true) }
   scope :not_excluded, -> { where(excluded: false) }
   scope :transfers, -> { where.not(transfer_id: nil) }
+
+  # Entryable::Transaction JOIN scopes - 避免在多处硬编码 SQL
+  scope :with_entryable_transaction, -> {
+    joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+  }
+
+  scope :with_category, -> {
+    with_entryable_transaction
+      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
+  }
+
+  scope :transactions_only, -> {
+    where(entryable_type: 'Entryable::Transaction')
+  }
+
+  scope :non_transfers, -> {
+    where("transfer_id IS NULL")
+  }
+
+  scope :expenses, -> {
+    transactions_only.non_transfers.with_entryable_transaction
+      .where(entryable_transactions: { kind: 'expense' })
+  }
+
+  scope :incomes, -> {
+    transactions_only.non_transfers
+      .where('amount > 0')
+  }
   
   def transaction?
     entryable_type == 'Entryable::Transaction'

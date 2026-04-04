@@ -4,8 +4,7 @@ require 'rails_helper'
 
 RSpec.describe Tag, type: :model do
   describe 'associations' do
-    it { is_expected.to have_many(:transaction_tags).dependent(:destroy) }
-    it { is_expected.to have_many(:transactions).through(:transaction_tags) }
+    it { is_expected.to have_many(:taggings).dependent(:destroy) }
   end
 
   describe 'validations' do

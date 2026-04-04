@@ -90,7 +90,7 @@ bundle exec rspec
 ## 部署
 
 ```bash
-docker compose up -d --build
+docker compose up -d
 ```
 
 ## 许可证

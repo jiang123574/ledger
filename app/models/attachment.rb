@@ -1,4 +1,5 @@
 class Attachment < ApplicationRecord
+  # TODO: 迁移 belongs_to :entry (polymorphic entryable)
   belongs_to :ledger_transaction, class_name: "Transaction", foreign_key: :transaction_id
 
   validates :file_path, :file_name, :file_type, presence: true

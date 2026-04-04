@@ -1,6 +1,4 @@
 class DashboardController < ApplicationController
-  before_action :set_cache_key
-
   def show
     @today = Date.today
     @month = params[:month].to_s.presence || @today.strftime("%Y-%m")
@@ -13,13 +11,16 @@ class DashboardController < ApplicationController
     end
     end_date = start_date.end_of_month
 
+    ev = CacheBuster.version(:entries)
+    av = CacheBuster.version(:accounts)
+
     # Cache accounts lookup
-    @accounts = Rails.cache.fetch("dashboard/accounts/#{@cache_key}", expires_in: 5.minutes) do
+    @accounts = Rails.cache.fetch("dashboard/accounts/#{av}", expires_in: 5.minutes) do
       Account.visible.to_a
     end
 
     # Cache recent entries
-    @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{@cache_key}", expires_in: 2.minutes) do
+    @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{ev}", expires_in: 2.minutes) do
       Entry.includes(:account, :entryable)
         .where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
         .where("transfer_id IS NULL")
@@ -29,10 +30,10 @@ class DashboardController < ApplicationController
     end
 
     # 兼容旧视图
-    @transactions = @entries.map { |e| build_transaction_from_entry(e) }
+    @transactions = @entries.map { |e| TransactionPresenter.from_entry(e) }
 
-    # Cache monthly stats - 使用 Entry
-    @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}", expires_in: 5.minutes) do
+    # Cache monthly stats
+    @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: 5.minutes) do
       entries = Entry.where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
         .where("transfer_id IS NULL")
       {
@@ -46,58 +47,86 @@ class DashboardController < ApplicationController
     @total_expense = @monthly_stats[:expense]
 
     # Cache expenses by category
-    @expenses_by_category = Rails.cache.fetch("dashboard/expenses/#{@month}", expires_in: 5.minutes) do
-      Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-        .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
-        .where(entries: { entryable_type: 'Entryable::Transaction' })
+    expenses_data = Rails.cache.fetch("dashboard/expenses/#{@month}/#{ev}", expires_in: 5.minutes) do
+      Entry.with_category
+        .transactions_only
+        .non_transfers
         .where(date: start_date..end_date)
-        .where("entries.transfer_id IS NULL")
         .where(entryable_transactions: { kind: 'expense' })
-        .group("categories.name")
-        .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
-        .sum('ABS(entries.amount)')
+        .select('categories.id AS category_id, categories.name AS category_name, SUM(ABS(entries.amount)) AS total_amount')
+        .group('categories.id, categories.name')
+        .order(Arel.sql('SUM(ABS(entries.amount)) DESC'))
+        .to_a
     end
+
+    @expenses_by_category = expenses_data.map { |e| [e.category_id, e.category_name, e.total_amount] }
 
     @budgets = Budget.for_month(@month)
     @total_budget = @budgets.sum(:amount)
-    @total_spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-      .where(entries: { entryable_type: 'Entryable::Transaction' })
-      .where("entries.transfer_id IS NULL")
-      .where(entryable_transactions: { kind: 'expense', category_id: @budgets.pluck(:category_id) })
-      .where(date: start_date..end_date)
-      .sum('ABS(entries.amount)')
 
-    # Cache total assets
-    @total_assets = Rails.cache.fetch("dashboard/assets/#{@cache_key}", expires_in: 5.minutes) do
-      Account.visible.included_in_total.sum { |a| a.current_balance }
+    # total_spent 也纳入缓存
+    @total_spent = Rails.cache.fetch("dashboard/total_spent/#{@month}/#{ev}", expires_in: 5.minutes) do
+      Entry.with_entryable_transaction
+        .transactions_only
+        .non_transfers
+        .where(entryable_transactions: { kind: 'expense', category_id: @budgets.pluck(:category_id) })
+        .where(date: start_date..end_date)
+        .sum('ABS(entries.amount)')
+    end
+
+    # Trend chart data for current month (weekly)
+    @trend_chart_data = Rails.cache.fetch("dashboard/trend/#{@month}/#{ev}", expires_in: 5.minutes) do
+      load_weekly_trend(start_date, end_date)
+    end
+
+    # Category chart data for expenses (pie chart)
+    @expense_chart_data = @expenses_by_category.first(10).map do |category_id, category_name, amount|
+      { label: category_name || "未分类", value: amount, category_id: category_id }
+    end
+
+    # 使用优化后的 Account.total_assets（已消除 N+1）
+    @total_assets = Rails.cache.fetch("dashboard/assets/#{av}", expires_in: 5.minutes) do
+      Account.total_assets
     end
   end
 
   private
 
-  def set_cache_key
-    last_entry = Entry.maximum(:updated_at)
-    @cache_key = last_entry&.to_i || 0
-  end
+  def load_weekly_trend(start_date, end_date)
+    stats = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(date: start_date..end_date)
+      .group("date_trunc('week', entries.date)", 'entryable_transactions.kind')
+      .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
+      .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
-  def build_transaction_from_entry(entry)
-    t = Transaction.new
-    t.id = entry.id
-    t.account_id = entry.account_id
-    t.account = entry.account
-    t.date = entry.date
-    t.amount = entry.amount.abs
-    t.currency = entry.currency
-    t.note = entry.notes || entry.name
-    
-    if entry.entryable.respond_to?(:kind)
-      t.type = entry.entryable.kind.upcase
-      if entry.entryable.respond_to?(:category)
-        t.category = entry.entryable.category
-        t.category_id = entry.entryable.category_id
-      end
+    stats_by_week = stats.group_by { |s| s[:week] }
+    weeks = []
+    current = start_date
+    week_num = 1
+
+    while current <= end_date
+      week_end = [current.end_of_week, end_date].min
+      week_data = stats_by_week[current.beginning_of_week] || []
+      income = week_data.find { |s| s[:kind] == 'income' }&.dig(:amount) || 0
+      expense = week_data.find { |s| s[:kind] == 'expense' }&.dig(:amount) || 0
+
+      weeks << {
+        week: week_num,
+        label: "第#{week_num}周",
+        income: income,
+        expense: expense
+      }
+
+      current = week_end + 1.day
+      week_num += 1
     end
-    
-    t
+
+    {
+      labels: weeks.map { |w| w[:label] },
+      income: weeks.map { |w| w[:income] },
+      expense: weeks.map { |w| w[:expense] }
+    }
   end
 end
