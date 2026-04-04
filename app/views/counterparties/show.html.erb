@@ -46,7 +46,7 @@
   </div>
 
   <!-- Receivables List -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-x-auto">
     <div class="px-6 py-4 border-b flex justify-between items-center">
       <h2 class="text-lg font-semibold">相关应收款</h2>
       <%= link_to "新建应收款", receivables_path(open_modal: true, counterparty: @counterparty.name), class: "text-primary dark:text-primary-dark hover:text-gray-800" %>
