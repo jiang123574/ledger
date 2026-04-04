@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 class TransactionsController < ApplicationController
+  include EntryableActions
+
   before_action :set_entry, only: [:edit, :update, :destroy]
   before_action :load_lookups, only: [:edit, :create, :update]
 
-  # GET /transactions — 直接代理到 accounts#index，避免 302 跳转
+  # GET /transactions — 301 重定向到 accounts
   def index
     redirect_to accounts_path(request.query_parameters), status: :moved_permanently
   end
@@ -38,7 +40,7 @@ class TransactionsController < ApplicationController
 
   def update
     update_entry
-    expire_transactions_cache
+    expire_entries_cache
     handle_successful_save("交易已更新")
   rescue ActiveRecord::RecordInvalid
     errors = if @entry.errors.any?
@@ -53,7 +55,7 @@ class TransactionsController < ApplicationController
 
   def destroy
     @entry&.destroy
-    expire_transactions_cache
+    expire_entries_cache
     redirect_to accounts_path(filter_params), notice: "交易已删除"
   end
 
@@ -74,17 +76,10 @@ class TransactionsController < ApplicationController
       type: type, account_id: account_id, amount: amount,
       date: date, currency: currency, note: note, category_id: category_id
     )
-    expire_transactions_cache
+    expire_entries_cache
     handle_successful_save("交易已创建")
   rescue ActiveRecord::RecordInvalid => e
-    handle_save_error(e.record.errors.full_messages.join(", "))
-  end
-
-  def handle_save_error(error_message)
-    respond_to do |format|
-      format.json { render json: { success: false, error: error_message } }
-      format.html { redirect_to accounts_path(filter_params), alert: error_message }
-    end
+    handle_save_error(e.record)
   end
 
   def create_transfer_entry(from_account_id, to_account_id, amount, date, currency, note)
@@ -92,12 +87,33 @@ class TransactionsController < ApplicationController
       from_account_id: from_account_id, to_account_id: to_account_id,
       amount: amount, date: date, currency: currency, note: note
     )
-    expire_transactions_cache
+    expire_entries_cache
     handle_successful_save("转账已创建")
   rescue ActiveRecord::RecordInvalid => e
-    handle_save_error(e.record.errors.full_messages.join(", "))
+    handle_save_error(e.record)
   rescue ActiveRecord::RecordNotFound
-    handle_save_error("账户不存在")
+    handle_save_error_with_message("账户不存在")
+  end
+
+  def create_with_funding_transfer
+    attrs = transaction_params
+
+    EntryCreationService.create_with_funding_transfer(
+      funding_account_id: params[:funding_account_id],
+      destination_account_id: attrs[:account_id],
+      amount: attrs[:amount].to_d,
+      date: attrs[:date],
+      currency: attrs[:currency] || "CNY",
+      note: attrs[:note],
+      category_id: attrs[:category_id]
+    )
+
+    expire_entries_cache
+    handle_successful_save("交易已创建（已自动补记资金来源转账）")
+  rescue ActiveRecord::RecordInvalid => e
+    handle_save_error(e.record)
+  rescue ActiveRecord::RecordNotFound
+    handle_save_error_with_message("资金来源账户不存在")
   end
 
   def set_entry
@@ -109,7 +125,7 @@ class TransactionsController < ApplicationController
     @entries = Entry.transactions_only.non_transfers.reverse_chronological.includes(:account, :entryable).limit(50)
     @accounts = Account.visible.order(:name)
     @categories = Category.active.by_sort_order
-    @new_transaction = ::OpenStruct.new(
+    @new_transaction = OpenStruct.new(
       type: "EXPENSE", persisted?: false,
       model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
     )
@@ -156,27 +172,6 @@ class TransactionsController < ApplicationController
       params[:funding_account_id].to_s != params.dig(:transaction, :account_id).to_s
   end
 
-  def create_with_funding_transfer
-    attrs = transaction_params
-
-    EntryCreationService.create_with_funding_transfer(
-      funding_account_id: params[:funding_account_id],
-      destination_account_id: attrs[:account_id],
-      amount: attrs[:amount].to_d,
-      date: attrs[:date],
-      currency: attrs[:currency] || "CNY",
-      note: attrs[:note],
-      category_id: attrs[:category_id]
-    )
-
-    expire_transactions_cache
-    handle_successful_save("交易已创建（已自动补记资金来源转账）")
-  rescue ActiveRecord::RecordInvalid => e
-    handle_save_error(e.record.errors.full_messages.join(", "))
-  rescue ActiveRecord::RecordNotFound
-    handle_save_error("资金来源账户不存在")
-  end
-
   def transaction_params
     params.require(:transaction).permit(
       :date, :type, :amount, :currency, :original_amount,
@@ -191,57 +186,8 @@ class TransactionsController < ApplicationController
     params.permit(:account_id, :search, :type, :period_type, :period_value, category_ids: [])
   end
 
-  def build_redirect_url
-    if params[:account_id].present? || params[:period_type].present? || params[:search].present?
-      accounts_path(filter_params)
-    else
-      referer = request.referer
-      return accounts_path if referer.blank?
-
-      begin
-        uri = URI.parse(referer)
-        filter_params_from_referer = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
-        accounts_path(filter_params_from_referer.select { |k, v| v.present? })
-      rescue StandardError
-        accounts_path
-      end
-    end
-  end
-
-  def handle_successful_save(message)
-    if params[:continue_entry] == "1"
-      respond_to do |format|
-        format.json { render json: { success: true, message: "#{message}，请继续录入" } }
-        format.html { redirect_to(continue_entry_redirect_url, notice: "#{message}，请继续录入") }
-        format.turbo_stream { redirect_to(continue_entry_redirect_url, notice: "#{message}，请继续录入") }
-      end
-      return
-    end
-
-    redirect_url = build_redirect_url
-    respond_to do |format|
-      format.html { redirect_to redirect_url, notice: message }
-      format.turbo_stream { redirect_to redirect_url, notice: message }
-      format.json { render json: { success: true, message: message } }
-    end
-  end
-
+  # 覆盖 concern 中的 continue_entry_redirect_url，使用 transactions 专有参数名
   def continue_entry_redirect_url
-    fallback = accounts_path(open_new_transaction: 1)
-    referer = request.referer
-    return fallback if referer.blank?
-
-    uri = URI.parse(referer)
-    params_hash = Rack::Utils.parse_nested_query(uri.query)
-    params_hash["open_new_transaction"] = "1"
-    uri.query = params_hash.to_query
-    uri.to_s
-  rescue URI::InvalidURIError
-    fallback
-  end
-
-  def expire_transactions_cache
-    CacheBuster.bump(:entries)
-    CacheBuster.bump(:accounts)
+    super(continue_param: "open_new_transaction")
   end
 end

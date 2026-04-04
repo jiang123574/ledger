@@ -15,12 +15,12 @@ class DashboardController < ApplicationController
     av = CacheBuster.version(:accounts)
 
     # Cache accounts lookup
-    @accounts = Rails.cache.fetch("dashboard/accounts/#{av}", expires_in: 5.minutes) do
+    @accounts = Rails.cache.fetch("dashboard/accounts/#{av}", expires_in: CacheConfig::MODERATE) do
       Account.visible.to_a
     end
 
     # Cache recent entries
-    @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{ev}", expires_in: 2.minutes) do
+    @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{ev}", expires_in: CacheConfig::MEDIUM) do
       Entry.includes(:account)
         .where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
         .where("transfer_id IS NULL")
@@ -39,7 +39,7 @@ class DashboardController < ApplicationController
     end
 
     # Cache monthly stats
-    @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: 5.minutes) do
+    @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
       entries = Entry.where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
         .where("transfer_id IS NULL")
       {
@@ -53,7 +53,7 @@ class DashboardController < ApplicationController
     @total_expense = @monthly_stats[:expense]
 
     # Cache expenses by category
-    expenses_data = Rails.cache.fetch("dashboard/expenses/#{@month}/#{ev}", expires_in: 5.minutes) do
+    expenses_data = Rails.cache.fetch("dashboard/expenses/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
       Entry.with_category
         .transactions_only
         .non_transfers
@@ -71,7 +71,7 @@ class DashboardController < ApplicationController
     @total_budget = @budgets.sum(:amount)
 
     # total_spent 也纳入缓存
-    @total_spent = Rails.cache.fetch("dashboard/total_spent/#{@month}/#{ev}", expires_in: 5.minutes) do
+    @total_spent = Rails.cache.fetch("dashboard/total_spent/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
       Entry.with_entryable_transaction
         .transactions_only
         .non_transfers
@@ -81,7 +81,7 @@ class DashboardController < ApplicationController
     end
 
     # Trend chart data for current month (weekly)
-    @trend_chart_data = Rails.cache.fetch("dashboard/trend/#{@month}/#{ev}", expires_in: 5.minutes) do
+    @trend_chart_data = Rails.cache.fetch("dashboard/trend/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
       load_weekly_trend(start_date, end_date)
     end
 
@@ -91,7 +91,7 @@ class DashboardController < ApplicationController
     end
 
     # 使用优化后的 Account.total_assets（已消除 N+1）
-    @total_assets = Rails.cache.fetch("dashboard/assets/#{av}", expires_in: 5.minutes) do
+    @total_assets = Rails.cache.fetch("dashboard/assets/#{av}", expires_in: CacheConfig::MODERATE) do
       Account.total_assets
     end
   end
