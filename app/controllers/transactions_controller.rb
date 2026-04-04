@@ -43,14 +43,7 @@ class TransactionsController < ApplicationController
     expire_entries_cache
     handle_successful_save("交易已更新")
   rescue ActiveRecord::RecordInvalid
-    errors = if @entry.errors.any?
-      @entry.errors.full_messages
-    elsif @entry.entryable&.errors&.any?
-      @entry.entryable.errors.full_messages
-    else
-      ["更新失败，请重试"]
-    end
-    redirect_to accounts_path(filter_params), alert: errors.join(", ")
+    handle_save_error(@entry, @entry.entryable)
   end
 
   def destroy

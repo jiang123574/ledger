@@ -72,7 +72,6 @@ Rails.application.configure do
   # Skip DNS rebinding protection for the default health check endpoint.
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
-  # Slow request logging (threshold: SLOW_REQUEST_THRESHOLD_MS, default 200ms)
-  require_relative "../../app/middleware/slow_request_logger"
-  config.middleware.use SlowRequestLogger
+  # Slow request logging moved to application.rb (all environments)
+
 end

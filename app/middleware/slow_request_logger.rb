@@ -23,9 +23,6 @@ class SlowRequestLogger
   private
 
   def threshold
-    @threshold ||= begin
-      env_val = ENV["SLOW_REQUEST_THRESHOLD_MS"]
-      env_val ? env_val.to_i : (Rails.env.production? ? 200 : 500)
-    end
+    ENV.fetch("SLOW_REQUEST_THRESHOLD_MS", Rails.env.production? ? "200" : "500").to_i
   end
 end

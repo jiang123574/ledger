@@ -16,7 +16,7 @@ module EntryableActions
         uri = URI.parse(referer)
         filter_params_from_referer = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
         accounts_path(filter_params_from_referer.select { |k, v| v.present? })
-      rescue StandardError
+      rescue URI::InvalidURIError
         accounts_path
       end
     end
@@ -41,13 +41,10 @@ module EntryableActions
     end
   end
 
-  # 处理保存失败的重定向，统一从 record 取错误信息
-  def handle_save_error(record)
-    error_message = if record.errors.any?
-      record.errors.full_messages.join(", ")
-    else
-      "操作失败，请重试"
-    end
+  # 处理保存失败的重定向，支持传入多个 record（如 @entry + @entry.entryable）
+  def handle_save_error(*records)
+    all_errors = records.flat_map { |r| r.respond_to?(:errors) && r.errors.any? ? r.errors.full_messages : [] }
+    error_message = all_errors.any? ? all_errors.join(", ") : "操作失败，请重试"
 
     respond_to do |format|
       format.json { render json: { success: false, error: error_message } }
