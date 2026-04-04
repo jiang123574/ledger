@@ -28,7 +28,10 @@ class ApplicationController < ActionController::Base
 
   # 是否需要 Basic Auth 认证
   def auth_required?
-    return false if ENV["AUTH_USER"].blank? || ENV["AUTH_PASSWORD"].blank?
+    if ENV["AUTH_USER"].blank? || ENV["AUTH_PASSWORD"].blank?
+      Rails.logger.warn "[AUTH] Basic Auth disabled: AUTH_USER/AUTH_PASSWORD not set" if Rails.env.production?
+      return false
+    end
     return false if skip_auth_for_path?
     true
   end
