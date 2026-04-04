@@ -17,10 +17,9 @@ Rack::Attack.throttle("transactions/create", limit: 30, period: 1.minute) do |re
   req.ip if req.post? && req.path.include?("/transactions")
 end
 
-# Block suspicious requests
-Rack::Attack.blocklist("block bad bots") do |req|
-  req.user_agent&.match?(/(bot|crawler|spider|scraper)/i) &&
-    !req.user_agent&.match?(/(googlebot|bingbot|twitterbot)/i)
+# Block clearly malicious bots (only aggressive scanners, not search engines or monitoring)
+Rack::Attack.blocklist("block malicious bots") do |req|
+  req.user_agent&.match?(/(masscan|nikto|nmap|sqlmap|dirbuster|gobuster|zgrab)/i)
 end
 
 # Allow localhost in development

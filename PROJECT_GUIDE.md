@@ -104,12 +104,18 @@ type:
 | Card | ✅ | `app/components/ds/card_component.rb` |
 | Badge | ✅ | `app/components/ds/badge_component.rb` |
 | Icon | ✅ | `app/components/ds/icon_component.rb` |
+| FilledIcon | ✅ | `app/components/ds/filled_icon_component.rb` |
 | Alert | ✅ | `app/components/ds/alert_component.rb` |
 | Menu | ✅ | `app/components/ds/menu_component.rb` |
+| MenuItem | ✅ | `app/components/ds/menu_item_component.rb` |
 | Tooltip | ✅ | `app/components/ds/tooltip_component.rb` |
 | Toggle | ✅ | `app/components/ds/toggle_component.rb` |
 | Select | ✅ | `app/components/ds/select_component.rb` |
+| Input | ✅ | `app/components/ds/input_component.rb` |
+| Tabs | ✅ | `app/components/ds/tabs_component.rb` |
 | Disclosure | ✅ | `app/components/ds/disclosure_component.rb` |
+| Dialog | ✅ | `app/components/ds/dialog_component.rb` |
+| EmptyState | ✅ | `app/components/ds/empty_state_component.rb` |
 | DonutChart | ✅ | `app/components/ds/donut_chart_component.rb` |
 | SankeyChart | ✅ | `app/components/ds/sankey_chart_component.rb` |
 | FilterBadge | ✅ | `app/components/ds/filter_badge_component.rb` |
@@ -151,11 +157,27 @@ type:
 | `bulk_select_controller.js` | 批量选择 | ✅ |
 | `auto_submit_form_controller.js` | 表单自动提交 | ✅ |
 | `theme_controller.js` | 主题切换 | ✅ |
+| `color_theme_controller.js` | 颜色主题 | ✅ |
 | `dashboard_section_controller.js` | Section 折叠 | ✅ |
 | `dashboard_sortable_controller.js` | 拖拽排序 | ✅ |
 | `donut_chart_controller.js` | 环形图 | ✅ |
+| `category_donut_chart_controller.js` | 分类环形图 | ✅ |
 | `sankey_chart_controller.js` | 桑基图 | ✅ |
+| `time_series_chart_controller.js` | 时间序列图 | ✅ |
+| `trend_line_chart_controller.js` | 趋势线图 | ✅ |
+| `sparkline_chart_controller.js` | 迷你图 | ✅ |
+| `budget_gauge_controller.js` | 预算仪表盘 | ✅ |
 | `mobile_layout_controller.js` | 移动端布局 | ✅ |
+| `haptic_controller.js` | 触摸反馈 | ✅ |
+| `page_transition_controller.js` | 页面过渡动画 | ✅ |
+| `page_skeleton_controller.js` | 页面骨架屏 | ✅ |
+| `stagger_list_controller.js` | 列表错开动画 | ✅ |
+| `loading_button_controller.js` | 加载按钮 | ✅ |
+| `list_filter_controller.js` | 列表过滤 | ✅ |
+| `account_sort_controller.js` | 账户排序 | ✅ |
+| `credit_card_form_controller.js` | 信用卡表单 | ✅ |
+| `stats_loader_controller.js` | 统计数据加载 | ✅ |
+| `ds_disclosure_controller.js` | Disclosure 交互 | ✅ |
 
 ---
 

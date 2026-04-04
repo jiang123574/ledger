@@ -37,7 +37,7 @@ class ShortcutsController < ApplicationController
     file = Rails.root.join("tmp", "shortcuts.json")
     return {} unless File.exist?(file)
     JSON.parse(File.read(file))
-  rescue
+  rescue JSON::ParserError
     {}
   end
 

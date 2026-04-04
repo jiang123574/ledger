@@ -133,19 +133,21 @@ RSpec.describe Plan, type: :model do
   describe '#generate_transaction!' do
     let!(:plan) { create(:plan, name: 'Test Plan', amount: 100, account: account, active: true) }
 
-    it 'creates a transaction' do
-      expect { plan.generate_transaction! }.to change(Transaction, :count).by(1)
+    it 'creates an entry' do
+      expect { plan.generate_transaction! }.to change(Entry, :count).by(1)
     end
 
-    it 'returns the transaction' do
-      transaction = plan.generate_transaction!
-      expect(transaction).to be_a(Transaction)
-      expect(transaction.amount).to eq(100)
+    it 'returns the entry' do
+      entry = plan.generate_transaction!
+      expect(entry).to be_a(Entry)
+      expect(entry.amount).to eq(-100)
     end
 
-    it 'uses default category' do
-      transaction = plan.generate_transaction!
-      expect(transaction.category.name).to eq(I18n.t('plans.default_category'))
+    it 'creates entryable transaction with category' do
+      plan.generate_transaction!
+      entry = Entry.last
+      expect(entry.entryable).to be_a(Entryable::Transaction)
+      expect(entry.entryable.category.name).to eq(I18n.t('plans.default_category'))
     end
 
     it 'updates last_generated timestamp' do
@@ -185,7 +187,7 @@ RSpec.describe Plan, type: :model do
 
       it 'wraps in a transaction' do
         # Test that if something fails, the whole operation is rolled back
-        allow(Transaction).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
+        allow(Entry).to receive(:create!).and_raise(ActiveRecord::RecordInvalid)
 
         expect {
           installment_plan.generate_transaction!
@@ -203,8 +205,8 @@ RSpec.describe Plan, type: :model do
       @not_due_plan = create(:plan, name: 'Not Due Plan', account: account, active: true, day_of_month: today.day == 31 ? 1 : today.day + 1)
     end
 
-    it 'generates transactions for due plans' do
-      expect { Plan.generate_all_due! }.to change(Transaction, :count).by(1)
+    it 'generates entries for due plans' do
+      expect { Plan.generate_all_due! }.to change(Entry, :count).by(1)
     end
   end
 end

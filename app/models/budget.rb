@@ -30,16 +30,10 @@ class Budget < ApplicationRecord
     query.sum('ABS(entries.amount)')
   end
 
+  # 已废弃：使用 spent_amount（基于 Entry 模型）
+  # 保留以兼容可能的外部调用，但内部统一走 spent_amount
   def spent_amount_from_transactions
-    return 0 unless month.present?
-
-    start_date = Date.parse("#{month}-01")
-    end_date = start_date.end_of_month
-
-    query = Transaction.where(type: "EXPENSE", date: start_date..end_date)
-    query = query.where(category_id: category_id) if category_id.present?
-
-    query.sum(:amount)
+    spent_amount
   end
 
   def progress_percentage

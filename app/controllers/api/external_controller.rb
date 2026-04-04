@@ -50,10 +50,13 @@ module Api
 
     def verify_api_key
       api_key = ENV["EXTERNAL_API_KEY"]
-      return if api_key.blank?
+      if api_key.blank?
+        render json: { error: "API Key not configured" }, status: :forbidden
+        return
+      end
 
       provided_key = request.headers["X-API-Key"]
-      unless provided_key == api_key
+      unless ActiveSupport::SecurityUtils.secure_compare(provided_key.to_s, api_key)
         render json: { error: "Unauthorized" }, status: :unauthorized
       end
     end

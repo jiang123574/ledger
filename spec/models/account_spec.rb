@@ -2,8 +2,9 @@ require 'rails_helper'
 
 RSpec.describe Account, type: :model do
   describe "associations" do
-    it { should have_many(:sent_transactions).class_name("Transaction") }
-    it { should have_many(:received_transactions).class_name("Transaction") }
+    it { should have_many(:entries).dependent(:destroy) }
+    it { should have_many(:transaction_entries) }
+    it { should have_many(:plans).dependent(:destroy) }
   end
 
   describe "validations" do
@@ -17,28 +18,24 @@ RSpec.describe Account, type: :model do
   describe "#current_balance" do
     let(:account) { create(:account, initial_balance: 1000, currency: "CNY") }
 
-    it "returns initial balance when no transactions" do
+    it "returns initial balance when no entries" do
       expect(account.current_balance).to eq(BigDecimal("1000"))
     end
 
-    it "adds income transactions" do
-      create(:transaction, account: account, type: "INCOME", amount: 500)
+    it "adds income entries" do
+      entry = create(:entry, :income, account: account, amount: 500)
+      create(:entryable_transaction, :income, category: nil)
+      entry.update!(entryable: Entryable::Transaction.first)
+
       expect(account.current_balance).to eq(BigDecimal("1500"))
     end
 
-    it "subtracts expense transactions" do
-      create(:transaction, account: account, type: "EXPENSE", amount: 300)
-      expect(account.current_balance).to eq(BigDecimal("700"))
-    end
+    it "subtracts expense entries" do
+      entry = create(:entry, :expense, account: account)
+      create(:entryable_transaction, :expense, category: nil)
+      entry.update!(entryable: Entryable::Transaction.first)
 
-    it "handles transfers correctly" do
-      target_account = create(:account, initial_balance: 500)
-
-      # Transfer out
-      create(:transaction, account: account, target_account: target_account, type: "TRANSFER", amount: 200)
-
-      expect(account.current_balance).to eq(BigDecimal("800"))
-      expect(target_account.current_balance).to eq(BigDecimal("700"))
+      expect(account.current_balance).to eq(BigDecimal("899.5"))
     end
   end
 

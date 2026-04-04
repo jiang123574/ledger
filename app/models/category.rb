@@ -7,7 +7,7 @@ class Category < ApplicationRecord
   # ============ 关联 ============
   has_many :children, class_name: "Category", foreign_key: "parent_id", dependent: :destroy
   belongs_to :parent, class_name: "Category", foreign_key: "parent_id", optional: true
-  has_many :transactions, dependent: :nullify
+  has_many :entries, -> { where(entryable_type: 'Entryable::Transaction') }, class_name: 'Entry', dependent: :nullify
   has_many :budgets, dependent: :nullify
   has_many :one_time_budgets, dependent: :nullify
   has_many :recurring_transactions, dependent: :nullify
@@ -25,9 +25,9 @@ class Category < ApplicationRecord
   scope :income, -> { where(category_type: "INCOME") }
   scope :active, -> { where(active: true) }
   scope :with_transaction_counts, -> {
-    left_joins(:transactions)
+    left_joins(:entries)
       .group(:id)
-      .select("categories.*, COUNT(transactions.id) as transactions_count")
+      .select("categories.*, COUNT(entries.id) as transactions_count")
   }
 
   # ============ 回调 ============
@@ -65,7 +65,7 @@ class Category < ApplicationRecord
     parent ? [ parent ] + parent.ancestors : []
   end
 
-  # 所有后代
+  # 所有后代（实例方法，递归加载）
   def descendants
     children.flat_map { |child| [ child ] + child.descendants }
   end
@@ -75,14 +75,41 @@ class Category < ApplicationRecord
     [ self ] + descendants
   end
 
+  # 批量获取后代 ID（单次 SQL，避免递归 N+1）
+  # 用于预算验证等需要快速检查的场景
+  def self_and_descendant_ids
+    [ id ] + Category.where(parent_id: id).pluck(:id)
+  end
+
+  # 类方法：给定一批 category IDs，获取它们及其所有后代的 IDs（单次递归 CTE 查询）
+  def self.descendant_ids_for(category_ids)
+    return [] if category_ids.blank?
+
+    # PostgreSQL 递归 CTE
+    sql = <<~SQL
+      WITH RECURSIVE cat_tree AS (
+        SELECT id FROM categories WHERE id IN (#{sanitize_sql_array(category_ids)})
+        UNION
+        SELECT c.id FROM categories c
+        INNER JOIN cat_tree ct ON c.parent_id = ct.id
+      )
+      SELECT id FROM cat_tree
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
+  end
+
   # 交易统计
   def transactions_count
-    @transactions_count ||= transactions.count
+    @transactions_count ||= entries.count
   end
 
   # 本月交易金额
   def monthly_amount(month = Date.current.strftime("%Y-%m"))
-    transactions.for_month(month).sum(:amount)
+    start_date = Date.parse("#{month}-01")
+    end_date = start_date.end_of_month
+
+    entries.where(date: start_date..end_date).sum('ABS(amount)')
   end
 
   # 预算进度
@@ -105,7 +132,7 @@ class Category < ApplicationRecord
   end
 
   def self.ransackable_associations(auth_object = nil)
-    %w[parent children transactions budgets]
+    %w[parent children entries budgets]
   end
 
   private

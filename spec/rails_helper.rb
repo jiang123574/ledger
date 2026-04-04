@@ -16,6 +16,7 @@ require "rspec/rails"
 # run twice. It is recommended that you do not name files matching this glob in
 # the support directory. Instead, prefix them with underscores.
 # Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }
+Dir[Rails.root.join('spec', 'support', '**', '*.rb')].sort.each { |f| require f }
 
 # Checks for pending migrations and applies them before tests are run.
 # If you are not using ActiveRecord, you can remove these lines.

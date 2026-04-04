@@ -1,264 +1,55 @@
-require "csv"
+# frozen_string_literal: true
 
+# Facade for multi-format import. Delegates to format-specific Importers.
+#
+# Supported formats: csv, xlsx, xls, ofx, qif
+#
+# Usage:
+#   ImportService.import(file, field_mapping: { "日期" => "date", ... })
+#   ImportService.preview(file)
+#   ImportService.validate_file(file)
+#
+# For backward compatibility, all old class methods still work.
 class ImportService
   class ImportError < StandardError; end
 
   SUPPORTED_FORMATS = %w[csv xlsx xls ofx qif].freeze
-  MAX_PREVIEW_ROWS = 100
 
-  # Main import method - dispatches to format-specific handlers
+  # Format-specific importer classes
+  FORMAT_IMPORTERS = {
+    "csv" => Importers::CsvImporter,
+    "xlsx" => Importers::ExcelImporter,
+    "xls" => Importers::ExcelImporter,
+    "ofx" => Importers::OfxImporter,
+    "qif" => Importers::QifImporter
+  }.freeze
+
+  # Field mapping templates for UI
+  TEMPLATES = [
+    {
+      name: "标准格式",
+      mapping: { "日期" => "date", "类型" => "type", "金额" => "amount", "账户" => "account", "分类" => "category", "备注" => "note" }
+    },
+    {
+      name: "支付宝格式",
+      mapping: { "交易时间" => "date", "收支类型" => "type", "金额（元）" => "amount", "账户" => "account", "交易分类" => "category", "商品说明" => "note" }
+    },
+    {
+      name: "微信支付格式",
+      mapping: { "交易时间" => "date", "交易类型" => "type", "金额(元)" => "amount", "支付方式" => "account", "交易分类" => "category", "商品" => "note" }
+    }
+  ].freeze
+
+  # ---- Public API ----
+
   def self.import(file, options = {})
-    format = detect_format(file)
-
-    case format
-    when "csv"
-      import_csv(file, options)
-    when "xlsx", "xls"
-      import_excel(file, options)
-    when "ofx"
-      import_ofx(file, options)
-    when "qif"
-      import_qif(file, options)
-    else
-      raise ImportError, "不支持的文件格式: #{format}"
-    end
+    importer_for(file).call(file, options)
   end
 
-  # Preview import data
   def self.preview(file, options = {})
-    format = detect_format(file)
-
-    case format
-    when "csv"
-      preview_csv(file, options)
-    when "xlsx", "xls"
-      preview_excel(file, options)
-    when "ofx"
-      preview_ofx(file, options)
-    when "qif"
-      preview_qif(file, options)
-    else
-      raise ImportError, "不支持的文件格式: #{format}"
-    end
+    importer_for(file).preview(file, options)
   end
 
-  # CSV Import
-  def self.import_csv(file, options = {})
-    results = { success: 0, failed: 0, errors: [], imported_ids: [] }
-    field_mapping = options[:field_mapping] || default_csv_mapping
-
-    CSV.foreach(file.path, encoding: encoding(file), headers: true) do |row|
-      begin
-        transaction_data = map_csv_row(row, field_mapping)
-        
-        # Skip if no date or no amount (except for transfers which need both)
-        if transaction_data[:date].nil?
-          next
-        end
-        if transaction_data[:amount].nil? && transaction_data[:type] != "TRANSFER"
-          next
-        end
-
-        transactions = create_transaction(transaction_data)
-        
-        # Handle transfer (returns array) or single transaction
-        if transactions.is_a?(Array)
-          results[:success] += transactions.size
-          results[:imported_ids] += transactions.map(&:id)
-        else
-          results[:success] += 1
-          results[:imported_ids] << transactions.id if transactions
-        end
-      rescue => e
-        results[:failed] += 1
-        results[:errors] << "第 #{$.} 行: #{e.message}"
-      end
-    end
-
-    results
-  end
-
-  def self.preview_csv(file, options = {})
-    rows = []
-    headers = []
-    field_mapping = options[:field_mapping] || default_csv_mapping
-
-    CSV.foreach(file.path, encoding: encoding(file), headers: true).with_index do |row, idx|
-      break if idx >= MAX_PREVIEW_ROWS
-
-      headers = row.headers if headers.empty?
-      rows << row.to_h
-    end
-
-    {
-      format: "csv",
-      headers: headers,
-      rows: rows,
-      total_rows: CSV.read(file.path, encoding: encoding(file)).length - 1,
-      suggested_mapping: suggest_mapping(headers)
-    }
-  end
-
-  # Excel Import (simplified - would need roo gem for full support)
-  def self.import_excel(file, options = {})
-    # Note: For full Excel support, add 'roo' gem to Gemfile
-    raise ImportError, "Excel 导入需要安装 roo gem" unless defined?(Roo)
-
-    results = { success: 0, failed: 0, errors: [], imported_ids: [] }
-
-    spreadsheet = Roo::Spreadsheet.open(file.path)
-    sheet = spreadsheet.sheet(0)
-    headers = sheet.row(1)
-
-    (2..sheet.last_row).each do |row_num|
-      begin
-        row_data = Hash[[ headers, sheet.row(row_num) ].transpose]
-        transaction_data = map_csv_row(row_data, options[:field_mapping] || default_csv_mapping)
-        next if transaction_data[:date].nil? || transaction_data[:amount].nil?
-
-        transaction = create_transaction(transaction_data)
-        results[:success] += 1
-        results[:imported_ids] << transaction.id
-      rescue => e
-        results[:failed] += 1
-        results[:errors] << "第 #{row_num} 行: #{e.message}"
-      end
-    end
-
-    results
-  end
-
-  def self.preview_excel(file, options = {})
-    raise ImportError, "Excel 导入需要安装 roo gem" unless defined?(Roo)
-
-    spreadsheet = Roo::Spreadsheet.open(file.path)
-    sheet = spreadsheet.sheet(0)
-    headers = sheet.row(1)
-    rows = []
-
-    (2..[ sheet.last_row, MAX_PREVIEW_ROWS + 1 ].min).each do |row_num|
-      rows << Hash[[ headers, sheet.row(row_num) ].transpose]
-    end
-
-    {
-      format: "excel",
-      headers: headers,
-      rows: rows,
-      total_rows: sheet.last_row - 1,
-      suggested_mapping: suggest_mapping(headers)
-    }
-  end
-
-  # OFX Import (Open Financial Exchange)
-  def self.import_ofx(file, options = {})
-    require "ofx"
-
-    results = { success: 0, failed: 0, errors: [], imported_ids: [] }
-
-    ofx = OFX(file.path)
-    account = find_or_create_account(options[:account_name] || "Imported Account")
-
-    ofx.account.transactions.each do |tx|
-      begin
-        amount = tx.amount.to_d
-        transaction_type = amount >= 0 ? "INCOME" : "EXPENSE"
-
-        transaction = Transaction.create!(
-          date: tx.posted_at.to_date,
-          type: transaction_type,
-          amount: amount.abs,
-          account: account,
-          note: tx.name || tx.memo || "OFX Import",
-          currency: ofx.account.currency || "CNY"
-        )
-
-        results[:success] += 1
-        results[:imported_ids] << transaction.id
-      rescue => e
-        results[:failed] += 1
-        results[:errors] << "交易 #{tx.fit_id}: #{e.message}"
-      end
-    end
-
-    results
-  end
-
-  def self.preview_ofx(file, options = {})
-    require "ofx"
-
-    ofx = OFX(file.path)
-    transactions = ofx.account.transactions.first(MAX_PREVIEW_ROWS)
-
-    {
-      format: "ofx",
-      headers: [ "日期", "金额", "描述", "FIT ID" ],
-      rows: transactions.map do |tx|
-        {
-          "日期" => tx.posted_at&.to_date,
-          "金额" => tx.amount,
-          "描述" => tx.name || tx.memo,
-          "FIT ID" => tx.fit_id
-        }
-      end,
-      total_rows: ofx.account.transactions.count,
-      account_info: {
-        bank_id: ofx.account.bank_id,
-        account_id: ofx.account.id,
-        currency: ofx.account.currency
-      }
-    }
-  end
-
-  # QIF Import (Quicken Interchange Format)
-  def self.import_qif(file, options = {})
-    results = { success: 0, failed: 0, errors: [], imported_ids: [] }
-    account = find_or_create_account(options[:account_name] || "Imported Account")
-
-    content = File.read(file.path, encoding: encoding(file))
-    transactions = parse_qif_content(content)
-
-    transactions.each do |tx_data|
-      begin
-        transaction = Transaction.create!(
-          date: parse_qif_date(tx_data[:date]),
-          type: tx_data[:amount] >= 0 ? "INCOME" : "EXPENSE",
-          amount: tx_data[:amount].abs,
-          account: account,
-          note: tx_data[:payee] || tx_data[:memo] || "QIF Import",
-          category: tx_data[:category]
-        )
-
-        results[:success] += 1
-        results[:imported_ids] << transaction.id
-      rescue => e
-        results[:failed] += 1
-        results[:errors] << "交易失败: #{e.message}"
-      end
-    end
-
-    results
-  end
-
-  def self.preview_qif(file, options = {})
-    content = File.read(file.path, encoding: encoding(file))
-    transactions = parse_qif_content(content)
-
-    {
-      format: "qif",
-      headers: [ "日期", "金额", "收款人", "分类" ],
-      rows: transactions.first(MAX_PREVIEW_ROWS).map do |tx|
-        {
-          "日期" => tx[:date],
-          "金额" => tx[:amount],
-          "收款人" => tx[:payee],
-          "分类" => tx[:category]
-        }
-      end,
-      total_rows: transactions.count
-    }
-  end
-
-  # Validation
   def self.validate_file(file)
     errors = []
 
@@ -269,7 +60,6 @@ class ImportService
       errors << I18n.t("import.errors.file_too_large", max: "10MB")
     end
 
-    # Validate file content matches extension
     unless validate_file_content?(file, format)
       errors << I18n.t("import.errors.content_mismatch")
     end
@@ -277,23 +67,26 @@ class ImportService
     { valid: errors.empty?, errors: errors, format: format }
   end
 
-  # Field mapping templates
-  def self.templates
-    [
-      {
-        name: "标准格式",
-        mapping: { "日期" => "date", "类型" => "type", "金额" => "amount", "账户" => "account", "分类" => "category", "备注" => "note" }
-      },
-      {
-        name: "支付宝格式",
-        mapping: { "交易时间" => "date", "收支类型" => "type", "金额（元）" => "amount", "账户" => "account", "交易分类" => "category", "商品说明" => "note" }
-      },
-      {
-        name: "微信支付格式",
-        mapping: { "交易时间" => "date", "交易类型" => "type", "金额(元)" => "amount", "支付方式" => "account", "交易分类" => "category", "商品" => "note" }
-      }
-    ]
+  # Backward compatibility aliases for SettingsController
+  def self.import_transactions_csv(file, field_mapping = nil)
+    import(file, field_mapping: field_mapping)
   end
+
+  def self.validate_csv(file)
+    result = validate_file(file)
+    result[:errors]
+  end
+
+  # Backward compatibility: templates
+  def self.templates
+    TEMPLATES
+  end
+
+  def self.default_csv_mapping
+    ImportRowMapper.default_mapping
+  end
+
+  # ---- Private ----
 
   private_class_method
 
@@ -303,477 +96,25 @@ class ImportService
     ext
   end
 
-  def self.encoding(file)
-    # CSV/Excel text import in this app is UTF-8 first.
-    # Binary reads can force ASCII-8BIT and break Chinese header matching.
-    "UTF-8"
+  def self.importer_for(file)
+    format = detect_format(file)
+    FORMAT_IMPORTERS[format] || raise(ImportError, "不支持的文件格式: #{format}")
   end
 
-  def self.default_csv_mapping
-    {
-      "日期" => "date", "交易时间" => "date", "date" => "date",
-      "类型" => "type", "收支类型" => "type", "交易分类" => "type", "type" => "type",
-      "父类" => "category", "收支大类" => "category", "分类" => "category", "category" => "category",
-      "子类" => "sub_category", "交易类型" => "sub_category",
-      "金额" => "amount", "金额（元）" => "amount", "金额(元)" => "amount", "amount" => "amount",
-      "流入金额" => "income_amount",
-      "流出金额" => "expense_amount",
-      "账户" => "account", "支付方式" => "account", "资金账户" => "account", "account" => "account",
-      "币种" => "currency",
-      "备注" => "note", "商品说明" => "note", "商品" => "note", "note" => "note",
-      "标签" => "tag", "tag" => "tag"
-    }
-  end
-
-  def self.suggest_mapping(headers)
-    mapping = {}
-    headers.each do |header|
-      header_lower = header.to_s.downcase.strip
-      default = default_csv_mapping
-
-      default.each do |pattern, field|
-        if header_lower.include?(pattern.downcase) || header == pattern
-          mapping[header] = field
-          break
-        end
-      end
-    end
-    mapping
-  end
-
-  def self.map_csv_row(row, mapping)
-    data = { date: nil, type: nil, amount: nil, account: nil, category: nil, note: nil, tag: nil, sub_category: nil, currency: nil, income_amount: nil, expense_amount: nil }
-
-    row.each do |key, value|
-      field = mapping[key] || mapping[key.to_s.strip]
-      next unless field && value.present?
-
-      case field
-      when "date"
-        data[:date] = parse_date(value)
-      when "type"
-        data[:type] = parse_type(value)
-      when "amount"
-        data[:amount] = parse_amount(value)
-      when "income_amount"
-        data[:income_amount] = parse_amount(value)
-      when "expense_amount"
-        data[:expense_amount] = parse_amount(value)
-      when "account"
-        data[:account] = value.to_s.strip
-      when "category"
-        data[:category] = value.to_s.strip
-      when "sub_category"
-        data[:sub_category] = value.to_s.strip
-      when "currency"
-        data[:currency] = value.to_s.strip
-      when "note"
-        data[:note] = value.to_s.strip
-      when "tag"
-        data[:tag] = value.to_s.strip
-      end
-    end
-
-    # 转账识别：优先检查账户字段是否包含箭头（转账格式）
-    account_str = data[:account].to_s
-    is_transfer_account = account_str.include?("→") || account_str.include?("->")
-    
-    # 处理流入/流出金额格式
-    income = data[:income_amount].to_f
-    expense = data[:expense_amount].to_f
-    
-    # 转账识别逻辑：
-    # 1. 交易分类为"转账" 且 流入=流出 且 账户含箭头
-    # 2. 或者账户含箭头且流入=流出（即使交易分类不是转账）
-    if data[:type] == "TRANSFER" && is_transfer_account && income > 0 && income == expense
-      data[:amount] = income
-      # 转账无分类
-      data[:category] = nil
-      data[:sub_category] = nil
-    elsif is_transfer_account && income > 0 && income == expense
-      # 账户含箭头且流入=流出，自动识别为转账
-      data[:type] = "TRANSFER"
-      data[:amount] = income
-      # 转账无分类
-      data[:category] = nil
-      data[:sub_category] = nil
-    elsif income > 0 || expense > 0
-      # 非转账的普通收支
-      if income > 0 && expense > 0
-        # 两者都有值但不是转账格式，按金额大的一方处理
-        if income >= expense
-          data[:type] = "INCOME"
-          data[:amount] = income
-        else
-          data[:type] = "EXPENSE"
-          data[:amount] = expense
-        end
-      elsif income > 0
-        data[:type] = "INCOME"
-        data[:amount] = income
-      elsif expense > 0
-        data[:type] = "EXPENSE"
-        data[:amount] = expense
-      end
-    end
-
-    # 子类处理在 create_transaction 中进行，这里不合并
-
-    data
-  end
-
-  def self.create_transaction(data)
-    ApplicationRecord.transaction do
-      original_type = data[:type]
-      amount = data[:amount]
-      
-      if original_type == "TRANSFER"
-        return handle_transfer(data)
-      end
-      
-      if amount && amount < 0
-        case original_type
-        when "EXPENSE" then transaction_type = "INCOME"
-        when "INCOME" then transaction_type = "EXPENSE"
-        else transaction_type = "INCOME"
-        end
-        amount = amount.abs
-      else
-        transaction_type = original_type || (amount && amount >= 0 ? "INCOME" : "EXPENSE")
-      end
-      
-      account = find_or_create_account(data[:account])
-      
-      parent_category_name = data[:category]
-      sub_category_name = data[:sub_category]
-      
-      if parent_category_name.present? && sub_category_name.present?
-        category = find_or_create_sub_category(parent_category_name, sub_category_name, transaction_type)
-      elsif parent_category_name.present?
-        category = find_or_create_category(parent_category_name, transaction_type)
-      else
-        category = nil
-      end
-
-      note_parts = []
-      note_parts << sub_category_name if sub_category_name.present?
-      note_parts << data[:note] if data[:note].present?
-      final_note = note_parts.join(" - ")
-
-      Transaction.create!(
-        date: data[:date] || Date.current,
-        type: transaction_type,
-        amount: amount || 0,
-        currency: data[:currency] || account&.currency || "CNY",
-        account: account,
-        category: category,
-        note: final_note,
-        tag: data[:tag]
-      )
-    end
-  end
-
-  def self.create_entry(data)
-    ApplicationRecord.transaction do
-      original_type = data[:type]
-      amount = data[:amount]
-      
-      if original_type == "TRANSFER"
-        return handle_entry_transfer(data)
-      end
-      
-      if amount && amount < 0
-        case original_type
-        when "EXPENSE" then kind = 'income'
-        when "INCOME" then kind = 'expense'
-        else kind = 'income'
-        end
-        amount = amount.abs
-      else
-        kind = (original_type == "INCOME") ? 'income' : 'expense'
-      end
-      
-      account = find_or_create_account(data[:account])
-      
-      parent_category_name = data[:category]
-      sub_category_name = data[:sub_category]
-      
-      if parent_category_name.present? && sub_category_name.present?
-        category = find_or_create_sub_category(parent_category_name, sub_category_name, kind == 'income' ? "INCOME" : "EXPENSE")
-      elsif parent_category_name.present?
-        category = find_or_create_category(parent_category_name, kind == 'income' ? "INCOME" : "EXPENSE")
-      else
-        category = nil
-      end
-
-      note_parts = []
-      note_parts << sub_category_name if sub_category_name.present?
-      note_parts << data[:note] if data[:note].present?
-      final_note = note_parts.join(" - ")
-
-      entryable = Entryable::Transaction.create!(
-        kind: kind,
-        category_id: category&.id
-      )
-
-      Entry.create!(
-        account_id: account.id,
-        date: data[:date] || Date.current,
-        name: final_note || "#{kind == 'income' ? '收入' : '支出'} #{amount}",
-        amount: kind == 'income' ? amount.to_d : -amount.to_d,
-        currency: data[:currency] || account&.currency || "CNY",
-        notes: final_note,
-        entryable: entryable
-      )
-    end
-  end
-
-  def self.handle_entry_transfer(data)
-    account_str = data[:account].to_s
-    amount = data[:amount].to_f.abs
-    return nil if amount <= 0 || data[:date].nil?
-    
-    if account_str.include?("→") || account_str.include?("->")
-      parts = account_str.split(/→|->/).map(&:strip)
-      from_account_name = parts[0]
-      to_account_name = parts[1]
-    else
-      return nil
-    end
-    
-    from_account = find_or_create_account(from_account_name)
-    to_account = find_or_create_account(to_account_name)
-    
-    note = "转账: #{from_account_name} → #{to_account_name}#{data[:note] ? " - #{data[:note]}" : ""}"
-    
-    transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
-    
-    # 转出 Entry
-    entryable_out = Entryable::Transaction.create!(kind: 'expense')
-    entry_out = Entry.create!(
-      account_id: from_account.id,
-      date: data[:date],
-      name: note,
-      amount: -amount.to_d,
-      currency: from_account.currency,
-      notes: note,
-      entryable: entryable_out,
-      transfer_id: transfer_id
-    )
-    
-    # 转入 Entry
-    entryable_in = Entryable::Transaction.create!(kind: 'income')
-    entry_in = Entry.create!(
-      account_id: to_account.id,
-      date: data[:date],
-      name: note,
-      amount: amount.to_d,
-      currency: to_account.currency,
-      notes: note,
-      entryable: entryable_in,
-      transfer_id: transfer_id
-    )
-    
-    [entry_out, entry_in]
-  end
-  
-  def self.handle_transfer(data)
-    account_str = data[:account].to_s
-    amount = data[:amount].to_f.abs
-    return nil if amount <= 0 || data[:date].nil?
-    
-    # 支持 "账户A → 账户B" 或 "账户A -> 账户B" 格式
-    # 箭头左边是转出账户（from），右边是接收账户（to）
-    if account_str.include?("→") || account_str.include?("->")
-      parts = account_str.split(/→|->/).map(&:strip)
-      from_account_name = parts[0]  # 左边：转出账户
-      to_account_name = parts[1]    # 右边：接收账户
-    else
-      # 如果没有明确的目标账户，跳过或记录为普通交易
-      return nil
-    end
-    
-    from_account = find_or_create_account(from_account_name)
-    to_account = find_or_create_account(to_account_name)
-    
-    note = "转账: #{from_account_name} → #{to_account_name}#{data[:note] ? " - #{data[:note]}" : ""}"
-    
-    # 使用 Transaction.create_transfer! 创建转账（一条 TRANSFER 记录）
-    # 转出账户余额减少，转入账户余额增加
-    # 转账交易无分类（category=nil）
-    Transaction.create_transfer!(
-      from_account: from_account,
-      to_account: to_account,
-      amount: amount,
-      date: data[:date],
-      note: note
-    )
-  end
-
-  def self.parse_date(date_str)
-    return nil if date_str.blank?
-
-    # Try multiple date formats
-    date_str = date_str.to_s.strip
-
-    formats = [
-      "%Y-%m-%d", "%Y/%m/%d", "%Y.%m.%d",
-      "%m/%d/%Y", "%d/%m/%Y",
-      "%Y年%m月%d日",
-      "%Y-%m-%d %H:%M:%S", "%Y/%m/%d %H:%M:%S"
-    ]
-
-    formats.each do |fmt|
-      begin
-        return Date.strptime(date_str, fmt)
-      rescue
-        next
-      end
-    end
-
-    Date.parse(date_str)
-  rescue
-    nil
-  end
-
-  def self.parse_type(type_str)
-    return nil if type_str.blank?
-
-    case type_str.to_s.strip
-    when "收入", "INCOME", "income", "收", "+", "Income", "日常收入" then "INCOME"
-    when "支出", "EXPENSE", "expense", "支", "-", "Expense", "日常支出" then "EXPENSE"
-    when "转账", "TRANSFER", "transfer", "Transfer" then "TRANSFER"
-    else nil
-    end
-  end
-
-  def self.parse_amount(amount_str)
-    return nil if amount_str.blank?
-
-    # Clean up the amount string
-    cleaned = amount_str.to_s.gsub(/[¥$€£,\s]/, "").strip
-
-    # Handle negative amounts in parentheses
-    if cleaned.start_with?("(") && cleaned.end_with?(")")
-      cleaned = "-" + cleaned[1..-2]
-    end
-
-    BigDecimal(cleaned)
-  rescue
-    nil
-  end
-
-  def self.find_or_create_account(name)
-    return nil if name.blank?
-
-    Account.find_or_create_by(name: name.strip) do |a|
-      a.type = "CASH"
-      a.currency = "CNY"
-    end
-  end
-
-  def self.find_or_create_category(name, type)
-    return nil if name.blank?
-
-    Category.find_or_create_by(name: name.strip) do |c|
-      c.type = (type == "INCOME") ? "INCOME" : "EXPENSE"
-    end
-  end
-
-  # 创建子分类并关联父分类
-  def self.find_or_create_sub_category(parent_name, sub_name, type)
-    return nil if sub_name.blank?
-
-    parent_name = parent_name.strip
-    sub_name = sub_name.strip
-
-    # 先创建或查找父分类
-    parent = Category.find_or_create_by(name: parent_name) do |c|
-      c.type = (type == "INCOME") ? "INCOME" : "EXPENSE"
-    end
-
-    # 创建或查找子分类，设置父分类
-    sub_category = Category.find_or_create_by(name: sub_name, parent_id: parent.id) do |c|
-      c.type = (type == "INCOME") ? "INCOME" : "EXPENSE"
-      c.parent = parent
-    end
-
-    sub_category
-  end
-
-  # Validate file content matches extension
   def self.validate_file_content?(file, format)
     return true unless %w[csv xlsx xls].include?(format)
 
-    # Read first few bytes to check magic numbers/content
     content = File.read(file.path, 1024)
 
     case format
     when "csv"
-      # CSV should be text-based
       content.valid_encoding? && content.match?(/[\w\s,;|\t\n]/)
     when "xlsx", "xls"
-      # Excel files start with PK (xlsx) or D0CF (xls)
       content.start_with?("PK") || content.start_with?("\xD0\xCF")
     else
       true
     end
-  rescue
+  rescue StandardError
     false
-  end
-
-  # QIF parsing
-  def self.parse_qif_content(content)
-    transactions = []
-    current = {}
-
-    content.each_line do |line|
-      line = line.strip
-      next if line.empty?
-
-      if line.start_with?("^")
-        # End of transaction
-        if current[:date] && current[:amount]
-          transactions << current
-        end
-        current = {}
-      elsif line.start_with?("D")
-        current[:date] = line[1..-1]
-      elsif line.start_with?("T")
-        current[:amount] = parse_amount(line[1..-1])
-      elsif line.start_with?("P")
-        current[:payee] = line[1..-1]
-      elsif line.start_with?("M")
-        current[:memo] = line[1..-1]
-      elsif line.start_with?("L")
-        current[:category] = line[1..-1]
-      end
-    end
-
-    # Don't forget the last transaction if file doesn't end with ^
-    if current[:date] && current[:amount]
-      transactions << current
-    end
-
-    transactions
-  end
-
-  def self.parse_qif_date(date_str)
-    return nil if date_str.blank?
-
-    # QIF dates are often in MM/DD/YYYY or DD/MM/YYYY format
-    formats = [ "%m/%d/%Y", "%d/%m/%Y", "%Y-%m-%d", "%m/%d'%y" ]
-
-    formats.each do |fmt|
-      begin
-        return Date.strptime(date_str.strip, fmt)
-      rescue
-        next
-      end
-    end
-
-    Date.parse(date_str)
-  rescue
-    Date.current
   end
 end

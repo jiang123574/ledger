@@ -104,7 +104,7 @@ class EntriesController < ApplicationController
         uri = URI.parse(referer)
         filter_params_from_referer = Rack::Utils.parse_nested_query(uri.query).symbolize_keys
         accounts_path(filter_params_from_referer.select { |k, v| v.present? })
-      rescue
+      rescue StandardError
         accounts_path
       end
     end
@@ -137,6 +137,7 @@ class EntriesController < ApplicationController
   end
 
   def expire_entries_cache
-    Rails.cache.delete_matched("entries_*")
+    CacheBuster.bump(:entries)
+    CacheBuster.bump(:accounts)
   end
 end

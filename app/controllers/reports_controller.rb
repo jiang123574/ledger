@@ -37,13 +37,6 @@ class ReportsController < ApplicationController
     @expense_by_category = load_category_stats('expense')
     @income_by_category = load_category_stats('income')
 
-    # 账户余额
-    @account_balances = Rails.cache.fetch("reports/accounts/#{@cache_key}", expires_in: 5.minutes) do
-      Account.visible.included_in_total.map do |account|
-        { account: account, balance: account.current_balance }
-      end
-    end
-
     # 预算进度
     load_budget_data if @report_type == :monthly
 
@@ -69,9 +62,9 @@ class ReportsController < ApplicationController
 
   def load_monthly_trend
     if @report_type == :yearly
-      stats = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-        .where(entries: { entryable_type: 'Entryable::Transaction' })
-        .where("entries.transfer_id IS NULL")
+      stats = Entry.with_entryable_transaction
+        .transactions_only
+        .non_transfers
         .where(date: @start_date..@end_date)
         .group("date_trunc('month', entries.date)", 'entryable_transactions.kind')
         .select("date_trunc('month', entries.date) as month_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
@@ -90,9 +83,9 @@ class ReportsController < ApplicationController
         }
       end
     else
-      stats = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-        .where(entries: { entryable_type: 'Entryable::Transaction' })
-        .where("entries.transfer_id IS NULL")
+      stats = Entry.with_entryable_transaction
+        .transactions_only
+        .non_transfers
         .where(date: @start_date..@end_date)
         .group("date_trunc('week', entries.date)", 'entryable_transactions.kind')
         .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
@@ -125,10 +118,9 @@ class ReportsController < ApplicationController
   end
 
   def load_category_stats(kind)
-    Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
-      .where(entries: { entryable_type: 'Entryable::Transaction' })
-      .where("entries.transfer_id IS NULL")
+    Entry.with_category
+      .transactions_only
+      .non_transfers
       .where(entryable_transactions: { kind: kind })
       .where(date: @start_date..@end_date)
       .group("categories.name")
@@ -141,9 +133,9 @@ class ReportsController < ApplicationController
     return @budget_progress = [] if @budgets.empty?
 
     category_ids = @budgets.pluck(:category_id)
-    spent_by_category = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-      .where(entries: { entryable_type: 'Entryable::Transaction' })
-      .where("entries.transfer_id IS NULL")
+    spent_by_category = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
       .where(entryable_transactions: { kind: 'expense', category_id: category_ids })
       .where(date: @start_date..@end_date)
       .group('entryable_transactions.category_id')

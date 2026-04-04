@@ -29,6 +29,7 @@ import TimeSeriesChartController from "controllers/time_series_chart_controller"
 import TooltipController from "controllers/tooltip_controller"
 import AccountSortController from "controllers/account_sort_controller"
 import StatsLoaderController from "controllers/stats_loader_controller"
+import ChartVisibilityController from "controllers/chart_visibility_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -58,3 +59,4 @@ application.register("time-series-chart", TimeSeriesChartController)
 application.register("tooltip", TooltipController)
 application.register("account-sort", AccountSortController)
 application.register("stats-loader", StatsLoaderController)
+application.register("chart-visibility", ChartVisibilityController)

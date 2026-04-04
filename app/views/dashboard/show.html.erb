@@ -2,7 +2,7 @@
 <% display_month = Date.current.strftime("%Y-%m") unless display_month =~ /\A\d{4}-\d{2}\z/ %>
 <% current_date = Date.new(display_month[0..3].to_i, display_month[5..6].to_i, 1) %>
 
-<div class="space-y-4 sm:space-y-6">
+<div class="space-y-4 sm:space-y-6" data-controller="chart-visibility" data-chart-visibility-page-value="dashboard" data-chart-visibility-default-visible-value='["recent_transactions", "trend_chart", "expense_chart", "budget_status"]'>
   <!-- Header -->
   <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
     <div>
@@ -21,6 +21,33 @@
           class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-smooth" do %>
         <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
       <% end %>
+      <!-- Chart Configuration Button -->
+      <div class="relative">
+        <button type="button" data-action="click->chart-visibility#toggleDropdown" class="p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-smooth">
+          <%= render(Ds::IconComponent.new(name: "settings", size: :md)) %>
+        </button>
+        <div data-chart-visibility-target="dropdown" class="hidden absolute right-0 mt-2 w-48 bg-container dark:bg-container-dark rounded-lg shadow-lg border border-border dark:border-border-dark z-10">
+          <div class="p-3 space-y-2">
+            <p class="text-xs font-medium text-secondary dark:text-secondary-dark mb-2">显示图表</p>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="recent_transactions" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">最近交易</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="trend_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">收支趋势</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="expense_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">分类支出</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="budget_status" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">预算仪表盘</span>
+            </label>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -90,6 +117,7 @@
     <section
       class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
+      data-chart-visibility-target="section"
       data-section-key="recent_transactions"
       data-controller="dashboard-section"
       data-dashboard-section-section-key-value="recent_transactions"
@@ -162,13 +190,14 @@
       </div>
     </section>
 
-    <!-- Account Balances Section -->
+    <!-- Trend Chart Section -->
     <section
       class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
-      data-section-key="account_balances"
+      data-chart-visibility-target="section"
+      data-section-key="trend_chart"
       data-controller="dashboard-section"
-      data-dashboard-section-section-key-value="account_balances"
+      data-dashboard-section-section-key-value="trend_chart"
       draggable="true"
       tabindex="0"
       role="listitem"
@@ -181,7 +210,6 @@
         touchend->dashboard-sortable#touchEnd
         keydown->dashboard-sortable#handleKeyDown">
       
-      <!-- Section Header -->
       <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
         <div class="flex items-center gap-2">
           <button
@@ -194,81 +222,7 @@
             <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
           </button>
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">
-            <%= t("dashboard.account_balances") %>
-          </h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <%= link_to t("dashboard.manage_accounts"), accounts_path, 
-              class: "text-sm text-primary dark:text-primary-dark hover:text-secondary dark:text-secondary-dark font-medium" %>
-          <button
-            type="button"
-            class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
-            aria-label="<%= t('dashboard.drag_to_reorder') %>">
-            <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Section Content -->
-      <div class="divide-y divide-border" data-dashboard-section-target="content">
-        <% @accounts.each do |account| %>
-          <%= link_to account_path(account), class: "flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
-            <div class="flex items-center gap-3">
-              <div class="w-10 h-10 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center shrink-0">
-                <span class="text-sm font-semibold text-primary dark:text-primary-dark"><%= account.name[0] %></span>
-              </div>
-              <div>
-                <p class="font-medium text-primary dark:text-primary-dark"><%= account.name %></p>
-                <p class="text-xs text-secondary dark:text-secondary-dark"><%= account.type_name %></p>
-              </div>
-            </div>
-            <span class="font-semibold text-primary dark:text-primary-dark"><%= format_currency(account.current_balance) %></span>
-          <% end %>
-        <% end %>
-        <% if @accounts.empty? %>
-          <div class="p-8 text-center">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
-              <%= render(Ds::IconComponent.new(name: "wallet", size: :lg, color: :secondary)) %>
-            </div>
-            <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_accounts_yet") %></p>
-          </div>
-        <% end %>
-      </div>
-    </section>
-
-    <!-- Expenses by Category Section -->
-    <section
-      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-      data-dashboard-sortable-target="section"
-      data-section-key="expenses_by_category"
-      data-controller="dashboard-section"
-      data-dashboard-section-section-key-value="expenses_by_category"
-      draggable="true"
-      tabindex="0"
-      role="listitem"
-      aria-grabbed="false"
-      data-action="
-        dragstart->dashboard-sortable#dragStart
-        dragend->dashboard-sortable#dragEnd
-        touchstart->dashboard-sortable#touchStart
-        touchmove->dashboard-sortable#touchMove
-        touchend->dashboard-sortable#touchEnd
-        keydown->dashboard-sortable#handleKeyDown">
-      
-      <!-- Section Header -->
-      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5"
-            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
-            data-dashboard-section-target="button"
-            aria-label="<%= t('dashboard.toggle_section') %>"
-            aria-expanded="true">
-            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
-          </button>
-          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">
-            <%= t("dashboard.expenses_by_category") %>
+            本月收支趋势
           </h2>
         </div>
         <button
@@ -279,30 +233,74 @@
         </button>
       </div>
       
-      <!-- Section Content -->
       <div class="p-4" data-dashboard-section-target="content">
-        <% if @expenses_by_category.any? %>
-          <div class="space-y-4">
-            <% @expenses_by_category.sort_by { |_, v| -v }.first(8).each do |category, amount| %>
-              <% percentage = @total_expense > 0 ? (amount / @total_expense * 100).round : 0 %>
-              <div>
-                <div class="flex justify-between text-sm mb-1.5">
-                  <span class="font-medium text-primary dark:text-primary-dark"><%= category || t("dashboard.uncategorized") %></span>
-                  <span class="text-expense font-medium"><%= format_currency(amount) %></span>
-                </div>
-                <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
-                  <div class="bg-expense h-2 rounded-full transition-all" style="width: <%= percentage %>%"></div>
-                </div>
-              </div>
-            <% end %>
+        <% has_trend_data = @trend_chart_data[:income].any? { |v| v > 0 } || @trend_chart_data[:expense].any? { |v| v > 0 } %>
+        <% if has_trend_data %>
+          <div data-controller="trend-line-chart"
+               data-trend-line-chart-labels-value="<%= @trend_chart_data[:labels].to_json %>"
+               data-trend-line-chart-income-data-value="<%= @trend_chart_data[:income].to_json %>"
+               data-trend-line-chart-expense-data-value="<%= @trend_chart_data[:expense].to_json %>"
+               class="h-64">
+            <canvas data-trend-line-chart-target="canvas"></canvas>
           </div>
         <% else %>
-          <div class="text-center py-6">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
-              <%= render(Ds::IconComponent.new(name: "pie-chart", size: :lg, color: :secondary)) %>
-            </div>
-            <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_expenses_this_month") %></p>
+          <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
+        <% end %>
+      </div>
+    </section>
+
+    <!-- Expenses by Category Section -->
+    <section
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      data-dashboard-sortable-target="section"
+      data-chart-visibility-target="section"
+      data-section-key="expense_chart"
+      data-controller="dashboard-section"
+      data-dashboard-section-section-key-value="expense_chart"
+      draggable="true"
+      tabindex="0"
+      role="listitem"
+      aria-grabbed="false"
+      data-action="
+        dragstart->dashboard-sortable#dragStart
+        dragend->dashboard-sortable#dragEnd
+        touchstart->dashboard-sortable#touchStart
+        touchmove->dashboard-sortable#touchMove
+        touchend->dashboard-sortable#touchEnd
+        keydown->dashboard-sortable#handleKeyDown">
+      
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5"
+            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
+            data-dashboard-section-target="button"
+            aria-label="<%= t('dashboard.toggle_section') %>"
+            aria-expanded="true">
+            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
+          </button>
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">
+            支出分类占比
+          </h2>
+        </div>
+        <button
+          type="button"
+          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          aria-label="<%= t('dashboard.drag_to_reorder') %>">
+          <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
+        </button>
+      </div>
+      
+      <div class="p-4" data-dashboard-section-target="content">
+        <% if @expense_chart_data.any? %>
+          <div data-controller="category-donut-chart"
+               data-category-donut-chart-data-value="<%= @expense_chart_data.to_json %>"
+               class="h-64">
+            <canvas data-category-donut-chart-target="canvas"></canvas>
           </div>
+        <% else %>
+          <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无支出数据</div>
         <% end %>
       </div>
     </section>
@@ -311,6 +309,7 @@
     <section
       class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
+      data-chart-visibility-target="section"
       data-section-key="budget_status"
       data-controller="dashboard-section"
       data-dashboard-section-section-key-value="budget_status"

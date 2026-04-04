@@ -133,13 +133,7 @@ class Transaction < ApplicationRecord
   end
 
   def display_type
-    {
-      "INCOME" => "收入",
-      "EXPENSE" => "支出",
-      "TRANSFER" => "转账",
-      "ADVANCE" => "预支",
-      "REIMBURSE" => "报销"
-    }[type] || type
+    TransactionTypeDisplay.label(type)
   end
 
   # 获取原始金额（如果有）

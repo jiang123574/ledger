@@ -1,7 +1,9 @@
 class Receivable < ApplicationRecord
+  # TODO: 迁移 belongs_to 到 Entry
   belongs_to :source_transaction, class_name: "Transaction", foreign_key: "source_transaction_id", optional: true
   belongs_to :counterparty, optional: true
   belongs_to :account, optional: true
+  # TODO: 迁移 has_many 到 Entry
   has_many :reimbursement_transactions, class_name: "Transaction", foreign_key: "receivable_id", dependent: :nullify
 
   validates :description, presence: true

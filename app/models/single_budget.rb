@@ -32,7 +32,7 @@ class SingleBudget < ApplicationRecord
 
     # 如果 SingleBudget 有自己的分类，则按分类统计
     if category && start_date
-      category_ids = category.self_and_descendants.map(&:id)
+      category_ids = Category.descendant_ids_for([category.id])
       end_date_val = end_date || Date.current
 
       # 使用 Entry 查询
