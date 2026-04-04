@@ -14,15 +14,24 @@ class ApplicationController < ActionController::Base
   # - /up（健康检查）
   # - /manifest / /manifest.json（PWA）
   # - /api/external/*（使用独立 API Key 认证）
-  http_basic_authenticate_with name: -> { ENV["AUTH_USER"] },
-                                password: -> { ENV["AUTH_PASSWORD"] },
-                                if: -> { auth_required? }
+  before_action :http_basic_auth_check
 
   private
 
+  def http_basic_auth_check
+    return unless auth_required?
+    authenticate_or_request_with_http_basic do |name, password|
+      ActiveSupport::SecurityUtils.secure_compare(name, ENV["AUTH_USER"]) &&
+        ActiveSupport::SecurityUtils.secure_compare(password, ENV["AUTH_PASSWORD"])
+    end
+  end
+
   # 是否需要 Basic Auth 认证
   def auth_required?
-    return false if ENV["AUTH_USER"].blank? || ENV["AUTH_PASSWORD"].blank?
+    if ENV["AUTH_USER"].blank? || ENV["AUTH_PASSWORD"].blank?
+      Rails.logger.warn "[AUTH] Basic Auth disabled: AUTH_USER/AUTH_PASSWORD not set" if Rails.env.production?
+      return false
+    end
     return false if skip_auth_for_path?
     true
   end

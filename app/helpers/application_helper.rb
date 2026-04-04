@@ -169,22 +169,53 @@ module ApplicationHelper
   end
 
   def render_category_filter_tree(categories, selected_ids)
-    safe_join(categories.map do |cat|
+    # 从已加载的所有 categories 中构建映射，完全避免 SQL 查询
+    all_cats = @categories || categories
+    children_map = all_cats.group_by(&:parent_id)
+    # parent_id → category 映射，用于 full_name 的内存查找
+    parent_map = all_cats.index_by(&:id)
+
+    render_tree_nodes(categories, selected_ids, children_map, parent_map)
+  end
+
+  # 在内存中构建 full_name，完全不触发 SQL
+  # @categories 集合必须在 controller 中已预加载
+  def full_name_for(category)
+    all_cats = @categories
+    return category.full_name unless all_cats.is_a?(Array)
+
+    parent_map = all_cats.index_by(&:id)
+    build_full_name_in_memory(category, parent_map)
+  end
+
+  private
+
+  def render_tree_nodes(nodes, selected_ids, children_map, parent_map)
+    safe_join(nodes.map do |cat|
       indent = 'padding-left: ' + (cat.level * 16 + 12).to_s + 'px'
-      
-      content_tag(:label, class: 'flex items-center gap-2 py-1.5 px-3 cursor-pointer category-filter-item hover:bg-surface-hover dark:hover:bg-surface-dark-hover border-b border-border dark:border-border-dark last:border-b-0', 
-                  data: { name: cat.name, full_name: cat.full_name, pinyin: PinYin.abbr(cat.full_name).downcase, type: cat.category_type }, 
+      children = children_map[cat.id] || []
+      # 用 parent_map 做内存查找，避免 full_name 递归触发 SQL
+      full_name = build_full_name_in_memory(cat, parent_map)
+
+      content_tag(:label, class: 'flex items-center gap-2 py-1.5 px-3 cursor-pointer category-filter-item hover:bg-surface-hover dark:hover:bg-surface-dark-hover border-b border-border dark:border-border-dark last:border-b-0',
+                  data: { name: cat.name, full_name: full_name, pinyin: PinYin.abbr(full_name || cat.name).downcase, type: cat.category_type },
                   style: indent) do
         safe_join([
           check_box_tag('category_ids[]', cat.id, selected_ids.include?(cat.id.to_s), class: 'category-filter-option w-4 h-4 rounded border-border dark:border-border-dark'),
-          content_tag(:span, cat.full_name, class: 'text-sm text-primary dark:text-primary-dark')
+          content_tag(:span, full_name, class: 'text-sm text-primary dark:text-primary-dark')
         ])
       end.html_safe +
-      if cat.children.active.by_sort_order.to_a.any?
-        render_category_filter_tree(cat.children.active.by_sort_order, selected_ids)
+      if children.any?
+        render_tree_nodes(children, selected_ids, children_map, parent_map)
       else
         ''.html_safe
       end
     end)
+  end
+
+  # 在内存中递归构建 full_name，完全不触发 SQL
+  def build_full_name_in_memory(category, parent_map, separator: " > ")
+    parent = parent_map[category.parent_id]
+    parent ? "#{build_full_name_in_memory(parent, parent_map, separator: separator)}#{separator}#{category.name}" : category.name
   end
 end

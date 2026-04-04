@@ -4,8 +4,9 @@ class EntriesController < ApplicationController
   before_action :set_entry, only: [:update, :destroy]
   before_action :load_lookups, only: [:create, :update]
 
+  # GET /entries — 直接代理到 accounts#index，避免 302 跳转
   def index
-    redirect_to accounts_path(request.query_parameters)
+    redirect_to accounts_path(request.query_parameters), status: :moved_permanently
   end
 
   def create

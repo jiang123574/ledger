@@ -21,12 +21,21 @@ class DashboardController < ApplicationController
 
     # Cache recent entries
     @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{ev}", expires_in: 2.minutes) do
-      Entry.includes(:account, :entryable)
+      Entry.includes(:account)
         .where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
         .where("transfer_id IS NULL")
         .reverse_chronological
         .limit(50)
         .to_a
+    end
+
+    # 预加载 entryable 及其 category（每次请求都做，因为缓存序列化会丢失预加载状态）
+    ActiveRecord::Associations::Preloader.new(records: @entries, associations: [:entryable]).call
+    if @entries.any?
+      category_ids = @entries.map { |e| e.entryable.respond_to?(:category_id) ? e.entryable.category_id : nil }.compact.uniq
+      if category_ids.any?
+        @category_map = Category.where(id: category_ids).index_by(&:id)
+      end
     end
 
     # Cache monthly stats

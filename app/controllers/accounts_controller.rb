@@ -12,6 +12,22 @@ class AccountsController < ApplicationController
         Account.visible.order(:sort_order, :name).to_a
       end
     end
+    @accounts_map = @accounts.index_by(&:id)
+
+    # 预计算所有账户余额，避免视图中 N+1 查询
+    @account_balances = Rails.cache.fetch("account_balances/#{ev}", expires_in: 1.minute) do
+      account_ids = @accounts.map(&:id)
+      results = Entry.where(account_id: account_ids, entryable_type: 'Entryable::Transaction')
+                       .group(:account_id)
+                       .sum(:amount)
+      Account.where(id: account_ids).pluck(:id, :initial_balance).each_with_object({}) do |(id, ib), hash|
+        hash[id] = ib.to_d + (results[id] || 0)
+      end
+    end
+
+    @total_assets = Rails.cache.fetch("total_assets/#{ev}", expires_in: 1.minute) do
+      Account.total_assets
+    end
 
     @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: 1.hour) do
       Category.active.by_sort_order.to_a
@@ -59,7 +75,7 @@ class AccountsController < ApplicationController
     @total_balance = stats_data[:total_balance]
 
     @entry = Entry.new(currency: "CNY", date: Date.today)
-    @new_transaction = OpenStruct.new(
+    @new_transaction = ::OpenStruct.new(
       type: "EXPENSE", account_id: nil, category_id: nil,
       target_account_id: nil, account: nil, category: nil, target_account: nil,
       persisted?: false, model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
@@ -182,7 +198,7 @@ class AccountsController < ApplicationController
       end
     end
 
-    # 使用 PeriodFilterable concern
+    # 使用 PeriodFilterable
     range = PeriodFilterable.resolve_period(period_type, period_value)
     entries = entries.by_date_range(range.first, range.last) if range
 
@@ -191,6 +207,6 @@ class AccountsController < ApplicationController
       entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
     end
 
-    entries.reverse_chronological.includes(:account)
+    entries.reverse_chronological
   end
 end

@@ -10,6 +10,15 @@ class RecurringTransaction < ApplicationRecord
   scope :active, -> { where(is_active: true) }
   scope :due_today, -> { active.where("next_date <= ?", Time.current) }
 
+  # 兼容视图中的 transaction_type 调用
+  def transaction_type
+    type
+  end
+
+  def transaction_type=(value)
+    self.type = value
+  end
+
   def active?
     is_active == true || is_active == 1
   end

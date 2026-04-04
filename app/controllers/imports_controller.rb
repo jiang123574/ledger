@@ -1,4 +1,9 @@
 class ImportsController < ApplicationController
+  def new
+    @supported_formats = ImportService::SUPPORTED_FORMATS
+    @templates = []
+  end
+
   def pixiu
     @current_step = params[:step].to_i || 1
 

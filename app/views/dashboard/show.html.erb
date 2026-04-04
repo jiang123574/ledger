@@ -150,7 +150,7 @@
           </h2>
         </div>
         <div class="flex items-center gap-2">
-          <%= link_to t("dashboard.view_all"), transactions_path, 
+          <%= link_to t("dashboard.view_all"), accounts_path, 
               class: "text-sm text-primary dark:text-primary-dark hover:text-secondary dark:text-secondary-dark font-medium" %>
           <button
             type="button"
@@ -170,7 +170,7 @@
                 <%= render(Ds::IconComponent.new(name: e.display_entry_type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: e.display_entry_type == "INCOME" ? :income : :expense)) %>
               </div>
               <div class="min-w-0">
-                <p class="font-medium text-primary dark:text-primary-dark truncate"><%= e.display_category&.name || t("dashboard.uncategorized") %></p>
+                <p class="font-medium text-primary dark:text-primary-dark truncate"><%= (@category_map && @category_map[e.display_category_id])&.name || t("dashboard.uncategorized") %></p>
                 <p class="text-xs text-secondary dark:text-secondary-dark"><%= e.date&.strftime("%Y-%m-%d") %> · <%= e.account_name %></p>
               </div>
             </div>

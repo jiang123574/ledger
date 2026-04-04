@@ -5,7 +5,7 @@ Rails.application.routes.draw do
 
   get "up" => "rails/health#show", as: :rails_health_check
 
-  root to: redirect("/accounts")
+  root "accounts#index"
 
   resources :transactions, only: [:index, :create, :edit, :update, :destroy] do
     collection do
@@ -48,7 +48,7 @@ Rails.application.routes.draw do
     end
   end
   # 单次预算功能已合并到预算管理 /budgets
-  get "single_budgets" => redirect("/budgets")
+  get "single_budgets" => redirect("/budgets", status: 301)
   resources :single_budgets, only: [:create, :update, :destroy] do
     patch :start
     patch :complete

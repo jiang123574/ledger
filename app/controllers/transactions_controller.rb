@@ -1,16 +1,12 @@
 # frozen_string_literal: true
 
 class TransactionsController < ApplicationController
-  before_action :set_entry, only: [:show, :edit, :update, :destroy]
-  before_action :set_new_transaction, only: [:index]
-  before_action :load_lookups, only: [:edit, :create, :update, :index]
+  before_action :set_entry, only: [:edit, :update, :destroy]
+  before_action :load_lookups, only: [:edit, :create, :update]
 
+  # GET /transactions — 直接代理到 accounts#index，避免 302 跳转
   def index
-    redirect_to accounts_path(request.query_parameters)
-  end
-
-  def show
-    redirect_to transactions_path
+    redirect_to accounts_path(request.query_parameters), status: :moved_permanently
   end
 
   def edit
@@ -45,7 +41,14 @@ class TransactionsController < ApplicationController
     expire_transactions_cache
     handle_successful_save("交易已更新")
   rescue ActiveRecord::RecordInvalid
-    redirect_to accounts_path(filter_params), alert: @entry.errors.full_messages.join(", ")
+    errors = if @entry.errors.any?
+      @entry.errors.full_messages
+    elsif @entry.entryable&.errors&.any?
+      @entry.entryable.errors.full_messages
+    else
+      ["更新失败，请重试"]
+    end
+    redirect_to accounts_path(filter_params), alert: errors.join(", ")
   end
 
   def destroy
@@ -106,7 +109,7 @@ class TransactionsController < ApplicationController
     @entries = Entry.transactions_only.non_transfers.reverse_chronological.includes(:account, :entryable).limit(50)
     @accounts = Account.visible.order(:name)
     @categories = Category.active.by_sort_order
-    @new_transaction = OpenStruct.new(
+    @new_transaction = ::OpenStruct.new(
       type: "EXPENSE", persisted?: false,
       model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
     )

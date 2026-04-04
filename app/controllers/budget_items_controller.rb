@@ -10,6 +10,7 @@ class BudgetItemsController < ApplicationController
     @budget_item = @single_budget.budget_items.new(budget_item_params)
     if @budget_item.save
       @single_budget.recalculate_spent_amount
+      CacheBuster.bump(:budgets)
       redirect_to @single_budget, notice: "预算项已添加"
     else
       render :new, alert: @budget_item.errors.full_messages.join(", ")
@@ -22,6 +23,7 @@ class BudgetItemsController < ApplicationController
   def update
     if @budget_item.update(budget_item_params)
       @single_budget.recalculate_spent_amount
+      CacheBuster.bump(:budgets)
       redirect_to @single_budget, notice: "预算项已更新"
     else
       render :edit, alert: @budget_item.errors.full_messages.join(", ")
@@ -31,6 +33,7 @@ class BudgetItemsController < ApplicationController
   def destroy
     @budget_item.destroy
     @single_budget.recalculate_spent_amount
+    CacheBuster.bump(:budgets)
     redirect_to @single_budget, notice: "预算项已删除"
   end
 
