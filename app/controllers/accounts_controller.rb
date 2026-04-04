@@ -33,13 +33,13 @@ class AccountsController < ApplicationController
 
     entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
     @entries_with_balance = Rails.cache.fetch(entries_cache_key, expires_in: 2.minutes) do
-      AccountStatsService.entries_with_balance(
+      result = AccountStatsService.entries_with_balance(
         @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
       )
+      # 预加载转账配对账户，消除视图中的 N+1 查询
+      AccountStatsService.preload_transfer_accounts_for(result)
+      result
     end
-
-    @transactions_with_balance = @entries_with_balance.map { |e, balance| [TransactionPresenter.from_entry(e), balance] }
-    @transactions = @transactions_with_balance.map(&:first)
 
     category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
     stats_cache_key = "stats/#{params[:account_id] || 'all'}/#{period_type}/#{period_value}/#{params[:type]}/#{category_ids.empty? ? 'no_cat' : category_ids.sort.join(',')}/#{ev}"
@@ -59,7 +59,11 @@ class AccountsController < ApplicationController
     @total_balance = stats_data[:total_balance]
 
     @entry = Entry.new(currency: "CNY", date: Date.today)
-    @transaction = TransactionPresenter.from_entry(@entry)
+    @new_transaction = OpenStruct.new(
+      type: "EXPENSE", account_id: nil, category_id: nil,
+      target_account_id: nil, account: nil, category: nil, target_account: nil,
+      persisted?: false, model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
+    )
   end
 
   def stats

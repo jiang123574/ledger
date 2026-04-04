@@ -29,9 +29,6 @@ class DashboardController < ApplicationController
         .to_a
     end
 
-    # 兼容旧视图
-    @transactions = @entries.map { |e| TransactionPresenter.from_entry(e) }
-
     # Cache monthly stats
     @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: 5.minutes) do
       entries = Entry.where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')

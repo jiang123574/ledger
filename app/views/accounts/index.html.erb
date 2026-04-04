@@ -275,20 +275,21 @@
 
     <!-- 交易列表 -->
     <div id="transaction-list" class="flex-1 overflow-y-auto" data-page="<%= @page %>" data-per-page="<%= @per_page %>" data-total-count="<%= @total_count %>">
-      <% if @transactions.any? %>
+      <% if @entries_with_balance.any? %>
         <%= render 'skeleton' unless @page > 1 %>
         <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container">
-          <% @transactions_with_balance.each do |t, balance| %>
+          <% @entries_with_balance.each do |e, balance| %>
             <div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
               <div class="flex items-center gap-3">
                 <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
-                  <%= t.date&.strftime("%Y-%m-%d") %>
+                  <%= e.date&.strftime("%Y-%m-%d") %>
                 </div>
 <% 
-  is_transfer = t.type == 'TRANSFER'
+  entry_type = e.display_entry_type
+  is_transfer = entry_type == 'TRANSFER'
   current_account_filter = @current_account_id.to_s
-  is_outflow = is_transfer && (current_account_filter.blank? || t.account_id.to_s == current_account_filter)
-  is_inflow = is_transfer && t.target_account_id.to_s == current_account_filter && current_account_filter.present?
+  is_outflow = is_transfer && (current_account_filter.blank? || e.source_account_id_for_transfer.to_s == current_account_filter)
+  is_inflow = is_transfer && e.target_account_id_for_display.to_s == current_account_filter && current_account_filter.present?
   display_type = if is_transfer
     if current_account_filter.blank?
       "转账"
@@ -296,7 +297,7 @@
       is_inflow ? "转入" : "转出"
     end
   else
-    t.display_type
+    e.display_type_label
   end
   display_amount_type = if is_transfer
     if current_account_filter.blank?
@@ -305,55 +306,55 @@
       is_inflow ? "INCOME" : "EXPENSE"
     end
   else
-    t.type
+    entry_type
   end
 %>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
 <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%= 
-                       case display_type
-                       when '收入' then 'bg-income-light text-income'
-                       when '支出' then 'bg-expense-light text-expense'
-                       when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                       when '转入' then 'bg-income-light text-income'
-                       when '转出' then 'bg-expense-light text-expense'
-                       else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                       end %>">
-                       <%= display_type %>
-                     </span>
+                     case display_type
+                     when '收入' then 'bg-income-light text-income'
+                     when '支出' then 'bg-expense-light text-expense'
+                     when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                     when '转入' then 'bg-income-light text-income'
+                     when '转出' then 'bg-expense-light text-expense'
+                     else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                     end %>">
+                     <%= display_type %>
+                   </span>
                     <p class="text-sm font-medium text-primary dark:text-primary-dark truncate">
                       <% if is_transfer %>
                         <% if current_account_filter.present? %>
-                          <%= is_inflow ? "← #{t.account&.name}" : "→ #{t.target_account&.name}" %>
+                          <%= is_inflow ? "← #{e.source_account_for_transfer&.name}" : "→ #{e.target_account_for_display&.name}" %>
                         <% else %>
-                          <%= "#{t.account&.name} → #{t.target_account&.name}" %>
+                          <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
                         <% end %>
                       <% else %>
-                        <%= t.category&.name || '-' %>
+                        <%= e.display_category&.name || '-' %>
                       <% end %>
                     </p>
                   </div>
-                  <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5"><%= t.note || t.account_name %></p>
+                  <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5"><%= e.display_note || e.account_name %></p>
                 </div>
                 <div class="text-right shrink-0">
                   <% if is_transfer && current_account_filter.blank? %>
                     <p class="text-sm">
-                      <span class="text-expense">-<%= format_currency(t.amount) %></span>
+                      <span class="text-expense">-<%= format_currency(e.display_amount) %></span>
                       <span class="mx-1 text-secondary dark:text-secondary-dark">/</span>
-                      <span class="text-income">+<%= format_currency(t.amount) %></span>
+                      <span class="text-income">+<%= format_currency(e.display_amount) %></span>
                     </p>
                   <% else %>
                     <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
-                      <%= format_currency_with_sign(t.amount, type: display_amount_type) %>
+                      <%= format_currency_with_sign(e.display_amount, type: display_amount_type) %>
                     </p>
                   <% end %>
                   <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= @page == 1 ? format_currency(balance) : '--' %></p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
-                  <button onclick="openEditTransactionModal(<%= t.id %>)" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
+                  <button onclick="openEditTransactionModal(<%= e.id %>)" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                   </button>
-                  <button onclick="confirmDeleteTransaction(<%= t.id %>, '<%= j t.category&.name || t.display_type %>')" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
+                  <button onclick="confirmDeleteTransaction(<%= e.id %>, '<%= j e.display_category&.name || e.display_type_label %>')" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 </div>
@@ -692,9 +693,9 @@ function confirmDeleteAccount(id, name) {
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <%= form_with model: @transaction, url: transactions_path, method: :post, local: true do |f| %>
+      <%= form_with model: @new_transaction, url: transactions_path, method: :post, local: true do |f| %>
         <%= f.hidden_field :currency, value: "CNY" %>
-        <%= f.hidden_field :type, value: (@transaction.type.presence || "EXPENSE"), id: "transaction-type-input" %>
+        <%= f.hidden_field :type, value: (@new_transaction.type.presence || "EXPENSE"), id: "transaction-type-input" %>
         <div class="space-y-4">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">类型 *</label>

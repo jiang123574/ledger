@@ -98,6 +98,119 @@ class Entry < ApplicationRecord
   def classification
     amount.negative? ? 'expense' : 'income'
   end
+
+  # ============ 视图展示方法（替代 TransactionPresenter） ============
+
+  # 交易类型大写标识（EXPENSE/INCOME/TRANSFER）
+  def display_entry_type
+    if transfer_id.present?
+      'TRANSFER'
+    elsif entryable.respond_to?(:kind)
+      entryable.kind.upcase
+    else
+      'EXPENSE'
+    end
+  end
+
+  # 中文类型标签（收入/支出）
+  def display_type_label
+    TransactionTypeDisplay.label(display_entry_type)
+  end
+
+  # 交易金额绝对值（视图展示用）
+  def display_amount
+    amount.abs
+  end
+
+  # 分类（兼容旧视图）
+  def display_category
+    entryable.respond_to?(:category) ? entryable.category : nil
+  end
+
+  def display_category_id
+    entryable.respond_to?(:category_id) ? entryable.category_id : nil
+  end
+
+  # 转账对方账户（优先使用预加载缓存）
+  def target_account_for_display
+    return nil unless transfer_id.present?
+    return transfer_accounts_cache[:"#{transfer_id}_target"] if transfer_accounts_cache.key?(:"#{transfer_id}_target")
+
+    target_entry = Entry.where(transfer_id: transfer_id)
+                        .where.not(id: id)
+                        .where(amount > 0)
+                        .first
+    Account.find_by(id: target_entry&.account_id)
+  end
+
+  def target_account_id_for_display
+    target_account_for_display&.id
+  end
+
+  # 转出方向账户（优先使用预加载缓存）
+  def source_account_for_transfer
+    return account unless transfer_id.present?
+    return account if amount < 0
+    return transfer_accounts_cache[:"#{transfer_id}_source"] if transfer_accounts_cache.key?(:"#{transfer_id}_source")
+
+    source_entry = Entry.where(transfer_id: transfer_id)
+                        .where.not(id: id)
+                        .where('amount < 0')
+                        .first
+    Account.find_by(id: source_entry&.account_id) || account
+  end
+
+  def source_account_id_for_transfer
+    source_account_for_transfer&.id
+  end
+
+  # 批量预加载转账配对账户，消除视图循环中的 N+1 查询
+  # 用法: Entry.preload_transfer_accounts(entries) 在 Controller/Service 中调用一次即可
+  def self.preload_transfer_accounts(entries)
+    transfer_ids = entries.map(&:transfer_id).compact.uniq
+    return {} if transfer_ids.empty?
+
+    # 一次查询获取所有转账配对条目
+    paired_entries = Entry.where(transfer_id: transfer_ids)
+                          .select(:id, :transfer_id, :account_id, :amount)
+                          .to_a
+
+    # 按 transfer_id 分组，区分转入(+)和转出(-)
+    paired_by_transfer = paired_entries.group_by(&:transfer_id).transform_values do |entries_group|
+      {
+        out: entries_group.find { |e| e.amount < 0 },
+        inn: entries_group.find { |e| e.amount > 0 }
+      }
+    end
+
+    # 批量加载所有涉及账户
+    account_ids = paired_entries.map(&:account_id).uniq
+    accounts_map = Account.where(id: account_ids).index_by(&:id)
+
+    # 构建缓存: transfer_id_target → Account, transfer_id_source → Account
+    cache = {}
+    paired_by_transfer.each do |tid, pair|
+      cache[:"#{tid}_target"] = accounts_map[pair[:inn]&.account_id]
+      cache[:"#{tid}_source"] = accounts_map[pair[:out]&.account_id]
+    end
+
+    # 注入到每个 entry 的实例变量
+    entries.each do |entry|
+      entry.instance_variable_set(:@transfer_accounts_cache, cache) if entry.transfer_id.present?
+    end
+
+    cache
+  end
+
+  # 备注显示（notes 或 name）
+  def display_note
+    notes || name
+  end
+
+  # 账户名
+  def account_name
+    account&.name || "未知账户"
+  end
   
   def lock_attribute!(attr_name)
     self.locked_attributes ||= {}
@@ -241,6 +354,10 @@ class Entry < ApplicationRecord
   end
 
   private
+
+  def transfer_accounts_cache
+    @transfer_accounts_cache ||= {}
+  end
 
   def log_create_activity
     ActivityLog.log_create(
