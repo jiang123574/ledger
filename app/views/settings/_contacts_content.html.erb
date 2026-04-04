@@ -16,11 +16,11 @@
           <div class="text-xs text-secondary dark:text-secondary-dark">联系人总数</div>
         </div>
         <div class="text-center">
-          <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= @counterparties.select { |c| c.respond_to?(:receivables_count) && c.receivables_count > 0 }.size %></div>
+          <div class="text-2xl font-bold text-primary dark:text-primary-dark"><%= @counterparties.count { |c| (@receivable_counts[c.name] || 0) > 0 } %></div>
           <div class="text-xs text-secondary dark:text-secondary-dark">关联应收款</div>
         </div>
         <div class="text-center">
-          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= @counterparties.select { |c| c.respond_to?(:receivables_count) && c.receivables_count > 0 }.size %></div>
+          <div class="text-2xl font-bold text-emerald-600 dark:text-emerald-400"><%= @counterparties.count { |c| (@receivable_counts[c.name] || 0) > 0 } %></div>
           <div class="text-xs text-secondary dark:text-secondary-dark">有往来对象</div>
         </div>
       </div>
@@ -60,9 +60,9 @@
                 <%= counterparty.contact.presence || '-' %>
               </td>
               <td class="px-4 py-3 text-center">
-                <% if counterparty.respond_to?(:receivables_count) && counterparty.receivables_count > 0 %>
+                <% if (@receivable_counts[counterparty.name] || 0) > 0 %>
                   <span class="px-2 py-1 rounded-full text-xs bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark">
-                    <%= counterparty.receivables_count %> 笔
+                    <%= @receivable_counts[counterparty.name] %> 笔
                   </span>
                 <% else %>
                   <span class="text-secondary dark:text-secondary-dark text-xs">-</span>

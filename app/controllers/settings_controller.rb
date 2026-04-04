@@ -16,13 +16,8 @@ class SettingsController < ApplicationController
 
     if @section == 'contacts'
       @counterparties = Counterparty.all.order(:name)
-      # 批量查询应收款数量，避免 N+1
-      receivable_counts = Receivable.where(counterparty: @counterparties.map(&:name))
+      @receivable_counts = Receivable.where(counterparty: @counterparties.map(&:name))
                                       .group(:counterparty).count
-      @counterparties = @counterparties.map do |cp|
-        cp.define_singleton_method(:receivables_count) { receivable_counts[cp.name] || 0 }
-        cp
-      end
     end
   end
 

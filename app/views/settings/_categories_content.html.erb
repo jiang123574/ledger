@@ -51,7 +51,7 @@
                   <% end %>
                 </td>
               </tr>
-              <% root.children.sort_by { |c| [c.sort_order || 0, c.name] }.each do |child| %>
+              <% root.children.each do |child| %>
                 <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
                   <td class="px-4 py-2">
                     <div class="flex items-center gap-2 pl-6">
@@ -109,7 +109,7 @@
                   <% end %>
                 </td>
               </tr>
-              <% root.children.sort_by { |c| [c.sort_order || 0, c.name] }.each do |child| %>
+              <% root.children.each do |child| %>
                 <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
                   <td class="px-4 py-2">
                     <div class="flex items-center gap-2 pl-6">

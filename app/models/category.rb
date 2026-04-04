@@ -5,7 +5,7 @@ class Category < ApplicationRecord
   alias_attribute :category_type, :type
 
   # ============ 关联 ============
-  has_many :children, class_name: "Category", foreign_key: "parent_id", dependent: :destroy
+  has_many :children, -> { order(:sort_order, :name) }, class_name: "Category", foreign_key: "parent_id", dependent: :destroy
   belongs_to :parent, class_name: "Category", foreign_key: "parent_id", optional: true
   has_many :entries, -> { where(entryable_type: 'Entryable::Transaction') }, class_name: 'Entry', dependent: :nullify
   has_many :budgets, dependent: :nullify
