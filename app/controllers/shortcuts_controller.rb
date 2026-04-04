@@ -21,9 +21,7 @@ class ShortcutsController < ApplicationController
     [
       { key: "n", description: "新建交易", action: "new_transaction", group: "交易" },
       { key: "s", description: "搜索", action: "search", group: "交易" },
-      { key: "e", description: "导出", action: "export", group: "交易" },
       { key: "/", description: "快速搜索", action: "quick_search", group: "导航" },
-      { key: "g t", description: "跳转到交易", action: "goto_transactions", group: "导航" },
       { key: "g a", description: "跳转到账户", action: "goto_accounts", group: "导航" },
       { key: "g r", description: "跳转到报表", action: "goto_reports", group: "导航" },
       { key: "g b", description: "跳转到预算", action: "goto_budgets", group: "导航" },

@@ -1,3 +1,5 @@
+require 'ostruct'
+
 class AccountsController < ApplicationController
   before_action :set_account, only: [:show, :edit, :update, :destroy]
 

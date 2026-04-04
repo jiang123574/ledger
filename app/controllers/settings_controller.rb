@@ -3,10 +3,26 @@ class SettingsController < ApplicationController
     @currencies = Currency.order(:code)
     @backups = BackupService.list_backups.take(10)
     @shortcuts = default_shortcuts
-    @categories = Category.includes(:children).order(:sort_order, :name)  # 预加载子分类避免 N+1
-    @counterparties = Counterparty.all.order(:name).map do |cp|
-      cp.define_singleton_method(:receivables_count) { Receivable.where(counterparty: cp.name).count }
-      cp
+    @section = params[:section] || 'general'
+
+    # 按需加载数据，避免不必要的查询
+    if @section == 'categories'
+      @categories = Category.includes(:children).order(:sort_order, :name)
+      @expense_roots = @categories.select(&:expense?).select(&:root?)
+      @income_roots = @categories.select(&:income?).select(&:root?)
+      @expense_parent_options = @expense_roots.map { |c| [c.name, c.id] }
+      @income_parent_options = @income_roots.map { |c| [c.name, c.id] }
+    end
+
+    if @section == 'contacts'
+      @counterparties = Counterparty.all.order(:name)
+      # 批量查询应收款数量，避免 N+1
+      receivable_counts = Receivable.where(counterparty: @counterparties.map(&:name))
+                                      .group(:counterparty).count
+      @counterparties = @counterparties.map do |cp|
+        cp.define_singleton_method(:receivables_count) { receivable_counts[cp.name] || 0 }
+        cp
+      end
     end
   end
 
@@ -172,9 +188,7 @@ class SettingsController < ApplicationController
     [
       { key: "n", description: "新建交易", action: "new_transaction", group: "交易" },
       { key: "s", description: "搜索", action: "search", group: "交易" },
-      { key: "e", description: "导出", action: "export", group: "交易" },
       { key: "/", description: "快速搜索", action: "quick_search", group: "导航" },
-      { key: "g t", description: "跳转到交易", action: "goto_transactions", group: "导航" },
       { key: "g a", description: "跳转到账户", action: "goto_accounts", group: "导航" },
       { key: "g r", description: "跳转到报表", action: "goto_reports", group: "导航" },
       { key: "g b", description: "跳转到预算", action: "goto_budgets", group: "导航" },

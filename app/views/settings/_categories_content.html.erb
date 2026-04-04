@@ -1,5 +1,4 @@
-<% expense_roots = Category.roots.expense.order(:sort_order, :name) %>
-<% income_roots = Category.roots.income.order(:sort_order, :name) %>
+<%# 使用 controller 预加载的分类数据，避免 N+1 %>
 
 <div class="space-y-4">
   <div class="flex justify-between items-center">
@@ -22,7 +21,7 @@
       <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
         <div class="px-4 py-2.5 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
           <h2 class="font-semibold text-sm text-primary dark:text-primary-dark">支出分类</h2>
-          <span class="text-xs text-secondary dark:text-secondary-dark"><%= expense_roots.sum { |root| 1 + root.children.size } %> 项</span>
+          <span class="text-xs text-secondary dark:text-secondary-dark"><%= @expense_roots.sum { |root| 1 + root.children.size } %> 项</span>
         </div>
         <table class="min-w-full">
           <thead class="bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark">
@@ -33,7 +32,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border dark:divide-border-dark">
-            <% expense_roots.each do |root| %>
+            <% @expense_roots.each do |root| %>
               <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
                 <td class="px-4 py-2">
                   <div class="flex items-center gap-2">
@@ -52,7 +51,7 @@
                   <% end %>
                 </td>
               </tr>
-              <% root.children.order(:sort_order, :name).each do |child| %>
+              <% root.children.sort_by { |c| [c.sort_order || 0, c.name] }.each do |child| %>
                 <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
                   <td class="px-4 py-2">
                     <div class="flex items-center gap-2 pl-6">
@@ -80,7 +79,7 @@
       <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
         <div class="px-4 py-2.5 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
           <h2 class="font-semibold text-sm text-primary dark:text-primary-dark">收入分类</h2>
-          <span class="text-xs text-secondary dark:text-secondary-dark"><%= income_roots.sum { |root| 1 + root.children.size } %> 项</span>
+          <span class="text-xs text-secondary dark:text-secondary-dark"><%= @income_roots.sum { |root| 1 + root.children.size } %> 项</span>
         </div>
         <table class="min-w-full">
           <thead class="bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark">
@@ -91,7 +90,7 @@
             </tr>
           </thead>
           <tbody class="divide-y divide-border dark:divide-border-dark">
-            <% income_roots.each do |root| %>
+            <% @income_roots.each do |root| %>
               <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
                 <td class="px-4 py-2">
                   <div class="flex items-center gap-2">
@@ -110,7 +109,7 @@
                   <% end %>
                 </td>
               </tr>
-              <% root.children.order(:sort_order, :name).each do |child| %>
+              <% root.children.sort_by { |c| [c.sort_order || 0, c.name] }.each do |child| %>
                 <tr class="transition-smooth hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
                   <td class="px-4 py-2">
                     <div class="flex items-center gap-2 pl-6">
@@ -168,7 +167,7 @@
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">父分类（可选）</label>
             <%= render Ds::InputComponent.new(form: f, field: :parent_id, type: :select, 
-                  choices: [["无", ""]] + Category.roots.expense.order(:sort_order, :name).pluck(:name, :id),
+                  choices: [["无", ""]] + @expense_parent_options,
                   include_blank: false,
                   html_class: "parent-category-select") %>
           </div>
@@ -187,8 +186,8 @@ document.addEventListener('DOMContentLoaded', function() {
   const typeSelect = document.querySelector('.category-type-select select');
   const parentSelect = document.querySelector('.parent-category-select select');
   
-  const expenseParents = <%= raw Category.roots.expense.order(:sort_order, :name).pluck(:name, :id).to_json %>;
-  const incomeParents = <%= raw Category.roots.income.order(:sort_order, :name).pluck(:name, :id).to_json %>;
+  const expenseParents = <%= raw @expense_parent_options.to_json %>;
+  const incomeParents = <%= raw @income_parent_options.to_json %>;
   
   function updateParentOptions() {
     const selectedType = typeSelect.value;

@@ -1,0 +1,8 @@
+#!/bin/bash
+# 启动 Rails 开发服务器（绑定 0.0.0.0，局域网可访问）
+# 用法: script/dev [端口号]
+
+PORT="${1:-3000}"
+
+echo "Starting Rails server on 0.0.0.0:$PORT ..."
+/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails server -p "$PORT" -b 0.0.0.0

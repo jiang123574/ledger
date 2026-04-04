@@ -414,5 +414,153 @@
       <%# Mobile Bottom Navigation %>
       <%= render "layouts/mobile_nav" %>
     </div>
+
+    <%# Global Keyboard Shortcuts %>
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      var keyBuffer = '';
+      var keyBufferTimeout = null;
+
+      function clearKeyBuffer() {
+        keyBuffer = '';
+        if (keyBufferTimeout) {
+          clearTimeout(keyBufferTimeout);
+          keyBufferTimeout = null;
+        }
+      }
+
+      document.addEventListener('keydown', function(e) {
+        // Ignore if typing in input fields (except Escape)
+        if (['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName)) {
+          if (e.key !== 'Escape') return;
+        }
+
+        // Build key string
+        if (e.ctrlKey || e.metaKey || e.altKey) return;
+
+        var baseKey = e.key.length === 1 ? e.key.toLowerCase() : e.key;
+
+        // Handle 'g' prefix for navigation shortcuts
+        if (baseKey === 'g') {
+          e.preventDefault();
+          e.stopPropagation();
+          keyBuffer = 'g';
+          keyBufferTimeout = setTimeout(clearKeyBuffer, 1000);
+          return;
+        }
+
+        // If we have 'g' in buffer, check for follow-up key
+        if (keyBuffer === 'g') {
+          var gShortcut = 'g ' + baseKey;
+          switch (gShortcut) {
+            case 'g a':
+              e.preventDefault();
+              e.stopPropagation();
+              clearKeyBuffer();
+              window.location.href = '/accounts';
+              return;
+            case 'g r':
+              e.preventDefault();
+              e.stopPropagation();
+              clearKeyBuffer();
+              window.location.href = '/reports';
+              return;
+            case 'g b':
+              e.preventDefault();
+              e.stopPropagation();
+              clearKeyBuffer();
+              window.location.href = '/budgets';
+              return;
+            case 'g s':
+              e.preventDefault();
+              e.stopPropagation();
+              clearKeyBuffer();
+              window.location.href = '/settings';
+              return;
+            default:
+              clearKeyBuffer();
+          }
+        }
+
+        // Handle single-key shortcuts
+        switch (baseKey) {
+          case 'n':
+            e.preventDefault();
+            e.stopPropagation();
+            // 打开新建交易弹窗（优先）或跳转到新建页面
+            var newBtn = document.querySelector('#e9, button[onclick*="openNewTransactionModal"]');
+            if (newBtn) {
+              newBtn.click();
+            } else {
+              window.location.href = '/accounts?open_new_transaction=1';
+            }
+            break;
+          case 's':
+            e.preventDefault();
+            e.stopPropagation();
+            var searchInput = document.querySelector('#search-input');
+            if (searchInput) searchInput.focus();
+            break;
+          case '/':
+            e.preventDefault();
+            e.stopPropagation();
+            var searchInput2 = document.querySelector('#search-input');
+            if (searchInput2) searchInput2.focus();
+            break;
+          case '?':
+            e.preventDefault();
+            e.stopPropagation();
+            showShortcutsHelp();
+            break;
+          case 'Escape':
+            clearKeyBuffer();
+            // Close any visible modal
+            var modals = document.querySelectorAll('#add-transaction-modal:not(.hidden), #edit-transaction-modal:not(.hidden), #add-account-modal:not(.hidden), #category-filter-modal:not(.hidden), #pixiu-import-modal:not(.hidden), .fixed.inset-0:not(.hidden)');
+            if (modals.length > 0) {
+              modals[modals.length - 1].classList.add('hidden');
+            }
+            break;
+        }
+      });
+
+      function showShortcutsHelp() {
+        var shortcuts = [
+          { key: 'n', description: '新建交易' },
+          { key: 's', description: '搜索' },
+          { key: '/', description: '快速搜索' },
+          { key: 'g a', description: '账户' },
+          { key: 'g r', description: '报表' },
+          { key: 'g b', description: '预算' },
+          { key: 'g s', description: '设置' },
+          { key: '?', description: '快捷键帮助' },
+          { key: 'Escape', description: '关闭弹窗' }
+        ];
+        var modal = document.createElement('div');
+        modal.className = 'fixed inset-0 bg-black/50 flex items-center justify-center z-[60]';
+        modal.innerHTML = '<div class="bg-container dark:bg-container-dark rounded-lg shadow-xl max-w-md w-full mx-4 p-6">' +
+          '<div class="flex justify-between items-center mb-4">' +
+            '<h2 class="text-lg font-bold text-primary dark:text-primary-dark">键盘快捷键</h2>' +
+            '<button onclick="this.closest(\'.fixed\').remove()" class="text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark text-2xl leading-none">&times;</button>' +
+          '</div>' +
+          '<div class="space-y-2">' +
+            shortcuts.map(function(s) {
+              var keys = s.key.split(' ');
+              var kbdHtml = keys.map(function(k) {
+                return '<kbd class="bg-surface dark:bg-surface-dark border border-border dark:border-border-dark rounded px-2 py-0.5 text-xs font-mono">' + k + '</kbd>';
+              }).join('<span class="text-secondary dark:text-secondary-dark mx-0.5">+</span>');
+              return '<div class="flex items-center justify-between py-1.5">' +
+                '<span class="text-sm text-primary dark:text-primary-dark">' + s.description + '</span>' +
+                '<div class="flex gap-1">' + kbdHtml + '</div>' +
+              '</div>';
+            }).join('') +
+          '</div>' +
+        '</div>';
+        document.body.appendChild(modal);
+        modal.addEventListener('click', function(e) {
+          if (e.target === modal) modal.remove();
+        });
+      }
+    });
+    </script>
   </body>
 </html>
