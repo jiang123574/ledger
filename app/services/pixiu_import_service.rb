@@ -74,16 +74,23 @@ class PixiuImportService
     result = { imported: 0, skipped: 0, errors: 0, transfers: 0 }
 
     CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
+      next if row['日期'].blank?
+
       begin
-        next if row['日期'].blank?
-
         date = Date.parse(row['日期'])
-        income = row['流入金额'].to_d
-        expense = row['流出金额'].to_d
-        transaction_category = row['交易分类']&.strip
-        transaction_type_detail = row['交易类型']&.strip
-        account_str = row['资金账户']&.strip
+      rescue Date::Error => e
+        result[:errors] += 1
+        Rails.logger.error("Import error: invalid date '#{row['日期']}': #{e.message}")
+        next
+      end
 
+      income = row['流入金额'].to_d
+      expense = row['流出金额'].to_d
+      transaction_category = row['交易分类']&.strip
+      transaction_type_detail = row['交易类型']&.strip
+      account_str = row['资金账户']&.strip
+
+      begin
         if transfer?(transaction_category, transaction_type_detail)
           handle_transfer_import(row, date, income, expense, transaction_category,
                                  transaction_type_detail, account_str, accounts_map, result)
@@ -91,9 +98,12 @@ class PixiuImportService
           handle_regular_import(row, date, income, expense, transaction_category,
                                 accounts_map, categories_map, result)
         end
-      rescue StandardError => e
+      rescue ActiveRecord::RecordInvalid => e
         result[:errors] += 1
-        Rails.logger.error("Import error: #{e.message}\n#{e.backtrace.first(3).join("\n")}")
+        Rails.logger.error("Import error: validation failed: #{e.record.errors.full_messages.join(', ')}")
+      rescue ActiveRecord::RecordNotFound => e
+        result[:errors] += 1
+        Rails.logger.error("Import error: record not found: #{e.message}")
       end
     end
 
@@ -437,53 +447,54 @@ class PixiuImportService
 
     # 创建普通 Entry
     def create_entry(account:, amount:, date:, name:, kind:, category: nil)
-      entryable = Entryable::Transaction.new(
-        kind: kind,
-        category_id: category&.id
-      )
-      entryable.save(validate: false)
+      Entry.transaction do
+        entryable = Entryable::Transaction.create!(
+          kind: kind,
+          category_id: category&.id
+        )
 
-      Entry.create!(
-        account_id: account.id,
-        date: date,
-        name: name,
-        amount: amount,
-        currency: 'CNY',
-        entryable: entryable
-      )
+        Entry.create!(
+          account_id: account.id,
+          date: date,
+          name: name,
+          amount: amount,
+          currency: 'CNY',
+          entryable: entryable
+        )
+      end
     end
 
     # 创建转账 Entry 对（转出 + 转入）
     def create_entry_transfer(from_account:, to_account:, amount:, date:, note:)
       transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
 
-      # 转出 Entry
-      entryable_out = Entryable::Transaction.new(kind: 'expense')
-      entryable_out.save(validate: false)
+      Entry.transaction do
+        # 转出 Entry
+        entryable_out = Entryable::Transaction.create!(kind: 'expense')
 
-      Entry.create!(
-        account_id: from_account.id,
-        date: date,
-        name: note,
-        amount: -amount.to_d,
-        currency: from_account.currency || 'CNY',
-        entryable: entryable_out,
-        transfer_id: transfer_id
-      )
+        Entry.create!(
+          account_id: from_account.id,
+          date: date,
+          name: note,
+          amount: -amount.to_d,
+          currency: from_account.currency || 'CNY',
+          entryable: entryable_out,
+          transfer_id: transfer_id
+        )
 
-      # 转入 Entry
-      entryable_in = Entryable::Transaction.new(kind: 'income')
-      entryable_in.save(validate: false)
+        # 转入 Entry
+        entryable_in = Entryable::Transaction.create!(kind: 'income')
 
-      Entry.create!(
-        account_id: to_account.id,
-        date: date,
-        name: note,
-        amount: amount.to_d,
-        currency: to_account.currency || 'CNY',
-        entryable: entryable_in,
-        transfer_id: transfer_id
-      )
+        Entry.create!(
+          account_id: to_account.id,
+          date: date,
+          name: note,
+          amount: amount.to_d,
+          currency: to_account.currency || 'CNY',
+          entryable: entryable_in,
+          transfer_id: transfer_id
+        )
+      end
     end
   end
 end

@@ -4,6 +4,7 @@ class CategoriesController < ApplicationController
   def create
     @category = Category.new(category_params)
     if @category.save
+      CacheBuster.bump(:accounts)
       redirect_to settings_path(section: 'categories'), notice: "分类已创建"
     else
       redirect_to settings_path(section: 'categories'), alert: @category.errors.full_messages.join(', ')
@@ -12,6 +13,7 @@ class CategoriesController < ApplicationController
 
   def update
     if @category.update(category_params)
+      CacheBuster.bump(:accounts)
       redirect_to settings_path(section: 'categories'), notice: "分类已更新"
     else
       redirect_to settings_path(section: 'categories'), alert: @category.errors.full_messages.join(', ')
@@ -20,6 +22,7 @@ class CategoriesController < ApplicationController
 
   def destroy
     @category.destroy
+    CacheBuster.bump(:accounts)
     redirect_to settings_path(section: 'categories'), notice: "分类已删除"
   end
 
