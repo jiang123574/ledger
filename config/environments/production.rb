@@ -73,5 +73,4 @@ Rails.application.configure do
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
   # Slow request logging moved to application.rb (all environments)
-
 end
