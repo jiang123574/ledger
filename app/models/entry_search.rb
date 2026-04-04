@@ -3,7 +3,6 @@
 class EntrySearch
   include ActiveModel::Model
   include ActiveModel::Attributes
-  include PeriodFilterable
 
   attribute :start_date, :date
   attribute :end_date, :date
@@ -125,7 +124,7 @@ class EntrySearch
   end
 
   def apply_period_filter(scope)
-    date_range = resolve_period(period_type, period_value)
+    date_range = PeriodFilterable.resolve_period(period_type, period_value)
     return scope unless date_range
 
     scope.by_date_range(date_range[0], date_range[1])

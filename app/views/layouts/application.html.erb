@@ -362,7 +362,6 @@
         <%# Mobile Sidebar Navigation %>
         <nav class="p-4 space-y-1">
           <%= nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
-          <%= nav_item(:transactions, t("nav.transactions"), transactions_path, "credit-card") %>
           <%= nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
           <%= nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
           <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
@@ -388,7 +387,7 @@
             <span class="font-semibold text-primary dark:text-primary-dark truncate"><%= content_for(:title) || t("app_name") %></span>
 
             <%# Quick Action Button %>
-            <%= link_to transactions_path(open_modal: true), class: "p-2 -mr-2 text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" do %>
+            <%= link_to accounts_path(open_modal: true), class: "p-2 -mr-2 text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors" do %>
               <%= render(Ds::IconComponent.new(name: "plus", size: :md)) %>
             <% end %>
           </div>

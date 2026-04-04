@@ -11,7 +11,7 @@
       <div>
         <h2 class="text-base font-semibold text-primary dark:text-primary-dark">账户管理</h2>
         <div class="text-xs text-secondary dark:text-secondary-dark mt-0.5">
-          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.visible.included_in_total.sum(&:current_balance)) %></span>
+          总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@total_assets) %></span>
         </div>
       </div>
       <div class="flex items-center gap-2">
@@ -41,7 +41,7 @@
         </div>
       </div>
       <div class="text-sm text-secondary dark:text-secondary-dark">
-        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(Account.visible.included_in_total.sum(&:current_balance)) %></span>
+        总计: <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(@total_assets) %></span>
       </div>
     </div>
     
@@ -66,7 +66,7 @@
           <!-- 类型标题 -->
           <div class="px-4 py-2 bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-between">
             <span class="text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wide"><%= type_name || '未分类' %></span>
-            <span class="text-xs text-secondary dark:text-secondary-dark"><%= format_currency(accounts.select { |a| a.include_in_total == 1 }.sum(&:current_balance)) %></span>
+            <span class="text-xs text-secondary dark:text-secondary-dark"><%= format_currency(accounts.select { |a| a.include_in_total == 1 }.sum { |a| @account_balances[a.id] || 0 }) %></span>
           </div>
           <!-- 该类型的账户列表 -->
           <div class="account-group" data-account-type="<%= type %>">
@@ -95,7 +95,7 @@
                     <% end %>
                   </div>
                   <div class="flex items-center gap-1">
-                    <p class="font-medium text-sm text-primary dark:text-primary-dark"><%= format_currency(account.current_balance) %></p>
+                    <p class="font-medium text-sm text-primary dark:text-primary-dark"><%= format_currency(@account_balances[account.id] || 0) %></p>
                     <button onclick="event.stopPropagation(); openEditAccountModal(this)" 
                             data-id="<%= account.id %>"
                             data-name="<%= account.name %>"
@@ -334,7 +334,7 @@
                       <% end %>
                     </p>
                   </div>
-                  <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5"><%= e.display_note || e.account_name %></p>
+                  <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5"><%= e.display_note || (@accounts_map && @accounts_map[e.account_id]&.name) || "未知账户" %></p>
                 </div>
                 <div class="text-right shrink-0">
                   <% if is_transfer && current_account_filter.blank? %>
@@ -671,10 +671,10 @@ function confirmDeleteAccount(id, name) {
 
 <!-- 分类数据（用于 JavaScript） -->
 <script id="expense-categories-data" type="application/json">
-  <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+  <%= raw expense_transaction_categories.map { |c| fn = full_name_for(c); { id: c.id, name: c.name, full_name: fn, pinyin: PinYin.abbr(fn || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
 </script>
 <script id="income-categories-data" type="application/json">
-  <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+  <%= raw income_transaction_categories.map { |c| fn = full_name_for(c); { id: c.id, name: c.name, full_name: fn, pinyin: PinYin.abbr(fn || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
 </script>
 
 <!-- 账户数据（用于 JavaScript） -->

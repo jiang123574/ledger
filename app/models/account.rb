@@ -44,7 +44,7 @@ class Account < ApplicationRecord
     result = visible.included_in_total
       .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
       .group("accounts.id")
-      .pluck("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)")
+      .pluck(Arel.sql("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
       .to_h
 
     Account.visible.included_in_total
@@ -62,7 +62,7 @@ class Account < ApplicationRecord
       result = visible.included_in_total.where(type: type)
         .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
         .group("accounts.id")
-        .pluck("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)")
+        .pluck(Arel.sql("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
         .to_h
 
       visible.included_in_total.where(type: type)

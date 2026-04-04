@@ -1,5 +1,4 @@
 <% content_for :head do %>
-  <meta name="turbo-cache-control" content="no-cache">
   <meta name="turbo-visit-control" content="reload">
 <% end %>
 
@@ -221,7 +220,7 @@
 
 <!-- 分类数据（用于 JavaScript） -->
 <script id="expense-categories-data" type="application/json">
-  <%= raw Category.expense.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+  <%= raw @categories_json %>
 </script>
 
 <script>
@@ -600,7 +599,7 @@
           <div>
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">预算总额</label>
             <div class="px-3 py-1.5 text-sm rounded-lg bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark">
-              ¥ <%= format_currency(@selected_budget.budget_items.sum(:amount)) %>
+              ¥ <%= format_currency(@selected_budget.total_amount) %>
             </div>
           </div>
           <div>

@@ -21,6 +21,7 @@ class SingleBudgetsController < ApplicationController
     @single_budget = SingleBudget.new(single_budget_params)
     if @single_budget.save
       @single_budget.recalculate_spent_amount
+      CacheBuster.bump(:budgets)
       redirect_to single_budgets_path, notice: "单次预算已创建"
     else
       redirect_to single_budgets_path, alert: @single_budget.errors.full_messages.join(", ")
@@ -33,6 +34,7 @@ class SingleBudgetsController < ApplicationController
   def update
     if @single_budget.update(single_budget_params)
       @single_budget.recalculate_spent_amount
+      CacheBuster.bump(:budgets)
       redirect_to single_budgets_path, notice: "单次预算已更新"
     else
       redirect_to single_budgets_path, alert: @single_budget.errors.full_messages.join(", ")
@@ -41,21 +43,25 @@ class SingleBudgetsController < ApplicationController
 
   def destroy
     @single_budget.destroy
+    CacheBuster.bump(:budgets)
     redirect_to single_budgets_path, notice: "单次预算已删除"
   end
 
   def start
     @single_budget.start!
+    CacheBuster.bump(:budgets)
     redirect_to @single_budget, notice: "预算已启动"
   end
 
   def complete
     @single_budget.complete!
+    CacheBuster.bump(:budgets)
     redirect_to @single_budget, notice: "预算已完成"
   end
 
   def cancel
     @single_budget.cancel!
+    CacheBuster.bump(:budgets)
     redirect_to @single_budget, notice: "预算已取消"
   end
 
