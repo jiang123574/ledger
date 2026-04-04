@@ -41,3 +41,6 @@
 # Test coverage
 /coverage
 
+# WorkBuddy AI workspace
+/.workbuddy
+
