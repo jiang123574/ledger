@@ -39,6 +39,32 @@ class TransactionsController < ApplicationController
     end
   end
 
+  def update
+    update_entry
+    expire_transactions_cache
+    handle_successful_save("交易已更新")
+  rescue ActiveRecord::RecordInvalid
+    redirect_to accounts_path(filter_params), alert: @entry.errors.full_messages.join(", ")
+  end
+
+  def destroy
+    @entry&.destroy
+    expire_transactions_cache
+    redirect_to accounts_path(filter_params), notice: "交易已删除"
+  end
+
+  def bulk_destroy
+    ids = params[:ids].presence
+    if ids
+      count = Entry.where(id: ids).destroy_all.size
+      redirect_to accounts_path(filter_params), notice: "已删除 #{count} 笔交易"
+    else
+      redirect_to accounts_path(filter_params), alert: "请选择要删除的交易"
+    end
+  end
+
+  private
+
   def create_regular_entry(type, account_id, amount, date, currency, note, category_id)
     EntryCreationService.create_regular(
       type: type, account_id: account_id, amount: amount,
@@ -70,33 +96,6 @@ class TransactionsController < ApplicationController
     handle_save_error("账户不存在")
   end
 
-  def update
-    if update_entry
-      expire_transactions_cache
-      handle_successful_save("交易已更新")
-    else
-      redirect_to accounts_path(filter_params), alert: @entry.errors.full_messages.join(", ")
-    end
-  end
-
-  def destroy
-    @entry&.destroy
-    expire_transactions_cache
-    redirect_to accounts_path(filter_params), notice: "交易已删除"
-  end
-
-  def bulk_destroy
-    ids = params[:ids].presence
-    if ids
-      count = Entry.where(id: ids).destroy_all.size
-      redirect_to accounts_path(filter_params), notice: "已删除 #{count} 笔交易"
-    else
-      redirect_to accounts_path(filter_params), alert: "请选择要删除的交易"
-    end
-  end
-
-  private
-
   def set_transaction
     @entry = Entry.find_by(id: params[:id])
     raise ActiveRecord::RecordNotFound unless @entry
@@ -105,8 +104,6 @@ class TransactionsController < ApplicationController
   end
 
   def update_entry
-    return false unless @entry
-
     attrs = transaction_params
 
     @entry.date = attrs[:date] if attrs[:date].present?
@@ -123,10 +120,10 @@ class TransactionsController < ApplicationController
     if @entry.entryable.is_a?(Entryable::Transaction)
       @entry.entryable.kind = attrs[:type].downcase if attrs[:type].present?
       @entry.entryable.category_id = attrs[:category_id] if attrs[:category_id].present?
-      @entry.entryable.save(validate: false)
+      @entry.entryable.save!
     end
 
-    @entry.save
+    @entry.save!
   end
 
   def load_lookups
