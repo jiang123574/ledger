@@ -73,5 +73,6 @@ Rails.application.configure do
   # config.host_authorization = { exclude: ->(request) { request.path == "/up" } }
 
   # Slow request logging (threshold: SLOW_REQUEST_THRESHOLD_MS, default 200ms)
+  require_relative "../../app/middleware/slow_request_logger"
   config.middleware.use SlowRequestLogger
 end
