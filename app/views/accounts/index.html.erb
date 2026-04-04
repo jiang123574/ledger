@@ -666,15 +666,11 @@ function confirmDeleteAccount(id, name) {
 </script>
 
 <!-- 新建交易弹窗 -->
-<% expense_transaction_categories = @categories.select { |c| c.category_type == "EXPENSE" || c.type == "EXPENSE" } %>
-<% income_transaction_categories = @categories.select { |c| c.category_type == "INCOME" || c.type == "INCOME" } %>
+<% all_transaction_categories = @categories.select { |c| c.category_type == "EXPENSE" || c.category_type == "INCOME" || c.type == "EXPENSE" || c.type == "INCOME" } %>
 
-<!-- 分类数据（用于 JavaScript） -->
-<script id="expense-categories-data" type="application/json">
-  <%= raw expense_transaction_categories.map { |c| fn = full_name_for(c); { id: c.id, name: c.name, full_name: fn, pinyin: PinYin.abbr(fn || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
-</script>
-<script id="income-categories-data" type="application/json">
-  <%= raw income_transaction_categories.map { |c| fn = full_name_for(c); { id: c.id, name: c.name, full_name: fn, pinyin: PinYin.abbr(fn || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>
+<!-- 分类数据（用于 JavaScript，合并收支） -->
+<script id="all-categories-data" type="application/json">
+  <%= raw all_transaction_categories.map { |c| fn = full_name_for(c); { id: c.id, name: c.name, full_name: fn, pinyin: PinYin.abbr(fn || c.name).downcase, level: c.level || 0, parent_id: c.parent_id, type: (c.category_type || c.type) } }.to_json %>
 </script>
 
 <!-- 账户数据（用于 JavaScript） -->
@@ -682,7 +678,6 @@ function confirmDeleteAccount(id, name) {
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 
-<% funding_source_accounts = @accounts %>
 <div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
@@ -695,20 +690,69 @@ function confirmDeleteAccount(id, name) {
       </div>
       <%= form_with model: @new_transaction, url: transactions_path, method: :post, local: true do |f| %>
         <%= f.hidden_field :currency, value: "CNY" %>
-        <%= f.hidden_field :type, value: (@new_transaction.type.presence || "EXPENSE"), id: "transaction-type-input" %>
+        <%= f.hidden_field :type, value: "EXPENSE", id: "transaction-type-input" %>
         <div class="space-y-4">
+          <!-- 1. 分类（收支合并 + 转账切换） -->
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">类型 *</label>
-            <div class="grid grid-cols-3 gap-2" id="transaction-type-cards">
-              <button type="button" data-transaction-type="EXPENSE" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">支出</button>
-              <button type="button" data-transaction-type="INCOME" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">收入</button>
-              <button type="button" data-transaction-type="TRANSFER" class="transaction-type-card px-3 py-2 rounded-lg border text-sm font-medium transition-smooth">转账</button>
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark">分类 *</label>
+              <button type="button" id="toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
+            </div>
+            <!-- 收支分类选择器（默认显示） -->
+            <div id="transaction-category-field">
+              <input type="hidden" name="transaction[category_id]" id="new_transaction_category_id" value="">
+              <div class="relative">
+                <input type="text" id="category-search-input" 
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                       placeholder="选择分类"
+                       autocomplete="off"
+                       readonly>
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                <div id="category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                  <div class="p-2 border-b border-border dark:border-border-dark">
+                    <input type="text" id="category-filter-input" 
+                           class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                           placeholder="搜索分类..."
+                           autocomplete="off">
+                  </div>
+                  <div id="category-options" class="py-1"></div>
+                </div>
+              </div>
+            </div>
+            <!-- 转账字段（默认隐藏） -->
+            <div id="target-account-field" class="hidden">
+              <input type="hidden" name="transaction[target_account_id]" id="target_account_id" value="">
+              <div class="relative">
+                <input type="text" id="target-account-search-input" 
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                       placeholder="选择转入账户"
+                       autocomplete="off"
+                       readonly>
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                <div id="target-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                  <div class="p-2 border-b border-border dark:border-border-dark">
+                    <input type="text" id="target-account-filter-input" 
+                           class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                           placeholder="搜索账户..."
+                           autocomplete="off">
+                  </div>
+                  <div id="target-account-options" class="py-1"></div>
+                </div>
+              </div>
+              <!-- 互换账户按钮 -->
+              <button type="button" onclick="swapTransferAccounts()" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+                </svg>
+                互换转出/转入账户
+              </button>
             </div>
           </div>
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">日期 *</label>
-            <%= f.date_field :date, value: Date.current, required: true, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
-          </div>
+          <!-- 2. 金额 -->
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">金额 *</label>
             <div class="relative">
@@ -716,7 +760,8 @@ function confirmDeleteAccount(id, name) {
               <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
           </div>
-<div>
+          <!-- 3. 账户 -->
+          <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
             <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="">
             <div class="relative">
@@ -739,7 +784,13 @@ function confirmDeleteAccount(id, name) {
               </div>
             </div>
           </div>
-          <div id="funding-account-field">
+          <!-- 4. 日期 -->
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">日期 *</label>
+            <%= f.date_field :date, value: Date.current, required: true, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <!-- 实际资金来源（支出时显示） -->
+          <div id="funding-account-field" class="hidden">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">实际资金来源（可选）</label>
             <input type="hidden" name="funding_account_id" id="funding_account_id" value="">
             <div class="relative">
@@ -763,59 +814,7 @@ function confirmDeleteAccount(id, name) {
             </div>
             <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">选择后会自动创建"来源账户 → 当前账户"的转账，再记录这笔支出。</p>
           </div>
-          <div id="target-account-field" class="hidden">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">转入账户 *</label>
-            <input type="hidden" name="transaction[target_account_id]" id="target_account_id" value="">
-            <div class="relative">
-              <input type="text" id="target-account-search-input" 
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择转入账户"
-                     autocomplete="off"
-                     readonly>
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-              <div id="target-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="target-account-filter-input" 
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索账户..."
-                         autocomplete="off">
-                </div>
-                <div id="target-account-options" class="py-1"></div>
-              </div>
-            </div>
-            <!-- 互换账户按钮 -->
-            <button type="button" onclick="swapTransferAccounts()" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-              </svg>
-              互换转出/转入账户
-            </button>
-          </div>
-          <div id="transaction-category-field">
-            <label id="transaction-category-label" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">支出分类</label>
-            <input type="hidden" name="transaction[category_id]" id="new_transaction_category_id" value="">
-            <div class="relative">
-              <input type="text" id="category-search-input" 
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择支出分类"
-                     autocomplete="off"
-                     readonly>
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-              <div id="category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="category-filter-input" 
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索分类..."
-                         autocomplete="off">
-                </div>
-                <div id="category-options" class="py-1"></div>
-              </div>
-            </div>
-          </div>
+          <!-- 备注 -->
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
             <%= f.text_field :note, placeholder: "添加备注", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
@@ -1367,7 +1366,6 @@ document.getElementById('confirm-category-filter')?.addEventListener('click', fu
 updateCategoryFilterButtonLabel();
 
 var transactionTypeInput = document.getElementById('transaction-type-input');
-var transactionTypeCards = document.querySelectorAll('#transaction-type-cards .transaction-type-card');
 var targetAccountField = document.getElementById('target-account-field');
 var targetAccountHiddenInput = document.getElementById('target_account_id');
 var targetAccountSearchInput = document.getElementById('target-account-search-input');
@@ -1375,32 +1373,39 @@ var fundingAccountField = document.getElementById('funding-account-field');
 var fundingAccountHiddenInput = document.getElementById('funding_account_id');
 var fundingAccountSearchInput = document.getElementById('funding-account-search-input');
 var categoryField = document.getElementById('transaction-category-field');
-var categoryLabel = document.getElementById('transaction-category-label');
+var toggleTransferBtn = document.getElementById('toggle-transfer-btn');
 
-function applyTransactionTypeUI() {
-  var type = transactionTypeInput?.value || 'EXPENSE';
-  var isTransfer = type === 'TRANSFER';
-  var isIncome = type === 'INCOME';
+// 当前模式: 'category'（收支） 或 'transfer'（转账）
+var transactionMode = 'category';
 
-  transactionTypeCards.forEach((card) => {
-    var active = card.dataset.transactionType === type;
-    if (active) {
-      card.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset', 'border-blue-500', 'text-primary', 'dark:text-primary-dark');
-      card.classList.remove('bg-white', 'dark:bg-surface-dark', 'text-secondary', 'dark:text-secondary-dark');
-    } else {
-      card.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset', 'border-blue-500', 'text-primary', 'dark:text-primary-dark');
-      card.classList.add('bg-white', 'dark:bg-surface-dark', 'text-secondary', 'dark:text-secondary-dark');
-    }
-  });
-
-  if (targetAccountField && targetAccountHiddenInput) {
-    targetAccountField.classList.toggle('hidden', !isTransfer);
-    if (!isTransfer) {
-      targetAccountHiddenInput.value = '';
-      if (targetAccountSearchInput) targetAccountSearchInput.value = '';
-    }
+// 切换转账模式
+function toggleTransferMode() {
+  if (transactionMode === 'transfer') {
+    // 切回收支模式
+    transactionMode = 'category';
+    targetAccountField.classList.add('hidden');
+    categoryField.classList.remove('hidden');
+    toggleTransferBtn.textContent = '转账';
+    if (targetAccountHiddenInput) targetAccountHiddenInput.value = '';
+    if (targetAccountSearchInput) targetAccountSearchInput.value = '';
+  } else {
+    // 切到转账模式
+    transactionMode = 'transfer';
+    categoryField.classList.add('hidden');
+    targetAccountField.classList.remove('hidden');
+    toggleTransferBtn.textContent = '记收支';
+    if (categoryHiddenInput) categoryHiddenInput.value = '';
+    if (categorySearchInput) categorySearchInput.value = '';
   }
+  // 同步 type
+  transactionTypeInput.value = transactionMode === 'transfer' ? 'TRANSFER' : (currentCategoryType || 'EXPENSE');
+  // 更新资金来源可见性
+  updateFundingVisibility();
+}
 
+// 根据当前 type 更新资金来源可见性
+function updateFundingVisibility() {
+  var type = transactionTypeInput?.value || 'EXPENSE';
   if (fundingAccountField && fundingAccountHiddenInput) {
     var showFunding = type === 'EXPENSE';
     fundingAccountField.classList.toggle('hidden', !showFunding);
@@ -1409,23 +1414,11 @@ function applyTransactionTypeUI() {
       if (fundingAccountSearchInput) fundingAccountSearchInput.value = '';
     }
   }
+}
 
-  if (categoryField) {
-    categoryField.classList.toggle('hidden', isTransfer);
-    if (categoryLabel) {
-      categoryLabel.textContent = isIncome ? '收入分类' : '支出分类';
-    }
-    if (categorySearchInput) {
-      categorySearchInput.placeholder = isIncome ? '选择收入分类' : '选择支出分类';
-      categorySearchInput.value = '';
-    }
-    if (categoryHiddenInput) {
-      categoryHiddenInput.value = '';
-    }
-    if (!isTransfer) {
-      switchCategoryType(type);
-    }
-  }
+// 切换转账按钮
+if (toggleTransferBtn) {
+  toggleTransferBtn.addEventListener('click', toggleTransferMode);
 }
 
 // 分类选择器逻辑
@@ -1434,13 +1427,20 @@ var categoryDropdown = document.getElementById('category-dropdown');
 var categoryFilterInput = document.getElementById('category-filter-input');
 var categoryOptions = document.getElementById('category-options');
 var categoryHiddenInput = document.getElementById('new_transaction_category_id');
-var currentCategories = [];
+var allCategories = [];
+var currentCategoryType = 'EXPENSE';
 
-// 渲染分类选项
-function renderCategoryOptions(categories, filterText) {
+// 从合并数据加载全部分类
+var allCategoriesDataEl = document.getElementById('all-categories-data');
+if (allCategoriesDataEl) {
+  allCategories = JSON.parse(allCategoriesDataEl.textContent);
+}
+
+// 渲染分类选项（收支合并，分组显示）
+function renderCategoryOptions(filterText) {
   if (!categoryOptions) return '';
   
-  var filtered = categories.filter(function(cat) {
+  var filtered = allCategories.filter(function(cat) {
     if (!filterText) return true;
     var query = filterText.toLowerCase();
     if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
@@ -1453,51 +1453,58 @@ function renderCategoryOptions(categories, filterText) {
     return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
   }
   
-  return filtered.map(function(cat) {
+  var html = '';
+  var lastType = null;
+  
+  filtered.forEach(function(cat) {
+    // 分组标题
+    if (cat.type !== lastType) {
+      if (lastType !== null) html += '<div class="border-t border-border dark:border-border-dark my-1"></div>';
+      var sectionLabel = cat.type === 'INCOME' ? '收入' : '支出';
+      var sectionColor = cat.type === 'INCOME' ? 'text-income' : 'text-expense';
+      html += '<div class="px-3 py-1 text-xs font-medium ' + sectionColor + ' uppercase tracking-wide">' + sectionLabel + '</div>';
+      lastType = cat.type;
+    }
+    
     var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
     var selected = categoryHiddenInput && categoryHiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-    // 使用 escapeHtml 防止 XSS
     var escapedName = escapeHtml(cat.full_name);
-    return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
+    html += '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '" data-type="' + cat.type + '">' +
              escapedName +
            '</div>';
-  }).join('');
+  });
+  
+  return html;
 }
 
 // 更新分类选项
 function updateCategoryOptions() {
   if (!categoryOptions) return;
   var filterText = categoryFilterInput ? categoryFilterInput.value : '';
-  categoryOptions.innerHTML = renderCategoryOptions(currentCategories, filterText);
+  categoryOptions.innerHTML = renderCategoryOptions(filterText);
   
-  // 绑定点击事件
   categoryOptions.querySelectorAll('.category-option').forEach(function(option) {
     option.addEventListener('click', function() {
       var id = this.dataset.id;
       var name = this.dataset.name;
+      var type = this.dataset.type;
       if (categoryHiddenInput) categoryHiddenInput.value = id;
       if (categorySearchInput) categorySearchInput.value = name;
       if (categoryDropdown) categoryDropdown.classList.add('hidden');
       if (categoryFilterInput) categoryFilterInput.value = '';
+      // 根据选中的分类自动推断收支类型
+      if (type && type === 'INCOME') {
+        currentCategoryType = 'INCOME';
+      } else {
+        currentCategoryType = 'EXPENSE';
+      }
+      transactionTypeInput.value = currentCategoryType;
+      updateFundingVisibility();
     });
   });
 }
 
-// 切换分类类型
-function switchCategoryType(type) {
-  var expenseData = document.getElementById('expense-categories-data');
-  var incomeData = document.getElementById('income-categories-data');
-  
-  if (type === 'INCOME' && incomeData) {
-    currentCategories = JSON.parse(incomeData.textContent);
-  } else if (expenseData) {
-    currentCategories = JSON.parse(expenseData.textContent);
-  }
-  
-  updateCategoryOptions();
-}
-
-// 绑定事件
+// 绑定分类选择器事件
 if (categorySearchInput) {
   categorySearchInput.addEventListener('click', function() {
     if (categoryDropdown) {
@@ -1523,15 +1530,8 @@ document.addEventListener('click', function(e) {
   }
 });
 
-transactionTypeCards.forEach((card) => {
-  card.addEventListener('click', function() {
-    if (!transactionTypeInput) return;
-    transactionTypeInput.value = this.dataset.transactionType;
-    applyTransactionTypeUI();
-  });
-});
-
-applyTransactionTypeUI();
+// 初始化分类选择器
+updateCategoryOptions();
 
 function openEditTransactionModal(id) {
   // 先清理旧内容
@@ -1595,7 +1595,10 @@ document.getElementById('add-transaction-modal')?.classList.remove('hidden');
 // 打开新建交易弹窗
 function openNewTransactionModal() {
   document.getElementById('add-transaction-modal')?.classList.remove('hidden');
-  if (typeof applyTransactionTypeUI === 'function') applyTransactionTypeUI();
+  // 重置为收支模式
+  if (transactionMode === 'transfer') {
+    toggleTransferMode();
+  }
   if (typeof setDefaultAccount === 'function') setDefaultAccount();
 }
 
@@ -1691,9 +1694,6 @@ function showErrorToast(message) {
     setTimeout(function() { toast.remove(); }, 300);
   }, 3000);
 }
-
-// 初始化分类选择器
-switchCategoryType('EXPENSE');
 
 // HTML 转义函数，防止 XSS
 function escapeHtml(str) {
@@ -1843,9 +1843,6 @@ function swapTransferAccounts() {
   
   console.log('Accounts swapped');
 }
-
-// 初始化分类选择器 - 加载支出分类数据
-switchCategoryType('EXPENSE');
 
 // 设置默认账户
 setDefaultAccount();

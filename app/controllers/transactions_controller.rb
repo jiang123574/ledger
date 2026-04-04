@@ -29,6 +29,12 @@ class TransactionsController < ApplicationController
     note = attrs[:note]
     category_id = attrs[:category_id]
 
+    # 如果有分类且非转账，从分类推断收支类型（防止前端 type 与分类不匹配）
+    if type != "TRANSFER" && category_id.present?
+      category = Category.find_by(id: category_id)
+      type = category&.category_type || type
+    end
+
     if type == "TRANSFER"
       create_transfer_entry(account_id, target_account_id, amount, date, currency, note)
     elsif create_expense_with_funding_transfer?
