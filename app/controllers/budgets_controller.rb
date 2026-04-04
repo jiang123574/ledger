@@ -13,11 +13,17 @@ class BudgetsController < ApplicationController
     start_date = Date.parse("#{@month}-01")
     end_date = start_date.end_of_month
 
+    budget_category_ids = @budgets.map(&:category_id).compact
     @total_spent = Rails.cache.fetch("budgets/total_spent/#{@month}/#{ev}", expires_in: 2.minutes) do
-      Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-        .where(entryable_type: 'Entryable::Transaction', date: start_date..end_date)
-        .where(entryable_transactions: { kind: 'expense' })
-        .sum('ABS(entries.amount)')
+      if budget_category_ids.any?
+        Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+          .where(entryable_type: 'Entryable::Transaction', date: start_date..end_date)
+          .where(entryable_transactions: { kind: 'expense', category_id: budget_category_ids })
+          .where(transfer_id: nil)
+          .sum('ABS(entries.amount)')
+      else
+        0
+      end
     end
 
     # 缓存只存 IDs，预加载在缓存外做，避免 bullet 误报
@@ -25,7 +31,8 @@ class BudgetsController < ApplicationController
       Category.expense.pluck(:id)
     end
     @categories = Category.where(id: @category_ids).includes(:parent)
-    @categories_json = Rails.cache.fetch("budgets/categories_json/#{sv}", expires_in: 1.hour) do
+    cv = CacheBuster.version(:categories)
+    @categories_json = Rails.cache.fetch("budgets/categories_json/#{cv}", expires_in: 1.hour) do
       @categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json
     end
 

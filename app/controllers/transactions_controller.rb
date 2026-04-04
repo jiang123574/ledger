@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'ostruct' unless defined?(::OpenStruct)
-
 class TransactionsController < ApplicationController
   before_action :set_entry, only: [:edit, :update, :destroy]
   before_action :load_lookups, only: [:edit, :create, :update]
@@ -43,7 +41,14 @@ class TransactionsController < ApplicationController
     expire_transactions_cache
     handle_successful_save("交易已更新")
   rescue ActiveRecord::RecordInvalid
-    redirect_to accounts_path(filter_params), alert: @entry.errors.full_messages.join(", ")
+    errors = if @entry.errors.any?
+      @entry.errors.full_messages
+    elsif @entry.entryable&.errors&.any?
+      @entry.entryable.errors.full_messages
+    else
+      ["更新失败，请重试"]
+    end
+    redirect_to accounts_path(filter_params), alert: errors.join(", ")
   end
 
   def destroy
