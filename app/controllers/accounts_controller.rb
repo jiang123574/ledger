@@ -65,7 +65,7 @@ class AccountsController < ApplicationController
       []
     else
       entries = Entry.where(id: entry_ids)
-        .includes(:entryable, :account, entryable: :category)
+        .includes(:entryable, entryable: :category)
         .reverse_chronological
         .to_a
       AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [e, nil] })
