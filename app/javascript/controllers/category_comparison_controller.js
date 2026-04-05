@@ -72,9 +72,12 @@ export default class extends Controller {
     const catData = this.categoriesValue[categoryId]
     if (!catData) return
 
-    // 更新标题名称
+    // 更新标题名称（带收支标签）
     const nameEl = document.getElementById('selected-category-name')
-    if (nameEl) { nameEl.textContent = catData.name }
+    if (nameEl) {
+      const kindLabel = catData.kind === 'income' ? '【收入】' : '【支出】'
+      nameEl.textContent = kindLabel + catData.name
+    }
 
     // 更新/创建折线图
     this.renderLineChart(catData)
@@ -108,8 +111,9 @@ export default class extends Controller {
     const textColor = isDark ? "#f8f9fa" : "#1a1a1a"
     const gridColor = isDark ? "#374151" : "#e9ecef"
 
-    // 从 CSS 变量读取颜色（暗色模式自动适配）
-    const expenseColor = getCssColor('--color-expense', '#ef4444')
+    // 从 CSS 变量读取颜色（根据收支类型选择颜色）
+    const isIncome = catData.kind === 'income'
+    const color = getCssColor(isIncome ? '--color-income' : '--color-expense', isIncome ? '#22c55e' : '#ef4444')
 
     this._chart = new Chart(ctx, {
       type: 'line',
@@ -118,12 +122,12 @@ export default class extends Controller {
         datasets: [{
           label: catData.name,
           data: data,
-          borderColor: expenseColor,
-          backgroundColor: hexToRgba(expenseColor, 0.15),
+          borderColor: color,
+          backgroundColor: hexToRgba(color, 0.15),
           borderWidth: 2.5,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: expenseColor,
+          pointBackgroundColor: color,
           fill: true,
           tension: 0.3
         }]

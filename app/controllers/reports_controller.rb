@@ -246,31 +246,28 @@ class ReportsController < ApplicationController
     months
   end
 
-  # 年度分类月度对比 — 每个分类按12个月展示金额
+  # 年度分类月度对比 — 支出+收入分类按12个月展示，含月度总计
   def load_category_monthly_comparison
-    # 获取所有有活动的支出类别
+    # 获取所有有活动的支出和收入类别
     active_categories = Entry.with_entryable_transaction
       .transactions_only
-      .non_transfers
       .where(date: @start_date..@end_date)
-      .where(entryable_transactions: { kind: 'expense' })
-      .select('DISTINCT categories.id, categories.name')
+      .select('DISTINCT categories.id, categories.name, entryable_transactions.kind')
       .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
-      .map { |r| { id: r.id, name: r.name } }
+      .map { |r| { id: r.id, name: r.name, kind: r.kind } }
 
     return {} if active_categories.empty?
 
-    # 一次性查询所有分类的月度数据（消除 N+1）
+    # 一次性查询所有分类的月度数据
     category_ids = active_categories.map { |c| c[:id] }
     all_monthly = Entry.with_entryable_transaction
       .transactions_only
-      .non_transfers
-      .where(entryable_transactions: { kind: 'expense', category_id: category_ids })
+      .where(entryable_transactions: { category_id: category_ids })
       .where(date: @start_date..@end_date)
       .group("entryable_transactions.category_id", "date_trunc('month', entries.date)")
       .sum('ABS(entries.amount)')
 
-    # 按 category_id 预索引，避免 O(N×M) 嵌套扫描
+    # 按 category_id 预索引
     all_monthly_by_cat = all_monthly.group_by { |(cat_id, _), _| cat_id }
 
     categories = {}
@@ -284,13 +281,24 @@ class ReportsController < ApplicationController
 
       categories[cat[:id]] = {
         name: cat[:name],
+        kind: cat[:kind],
         monthly: monthly_data,
         total: monthly_data.values.sum.round(2)
       }
     end
 
-    # 按总额排序，取前15个
-    categories.sort_by { |_, v| -v[:total] }.first(15).to_h
+    # 月度总计行
+    monthly_totals = (1..12).index_with { |m| { expense: 0.0, income: 0.0 } }
+    categories.each_value do |cat_data|
+      (1..12).each do |m|
+        monthly_totals[m][cat_data[:kind].to_sym] += cat_data[:monthly][m]
+      end
+    end
+
+    {
+      categories: categories.sort_by { |_, v| [-v[:kind] == 'expense' ? 0 : 1, -v[:total]] }.to_h,
+      monthly_totals: monthly_totals
+    }
   end
 
   # 筛选器用的分类列表 — 返回所有有活动的分类（含 id/name/kind）
