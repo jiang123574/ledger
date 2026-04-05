@@ -272,11 +272,11 @@ class ReportsController < ApplicationController
 
     categories = {}
     active_categories.each do |cat|
-      monthly_data = (1..12).index_with { |m| 0 }
+      monthly_data = (1..12).index_with { |m| 0.to_d }
 
       (all_monthly_by_cat[cat[:id]] || []).each do |(_, month_key), amount|
         m = month_key.month rescue nil
-        monthly_data[m] = amount.to_f.round(2) if m
+        monthly_data[m] = amount.to_d.round(2) if m
       end
 
       categories[cat[:id]] = {
@@ -287,12 +287,27 @@ class ReportsController < ApplicationController
       }
     end
 
-    # 月度总计行
-    monthly_totals = (1..12).index_with { |m| { expense: 0.0, income: 0.0 } }
+    # 月度总计行（使用 BigDecimal 精度）
+    monthly_totals = (1..12).index_with { |m| { expense: 0.to_d, income: 0.to_d } }
     categories.each_value do |cat_data|
       (1..12).each do |m|
         monthly_totals[m][cat_data[:kind].to_sym] += cat_data[:monthly][m]
       end
+    end
+
+    # 对总计做 round(2) 并转浮点数传给前端
+    monthly_totals.transform_values! do |v|
+      { expense: v[:expense].round(2).to_f, income: v[:income].round(2).to_f }
+    end
+
+    # 将所有数值转为 float（BigDecimal to_json 会变成字符串，JS 端拿到的是 string 不是 number）
+    categories.transform_values! do |v|
+      {
+        name: v[:name],
+        kind: v[:kind],
+        monthly: v[:monthly].transform_values(&:to_f),
+        total: v[:total].to_f
+      }
     end
 
     {

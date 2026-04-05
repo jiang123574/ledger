@@ -94,7 +94,7 @@ export default class extends Controller {
     const nameEl = document.getElementById('selected-category-name')
     if (nameEl) nameEl.textContent = `已选 ${checkedIds.length} 个分类`
 
-    // 分别汇总支出和收入
+    // 分别汇总支出和收入（用 toFixed 避免 IEEE 754 浮点累积误差）
     const expenseMonthly = Array.from({ length: 12 }, () => 0)
     const incomeMonthly = Array.from({ length: 12 }, () => 0)
 
@@ -111,6 +111,12 @@ export default class extends Controller {
       }
     })
 
+    // 对汇总结果做精度修正，消除 114.999999999999 这类问题
+    for (let i = 0; i < 12; i++) {
+      expenseMonthly[i] = Math.round(expenseMonthly[i] * 100) / 100
+      incomeMonthly[i] = Math.round(incomeMonthly[i] * 100) / 100
+    }
+
     this._renderDualLineChart(expenseMonthly, incomeMonthly)
   }
 
@@ -126,7 +132,7 @@ export default class extends Controller {
     if (this._chart) this._chart.destroy()
 
     const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
-    const maxVal = Math.max(...expenseData, ...incomeData, 100)
+    const maxVal = Math.round(Math.max(...expenseData, ...incomeData, 100) * 1.15 * 100) / 100
 
     const isDark = document.documentElement.classList.contains("dark")
     const textColor = isDark ? "#f8f9fa" : "#1a1a1a"
@@ -188,12 +194,12 @@ export default class extends Controller {
           },
           y: {
             beginAtZero: true,
-            max: maxVal * 1.15,
+            max: maxVal,
             grid: { color: gridColor },
             ticks: {
               color: textColor,
               font: { size: 11 },
-              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v.toFixed(0)
+              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : (Math.round(v * 100) / 100).toString()
             }
           }
         }
@@ -250,8 +256,8 @@ export default class extends Controller {
     const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
     const data = Array.from({ length: 12 }, (_, i) => catData.monthly[i + 1] || 0)
 
-    // 找到最大值用于缩放
-    const maxVal = Math.max(...data, 100)
+    // 找到最大值用于缩放（round 避免浮点误差传到 y 轴刻度）
+    const maxVal = Math.round(Math.max(...data, 100) * 1.15 * 100) / 100
 
     const isDark = document.documentElement.classList.contains("dark")
     const textColor = isDark ? "#f8f9fa" : "#1a1a1a"
@@ -297,12 +303,12 @@ export default class extends Controller {
           },
           y: {
             beginAtZero: true,
-            max: maxVal * 1.15,
+            max: maxVal,
             grid: { color: gridColor },
             ticks: {
               color: textColor,
               font: { size: 11 },
-              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v.toString()
+              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : (Math.round(v * 100) / 100).toString()
             }
           }
         }
