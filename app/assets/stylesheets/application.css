@@ -484,6 +484,12 @@ samp {
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 账户拖拽项：只对背景色过渡，opacity/border 变化即时生效避免拖拽卡顿 */
+.account-drag-item {
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
 .transition-fast {
   transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
 }
