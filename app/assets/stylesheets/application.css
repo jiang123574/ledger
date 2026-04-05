@@ -512,6 +512,7 @@ body.account-sorting * {
 .account-drag-clone {
   border-radius: 8px !important;
   will-change: transform; /* 硬件加速 */
+}
 
 .transition-fast {
   transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -1016,4 +1017,13 @@ a[class*="rounded-lg"][class*="bg-"]:not(.nav-link):not(.settings-nav-item) {
 
 a[class*="rounded-lg"][class*="bg-"]:hover:not(.nav-link):not(.settings-nav-item) {
   transform: scale(1.01);
+}
+
+/* ========================================
+   Accounts Page - Layout Fixes
+   ======================================== */
+
+/* 账户页面：覆盖全局 min-h-screen，避免内容少时顶部/底部大片空白 */
+main:has([data-account-page]) {
+  min-height: auto;
 }
