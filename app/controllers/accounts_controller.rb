@@ -163,12 +163,16 @@ class AccountsController < ApplicationController
     current_order = @account.sort_order
     target_order = target_account.sort_order
 
-    @account.update!(sort_order: target_order)
-    target_account.update!(sort_order: current_order)
+    ActiveRecord::Base.transaction do
+      @account.update!(sort_order: target_order)
+      target_account.update!(sort_order: current_order)
+    end
 
     expire_accounts_cache
 
     head :ok
+  rescue ActiveRecord::ActiveRecordError => e
+    head :conflict
   end
 
   private
