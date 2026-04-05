@@ -721,6 +721,122 @@ li:hover,
 }
 
 /* ========================================
+   Table Mobile Optimization
+   ======================================== */
+
+/* Compact table padding on mobile for better space usage */
+@media (max-width: 767px) {
+  table th,
+  table td {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  table th {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ========================================
+   Modal Mobile Optimization
+   ======================================== */
+
+/* Reduce modal padding on mobile */
+@media (max-width: 639px) {
+  .modal-overlay > .flex > .relative,
+  .modal-overlay > .fixed + .flex > .relative,
+  .modal-overlay > .fixed + .relative > .relative {
+    padding: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Ensure modal scrolls to bottom on mobile (thumb-friendly actions) */
+  .modal-overlay.overflow-y-auto > .flex.items-center {
+    align-items: flex-end;
+    min-height: auto;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Modal grid columns stack on mobile */
+  .modal-overlay .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Lock body scroll when modal is open */
+body:has(.modal-overlay:not(.hidden)) {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* ========================================
+   iOS Zoom Prevention
+   ======================================== */
+
+/* Prevent iOS auto-zoom on input focus (minimum 16px font-size) */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input:not([type]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ========================================
+   Touch Device Hover Optimization
+   ======================================== */
+
+/* Disable hover effects on touch devices to prevent "sticky" hover */
+@media (hover: none) and (pointer: coarse) {
+  tr:hover {
+    background-color: transparent !important;
+  }
+
+  .hover\:bg-surface:hover,
+  .hover\:bg-surface-dark:hover {
+    background-color: transparent !important;
+  }
+
+  .hover\:shadow-md:hover,
+  [class*="hover:shadow"]:hover {
+    box-shadow: none !important;
+  }
+
+  /* Use active (tap) state instead of hover on touch */
+  tr:active {
+    background-color: var(--color-surface, #f8f9fa);
+  }
+}
+
+/* ========================================
+   Mobile Action Buttons
+   ======================================== */
+
+/* Ensure action links in tables are touch-friendly */
+@media (max-width: 767px) {
+  td .text-right a,
+  td .text-right button,
+  td .text-right form {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* ========================================
    Form Elements for Mobile
    ======================================== */
 

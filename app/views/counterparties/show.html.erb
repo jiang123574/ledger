@@ -46,7 +46,7 @@
   </div>
 
   <!-- Receivables List -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-x-auto">
     <div class="px-6 py-4 border-b flex justify-between items-center">
       <h2 class="text-lg font-semibold">相关应收款</h2>
       <%= link_to "新建应收款", receivables_path(open_modal: true, counterparty: @counterparty.name), class: "text-primary dark:text-primary-dark hover:text-gray-800" %>
@@ -92,7 +92,7 @@
 </div>
 
 <!-- 编辑弹窗 -->
-<div id="edit-counterparty-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="edit-counterparty-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-counterparty-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-6">
