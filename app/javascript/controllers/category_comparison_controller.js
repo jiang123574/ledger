@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { getChartJs } from "controllers/utils/chartjs_helper"
+import { getChartJs, hexToRgba, getCssColor } from "controllers/utils/chartjs_helper"
 
 // 分类月度对比表 + 图表联动交互
 // 点击表格行 → 下方折线图高亮该分类的年度趋势
@@ -109,8 +109,7 @@ export default class extends Controller {
     const gridColor = isDark ? "#374151" : "#e9ecef"
 
     // 从 CSS 变量读取颜色（暗色模式自动适配）
-    const styles = getComputedStyle(document.documentElement)
-    const expenseColor = styles.getPropertyValue('--color-expense').trim() || '#ef4444'
+    const expenseColor = getCssColor('--color-expense', '#ef4444')
 
     this._chart = new Chart(ctx, {
       type: 'line',
@@ -120,7 +119,7 @@ export default class extends Controller {
           label: catData.name,
           data: data,
           borderColor: expenseColor,
-          backgroundColor: this._hexToRgba(expenseColor, 0.15),
+          backgroundColor: hexToRgba(expenseColor, 0.15),
           borderWidth: 2.5,
           pointRadius: 4,
           pointHoverRadius: 6,
@@ -159,15 +158,6 @@ export default class extends Controller {
         }
       }
     })
-  }
-
-  // 辅助方法：hex 颜色转 rgba
-  _hexToRgba(hex, alpha) {
-    if (!hex || !hex.startsWith('#')) return `rgba(239, 68, 68, ${alpha})`
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
 
   disconnect() {

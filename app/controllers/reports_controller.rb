@@ -25,9 +25,6 @@ class ReportsController < ApplicationController
   private
 
   def load_report_data
-    entry_key = Entry.maximum(:updated_at)&.to_i || 0
-    @cache_key = "#{entry_key}"
-
     # 收支统计 - 使用 Entry
     entries = Entry.where(date: @start_date..@end_date, entryable_type: 'Entryable::Transaction')
       .where("transfer_id IS NULL")
@@ -274,15 +271,16 @@ class ReportsController < ApplicationController
       .group("entryable_transactions.category_id", "date_trunc('month', entries.date)")
       .sum('ABS(entries.amount)')
 
+    # 按 category_id 预索引，避免 O(N×M) 嵌套扫描
+    all_monthly_by_cat = all_monthly.group_by { |(cat_id, _), _| cat_id }
+
     categories = {}
     active_categories.each do |cat|
       monthly_data = (1..12).index_with { |m| 0 }
 
-      all_monthly.each do |(cat_id, month_key), amount|
-        if cat_id == cat[:id]
-          m = month_key.month rescue nil
-          monthly_data[m] = amount.to_f.round(2) if m
-        end
+      (all_monthly_by_cat[cat[:id]] || []).each do |(_, month_key), amount|
+        m = month_key.month rescue nil
+        monthly_data[m] = amount.to_f.round(2) if m
       end
 
       categories[cat[:id]] = {

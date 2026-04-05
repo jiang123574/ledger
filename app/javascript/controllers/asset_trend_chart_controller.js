@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { getChartJs } from "controllers/utils/chartjs_helper"
+import { getChartJs, hexToRgba, getCssColor } from "controllers/utils/chartjs_helper"
 
 // 资产走势多线折线图（资产/负债/净资产 三线同图）
 export default class extends Controller {
@@ -59,10 +59,9 @@ export default class extends Controller {
     const gridColor = isDark ? "#374151" : "#e9ecef"
 
     // 从 CSS 变量读取颜色（暗色模式自动适配）
-    const styles = getComputedStyle(document.documentElement)
-    const assetColor = styles.getPropertyValue('--color-chart-asset').trim() || '#ef4444'
-    const liabilityColor = styles.getPropertyValue('--color-chart-liability').trim() || '#f59e0b'
-    const netWorthColor = styles.getPropertyValue('--color-chart-net-worth').trim() || '#3b82f6'
+    const assetColor = getCssColor('--color-chart-asset', '#ef4444')
+    const liabilityColor = getCssColor('--color-chart-liability', '#f59e0b')
+    const netWorthColor = getCssColor('--color-chart-net-worth', '#3b82f6')
 
     // 确定Y轴范围（让0线居中或合理分布）
     const allValues = [...assetsData, ...liabilitiesData.map(v => -v), ...netWorthData]
@@ -78,7 +77,7 @@ export default class extends Controller {
             label: '资产',
             data: assetsData,
             borderColor: assetColor,
-            backgroundColor: this._hexToRgba(assetColor, 0.1),
+            backgroundColor: hexToRgba(assetColor, 0.1),
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
@@ -90,7 +89,7 @@ export default class extends Controller {
             label: '负债',
             data: liabilitiesData, // 后端已返回负数
             borderColor: liabilityColor,
-            backgroundColor: this._hexToRgba(liabilityColor, 0.1),
+            backgroundColor: hexToRgba(liabilityColor, 0.1),
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
@@ -102,7 +101,7 @@ export default class extends Controller {
             label: '净资产',
             data: netWorthData,
             borderColor: netWorthColor,
-            backgroundColor: this._hexToRgba(netWorthColor, 0.05),
+            backgroundColor: hexToRgba(netWorthColor, 0.05),
             borderWidth: 2.5,
             pointRadius: 4,
             pointHoverRadius: 6,
@@ -181,12 +180,4 @@ export default class extends Controller {
     this._pendingRender = false
   }
 
-  // 辅助方法：hex 颜色转 rgba
-  _hexToRgba(hex, alpha) {
-    if (!hex || !hex.startsWith('#')) return `rgba(128, 128, 128, ${alpha})`
-    const r = parseInt(hex.slice(1, 3), 16)
-    const g = parseInt(hex.slice(3, 5), 16)
-    const b = parseInt(hex.slice(5, 7), 16)
-    return `rgba(${r}, ${g}, ${b}, ${alpha})`
-  }
 }
