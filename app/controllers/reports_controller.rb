@@ -174,9 +174,9 @@ class ReportsController < ApplicationController
     # 负债类账户类型（信用卡余额通常为负数）
     liability_types = %w[CREDIT LOAN DEBT]
 
-    # 计算当前各账户余额（排除转账，与 monthly_changes 口径一致）
+    # 计算当前各账户余额
     current_balances = Account.visible.included_in_total
-      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction' AND entries.transfer_id IS NULL")
+      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
       .group("accounts.id")
       .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
       .to_h { |id, type, bal| [id, { type: type, balance: bal.to_d }] }
@@ -194,9 +194,8 @@ class ReportsController < ApplicationController
     asset_account_ids = current_balances.select { |_, v| asset_types.include?(v[:type]) }.keys
     liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
 
-    # 按月计算交易变动（仅非转账）
+    # 按月计算交易变动
     monthly_changes = Entry.where(date: @start_date..@end_date, entryable_type: 'Entryable::Transaction')
-      .where("transfer_id IS NULL")
       .group("date_trunc('month', date)")
       .group(:account_id)
       .sum(:amount)
