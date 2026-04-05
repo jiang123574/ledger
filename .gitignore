@@ -44,3 +44,11 @@
 # WorkBuddy AI workspace
 /.workbuddy
 
+# Pixiu reference screenshots
+/pixiu/
+/.playwright-test
+/.DS_Store
+/.playwright-cli
+/tooltip-check.yaml
+
+

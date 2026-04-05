@@ -15,7 +15,7 @@ zh-CN:
     title: "仪表盘"
     income: "收入"
     expense: "支出"
-    balance: "余额"
+    balance: "差额"
     recent_transactions: "最近交易"
     account_balances: "账户余额"
     expenses_by_category: "分类支出"
