@@ -133,7 +133,7 @@
     <!-- Header -->
     <div class="p-3 lg:p-4 border-b border-border dark:border-border-dark">
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 mb-3">
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-2 flex-wrap">
           <h2 class="text-base lg:text-lg font-semibold text-primary dark:text-primary-dark">
             <% if params[:account_id].present? %>
               <%= @accounts.find { |a| a.id == params[:account_id].to_i }&.name || '未知账户' %>的交易记录
@@ -144,6 +144,10 @@
           <% if params[:account_id].present? %>
             <button onclick="viewAllTransactions()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">查看全部</button>
           <% end %>
+          <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark">
+            <span>余额</span>
+            <span class="font-semibold text-primary dark:text-primary-dark"><%= format_currency(@account_balance) %></span>
+          </span>
         </div>
         <button onclick="openNewTransactionModal()" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern">
           + 新建
@@ -249,26 +253,20 @@
       </div>
     </div>
 
-    <!-- 账户余额和汇总 -->
-    <div class="p-3 lg:p-4 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
-      <div class="flex items-center justify-between mb-2">
-        <div class="text-sm">
-          <span class="text-secondary dark:text-secondary-dark">账户余额:</span>
-          <span class="ml-1 font-semibold text-primary dark:text-primary-dark"><%= format_currency(@account_balance) %></span>
+    <!-- 汇总信息 -->
+    <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
+      <div class="flex items-center gap-4 text-sm">
+        <div class="flex items-center gap-1">
+          <span class="text-secondary dark:text-secondary-dark">流入</span>
+          <span class="font-medium text-income"><%= format_currency(@total_income) %></span>
         </div>
-      </div>
-      <div class="flex items-center justify-between text-sm">
-        <div>
-          <span class="text-secondary dark:text-secondary-dark">流入:</span>
-          <span class="ml-1 font-medium text-income"><%= format_currency(@total_income) %></span>
+        <div class="flex items-center gap-1">
+          <span class="text-secondary dark:text-secondary-dark">流出</span>
+          <span class="font-medium text-expense"><%= format_currency(@total_expense) %></span>
         </div>
-        <div>
-          <span class="text-secondary dark:text-secondary-dark">流出:</span>
-          <span class="ml-1 font-medium text-expense"><%= format_currency(@total_expense) %></span>
-        </div>
-        <div>
-          <span class="text-secondary dark:text-secondary-dark">差额:</span>
-          <span class="ml-1 font-medium <%= @total_balance >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(@total_balance) %></span>
+        <div class="flex items-center gap-1">
+          <span class="text-secondary dark:text-secondary-dark">差额</span>
+          <span class="font-medium <%= @total_balance >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(@total_balance) %></span>
         </div>
       </div>
     </div>

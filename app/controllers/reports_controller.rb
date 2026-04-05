@@ -14,6 +14,9 @@ class ReportsController < ApplicationController
     end
 
     load_report_data
+
+    # Turbo Frame 请求跳过 layout，只返回 frame 内容
+    render :show, layout: false if turbo_frame_request?
   end
 
   private
@@ -37,11 +40,24 @@ class ReportsController < ApplicationController
     @expense_by_category = load_category_stats('expense')
     @income_by_category = load_category_stats('income')
 
+    # 资产走势（年度视图时加载）
+    if @report_type == :yearly
+      @asset_trend = load_asset_trend
+    end
+
+    # 年度分类月度对比（年度视图时加载）
+    if @report_type == :yearly
+      @category_monthly_comparison = load_category_monthly_comparison
+    end
+
     # 预算进度
     load_budget_data if @report_type == :monthly
 
     # 图表数据
     load_chart_data
+
+    # 分类筛选列表（所有有活动的分类，用于前端多选过滤）
+    @filter_categories = load_filter_categories
   end
 
   def load_chart_data
@@ -149,5 +165,152 @@ class ReportsController < ApplicationController
         percentage: budget.amount > 0 ? (spent / budget.amount * 100).round : 0
       }
     end
+  end
+
+  # 资产走势图数据 — 基于当前余额反推月度变化
+  def load_asset_trend
+    # 资产类账户类型
+    asset_types = %w[CASH BANK INVESTMENT]
+    # 负债类账户类型（信用卡余额通常为负数）
+    liability_types = %w[CREDIT LOAN DEBT]
+
+    # 计算当前各账户余额
+    current_balances = Account.visible.included_in_total
+      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
+      .group("accounts.id")
+      .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
+      .to_h { |id, type, bal| [id, { type: type, balance: bal.to_d }] }
+
+    # 没有任何 entry 的账户用 initial_balance
+    Account.visible.included_in_total.where.not(id: current_balances.keys)
+      .pluck(:id, :type, :initial_balance)
+      .each { |id, type, bal| current_balances[id] = { type: type, balance: bal.to_d } }
+
+    # 按类型汇总当前值
+    current_assets = current_balances.select { |_, v| asset_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
+    current_liabilities = current_balances.select { |_, v| liability_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
+
+    # 资产类账户 ID 列表
+    asset_account_ids = current_balances.select { |_, v| asset_types.include?(v[:type]) }.keys
+    liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
+
+    # 按月计算交易变动（仅非转账）
+    monthly_changes = Entry.where(date: @start_date..@end_date, entryable_type: 'Entryable::Transaction')
+      .where("transfer_id IS NULL")
+      .group("date_trunc('month', date)")
+      .group(:account_id)
+      .sum(:amount)
+
+    # 按月 + 账户类型汇总变动
+    monthly_asset_delta = Hash.new(0)
+    monthly_liability_delta = Hash.new(0)
+
+    monthly_changes.each do |(month_key, account_id), amount|
+      m = month_key.month rescue nil
+      next unless m
+      if asset_account_ids.include?(account_id)
+        monthly_asset_delta[m] += amount.to_d
+      elsif liability_account_ids.include?(account_id)
+        monthly_liability_delta[m] += amount.to_d
+      end
+    end
+
+    # 年度总变动（用于反推年初值）
+    yearly_asset_delta = monthly_asset_delta.values.sum
+    yearly_liability_delta = monthly_liability_delta.values.sum
+
+    estimated_start_assets = current_assets - yearly_asset_delta
+    estimated_start_liabilities = current_liabilities - yearly_liability_delta
+
+    # 逐月累加
+    months = []
+    cumulative_asset = 0
+    cumulative_liability = 0
+
+    (1..12).each do |m|
+      cumulative_asset += monthly_asset_delta[m]
+      cumulative_liability += monthly_liability_delta[m]
+
+      asset_val = estimated_start_assets + cumulative_asset
+      liability_val = estimated_start_liabilities + cumulative_liability
+      net_val = asset_val + liability_val # 信用卡余额为负，所以是加
+
+      months << {
+        label: "#{m}月",
+        month: m,
+        assets: asset_val.round(2),
+        liabilities: liability_val.round(2),
+        net_worth: net_val.round(2)
+      }
+    end
+
+    months
+  end
+
+  # 年度分类月度对比 — 每个分类按12个月展示金额
+  def load_category_monthly_comparison
+    categories = {}
+
+    # 获取所有有活动的支出类别
+    active_categories = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(date: @start_date..@end_date)
+      .where(entryable_transactions: { kind: 'expense' })
+      .select('DISTINCT categories.id, categories.name')
+      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
+      .map { |r| { id: r.id, name: r.name } }
+
+    active_categories.each do |cat|
+      monthly_data = {}
+      (1..12).each do |m|
+        monthly_data[m] = 0
+      end
+
+      actual = Entry.with_entryable_transaction
+        .transactions_only
+        .non_transfers
+        .where(entryable_transactions: { kind: 'expense', category_id: cat[:id] })
+        .where(date: @start_date..@end_date)
+        .group("date_trunc('month', entries.date)")
+        .sum('ABS(entries.amount)')
+
+      actual.each do |date_key, amount|
+        m = date_key.month rescue nil
+        monthly_data[m] = amount.to_f.round(2) if m
+      end
+
+      categories[cat[:id]] = {
+        name: cat[:name],
+        monthly: monthly_data,
+        total: monthly_data.values.sum.round(2)
+      }
+    end
+
+    # 按总额排序，取前15个
+    categories.sort_by { |_, v| -v[:total] }.first(15).to_h
+  end
+
+  # 筛选器用的分类列表 — 返回所有有活动的分类（含 id/name/kind）
+  def load_filter_categories
+    expense_cats = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(date: @start_date..@end_date)
+      .where(entryable_transactions: { kind: 'expense' })
+      .select('DISTINCT categories.id, categories.name')
+      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
+      .map { |r| { id: r.id, name: r.name, kind: 'expense' } }
+
+    income_cats = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(date: @start_date..@end_date)
+      .where(entryable_transactions: { kind: 'income' })
+      .select('DISTINCT categories.id, categories.name')
+      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
+      .map { |r| { id: r.id, name: r.name, kind: 'income' } }
+
+    { expense: expense_cats, income: income_cats }
   end
 end

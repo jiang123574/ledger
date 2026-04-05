@@ -37,6 +37,10 @@ pin "controllers/account_sort_controller", to: "controllers/account_sort_control
 pin "controllers/stats_loader_controller", to: "controllers/stats_loader_controller.js"
 pin "controllers/chart_visibility_controller", to: "controllers/chart_visibility_controller.js"
 pin "controllers/trend_line_chart_controller", to: "controllers/trend_line_chart_controller.js"
+pin "controllers/report_tabs_controller", to: "controllers/report_tabs_controller.js"
+pin "controllers/asset_trend_chart_controller", to: "controllers/asset_trend_chart_controller.js"
+pin "controllers/category_comparison_controller", to: "controllers/category_comparison_controller.js"
+pin "controllers/filter_popover_controller", to: "controllers/filter_popover_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Utils (better CDN with proper module resolution)

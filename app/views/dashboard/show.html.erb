@@ -294,10 +294,36 @@
       
       <div class="p-4" data-dashboard-section-target="content">
         <% if @expense_chart_data.any? %>
-          <div data-controller="category-donut-chart"
-               data-category-donut-chart-data-value="<%= @expense_chart_data.to_json %>"
-               class="h-64">
-            <canvas data-category-donut-chart-target="canvas"></canvas>
+          <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <div data-controller="category-donut-chart"
+                 data-category-donut-chart-data-value="<%= @expense_chart_data.to_json %>"
+                 class="h-64">
+              <canvas data-category-donut-chart-target="canvas"></canvas>
+            </div>
+            <div class="space-y-1 overflow-y-auto max-h-64 pr-1">
+              <% total_exp = @expense_chart_data.sum { |d| d[:value] } %>
+              <% @expense_chart_data.each_with_index do |cat, idx| %>
+                <%
+                  percentage = total_exp > 0 ? (cat[:value] / total_exp * 100).round(1) : 0
+                  bar_width = [percentage, 95].min
+                %>
+                <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-default group"
+                     data-category-row data-category-index="<%= idx %>">
+                  <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-right shrink-0"><%= idx + 1 %></span>
+                  <div class="flex-1 min-w-0">
+                    <div class="flex items-center justify-between mb-0.5">
+                      <span class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= cat[:label] %></span>
+                      <span class="text-xs text-secondary dark:text-secondary-dark ml-2 shrink-0"><%= percentage %>%</span>
+                    </div>
+                    <div class="w-full h-1.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
+                      <div class="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                           style="width: <%= bar_width %>%; background-color: var(--color-expense, #ef4444); opacity: <%= [0.4 + (idx * 0.05), 1].min %>"></div>
+                    </div>
+                  </div>
+                  <span class="text-sm font-medium text-expense w-20 text-right shrink-0 ml-2"><%= format_currency(cat[:value]) %></span>
+                </div>
+              <% end %>
+            </div>
           </div>
         <% else %>
           <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无支出数据</div>

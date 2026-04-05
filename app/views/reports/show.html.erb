@@ -5,165 +5,317 @@
   <% next_period = current_period.next_month %>
 <% end %>
 
-<div class="space-y-4 sm:space-y-6" data-controller="chart-visibility" data-chart-visibility-page-value="reports" data-chart-visibility-default-visible-value='["trend_chart", "expense_chart", "income_chart", "budget_progress"]'>
-  <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
-    <div>
-      <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark"><%= year_label %>财务报表</h1>
-      <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark mt-0.5 sm:mt-1">查看收支趋势、分类分布与资产概览</p>
+<%= turbo_frame_tag "report-content" do %>
+<div data-controller="report-tabs" class="flex flex-col lg:flex-row gap-4 lg:gap-5">
+  <!-- ========== 左侧导航栏（仿设置页） ========== -->
+  <aside class="lg:w-44 lg:shrink-0">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs lg:sticky lg:top-20 overflow-x-auto">
+      <nav class="flex lg:flex-col p-2 gap-1 lg:gap-0 min-w-max lg:min-w-0">
+
+        <a href="#trend" data-report-tabs-target="navItem" data-panel-id="trend"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item active flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
+          <span class="hidden lg:inline">收支趋势</span>
+        </a>
+
+        <a href="#expense" data-report-tabs-target="navItem" data-panel-id="expense"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+          <span class="hidden lg:inline">支出分类</span>
+        </a>
+
+        <a href="#income" data-report-tabs-target="navItem" data-panel-id="income"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+          <span class="hidden lg:inline">收入分类</span>
+        </a>
+
+        <% if @report_type == :monthly && @budget_progress&.any? %>
+        <a href="#budget" data-report-tabs-target="navItem" data-panel-id="budget"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+          <span class="hidden lg:inline">预算进度</span>
+        </a>
+        <% end %>
+
+        <% if @report_type == :yearly && @asset_trend&.any? %>
+        <a href="#assets" data-report-tabs-target="navItem" data-panel-id="assets"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+          <span class="hidden lg:inline">资产走势</span>
+        </a>
+        <% end %>
+
+        <% if @report_type == :yearly && @category_monthly_comparison&.any? %>
+        <a href="#comparison" data-report-tabs-target="navItem" data-panel-id="comparison"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item flex-shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+          <span class="hidden lg:inline">月度对比</span>
+        </a>
+        <% end %>
+
+      </nav>
     </div>
+  </aside>
+
+  <!-- ========== 右侧内容区 ========== -->
+  <main class="flex-1 min-w-0 space-y-4 sm:space-y-6 pb-20 lg:pb-0">
+    <!-- 页头 -->
+    <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
+      <div>
+        <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark"><%= year_label %>统计报表</h1>
+        <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark mt-0.5 sm:mt-1">查看收支趋势、分类分布与资产概览</p>
+      </div>
+      <div class="flex items-center gap-2">
+        <% if @report_type == :monthly %>
+          <%= link_to "年度", reports_path(year: @year), class: "px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth" %>
+        <% end %>
+        <%= link_to dashboard_path, class: "px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
+          返回仪表盘
+        <% end %>
+      </div>
+    </div>
+
+    <!-- 时间切换 + 汇总卡片（始终显示） -->
     <div class="flex items-center gap-2">
-      <% if @report_type == :monthly %>
-        <%= link_to "年度", reports_path(year: @year), class: "px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth" %>
+      <% if @report_type == :yearly %>
+        <%= link_to report_year_path(@year - 1), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+          <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
+        <% end %>
+        <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年</span>
+        <%= link_to report_year_path(@year + 1), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+          <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
+        <% end %>
+      <% else %>
+        <%= link_to report_month_path(prev_period.year, prev_period.month), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+          <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
+        <% end %>
+        <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年<%= @month %>月</span>
+        <%= link_to report_month_path(next_period.year, next_period.month), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+          <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
+        <% end %>
       <% end %>
-      <%= link_to dashboard_path, class: "px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
-        返回仪表盘
-      <% end %>
-      <!-- Chart Configuration Button -->
-      <div class="relative">
-        <button type="button" data-action="click->chart-visibility#toggleDropdown" class="p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-smooth">
-          <%= render(Ds::IconComponent.new(name: "settings", size: :md)) %>
-        </button>
-        <div data-chart-visibility-target="dropdown" class="hidden absolute right-0 mt-2 w-48 bg-container dark:bg-container-dark rounded-lg shadow-lg border border-border dark:border-border-dark z-10">
-          <div class="p-3 space-y-2">
-            <p class="text-xs font-medium text-secondary dark:text-secondary-dark mb-2">显示图表</p>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="trend_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
-              <span class="text-sm text-primary dark:text-primary-dark">收支趋势</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="expense_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
-              <span class="text-sm text-primary dark:text-primary-dark">支出分类</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="income_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
-              <span class="text-sm text-primary dark:text-primary-dark">收入分类</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="budget_progress" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
-              <span class="text-sm text-primary dark:text-primary-dark">预算进度</span>
-            </label>
-          </div>
-        </div>
-      </div>
     </div>
-  </div>
 
-  <div class="flex items-center gap-2">
-    <% if @report_type == :yearly %>
-      <%= link_to report_year_path(@year - 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
-        <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
-      <% end %>
-      <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年</span>
-      <%= link_to report_year_path(@year + 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
-        <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
-      <% end %>
-    <% else %>
-      <%= link_to report_month_path(prev_period.year, prev_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
-        <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
-      <% end %>
-      <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年<%= @month %>月</span>
-      <%= link_to report_month_path(next_period.year, next_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
-        <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
-      <% end %>
-    <% end %>
-  </div>
-
-  <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-    <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">总收入</p>
-          <p class="text-lg sm:text-2xl font-semibold text-income mt-0.5 sm:mt-1"><%= format_currency(@total_income) %></p>
-        </div>
-        <div class="ie-icon-chip ie-icon-chip-md ie-icon-income">
-          <%= render(Ds::IconComponent.new(name: "arrow-right", size: :md, color: :income)) %>
-        </div>
-      </div>
-    <% end %>
-
-    <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">总支出</p>
-          <p class="text-lg sm:text-2xl font-semibold text-expense mt-0.5 sm:mt-1"><%= format_currency(@total_expense) %></p>
-        </div>
-        <div class="ie-icon-chip ie-icon-chip-md ie-icon-expense">
-          <%= render(Ds::IconComponent.new(name: "arrow-left", size: :md, color: :expense)) %>
-        </div>
-      </div>
-    <% end %>
-
-    <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">结余</p>
-          <% balance_info = format_balance(@net_balance) %>
-          <p class="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-1 <%= balance_info[:css_class] %>"><%= balance_info[:amount] %></p>
-        </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
-          <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
-        </div>
-      </div>
-    <% end %>
-  </div>
-
-  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="trend_chart">
-      <div class="px-4 py-3 border-b border-border dark:border-border-dark">
-        <h2 class="text-base font-semibold text-primary dark:text-primary-dark"><%= @report_type == :yearly ? "月度趋势" : "周趋势" %></h2>
-      </div>
-      <div class="p-4">
-        <% has_trend_data = @trend_chart_data[:income].any? { |v| v > 0 } || @trend_chart_data[:expense].any? { |v| v > 0 } %>
-        <% if has_trend_data %>
-          <div data-controller="trend-line-chart"
-               data-trend-line-chart-labels-value="<%= @trend_chart_data[:labels].to_json %>"
-               data-trend-line-chart-income-data-value="<%= @trend_chart_data[:income].to_json %>"
-               data-trend-line-chart-expense-data-value="<%= @trend_chart_data[:expense].to_json %>"
-               class="h-64">
-            <canvas data-trend-line-chart-target="canvas"></canvas>
+    <!-- 汇总卡片 -->
+    <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+      <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">总收入</p>
+            <p class="text-lg sm:text-2xl font-semibold text-income mt-0.5 sm:mt-1"><%= format_currency(@total_income) %></p>
           </div>
-        <% else %>
-          <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
-        <% end %>
-      </div>
-    </section>
-
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="expense_chart">
-      <div class="px-4 py-3 border-b border-border dark:border-border-dark">
-        <h2 class="text-base font-semibold text-primary dark:text-primary-dark">支出分类</h2>
-      </div>
-      <div class="p-4">
-        <% if @expense_chart_data.any? %>
-          <div data-controller="category-donut-chart"
-               data-category-donut-chart-data-value="<%= @expense_chart_data.to_json %>"
-               class="h-64">
-            <canvas data-category-donut-chart-target="canvas"></canvas>
+          <div class="ie-icon-chip ie-icon-chip-md ie-icon-income">
+            <%= render(Ds::IconComponent.new(name: "arrow-right", size: :md, color: :income)) %>
           </div>
-        <% else %>
-          <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
-        <% end %>
-      </div>
-    </section>
+        </div>
+      <% end %>
 
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="income_chart">
-      <div class="px-4 py-3 border-b border-border dark:border-border-dark">
-        <h2 class="text-base font-semibold text-primary dark:text-primary-dark">收入分类</h2>
-      </div>
-      <div class="p-4">
-        <% if @income_chart_data.any? %>
-          <div data-controller="category-donut-chart"
-               data-category-donut-chart-data-value="<%= @income_chart_data.to_json %>"
-               class="h-64">
-            <canvas data-category-donut-chart-target="canvas"></canvas>
+      <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">总支出</p>
+            <p class="text-lg sm:text-2xl font-semibold text-expense mt-0.5 sm:mt-1"><%= format_currency(@total_expense) %></p>
           </div>
-        <% else %>
-          <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
-        <% end %>
-      </div>
-    </section>
+          <div class="ie-icon-chip ie-icon-chip-md ie-icon-expense">
+            <%= render(Ds::IconComponent.new(name: "arrow-left", size: :md, color: :expense)) %>
+          </div>
+        </div>
+      <% end %>
 
+      <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
+        <div class="flex items-start justify-between">
+          <div>
+            <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">结余</p>
+            <% balance_info = format_balance(@net_balance) %>
+            <p class="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-1 <%= balance_info[:css_class] %>"><%= balance_info[:amount] %></p>
+          </div>
+          <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+            <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
+          </div>
+        </div>
+      <% end %>
+    </div>
+
+    <!-- ====== 面板 1: 收支趋势 ====== -->
+    <div data-report-tabs-target="panel" data-panel-name="trend">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="p-4">
+          <% has_trend_data = @trend_chart_data[:income].any? { |v| v > 0 } || @trend_chart_data[:expense].any? { |v| v > 0 } %>
+          <% if has_trend_data %>
+            <div data-controller="trend-line-chart"
+                 data-trend-line-chart-labels-value="<%= @trend_chart_data[:labels].to_json %>"
+                 data-trend-line-chart-income-data-value="<%= @trend_chart_data[:income].to_json %>"
+                 data-trend-line-chart-expense-data-value="<%= @trend_chart_data[:expense].to_json %>"
+                 class="h-80">
+              <canvas data-trend-line-chart-target="canvas"></canvas>
+            </div>
+          <% else %>
+            <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
+          <% end %>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====== 面板 2: 支出分类 ====== -->
+    <div data-report-tabs-target="panel" data-panel-name="expense" class="hidden">
+      <!-- 筛选按钮 + 弹窗 -->
+      <% if @filter_categories[:expense]&.any? %>
+      <div class="relative mb-4" data-controller="filter-popover">
+        <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+          筛选分类
+          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @filter_categories[:expense].size %></span>
+        </button>
+        <div data-filter-popover-target="panel" class="hidden absolute left-0 mt-2 w-64 max-h-72 bg-container dark:bg-container-dark rounded-xl shadow-lg border border-border dark:border-border-dark z-20 overflow-hidden">
+          <div class="px-3 py-2 border-b border-border dark:border-border-dark flex items-center justify-between">
+            <span class="text-sm font-medium text-primary dark:text-primary-dark">选择分类</span>
+            <div class="flex items-center gap-2">
+              <a href="#" data-filter-group="expense" data-select-all data-action="click->filter-popover#selectAll" class="text-xs text-blue-600 hover:text-blue-700">全选</a>
+              <span class="text-border dark:text-border-dark">/</span>
+              <a href="#" data-filter-group="expense" data-select-all data-action="click->filter-popover#deselectAll" class="text-xs text-blue-600 hover:text-blue-700">清除</a>
+            </div>
+          </div>
+          <div class="p-2 overflow-y-auto max-h-56 space-y-0.5" data-filter-group="expense">
+            <% @filter_categories[:expense].each do |cat| %>
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+                <input type="checkbox" value="<%= cat[:id] %>" data-tab-filter checked
+                       class="w-4 h-4 rounded border-border text-expense focus:ring-expense/30">
+                <span class="text-sm text-primary dark:text-primary-dark"><%= cat[:name] %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <% end %>
+
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">支出分类明细</h2>
+          <span class="text-xs text-secondary dark:text-secondary-dark"><%= @expense_chart_data.size %> 项分类</span>
+        </div>
+        <div class="p-4">
+          <% if @expense_chart_data.any? %>
+            <% total_exp = @expense_chart_data.sum { |d| d[:value] } %>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="space-y-1 overflow-y-auto max-h-[400px] pr-1" id="expense-category-list">
+                <% @expense_chart_data.each_with_index do |cat, idx| %>
+                  <% percentage = total_exp > 0 ? (cat[:value] / total_exp * 100).round(1) : 0 %>
+                  <% bar_width = [percentage, 95].min %>
+                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-default group"
+                       data-category-row data-category-index="<%= idx %>" data-category-id="<%= cat[:label].downcase %>">
+                    <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-right shrink-0"><%= idx + 1 %></span>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between mb-0.5">
+                        <span class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= cat[:label] %></span>
+                        <span class="text-xs text-secondary dark:text-secondary-dark ml-2 shrink-0"><%= percentage %>%</span>
+                      </div>
+                      <div class="w-full h-1.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                             style="width: <%= bar_width %>%; background-color: var(--color-expense, #ef4444); opacity: <%= [0.4 + (idx * 0.05), 1].min %>"></div>
+                      </div>
+                    </div>
+                    <span class="text-sm font-medium text-expense w-24 text-right shrink-0 ml-2"><%= format_currency(cat[:value]) %></span>
+                  </div>
+                <% end %>
+              </div>
+              <div data-controller="category-donut-chart"
+                   data-category-donut-chart-data-value="<%= @expense_chart_data.to_json %>"
+                   class="h-72 flex items-center justify-center">
+                <canvas data-category-donut-chart-target="canvas"></canvas>
+              </div>
+            </div>
+          <% else %>
+            <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
+          <% end %>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====== 面板 3: 收入分类 ====== -->
+    <div data-report-tabs-target="panel" data-panel-name="income" class="hidden">
+      <% if @filter_categories[:income]&.any? %>
+      <div class="relative mb-4" data-controller="filter-popover">
+        <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+          筛选分类
+          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @filter_categories[:income].size %></span>
+        </button>
+        <div data-filter-popover-target="panel" class="hidden absolute left-0 mt-2 w-64 max-h-72 bg-container dark:bg-container-dark rounded-xl shadow-lg border border-border dark:border-border-dark z-20 overflow-hidden">
+          <div class="px-3 py-2 border-b border-border dark:border-border-dark flex items-center justify-between">
+            <span class="text-sm font-medium text-primary dark:text-primary-dark">选择分类</span>
+            <div class="flex items-center gap-2">
+              <a href="#" data-filter-group="income" data-select-all data-action="click->filter-popover#selectAll" class="text-xs text-blue-600 hover:text-blue-700">全选</a>
+              <span class="text-border dark:text-border-dark">/</span>
+              <a href="#" data-filter-group="income" data-select-all data-action="click->filter-popover#deselectAll" class="text-xs text-blue-600 hover:text-blue-700">清除</a>
+            </div>
+          </div>
+          <div class="p-2 overflow-y-auto max-h-56 space-y-0.5" data-filter-group="income">
+            <% @filter_categories[:income].each do |cat| %>
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+                <input type="checkbox" value="<%= cat[:id] %>" data-tab-filter checked
+                       class="w-4 h-4 rounded border-border text-income focus:ring-income/30">
+                <span class="text-sm text-primary dark:text-primary-dark"><%= cat[:name] %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      </div>
+      <% end %>
+
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">收入分类明细</h2>
+          <span class="text-xs text-secondary dark:text-secondary-dark"><%= @income_chart_data.size %> 项分类</span>
+        </div>
+        <div class="p-4">
+          <% if @income_chart_data.any? %>
+            <% total_inc = @income_chart_data.sum { |d| d[:value] } %>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div class="space-y-1 overflow-y-auto max-h-[360px] pr-1" id="income-category-list">
+                <% @income_chart_data.each_with_index do |cat, idx| %>
+                  <% percentage = total_inc > 0 ? (cat[:value] / total_inc * 100).round(1) : 0 %>
+                  <% bar_width = [percentage, 95].min %>
+                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-default group"
+                       data-income-row data-category-index="<%= idx %>" data-category-id="<%= cat[:label].downcase %>">
+                    <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-right shrink-0"><%= idx + 1 %></span>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex items-center justify-between mb-0.5">
+                        <span class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= cat[:label] %></span>
+                        <span class="text-xs text-secondary dark:text-secondary-dark ml-2 shrink-0"><%= percentage %>%</span>
+                      </div>
+                      <div class="w-full h-1.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden">
+                        <div class="h-full rounded-full transition-all duration-300 group-hover:opacity-80"
+                             style="width: <%= bar_width %>%; background-color: var(--color-income, #22c55e); opacity: <%= [0.4 + (idx * 0.05), 1].min %>"></div>
+                      </div>
+                    </div>
+                    <span class="text-sm font-medium text-income w-24 text-right shrink-0 ml-2"><%= format_currency(cat[:value]) %></span>
+                  </div>
+                <% end %>
+              </div>
+              <div data-controller="category-donut-chart"
+                   data-category-donut-chart-data-value="<%= @income_chart_data.to_json %>"
+                   class="h-64 flex items-center justify-center">
+                <canvas data-category-donut-chart-target="canvas"></canvas>
+              </div>
+            </div>
+          <% else %>
+            <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
+          <% end %>
+        </div>
+      </section>
+    </div>
+
+    <!-- ====== 面板 4: 预算进度（仅月度） ====== -->
     <% if @report_type == :monthly && @budget_progress&.any? %>
-      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all" data-chart-visibility-target="section" data-section-key="budget_progress">
+    <div data-report-tabs-target="panel" data-panel-name="budget" class="hidden">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">预算进度</h2>
         </div>
@@ -184,6 +336,177 @@
           <% end %>
         </div>
       </section>
+    </div>
     <% end %>
-  </div>
+
+    <!-- ====== 面板 5: 资产走势（仅年度） ====== -->
+    <% if @report_type == :yearly && @asset_trend&.any? %>
+    <div data-report-tabs-target="panel" data-panel-name="assets" class="hidden">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">资产走势图</h2>
+        </div>
+        <div class="p-4">
+          <div id="asset-trend-chart" class="h-80"
+               data-controller="asset-trend-chart"
+               data-asset-trend-chart-labels-value="<%= @asset_trend.map { |d| d[:label] }.to_json %>"
+               data-asset-trend-chart-assets-value="<%= @asset_trend.map { |d| d[:assets] }.to_json %>"
+               data-asset-trend-chart-liabilities-value="<%= @asset_trend.map { |d| d[:liabilities] }.to_json %>"
+               data-asset-trend-chart-net-worth-value="<%= @asset_trend.map { |d| d[:net_worth] }.to_json %>">
+            <canvas data-asset-trend-chart-target="canvas"></canvas>
+          </div>
+          <div class="flex items-center justify-center gap-6 mt-3 text-sm">
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-0.5 rounded" style="background-color: #ef4444"></span>
+              <span class="text-secondary dark:text-secondary-dark">资产</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-0.5 rounded" style="background-color: #f59e0b"></span>
+              <span class="text-secondary dark:text-secondary-dark">负债</span>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <span class="w-3 h-0.5 rounded" style="background-color: #3b82f6"></span>
+              <span class="text-secondary dark:text-secondary-dark">净资产</span>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <% end %>
+
+    <!-- ====== 面板 6: 年度月度对比（仅年度） ====== -->
+    <% if @report_type == :yearly && @category_monthly_comparison&.any? %>
+    <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden">
+      <!-- 筛选按钮 + 弹窗 -->
+      <div class="relative mb-4" data-controller="filter-popover">
+        <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+          筛选分类
+          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @category_monthly_comparison.size %></span>
+        </button>
+        <div data-filter-popover-target="panel" class="hidden absolute left-0 mt-2 w-64 max-h-72 bg-container dark:bg-container-dark rounded-xl shadow-lg border border-border dark:border-border-dark z-20 overflow-hidden">
+          <div class="px-3 py-2 border-b border-border dark:border-border-dark flex items-center justify-between">
+            <span class="text-sm font-medium text-primary dark:text-primary-dark">选择分类</span>
+            <div class="flex items-center gap-2">
+              <a href="#" data-filter-group="comparison" data-select-all data-action="click->filter-popover#selectAll" class="text-xs text-blue-600 hover:text-blue-700">全选</a>
+              <span class="text-border dark:text-border-dark">/</span>
+              <a href="#" data-filter-group="comparison" data-select-all data-action="click->filter-popover#deselectAll" class="text-xs text-blue-600 hover:text-blue-700">清除</a>
+            </div>
+          </div>
+          <div class="p-2 overflow-y-auto max-h-56 space-y-0.5" data-filter-group="comparison">
+            <% @category_monthly_comparison.each do |(cat_id, cat_data)| %>
+              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+                <input type="checkbox" value="<%= cat_id %>" data-tab-filter checked
+                       class="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500/30">
+                <span class="text-sm text-primary dark:text-primary-dark"><%= cat_data[:name] %></span>
+              </label>
+            <% end %>
+          </div>
+        </div>
+      </div>
+
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs overflow-hidden">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">年度分类月度对比</h2>
+          <div class="flex items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
+            <label class="flex items-center gap-1 cursor-pointer">
+              <input type="checkbox" id="toggle-comparison-chart" checked class="w-3.5 h-3.5 rounded border-border text-blue-600 focus:ring-blue-500">
+              显示趋势图
+            </label>
+          </div>
+        </div>
+        <div class="p-4 overflow-x-auto">
+          <div id="category-comparison-wrapper" data-controller="category-comparison"
+               data-category-comparison-categories-value="<%= @category_monthly_comparison.to_json %>">
+            <table class="w-full text-xs">
+              <thead>
+                <tr class="border-b border-border dark:border-border-dark">
+                  <th class="text-left py-1.5 px-2 font-medium text-secondary dark:text-secondary-dark sticky left-0 bg-container dark:bg-container-dark z-10">分类名称</th>
+                  <th class="text-right py-1.5 px-2 font-medium text-secondary dark:text-secondary-dark">合计</th>
+                  <% (1..12).each do |m| %>
+                    <th class="text-right py-1.5 px-1.5 font-medium text-secondary dark:text-secondary-dark"><%= m %>月</th>
+                  <% end %>
+                </tr>
+              </thead>
+              <tbody id="comparison-table-body">
+                <% @category_monthly_comparison.each_with_index do |(cat_id, cat_data), idx| %>
+                <tr class="border-b border-border/50 dark:border-border-dark/50 hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer comparison-row"
+                    data-category-id="<%= cat_id %>"
+                    data-row-index="<%= idx %>">
+                  <td class="py-1.5 px-2 font-medium text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5 whitespace-nowrap">
+                    <%= cat_data[:name] %>
+                  </td>
+                  <td class="py-1.5 px-2 text-right font-semibold text-expense whitespace-nowrap"><%= format_currency(cat_data[:total]) %></td>
+                  <% (1..12).each do |m| %>
+                    <%
+                      val = cat_data[:monthly][m]
+                      has_value = val && val > 0
+                      max_val = @category_monthly_comparison.values.map { |c| c[:monthly].values.max }.compact.max || 1
+                    %>
+                    <td class="py-1.5 px-1.5 text-right whitespace-nowrap monthly-cell" data-month="<%= m %>">
+                      <% if has_value %>
+                        <span class="text-expense"><%= format_currency(val) %></span>
+                        <div class="mt-0.5 h-0.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden" style="width: 48px" title="<%= val %>">
+                          <div class="h-full bg-expense/60 rounded-full transition-all duration-200" style="width: <%= [(val / [max_val, val].max * 100).round, 100].min %>%; opacity: 0.7"></div>
+                        </div>
+                      <% else %>
+                        <span class="text-gray-300 dark:text-gray-600">—</span>
+                      <% end %>
+                    </td>
+                  <% end %>
+                </tr>
+                <% end %>
+              </tbody>
+            </table>
+
+            <div id="comparison-chart-area" class="mt-6 hidden">
+              <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark mb-3">
+                趋势图：<span id="selected-category-name" class="text-primary dark:text-primary-dark font-semibold">—</span>
+              </h3>
+              <div class="h-56">
+                <canvas id="comparison-line-chart"></canvas>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <% end %>
+  </main>
 </div>
+<% end %>
+
+<style>
+  /* 复用设置页导航样式 */
+  .settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-secondary);
+    transition: all 150ms ease;
+    white-space: nowrap;
+  }
+  .settings-nav-item:hover {
+    background-color: var(--color-surface-hover);
+    color: var(--color-primary);
+  }
+  .settings-nav-item.active {
+    background-color: var(--color-surface-inset);
+    color: var(--color-primary);
+  }
+  html.dark .settings-nav-item {
+    color: var(--color-secondary-dark, #9ca3af);
+  }
+  html.dark .settings-nav-item:hover {
+    background-color: var(--color-surface-dark-hover, #262626);
+    color: var(--color-primary-dark, #f8f9fa);
+  }
+  html.dark .settings-nav-item.active {
+    background-color: var(--color-surface-dark-inset, #262626);
+    color: var(--color-primary-dark, #f8f9fa);
+  }
+</style>

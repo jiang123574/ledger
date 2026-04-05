@@ -30,6 +30,10 @@ import TooltipController from "controllers/tooltip_controller"
 import AccountSortController from "controllers/account_sort_controller"
 import StatsLoaderController from "controllers/stats_loader_controller"
 import ChartVisibilityController from "controllers/chart_visibility_controller"
+import ReportTabsController from "controllers/report_tabs_controller"
+import AssetTrendChartController from "controllers/asset_trend_chart_controller"
+import CategoryComparisonController from "controllers/category_comparison_controller"
+import FilterPopoverController from "controllers/filter_popover_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -60,3 +64,7 @@ application.register("tooltip", TooltipController)
 application.register("account-sort", AccountSortController)
 application.register("stats-loader", StatsLoaderController)
 application.register("chart-visibility", ChartVisibilityController)
+application.register("report-tabs", ReportTabsController)
+application.register("asset-trend-chart", AssetTrendChartController)
+application.register("category-comparison", CategoryComparisonController)
+application.register("filter-popover", FilterPopoverController)
