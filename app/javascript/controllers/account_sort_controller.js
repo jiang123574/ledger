@@ -5,92 +5,149 @@ export default class extends Controller {
 
   connect() {
     this.draggedElement = null
-    this.placeholderElement = null // 记录当前 placeholder 目标，避免全局查找
-    this._boundDragOver = this.over.bind(this)
-    this._boundDrop = this.drop.bind(this)
-    this._boundDragEnd = this.end.bind(this)
+    this.placeholderElement = null
+    this.cloneElement = null      // 拖拽时的克隆元素（跟随鼠标）
+    this.startY = 0               // 初始指针 Y 坐标
+    this.initialTop = 0           // 被拖元素的初始 offsetTop
+    this.currentIndex = -1        // 被拖元素在列表中的原始位置
+    this.siblings = []            // 同组所有可排序子元素
+    this._boundPointerDown = this._onPointerDown.bind(this)
+    this._boundPointerMove = this._onPointerMove.bind(this)
+    this._boundPointerUp = this._onPointerUp.bind(this)
+
+    // 委托绑定到容器，避免 N 个元素各自监听
+    this.element.addEventListener("pointerdown", this._boundPointerDown)
   }
 
-  start(event) {
-    event.dataTransfer.setData("text/plain", event.target.dataset.accountId)
-    event.dataTransfer.effectAllowed = "move"
-    this.draggedElement = event.target
+  // ========== Pointer Event 拖拽（比 HTML5 DnD 快得多）==========
 
-    // 拖拽时禁用 transition 避免动画延迟
-    this.draggedElement.style.transition = "none"
-    this.draggedElement.classList.add("opacity-50")
+  _onPointerDown(event) {
+    const item = event.target.closest("[data-account-id]")
+    if (!item || event.button !== 0) return // 只响应左键
 
-    // 绑定一次性事件到 document（比逐元素绑定更高效）
-    document.addEventListener("dragover", this._boundDragOver, { passive: false })
-    document.addEventListener("drop", this._boundDrop, { passive: false })
-    document.addEventListener("dragend", this._boundDragEnd)
-  }
-
-  over(event) {
+    // 避免选中文字
     event.preventDefault()
-    event.dataTransfer.dropEffect = "move"
+    item.setPointerCapture(event.pointerId)
 
-    const target = event.target.closest("[data-account-id]")
-    if (!target || target === this.draggedElement) return
+    this.draggedElement = item
+    this.startY = event.clientY
+    this.startX = event.clientX
+    this.currentIndex = [...item.parentNode.children].indexOf(item)
+    this.siblings = [...item.parentNode.children].filter(el => el.hasAttribute("data-account-id"))
 
-    // 先清除上一次的 placeholder
+    // 创建克隆元素作为拖拽幽灵（绝对定位，不影响布局）
+    const rect = item.getBoundingClientRect()
+    this.cloneElement = item.cloneNode(true)
+    this.cloneElement.classList.add("account-drag-clone")
+    this._cloneOffsetX = event.clientX - rect.left // 指针相对 clone 左上角的偏移
+    this._cloneOffsetY = event.clientY - rect.top
+    this.cloneElement.style.cssText = `
+      position: fixed;
+      top: ${rect.top}px;
+      left: ${rect.left}px;
+      width: ${rect.width}px;
+      height: ${rect.height}px;
+      z-index: 9999;
+      pointer-events: none;
+      margin: 0;
+      opacity: 0.9;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+      transition: none !important;
+    `
+    document.body.appendChild(this.cloneElement)
+
+    // 原元素变为 placeholder（保留空间）
+    item.classList.add("account-drag-placeholder")
+
+    // 绑定 move/up 到 document（防止移出元素后丢失事件）
+    document.addEventListener("pointermove", this._boundPointerMove, { passive: false })
+    document.addEventListener("pointerup", this._boundPointerUp)
+    document.addEventListener("pointercancel", this._boundPointerUp)
+
+    // 设置拖拽中状态
+    document.body.classList.add("account-sorting")
+  }
+
+  _onPointerMove(event) {
+    if (!this.draggedElement || !this.cloneElement) return
+
+    // 用绝对定位 + 偏移量跟随指针（无累积误差）
+    this.cloneElement.style.left = (event.clientX - this._cloneOffsetX) + "px"
+    this.cloneElement.style.top = (event.clientY - this._cloneOffsetY) + "px"
+
+    // 确定当前位置下方的目标元素
+    const clientX = event.clientX
+    const clientY = event.clientY
+    this.cloneElement.style.display = "none"
+    const elemBelow = document.elementFromPoint(clientX, clientY)
+    this.cloneElement.style.display = ""
+
+    const target = elemBelow?.closest("[data-account-id]")
+    if (target && target !== this.draggedElement && target.parentNode === this.draggedElement.parentNode) {
+      this._swapElements(target, clientY)
+    }
+  }
+
+  _onPointerUp(event) {
+    if (!this.draggedElement) return
+
+    // 清理 clone 和 placeholder
+    if (this.cloneElement) {
+      this.cloneElement.remove()
+      this.cloneElement = null
+    }
+
+    this.draggedElement.classList.remove("account-drag-placeholder")
+    document.body.classList.remove("account-sorting")
+
+    // 解绑全局事件
+    document.removeEventListener("pointermove", this._boundPointerMove)
+    document.removeEventListener("pointerup", this._boundPointerUp)
+    document.removeEventListener("pointercancel", this._boundPointerUp)
+
+    // 计算最终位置是否变化
+    const newIndex = [...this.draggedElement.parentNode.children]
+      .filter(el => el.hasAttribute("data-account-id"))
+      .indexOf(this.draggedElement)
+
+    if (newIndex !== this.currentIndex && newIndex >= 0 && this.siblings[newIndex]) {
+      const draggedId = this.draggedElement.dataset.accountId
+      const targetId = this.siblings[newIndex].dataset.accountId
+      if (draggedId !== targetId) {
+        this.updateOrder(draggedId, targetId)
+      }
+    }
+
+    this.draggedElement = null
+    this.siblings = []
+    this.placeholderElement = null
+  }
+
+  // 在 DOM 中交换两个元素的位置
+  _swapElements(target, clientY) {
+    if (target === this.placeholderElement) return
+
+    // 清除之前的 placeholder 标记
     this._clearPlaceholder()
 
-    // 在目标位置显示 placeholder（只操作一个元素）
+    // 将被拖元素插入到目标的前/后（根据指针位置决定）
+    const isBefore = this.startY < clientY
+
+    if (isBefore) {
+      this.draggedElement.parentNode.insertBefore(this.draggedElement, target)
+    } else {
+      this.draggedElement.parentNode.insertBefore(this.draggedElement, target.nextSibling)
+    }
+
     target.classList.add("border-t-2", "border-blue-500")
     this.placeholderElement = target
   }
 
-  drop(event) {
-    event.preventDefault()
-    event.stopPropagation()
-
-    const target = event.target.closest("[data-account-id]")
-    if (target && target !== this.draggedElement) {
-      const draggedId = event.dataTransfer.getData("text/plain")
-      const targetId = target.dataset.accountId
-
-      // 视觉上先交换（立即生效，不等 API）
-      const parent = this.draggedElement.parentNode
-      parent.insertBefore(this.draggedElement, target)
-
-      // 异步发送 API（不阻塞 UI）
-      this.updateOrder(draggedId, targetId)
-    }
-
-    this._cleanup()
-  }
-
-  end(event) {
-    if (this.draggedElement) {
-      this.draggedElement.classList.remove("opacity-50")
-      // 恢复 transition（延迟一帧确保 drop 的 insertBefore 已完成）
-      requestAnimationFrame(() => {
-        if (this.draggedElement) this.draggedElement.style.transition = ""
-      })
-    }
-    this._clearPlaceholder()
-    this._unbindEvents()
-    this.draggedElement = null
-  }
-
-  // 内部方法：只清除已记录的 placeholder 元素，不做全局查询
   _clearPlaceholder() {
     if (this.placeholderElement) {
       this.placeholderElement.classList.remove("border-t-2", "border-blue-500")
       this.placeholderElement = null
     }
-  }
-
-  _unbindEvents() {
-    document.removeEventListener("dragover", this._boundDragOver)
-    document.removeEventListener("drop", this._boundDrop)
-    document.removeEventListener("dragend", this._boundDragEnd)
-  }
-
-  _cleanup() {
-    this._clearPlaceholder()
-    this._unbindEvents()
   }
 
   updateOrder(draggedId, targetId) {
@@ -105,6 +162,13 @@ export default class extends Controller {
   }
 
   disconnect() {
-    this._cleanup()
+    this.element.removeEventListener("pointerdown", this._boundPointerDown)
+    document.removeEventListener("pointermove", this._boundPointerMove)
+    document.removeEventListener("pointerup", this._boundPointerUp)
+    document.removeEventListener("pointercancel", this._boundPointerUp)
+
+    if (this.cloneElement) this.cloneElement.remove()
+    if (this.draggedElement) this.draggedElement.classList.remove("account-drag-placeholder")
+    document.body.classList.remove("account-sorting")
   }
 }
