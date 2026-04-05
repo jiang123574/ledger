@@ -177,7 +177,7 @@ export default class extends Controller {
           },
           tooltip: {
             callbacks: {
-              label: (ctx) => `${ctx.dataset.label}: ¥${ctx.parsed.y.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}`
+              label: (ctx) => `${ctx.dataset.label}: ¥${(ctx.parsed.y || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
             }
           }
         },
@@ -193,7 +193,7 @@ export default class extends Controller {
             ticks: {
               color: textColor,
               font: { size: 11 },
-              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v.toString()
+              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v.toFixed(0)
             }
           }
         }
@@ -286,7 +286,7 @@ export default class extends Controller {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => `¥${ctx.parsed.y.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}`
+              label: (ctx) => `${ctx.dataset.label}: ¥${(ctx.parsed.y || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
             }
           }
         },
