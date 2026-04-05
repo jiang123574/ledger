@@ -222,7 +222,7 @@ class ReportsController < ApplicationController
     estimated_start_assets = current_assets - yearly_asset_delta
     estimated_start_liabilities = current_liabilities - yearly_liability_delta
 
-    # 逐月累加
+    # 逐月累加（按月份顺序遍历）
     months = []
     cumulative_asset = 0
     cumulative_liability = 0

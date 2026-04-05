@@ -31,7 +31,7 @@ class Account < ApplicationRecord
   end
 
   def current_balance
-    initial_balance.to_d + transaction_entries.sum(:amount).to_d
+    initial_balance.to_d + transaction_entries.where(transfer_id: nil).sum(:amount).to_d
   end
 
   # 已废弃：使用 current_balance（基于 Entry）
@@ -39,10 +39,10 @@ class Account < ApplicationRecord
     current_balance
   end
 
-  # 优化：单次 SQL 查询，避免 N+1
+  # 优化：单次 SQL 查询，避免 N+1（排除转账，转账只是账户间流转不是真实收支）
   def self.total_assets
     result = visible.included_in_total
-      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
+      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction' AND entries.transfer_id IS NULL")
       .group("accounts.id")
       .pluck(Arel.sql("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
       .to_h
@@ -60,7 +60,7 @@ class Account < ApplicationRecord
 
     accounts_by_type.each_with_object({}) do |type, hash|
       result = visible.included_in_total.where(type: type)
-        .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
+        .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction' AND entries.transfer_id IS NULL")
         .group("accounts.id")
         .pluck(Arel.sql("accounts.id, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
         .to_h
