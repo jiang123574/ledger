@@ -10,7 +10,7 @@
   <!-- ========== 左侧导航栏（仿设置页） ========== -->
   <aside class="lg:w-44 lg:shrink-0">
     <div class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs lg:sticky lg:top-20 overflow-x-auto">
-      <nav class="flex lg:flex-col p-2 gap-1 lg:gap-0 min-w-max lg:min-w-0">
+      <nav class="flex lg:flex-col p-2 gap-1 lg:gap-0 min-w-max lg:min-w-0" aria-label="报表导航">
 
         <a href="#trend" data-report-tabs-target="navItem" data-panel-id="trend"
            data-action="report-tabs#switchPanel"
@@ -144,7 +144,7 @@
     </div>
 
     <!-- ====== 面板 1: 收支趋势 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="trend">
+    <div data-report-tabs-target="panel" data-panel-name="trend" role="tabpanel" aria-label="收支趋势">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="p-4">
           <% has_trend_data = @trend_chart_data[:income].any? { |v| v > 0 } || @trend_chart_data[:expense].any? { |v| v > 0 } %>
@@ -164,7 +164,7 @@
     </div>
 
     <!-- ====== 面板 2: 支出分类 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="expense" class="hidden">
+    <div data-report-tabs-target="panel" data-panel-name="expense" class="hidden" role="tabpanel" aria-label="支出分类">
       <!-- 筛选按钮 + 弹窗 -->
       <% if @filter_categories[:expense]&.any? %>
       <div class="relative mb-4" data-controller="filter-popover">
@@ -239,7 +239,7 @@
     </div>
 
     <!-- ====== 面板 3: 收入分类 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="income" class="hidden">
+    <div data-report-tabs-target="panel" data-panel-name="income" class="hidden" role="tabpanel" aria-label="收入分类">
       <% if @filter_categories[:income]&.any? %>
       <div class="relative mb-4" data-controller="filter-popover">
         <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
@@ -314,7 +314,7 @@
 
     <!-- ====== 面板 4: 预算进度（仅月度） ====== -->
     <% if @report_type == :monthly && @budget_progress&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="budget" class="hidden">
+    <div data-report-tabs-target="panel" data-panel-name="budget" class="hidden" role="tabpanel" aria-label="预算进度">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">预算进度</h2>
@@ -341,7 +341,7 @@
 
     <!-- ====== 面板 5: 资产走势（仅年度） ====== -->
     <% if @report_type == :yearly && @asset_trend&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="assets" class="hidden">
+    <div data-report-tabs-target="panel" data-panel-name="assets" class="hidden" role="tabpanel" aria-label="资产走势">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">资产走势图</h2>
@@ -376,7 +376,7 @@
 
     <!-- ====== 面板 6: 年度月度对比（仅年度） ====== -->
     <% if @report_type == :yearly && @category_monthly_comparison&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden">
+    <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden" role="tabpanel" aria-label="分类月度对比">
       <!-- 筛选按钮 + 弹窗 -->
       <div class="relative mb-4" data-controller="filter-popover">
         <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
@@ -429,6 +429,7 @@
                 </tr>
               </thead>
               <tbody id="comparison-table-body">
+                <% comparison_max_val = @category_monthly_comparison.values.map { |c| c[:monthly].values.max }.compact.max || 1 %>
                 <% @category_monthly_comparison.each_with_index do |(cat_id, cat_data), idx| %>
                 <tr class="border-b border-border/50 dark:border-border-dark/50 hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer comparison-row"
                     data-category-id="<%= cat_id %>"
@@ -441,13 +442,12 @@
                     <%
                       val = cat_data[:monthly][m]
                       has_value = val && val > 0
-                      max_val = @category_monthly_comparison.values.map { |c| c[:monthly].values.max }.compact.max || 1
                     %>
                     <td class="py-1.5 px-1.5 text-right whitespace-nowrap monthly-cell" data-month="<%= m %>">
                       <% if has_value %>
                         <span class="text-expense"><%= format_currency(val) %></span>
                         <div class="mt-0.5 h-0.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden" style="width: 48px" title="<%= val %>">
-                          <div class="h-full bg-expense/60 rounded-full transition-all duration-200" style="width: <%= [(val / [max_val, val].max * 100).round, 100].min %>%; opacity: 0.7"></div>
+                          <div class="h-full bg-expense/60 rounded-full transition-all duration-200" style="width: <%= [(val / [comparison_max_val, val].max * 100).round, 100].min %>%; opacity: 0.7"></div>
                         </div>
                       <% else %>
                         <span class="text-gray-300 dark:text-gray-600">—</span>

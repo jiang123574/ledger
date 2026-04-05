@@ -12,20 +12,20 @@ export default class extends Controller {
     this._chart = null
     this._selectedRow = null
 
-    // 绑定行点击事件
-    this.element.querySelectorAll('.comparison-row').forEach(row => {
-      row.addEventListener('click', () => this.selectRow(row))
-    })
+    // 使用事件委托，避免给每行单独绑定事件（防止内存泄漏）
+    this._boundRowClick = this._handleRowClick.bind(this)
+    this.element.addEventListener('click', this._boundRowClick)
 
     // 切换图表显示
     const toggleCheckbox = document.getElementById('toggle-comparison-chart')
     if (toggleCheckbox) {
-      toggleCheckbox.addEventListener('change', (e) => {
+      this._boundToggleChange = (e) => {
         const chartArea = document.getElementById('comparison-chart-area')
         if (chartArea) {
           chartArea.classList.toggle('hidden', !e.target.checked)
         }
-      })
+      }
+      toggleCheckbox.addEventListener('change', this._boundToggleChange)
       // 默认展开图表区域
       if (toggleCheckbox.checked) {
         setTimeout(() => {
@@ -37,6 +37,11 @@ export default class extends Controller {
         }, 100)
       }
     }
+  }
+
+  _handleRowClick(e) {
+    const row = e.target.closest('.comparison-row')
+    if (row) this.selectRow(row)
   }
 
   // 供 report-tabs 面板切换后调用
@@ -51,9 +56,12 @@ export default class extends Controller {
   }
 
   selectRow(row) {
-    // 移除之前的高亮
+    // 清除之前行的单元格高亮
     if (this._selectedRow) {
       this._selectedRow.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset', 'ring-1', 'ring-blue-500/30')
+      this._selectedRow.querySelectorAll('.monthly-cell .h-0\\.5, .monthly-cell .h-1').forEach(el => {
+        el.classList.remove('!opacity-100', '!h-1.5')
+      })
     }
 
     // 高亮当前行
@@ -73,7 +81,7 @@ export default class extends Controller {
 
     // 高亮对应行的所有单元格
     row.querySelectorAll('.monthly-cell').forEach(cell => {
-      cell.querySelector('.h-1')?.classList.add('!opacity-100', '!h-1.5')
+      cell.querySelector('.h-0\\.5, .h-1')?.classList.add('!opacity-100', '!h-1.5')
     })
   }
 
@@ -100,6 +108,10 @@ export default class extends Controller {
     const textColor = isDark ? "#f8f9fa" : "#1a1a1a"
     const gridColor = isDark ? "#374151" : "#e9ecef"
 
+    // 从 CSS 变量读取颜色（暗色模式自动适配）
+    const styles = getComputedStyle(document.documentElement)
+    const expenseColor = styles.getPropertyValue('--color-expense').trim() || '#ef4444'
+
     this._chart = new Chart(ctx, {
       type: 'line',
       data: {
@@ -107,12 +119,12 @@ export default class extends Controller {
         datasets: [{
           label: catData.name,
           data: data,
-          borderColor: '#ef4444',
-          backgroundColor: 'rgba(239, 68, 68, 0.15)',
+          borderColor: expenseColor,
+          backgroundColor: this._hexToRgba(expenseColor, 0.15),
           borderWidth: 2.5,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: '#ef4444',
+          pointBackgroundColor: expenseColor,
           fill: true,
           tension: 0.3
         }]
@@ -149,10 +161,32 @@ export default class extends Controller {
     })
   }
 
+  // 辅助方法：hex 颜色转 rgba
+  _hexToRgba(hex, alpha) {
+    if (!hex || !hex.startsWith('#')) return `rgba(239, 68, 68, ${alpha})`
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
+  }
+
   disconnect() {
+    // 清理事件委托
+    if (this._boundRowClick) {
+      this.element.removeEventListener('click', this._boundRowClick)
+      this._boundRowClick = null
+    }
+    if (this._boundToggleChange) {
+      const toggleCheckbox = document.getElementById('toggle-comparison-chart')
+      if (toggleCheckbox) {
+        toggleCheckbox.removeEventListener('change', this._boundToggleChange)
+      }
+      this._boundToggleChange = null
+    }
     if (this._chart) {
       this._chart.destroy()
       this._chart = null
     }
+    this._selectedRow = null
   }
 }

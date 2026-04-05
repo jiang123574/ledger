@@ -58,6 +58,12 @@ export default class extends Controller {
     const textColor = isDark ? "#f8f9fa" : "#1a1a1a"
     const gridColor = isDark ? "#374151" : "#e9ecef"
 
+    // 从 CSS 变量读取颜色（暗色模式自动适配）
+    const styles = getComputedStyle(document.documentElement)
+    const assetColor = styles.getPropertyValue('--color-chart-asset').trim() || '#ef4444'
+    const liabilityColor = styles.getPropertyValue('--color-chart-liability').trim() || '#f59e0b'
+    const netWorthColor = styles.getPropertyValue('--color-chart-net-worth').trim() || '#3b82f6'
+
     // 确定Y轴范围（让0线居中或合理分布）
     const allValues = [...assetsData, ...liabilitiesData.map(v => -v), ...netWorthData]
     const minVal = Math.min(...allValues, 0)
@@ -71,36 +77,36 @@ export default class extends Controller {
           {
             label: '资产',
             data: assetsData,
-            borderColor: '#ef4444',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
+            borderColor: assetColor,
+            backgroundColor: this._hexToRgba(assetColor, 0.1),
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
-            pointBackgroundColor: '#ef4444',
+            pointBackgroundColor: assetColor,
             fill: false,
             tension: 0.2
           },
           {
             label: '负债',
             data: liabilitiesData, // 后端已返回负数
-            borderColor: '#f59e0b',
-            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+            borderColor: liabilityColor,
+            backgroundColor: this._hexToRgba(liabilityColor, 0.1),
             borderWidth: 2,
             pointRadius: 3,
             pointHoverRadius: 5,
-            pointBackgroundColor: '#f59e0b',
+            pointBackgroundColor: liabilityColor,
             fill: false,
             tension: 0.2
           },
           {
             label: '净资产',
             data: netWorthData,
-            borderColor: '#3b82f6',
-            backgroundColor: 'rgba(59, 130, 246, 0.05)',
+            borderColor: netWorthColor,
+            backgroundColor: this._hexToRgba(netWorthColor, 0.05),
             borderWidth: 2.5,
             pointRadius: 4,
             pointHoverRadius: 6,
-            pointBackgroundColor: '#3b82f6',
+            pointBackgroundColor: netWorthColor,
             borderDash: [5, 3],
             fill: true,
             tension: 0.2
@@ -172,5 +178,15 @@ export default class extends Controller {
       this._chart.destroy()
       this._chart = null
     }
+    this._pendingRender = false
+  }
+
+  // 辅助方法：hex 颜色转 rgba
+  _hexToRgba(hex, alpha) {
+    if (!hex || !hex.startsWith('#')) return `rgba(128, 128, 128, ${alpha})`
+    const r = parseInt(hex.slice(1, 3), 16)
+    const g = parseInt(hex.slice(3, 5), 16)
+    const b = parseInt(hex.slice(5, 7), 16)
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`
   }
 }

@@ -1,7 +1,10 @@
 class ReportsController < ApplicationController
   def show
-    @year = params[:year]&.to_i || Date.current.year
-    @month = params[:month]&.to_i
+    @year = params[:year].to_i
+    @year = Date.current.year unless @year.between?(2000, 2100)
+
+    @month = params[:month].to_i
+    @month = nil unless @month.between?(1, 12)
 
     if @month.present?
       @start_date = Date.new(@year, @month, 1)
@@ -174,9 +177,9 @@ class ReportsController < ApplicationController
     # 负债类账户类型（信用卡余额通常为负数）
     liability_types = %w[CREDIT LOAN DEBT]
 
-    # 计算当前各账户余额
+    # 计算当前各账户余额（排除转账，与 monthly_changes 口径一致）
     current_balances = Account.visible.included_in_total
-      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
+      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction' AND entries.transfer_id IS NULL")
       .group("accounts.id")
       .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
       .to_h { |id, type, bal| [id, { type: type, balance: bal.to_d }] }
@@ -249,8 +252,6 @@ class ReportsController < ApplicationController
 
   # 年度分类月度对比 — 每个分类按12个月展示金额
   def load_category_monthly_comparison
-    categories = {}
-
     # 获取所有有活动的支出类别
     active_categories = Entry.with_entryable_transaction
       .transactions_only
@@ -261,23 +262,27 @@ class ReportsController < ApplicationController
       .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
       .map { |r| { id: r.id, name: r.name } }
 
+    return {} if active_categories.empty?
+
+    # 一次性查询所有分类的月度数据（消除 N+1）
+    category_ids = active_categories.map { |c| c[:id] }
+    all_monthly = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(entryable_transactions: { kind: 'expense', category_id: category_ids })
+      .where(date: @start_date..@end_date)
+      .group("entryable_transactions.category_id", "date_trunc('month', entries.date)")
+      .sum('ABS(entries.amount)')
+
+    categories = {}
     active_categories.each do |cat|
-      monthly_data = {}
-      (1..12).each do |m|
-        monthly_data[m] = 0
-      end
+      monthly_data = (1..12).index_with { |m| 0 }
 
-      actual = Entry.with_entryable_transaction
-        .transactions_only
-        .non_transfers
-        .where(entryable_transactions: { kind: 'expense', category_id: cat[:id] })
-        .where(date: @start_date..@end_date)
-        .group("date_trunc('month', entries.date)")
-        .sum('ABS(entries.amount)')
-
-      actual.each do |date_key, amount|
-        m = date_key.month rescue nil
-        monthly_data[m] = amount.to_f.round(2) if m
+      all_monthly.each do |(cat_id, month_key), amount|
+        if cat_id == cat[:id]
+          m = month_key.month rescue nil
+          monthly_data[m] = amount.to_f.round(2) if m
+        end
       end
 
       categories[cat[:id]] = {
@@ -293,24 +298,17 @@ class ReportsController < ApplicationController
 
   # 筛选器用的分类列表 — 返回所有有活动的分类（含 id/name/kind）
   def load_filter_categories
-    expense_cats = Entry.with_entryable_transaction
+    cats = Entry.with_entryable_transaction
       .transactions_only
       .non_transfers
       .where(date: @start_date..@end_date)
-      .where(entryable_transactions: { kind: 'expense' })
-      .select('DISTINCT categories.id, categories.name')
+      .select('DISTINCT categories.id, categories.name, entryable_transactions.kind')
       .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
-      .map { |r| { id: r.id, name: r.name, kind: 'expense' } }
+      .map { |r| { id: r.id, name: r.name, kind: r.kind } }
 
-    income_cats = Entry.with_entryable_transaction
-      .transactions_only
-      .non_transfers
-      .where(date: @start_date..@end_date)
-      .where(entryable_transactions: { kind: 'income' })
-      .select('DISTINCT categories.id, categories.name')
-      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
-      .map { |r| { id: r.id, name: r.name, kind: 'income' } }
-
-    { expense: expense_cats, income: income_cats }
+    {
+      expense: cats.select { |c| c[:kind] == 'expense' },
+      income: cats.select { |c| c[:kind] == 'income' }
+    }
   end
 end

@@ -17,10 +17,11 @@ export default class extends Controller {
 
     this.showActive()
 
-    // 绑定分类筛选
-    this.element.querySelectorAll('[data-tab-filter]').forEach(checkbox => {
-      checkbox.addEventListener('change', () => this.onFilterChange(checkbox))
-    })
+    // 绑定分类筛选（事件委托）
+    this._boundFilterChange = (e) => {
+      if (e.target.matches('[data-tab-filter]')) this.onFilterChange(e.target)
+    }
+    this.element.addEventListener('change', this._boundFilterChange)
   }
 
   switchPanel(e) {
@@ -104,5 +105,12 @@ export default class extends Controller {
     const wrapper = this.element.querySelector(`[data-filter-group="${group}"]`)
     const panel = wrapper?.closest('[data-report-tabs-target="panel"]')
     if (panel) this.applyFilter(panel.dataset.panelName)
+  }
+
+  disconnect() {
+    if (this._boundFilterChange) {
+      this.element.removeEventListener('change', this._boundFilterChange)
+      this._boundFilterChange = null
+    }
   }
 }
