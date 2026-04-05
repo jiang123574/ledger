@@ -50,13 +50,26 @@ class AccountsController < ApplicationController
     @per_page = [[params[:per_page].to_i, 5].max, 200].min
 
     entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
-    @entries_with_balance = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
+    cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
       result = AccountStatsService.entries_with_balance(
         @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
       )
-      # 预加载转账配对账户，消除视图中的 N+1 查询
-      AccountStatsService.preload_transfer_accounts_for(result)
-      result
+      # 缓存只存 ID 和 balance，不缓存 ActiveRecord 对象（序列化会丢失预加载）
+      result.map { |entry, balance| [entry.id, balance] }
+    end
+
+    # 重新查询并预加载（每次请求都执行，确保预加载信息完整）
+    entry_ids = cached_data.map(&:first)
+    balance_map = cached_data.to_h
+    @entries_with_balance = if entry_ids.empty?
+      []
+    else
+      entries = Entry.where(id: entry_ids)
+        .includes(:entryable, :account, entryable: :category)
+        .reverse_chronological
+        .to_a
+      AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [e, nil] })
+      entries.map { |e| [e, balance_map[e.id]] }
     end
 
     category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []

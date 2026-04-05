@@ -138,7 +138,7 @@ class Entry < ApplicationRecord
 
     target_entry = Entry.where(transfer_id: transfer_id)
                         .where.not(id: id)
-                        .where(amount > 0)
+                        .where("amount > 0")
                         .first
     Account.find_by(id: target_entry&.account_id)
   end
