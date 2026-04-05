@@ -84,7 +84,7 @@ export default class extends Controller {
 
     const target = elemBelow?.closest("[data-account-id]")
     if (target && target !== this.draggedElement && target.parentNode === this.draggedElement.parentNode) {
-      this._swapElements(target, clientY)
+      this._swapElements(target)
     }
   }
 
@@ -127,19 +127,26 @@ export default class extends Controller {
   }
 
   // 在 DOM 中交换两个元素的位置
-  _swapElements(target, clientY) {
+  _swapElements(target) {
     if (target === this.placeholderElement) return
 
     // 清除之前的 placeholder 标记
     this._clearPlaceholder()
 
-    // 将被拖元素插入到目标的前/后（根据指针位置决定）
-    const isBefore = this.startY < clientY
+    // 根据被拖元素与目标的当前相对位置决定插入方向
+    // 如果被拖元素在目标上方 → 插到目标后面（下方），反之亦然
+    const siblings = [...this.draggedElement.parentNode.children]
+      .filter(el => el.hasAttribute("data-account-id"))
+    const draggedIndex = siblings.indexOf(this.draggedElement)
+    const targetIndex = siblings.indexOf(target)
+    const isDraggedAboveTarget = draggedIndex < targetIndex
 
-    if (isBefore) {
-      this.draggedElement.parentNode.insertBefore(this.draggedElement, target)
-    } else {
+    if (isDraggedAboveTarget) {
+      // 被拖元素在目标上方，向下拖 → 放在目标后面
       this.draggedElement.parentNode.insertBefore(this.draggedElement, target.nextSibling)
+    } else {
+      // 被拖元素在目标下方，向上拖 → 放在目标前面（上方）
+      this.draggedElement.parentNode.insertBefore(this.draggedElement, target)
     }
 
     target.classList.add("border-t-2", "border-blue-500")
