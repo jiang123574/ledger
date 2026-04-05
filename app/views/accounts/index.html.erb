@@ -466,7 +466,7 @@ document.addEventListener('DOMContentLoaded', function() {
 </script>
 
 <!-- 新建账户弹窗 -->
-<div id="add-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="add-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="closeAccountModal()"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">
@@ -678,7 +678,7 @@ function confirmDeleteAccount(id, name) {
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 
-<div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">
@@ -831,7 +831,7 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <!-- 编辑交易弹窗 -->
-<div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')"></div>
   <div class="relative min-h-screen flex items-center justify-center p-4">
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8 z-10">
@@ -846,7 +846,7 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <!-- 分类多选弹窗 -->
-<div id="category-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="category-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('category-filter-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">

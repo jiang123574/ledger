@@ -77,7 +77,7 @@
 <% expense_transaction_categories = @categories.select { |c| c.category_type == "EXPENSE" || c.type == "EXPENSE" } %>
 <% income_transaction_categories = @categories.select { |c| c.category_type == "INCOME" || c.type == "INCOME" } %>
 <% funding_source_accounts = @accounts %>
-<div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
@@ -147,7 +147,7 @@
 </div>
 
 <!-- 编辑交易弹窗 -->
-<div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+<div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')"></div>
   
   <div class="flex items-center justify-center min-h-screen p-4">

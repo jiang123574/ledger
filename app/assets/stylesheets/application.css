@@ -746,16 +746,16 @@ li:hover,
 
 /* Reduce modal padding on mobile */
 @media (max-width: 639px) {
-  [id$="-modal"] > .flex > .relative,
-  [id$="-modal"] > .fixed + .flex > .relative,
-  [id$="-modal"] > .fixed + .relative > .relative {
+  .modal-overlay > .flex > .relative,
+  .modal-overlay > .fixed + .flex > .relative,
+  .modal-overlay > .fixed + .relative > .relative {
     padding: 1rem;
     max-height: 90vh;
     overflow-y: auto;
   }
 
   /* Ensure modal scrolls to bottom on mobile (thumb-friendly actions) */
-  [id$="-modal"].overflow-y-auto > .flex.items-center {
+  .modal-overlay.overflow-y-auto > .flex.items-center {
     align-items: flex-end;
     min-height: auto;
     padding-top: env(safe-area-inset-top, 0px);
@@ -763,13 +763,13 @@ li:hover,
   }
 
   /* Modal grid columns stack on mobile */
-  [id$="-modal"] .grid-cols-2 {
+  .modal-overlay .grid-cols-2 {
     grid-template-columns: 1fr;
   }
 }
 
 /* Lock body scroll when modal is open */
-body:has([id$="-modal"]:not(.hidden)) {
+body:has(.modal-overlay:not(.hidden)) {
   overflow: hidden;
   touch-action: none;
 }

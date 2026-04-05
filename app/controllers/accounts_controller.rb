@@ -50,6 +50,10 @@ class AccountsController < ApplicationController
     @per_page = [[params[:per_page].to_i, 5].max, 200].min
 
     entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
+    # 缓存 ID+balance 而非完整 ActiveRecord 对象：
+    # - 余额计算（运行余额逐行求和）是 O(n) 开销，值得缓存
+    # - Marshal 序列化会丢失 includes 预加载信息，缓存对象后仍需重新查询
+    # - 因此只缓存轻量的 ID 列表 + 余额映射，每次请求重新查询对象 + 预加载关联
     cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
       result = AccountStatsService.entries_with_balance(
         @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
