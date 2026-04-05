@@ -105,6 +105,9 @@ export default class extends Controller {
     document.removeEventListener("pointerup", this._boundPointerUp)
     document.removeEventListener("pointercancel", this._boundPointerUp)
 
+    // 安全清除所有残留的蓝色边框标记
+    this._clearAllPlaceholders()
+
     // 计算最终位置是否变化
     const newIndex = [...this.draggedElement.parentNode.children]
       .filter(el => el.hasAttribute("data-account-id"))
@@ -150,6 +153,16 @@ export default class extends Controller {
     }
   }
 
+  // 安全清理：移除容器内所有可能残留的蓝色标记
+  _clearAllPlaceholders() {
+    if (this.element) {
+      this.element.querySelectorAll(".border-blue-500").forEach(el => {
+        el.classList.remove("border-t-2", "border-blue-500")
+      })
+    }
+    this.placeholderElement = null
+  }
+
   updateOrder(draggedId, targetId) {
     fetch(`/accounts/${draggedId}/reorder`, {
       method: 'PATCH',
@@ -170,5 +183,6 @@ export default class extends Controller {
     if (this.cloneElement) this.cloneElement.remove()
     if (this.draggedElement) this.draggedElement.classList.remove("account-drag-placeholder")
     document.body.classList.remove("account-sorting")
+    this._clearAllPlaceholders()
   }
 }
