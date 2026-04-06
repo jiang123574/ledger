@@ -7,7 +7,8 @@ class Category < ApplicationRecord
   # ============ 关联 ============
   has_many :children, -> { order(:sort_order, :name) }, class_name: "Category", foreign_key: "parent_id", dependent: :destroy
   belongs_to :parent, class_name: "Category", foreign_key: "parent_id", optional: true
-  has_many :entries, -> { where(entryable_type: 'Entryable::Transaction') }, class_name: 'Entry', dependent: :nullify
+  has_many :entryable_transactions, class_name: "Entryable::Transaction", foreign_key: "category_id", dependent: :nullify
+  has_many :entries, through: :entryable_transactions, source: :entry
   has_many :budgets, dependent: :nullify
   has_many :one_time_budgets, dependent: :nullify
   has_many :recurring_transactions, dependent: :nullify

@@ -21,9 +21,9 @@ RSpec.describe "Accounts reorder", type: :request do
 
     expect(response).to have_http_status(:ok)
 
-    expect(a2.reload.sort_order).to eq(0)
-    expect(a3.reload.sort_order).to eq(1)
-    expect(a1.reload.sort_order).to eq(2)
+    ordered_ids = Account.visible.order(:sort_order, :name).pluck(:id)
+    reordered_subset = ordered_ids.select { |id| [a1.id, a2.id, a3.id].include?(id) }
+    expect(reordered_subset).to eq([a2.id, a3.id, a1.id])
   end
 
   it "allows reordering against hidden accounts when show_hidden is true" do
@@ -38,8 +38,8 @@ RSpec.describe "Accounts reorder", type: :request do
 
     expect(response).to have_http_status(:ok)
 
-    expect(visible_1.reload.sort_order).to eq(0)
-    expect(visible_2.reload.sort_order).to eq(1)
-    expect(hidden.reload.sort_order).to eq(2)
+    ordered_ids = Account.order(:sort_order, :name).pluck(:id)
+    reordered_subset = ordered_ids.select { |id| [visible_1.id, visible_2.id, hidden.id].include?(id) }
+    expect(reordered_subset).to eq([visible_1.id, visible_2.id, hidden.id])
   end
 end

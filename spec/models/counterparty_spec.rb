@@ -29,9 +29,8 @@ RSpec.describe Counterparty, type: :model do
     let(:counterparty) { create(:counterparty, name: 'Test Company') }
 
     it 'returns receivables with matching counterparty name' do
-      # Note: receivables.counterparty is a string field, not a foreign key
       receivable = create(:receivable)
-      receivable.update!(counterparty: counterparty.name)
+      receivable.update!(counterparty: counterparty)
 
       expect(counterparty.receivables).to include(receivable)
     end
@@ -46,9 +45,9 @@ RSpec.describe Counterparty, type: :model do
 
     it 'sums all receivable amounts' do
       r1 = create(:receivable, original_amount: 1000)
-      r1.update!(counterparty: counterparty.name)
+      r1.update!(counterparty: counterparty)
       r2 = create(:receivable, original_amount: 500)
-      r2.update!(counterparty: counterparty.name)
+      r2.update!(counterparty: counterparty)
 
       expect(counterparty.total_receivable_amount).to eq(1500)
     end
@@ -59,15 +58,15 @@ RSpec.describe Counterparty, type: :model do
 
     it 'returns 0 when no pending receivables' do
       r = create(:receivable, original_amount: 1000, remaining_amount: 0)
-      r.update!(counterparty: counterparty.name, settled_at: Time.current)
+      r.update!(counterparty: counterparty, settled_at: Time.current)
       expect(counterparty.pending_receivable_amount).to eq(0)
     end
 
     it 'sums only pending receivables' do
       r1 = create(:receivable, original_amount: 1000, remaining_amount: 1000)
-      r1.update!(counterparty: counterparty.name)
+      r1.update!(counterparty: counterparty)
       r2 = create(:receivable, original_amount: 500, remaining_amount: 0)
-      r2.update!(counterparty: counterparty.name, settled_at: Time.current)
+      r2.update!(counterparty: counterparty, settled_at: Time.current)
 
       expect(counterparty.pending_receivable_amount).to eq(1000)
     end
@@ -78,15 +77,15 @@ RSpec.describe Counterparty, type: :model do
 
     it 'returns 0 when no settled receivables' do
       r = create(:receivable, original_amount: 1000, remaining_amount: 1000)
-      r.update!(counterparty: counterparty.name)
+      r.update!(counterparty: counterparty)
       expect(counterparty.settled_receivable_amount).to eq(0)
     end
 
     it 'sums only settled receivables' do
       r1 = create(:receivable, original_amount: 1000, remaining_amount: 1000)
-      r1.update!(counterparty: counterparty.name)
+      r1.update!(counterparty: counterparty)
       r2 = create(:receivable, original_amount: 500, remaining_amount: 0)
-      r2.update!(counterparty: counterparty.name, settled_at: Time.current)
+      r2.update!(counterparty: counterparty, settled_at: Time.current)
 
       expect(counterparty.settled_receivable_amount).to eq(500)
     end
@@ -97,9 +96,9 @@ RSpec.describe Counterparty, type: :model do
 
     it 'returns count of receivables' do
       r1 = create(:receivable)
-      r1.update!(counterparty: counterparty.name)
+      r1.update!(counterparty: counterparty)
       r2 = create(:receivable)
-      r2.update!(counterparty: counterparty.name)
+      r2.update!(counterparty: counterparty)
 
       expect(counterparty.receivables_count).to eq(2)
     end
