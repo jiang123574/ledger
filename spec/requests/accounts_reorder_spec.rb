@@ -3,8 +3,10 @@
 require "rails_helper"
 
 RSpec.describe "Accounts reorder", type: :request do
-  before do
-    http_login("admin", "testpass")
+  let(:auth_headers) do
+    {
+      "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", "testpass")
+    }
   end
 
   it "updates sort_order when dragging an account to a new position" do
@@ -14,6 +16,7 @@ RSpec.describe "Accounts reorder", type: :request do
 
     patch "/accounts/#{a1.id}/reorder",
       params: { target_id: a3.id },
+      headers: auth_headers,
       as: :json
 
     expect(response).to have_http_status(:ok)
@@ -30,6 +33,7 @@ RSpec.describe "Accounts reorder", type: :request do
 
     patch "/accounts/#{visible_2.id}/reorder",
       params: { target_id: hidden.id, show_hidden: true },
+      headers: auth_headers,
       as: :json
 
     expect(response).to have_http_status(:ok)

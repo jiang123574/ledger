@@ -299,7 +299,7 @@ class AccountsController < ApplicationController
 
     # 获取当前排序的全部账户列表，确定拖拽后的位置
     # 如果被拖账户是隐藏的，用 Account.all（否则 visible scope 里找不到它）
-    show_hidden = params[:show_hidden] == 'true' || @account.hidden?
+    show_hidden = ActiveModel::Type::Boolean.new.cast(params[:show_hidden]) || @account.hidden?
     scope = show_hidden ? Account.all : Account.visible
     all_accounts = scope.order(:sort_order, :name).to_a
     all_ids = all_accounts.map(&:id)

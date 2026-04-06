@@ -140,7 +140,13 @@ class TransactionsController < ApplicationController
     if attrs[:type].present?
       kind = attrs[:type].downcase
       amount = attrs[:amount].to_d
-      @entry.amount = kind == 'income' ? amount : -amount
+      if kind == 'transfer'
+        @entry.amount = -amount.abs
+      elsif kind == 'income'
+        @entry.amount = amount
+      else
+        @entry.amount = -amount
+      end
     end
 
     if @entry.entryable.is_a?(Entryable::Transaction)
@@ -160,15 +166,16 @@ class TransactionsController < ApplicationController
             if paired_entry.entryable.is_a?(Entryable::Transaction)
               paired_entry.entryable.update!(kind: 'income')
             end
+            transfer_amount = attrs[:amount].to_d.abs
             paired_entry.update!(
               account_id: target_account.id,
               date: @entry.date,
-              amount: attrs[:amount].to_d,
+              amount: transfer_amount,
               notes: @entry.notes
             )
           else
             # 孤儿转账（只有转出没有转入）：自动创建配对转入条目
-            transfer_amount = attrs[:amount].to_d
+            transfer_amount = attrs[:amount].to_d.abs
             transfer_note = @entry.notes.presence || "转账: #{@entry.account.name} → #{target_account.name}"
             Entry.create!(
               account_id: target_account.id,
