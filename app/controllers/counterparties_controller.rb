@@ -20,8 +20,14 @@ class CounterpartiesController < ApplicationController
   end
 
   def destroy
-    if @counterparty.receivables.any?
-      redirect_to settings_path(section: "contacts"), alert: "该交易对方关联了应收款，无法删除"
+    has_receivables = @counterparty.receivables.exists?
+    has_payables = Payable.where(counterparty_id: @counterparty.id).or(Payable.where(counterparty: @counterparty.name)).exists?
+
+    if has_receivables || has_payables
+      linked = []
+      linked << "应收款" if has_receivables
+      linked << "应付款" if has_payables
+      redirect_to settings_path(section: "contacts"), alert: "该交易对方关联了#{linked.join('和')}，无法删除"
       return
     end
 

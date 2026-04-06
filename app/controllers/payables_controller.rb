@@ -59,8 +59,15 @@ class PayablesController < ApplicationController
   end
 
   def destroy
-    @payable.destroy
+    ActiveRecord::Base.transaction do
+      source_entry = find_source_entry
+      source_entry&.destroy!
+      @payable.destroy!
+    end
+
     redirect_to payables_url, notice: "应付款已删除"
+  rescue ActiveRecord::RecordInvalid
+    redirect_to payables_path, alert: "应付款删除失败"
   end
 
   def settle
@@ -73,13 +80,16 @@ class PayablesController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
+      category_id = resolve_category_id(@payable.category, kind: "expense")
+
       # 创建支出 Entry（付款）
       create_entry(
         account_id: @account_id,
         amount: -@settle_amount,
         date: Date.current,
         name: "[付款] #{@payable.description}",
-        kind: 'expense'
+        kind: 'expense',
+        category_id: category_id
       )
 
       new_remaining = @payable.remaining_amount - @settle_amount
