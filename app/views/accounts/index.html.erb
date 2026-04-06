@@ -142,6 +142,18 @@
           <% if params[:account_id].present? %>
             <button onclick="viewAllTransactions()" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">查看全部</button>
           <% end %>
+          <!-- 信用卡：按日期/按账单 切换 -->
+          <% current_account = @accounts.find { |a| a.id == params[:account_id].to_i } if params[:account_id].present? %>
+          <% if params[:account_id].present? && current_account&.credit_card? %>
+            <span id="view-mode-switch" class="inline-flex items-center rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark p-0.5 text-xs">
+              <button id="mode-date-btn" onclick="switchViewMode('date')" class="px-2.5 py-1 rounded-md transition-smooth <%= params[:view_mode] == 'bill' ? 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' : 'bg-blue-500 text-white font-medium shadow-sm' %>">
+                按日期
+              </button>
+              <button id="mode-bill-btn" onclick="switchViewMode('bill')" class="px-2.5 py-1 rounded-md transition-smooth <%= params[:view_mode] == 'bill' ? 'bg-blue-500 text-white font-medium shadow-sm' : 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' %>">
+                按账单
+              </button>
+            </span>
+          <% end %>
           <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark">
             <span>余额</span>
             <span class="font-semibold text-primary dark:text-primary-dark"><%= format_currency(@account_balance) %></span>
@@ -153,7 +165,7 @@
       </div>
       
       <!-- 搜索筛选 -->
-      <div class="flex flex-wrap gap-2 items-end">
+      <div id="filter-bar" class="flex flex-wrap gap-2 items-end <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>">
         <div class="flex-1 min-w-[140px]">
           <input type="text" id="search-input" placeholder="搜索备注、分类..." value="<%= params[:search] %>" 
                  class="w-full px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
@@ -252,7 +264,7 @@
     </div>
 
     <!-- 汇总信息 -->
-    <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
+    <div id="summary-bar" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>">
       <div class="flex items-center gap-4 text-sm">
         <div class="flex items-center gap-1">
           <span class="text-secondary dark:text-secondary-dark">流入</span>
@@ -270,7 +282,7 @@
     </div>
 
     <!-- 交易列表 -->
-    <div id="transaction-list" class="flex-1 overflow-y-auto" data-page="<%= @page %>" data-per-page="<%= @per_page %>" data-total-count="<%= @total_count %>">
+    <div id="transaction-list" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>" data-page="<%= @page %>" data-per-page="<%= @per_page %>" data-total-count="<%= @total_count %>">
       <% if @entries_with_balance.any? %>
         <%= render 'skeleton' unless @page > 1 %>
         <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container">
@@ -280,12 +292,12 @@
                 <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
                   <%= e.date&.strftime("%Y-%m-%d") %>
                 </div>
-<% 
+<%
   entry_type = e.display_entry_type
   is_transfer = entry_type == 'TRANSFER'
   current_account_filter = params[:account_id].to_s
-  is_outflow = is_transfer && (current_account_filter.blank? || e.source_account_id_for_transfer.to_s == current_account_filter)
-  is_inflow = is_transfer && e.target_account_id_for_display.to_s == current_account_filter && current_account_filter.present?
+  # 转账方向：单账户视图下，amount > 0 = 转入（还款），amount < 0 = 转出（消费）
+  is_inflow = is_transfer && e.amount.positive?
   display_type = if is_transfer
     if current_account_filter.blank?
       "转账"
@@ -304,10 +316,16 @@
   else
     entry_type
   end
+  # 转账对方账户名称
+  transfer_counterpart = if is_inflow
+    e.source_account_for_transfer&.name
+  else
+    e.target_account_for_display&.name
+  end
 %>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-center gap-2">
-<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%= 
+<span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
                      case display_type
                      when '收入' then 'bg-income-light text-income'
                      when '支出' then 'bg-expense-light text-expense'
@@ -321,7 +339,7 @@
                     <p class="text-sm font-medium text-primary dark:text-primary-dark truncate">
                       <% if is_transfer %>
                         <% if current_account_filter.present? %>
-                          <%= is_inflow ? "← #{e.source_account_for_transfer&.name}" : "→ #{e.target_account_for_display&.name}" %>
+                          <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
                         <% else %>
                           <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
                         <% end %>
@@ -1941,4 +1959,353 @@ document.addEventListener('DOMContentLoaded', fixModalPositions);
 // Turbo 页面加载后修复
 document.addEventListener('turbo:load', fixModalPositions);
 document.addEventListener('turbo:render', fixModalPositions);
+</script>
+
+<!-- ========== 信用卡账单区域 ========== -->
+<div id="credit-bill-wrapper" class="<%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+  <!-- 账单卡片行 -->
+  <div id="bill-cards-container" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset overflow-x-auto">
+    <div class="flex gap-3 min-w-max" id="bill-cards">
+      <div class="text-sm text-secondary dark:text-secondary-dark">加载中...</div>
+    </div>
+  </div>
+
+  <!-- 账单交易明细区域 -->
+  <div id="bill-detail-section" class="hidden">
+    <!-- 账期信息 + 筛选栏 -->
+    <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark flex items-center gap-3 text-xs">
+      <span id="bill-period-info" class="font-medium text-primary dark:text-primary-dark"></span>
+      <span id="bill-due-info" class="text-secondary dark:text-secondary-dark"></span>
+    </div>
+    <div class="px-3 lg:px-4 py-1.5 border-b border-border/50 dark:border-border-dark/50 flex items-center gap-2 flex-wrap text-xs">
+      <span class="text-secondary dark:text-secondary-dark">筛选：</span>
+      <button onclick="filterBillEntries('all')" class="bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-filter="all">全部</button>
+      <button onclick="filterBillEntries('repay')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="repay">还款</button>
+      <button onclick="filterBillEntries('spend')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
+    </div>
+    <!-- 交易明细（和按日期模式一致的卡片式布局） -->
+    <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container"></div>
+  </div>
+
+  <!-- 默认显示普通交易列表的提示（当未选中任何账单时） -->
+  <div id="bill-default-hint" class="p-3 text-center text-xs text-secondary dark:text-secondary-dark hidden">
+    点击上方账单卡片查看该期交易明细
+  </div>
+</div>
+
+<script>
+(function() {
+  var wrapper = document.getElementById('credit-bill-wrapper');
+  var accountId = wrapper?.dataset?.accountId;
+  var currentViewMode = '<%= params[:view_mode] %>' || 'date';
+
+  function initCreditBills() {
+    wrapper = document.getElementById('credit-bill-wrapper');
+    accountId = wrapper?.dataset?.accountId;
+    if (!accountId || !wrapper) return;
+
+    // 插入到交易列表前面
+    var txList = document.getElementById('transaction-list');
+    if (txList && !txList.parentElement.contains(wrapper)) {
+      txList.parentElement.insertBefore(wrapper, txList);
+    }
+
+    // 如果当前模式是账单模式，初始化
+    if (currentViewMode === 'bill') {
+      wrapper.classList.remove('hidden');
+      loadBillCards();
+    }
+  }
+
+  // 切换视图模式（按日期 / 按账单）
+  window.switchViewMode = function(mode) {
+    currentViewMode = mode;
+    var txList = document.getElementById('transaction-list');
+    var summaryBar = document.getElementById('summary-bar');
+    var filterBar = document.getElementById('filter-bar');
+    var dateBtn = document.getElementById('mode-date-btn');
+    var billBtn = document.getElementById('mode-bill-btn');
+
+    if (mode === 'bill') {
+      // 切到账单模式
+      if (wrapper) wrapper.classList.remove('hidden');
+      if (txList) txList.classList.add('hidden');
+      if (summaryBar) summaryBar.classList.add('hidden');
+      if (filterBar) filterBar.classList.add('hidden');
+      if (dateBtn) { dateBtn.className = 'px-2.5 py-1 rounded-md transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover'; }
+      if (billBtn) { billBtn.className = 'px-2.5 py-1 rounded-md transition-smooth bg-blue-500 text-white font-medium shadow-sm'; }
+      loadBillCards();
+    } else {
+      // 切回日期模式
+      if (wrapper) wrapper.classList.add('hidden');
+      if (txList) txList.classList.remove('hidden');
+      if (summaryBar) summaryBar.classList.remove('hidden');
+      if (filterBar) filterBar.classList.remove('hidden');
+      if (dateBtn) { dateBtn.className = 'px-2.5 py-1 rounded-md transition-smooth bg-blue-500 text-white font-medium shadow-sm'; }
+      if (billBtn) { billBtn.className = 'px-2.5 py-1 rounded-md transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover'; }
+    }
+
+    // 更新 URL（不刷新页面）
+    var params = new URLSearchParams(window.location.search);
+    if (mode === 'bill') {
+      params.set('view_mode', 'bill');
+    } else {
+      params.delete('view_mode');
+    }
+    var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    history.replaceState({ mode: mode }, '', newUrl);
+  };
+
+  // 加载账单卡片
+  window.loadBillCards = function() {
+    if (!accountId) return;
+    fetch('/accounts/' + accountId + '/bills.json?count=4', {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      renderBillCards(data);
+    })
+    .catch(err => console.error('Failed to load bills:', err));
+  };
+
+  // 渲染账单卡片
+  function renderBillCards(data) {
+    var container = document.getElementById('bill-cards');
+    if (!container || !data.bills || data.bills.length === 0) {
+      container.innerHTML = '<div class="text-sm text-secondary dark:text-secondary-dark">暂无账单数据</div>';
+      return;
+    }
+
+    // 找当前期索引（用于高亮）
+    var currentIdx = data.bills.findIndex(b => b.current);
+
+    var html = '';
+    data.bills.forEach(function(bill, idx) {
+      var isCurrent = bill.current;
+      var isUnbilled = idx === 0 && !isCurrent; // 第一张且不是当期 = 未出账单
+      var isSelected = selectedBillLabel === bill.label;
+      var cardClass = 'flex-shrink-0 p-3 rounded-lg cursor-pointer transition-smooth min-w-[180px] ';
+      if (isSelected) {
+        cardClass += 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
+      } else if (isUnbilled) {
+        // 未出账单 - 特殊样式：橙色调，表示尚未出账
+        cardClass += 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 hover:border-orange-400';
+      } else if (isCurrent) {
+        cardClass += 'bg-white dark:bg-surface-dark border border-border dark:border-border-dark hover:border-blue-300';
+      } else {
+        cardClass += 'bg-gray-50 dark:bg-surface-dark border border-transparent hover:border-border dark:hover:border-border-dark';
+      }
+
+      html += '<div class="' + cardClass + '" onclick="selectBill(\'' + bill.label + '\', \'' + bill.start_date + '\', \'' + bill.end_date + '\')" data-label="' + bill.label + '">';
+      // 卡片标题
+      html += '<div class="flex items-center justify-between mb-2">';
+      if (isUnbilled) {
+        html += '<span class="font-semibold text-sm text-orange-600 dark:text-orange-400">未出账单</span>';
+        html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">进行中</span>';
+      } else if (isCurrent) {
+        html += '<span class="font-semibold text-sm ' + (isCurrent ? 'text-blue-600 dark:text-blue-400' : 'text-primary dark:text-primary-dark') + '">' + bill.label + '</span>';
+        html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">当期</span>';
+      } else {
+        html += '<span class="font-semibold text-sm text-primary dark:text-primary-dark">' + bill.label + '</span>';
+      }
+      html += '</div>';
+      // 账期范围
+      html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-1.5">';
+      html += '账期：' + bill.start_date + ' ~ ' + bill.end_date;
+      html += '</div>';
+      // 还款日
+      html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-2">';
+      html += '账单日 &nbsp;还款日：' + bill.due_date;
+      html += '</div>';
+      // 金额汇总
+      html += '<div class="flex justify-between text-xs pt-1.5 border-t border-border/50 dark:border-border-dark/50">';
+      html += '<div><span class="text-secondary dark:text-secondary-dark">消费&取现金额：</span><br/><span class="font-medium text-expense">' + formatMoney(bill.spend_amount) + '</span></div>';
+      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款&退款金额：</span><br/><span class="font-medium text-income">' + formatMoney(bill.repay_amount) + '</span></div>';
+      html += '</div>';
+      // 待还
+      if (bill.balance_due > 0) {
+        html += '<div class="text-xs mt-1.5 pt-1 border-t border-border/30 dark:border-border-dark/30">';
+        html += '<span class="text-secondary dark:text-secondary-dark">待还&退款金额：</span>';
+        html += '<span class="font-bold text-expense">' + formatMoney(bill.balance_due) + '</span>';
+        html += '</div>';
+      }
+      html += '</div>';
+    });
+
+    container.innerHTML = html;
+
+    // 自动选中当前期（如果有的话），否则选未出账单或第一张
+    if (!selectedBillLabel) {
+      if (currentIdx >= 0) {
+        var currentBill = data.bills[currentIdx];
+        selectBill(currentBill.label, currentBill.start_date, currentBill.end_date);
+      } else if (data.bills.length > 0) {
+        var firstBill = data.bills[0];
+        selectBill(firstBill.label, firstBill.start_date, firstBill.end_date);
+      }
+    } else if (selectedBillLabel) {
+      loadBillEntries();
+    }
+  }
+
+  // 当前选中的账单
+  var selectedBillLabel = null;
+  var selectedStartDate = null;
+  var selectedEndDate = null;
+  var allBillEntries = [];
+
+  // 选择某期账单
+  window.selectBill = function(label, startDate, endDate) {
+    selectedBillLabel = label;
+    selectedStartDate = startDate;
+    selectedEndDate = endDate;
+
+    // 更新卡片选中状态
+    document.querySelectorAll('#bill-cards > div').forEach(function(card) {
+      var isSelected = card.dataset.label === label;
+      if (isSelected) {
+        card.className = card.className.replace(/ring-\w+-\d+/g, '').trim() +
+          ' bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
+      } else {
+        card.className = card.className.replace(/ring-2 ring-blue-400/g, '').replace(/bg-blue-100 dark:bg-blue-900\/40/g, '');
+        // 恢复默认样式...
+      }
+    });
+
+    // 更新账期信息栏
+    var periodInfo = document.getElementById('bill-period-info');
+    var dueInfo = document.getElementById('bill-due-info');
+    if (periodInfo) periodInfo.textContent = '账期：' + startDate + ' ~ ' + endDate;
+    if (dueInfo) dueInfo.textContent = '';
+
+    // 加载交易明细
+    loadBillEntries();
+
+    // 显示详情区，隐藏默认提示
+    document.getElementById('bill-detail-section')?.classList.remove('hidden');
+    document.getElementById('bill-default-hint')?.classList.add('hidden');
+  };
+
+  // 加载某期账单的交易明细
+  window.loadBillEntries = function() {
+    if (!accountId || !selectedStartDate || !selectedEndDate) return;
+
+    var container = document.getElementById('bill-entries-container');
+    if (container) container.innerHTML = '<div class="p-4 text-center text-secondary dark:text-secondary-dark text-sm">加载中...</div>';
+
+    fetch('/accounts/' + accountId + '/bills_entries.json?start_date=' + selectedStartDate + '&end_date=' + selectedEndDate, {
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    })
+    .then(r => r.json())
+    .then(data => {
+      allBillEntries = data.entries || [];
+      renderBillEntries(allBillEntries);
+    })
+    .catch(err => {
+      console.error(err);
+      if (container) container.innerHTML = '<div class="p-4 text-center text-red-500 text-sm">加载失败</div>';
+    });
+  };
+
+  // 筛选账单交易
+  var currentBillFilter = 'all';
+  window.filterBillEntries = function(filter) {
+    currentBillFilter = filter;
+    // 更新按钮样式
+    document.querySelectorAll('.bill-filter-btn').forEach(function(btn) {
+      if (btn.dataset.filter === filter) {
+        btn.className = 'bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
+      } else {
+        btn.className = 'bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover text-primary dark:text-primary-dark';
+      }
+    });
+    var filtered = allBillEntries.filter(function(e) {
+      if (filter === 'all') return true;
+      if (filter === 'repay') return e.is_repayment;
+      if (filter === 'spend') return e.is_spend;
+      return true;
+    });
+    renderBillEntries(filtered);
+  };
+
+  // 渲染交易列表（和按日期模式完全一致的卡片式布局）
+  function renderBillEntries(entries) {
+    var container = document.getElementById('bill-entries-container');
+    if (!container) return;
+
+    if (!entries || entries.length === 0) {
+      container.innerHTML = '<div class="p-8 text-center text-secondary dark:text-secondary-dark text-sm">该期暂无交易记录</div>';
+      return;
+    }
+
+    var html = '';
+    entries.forEach(function(e) {
+      // 类型标签颜色
+      var typeBadgeClass = 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
+      if (e.display_type === '收入' || e.display_type === '转入') {
+        typeBadgeClass = 'bg-income-light text-income';
+      } else if (e.display_type === '支出' || e.display_type === '转出') {
+        typeBadgeClass = 'bg-expense-light text-expense';
+      } else if (e.display_type === '转账') {
+        typeBadgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
+      }
+
+      // 金额颜色
+      var amountClass = 'text-expense';
+      if (e.display_amount_type === 'INCOME') {
+        amountClass = 'text-income';
+      }
+
+      // 格式化金额
+      var amountStr = formatMoney(Math.abs(e.display_amount));
+
+      html += '<div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">';
+      html += '  <div class="flex items-center gap-3">';
+      // 日期
+      html += '    <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">' + e.date + '</div>';
+      // 中间：类型 + 名称 + 备注
+      html += '    <div class="flex-1 min-w-0">';
+      html += '      <div class="flex items-center gap-2">';
+      html += '        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ' + typeBadgeClass + '">' + escapeHtml(e.display_type || '') + '</span>';
+      html += '        <p class="text-sm font-medium text-primary dark:text-primary-dark truncate">' + escapeHtml(e.display_name || '-') + '</p>';
+      html += '      </div>';
+      html += '      <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5">' + escapeHtml(e.note || '') + '</p>';
+      html += '    </div>';
+      // 金额 + 余额
+      html += '    <div class="text-right shrink-0">';
+      html += '      <p class="text-sm font-medium ' + amountClass + '">' + amountStr + '</p>';
+      html += '      <p class="text-xs text-secondary dark:text-secondary-dark">余额: ' + formatCurrencyRaw(e.balance_after) + '</p>';
+      html += '    </div>';
+      // 操作按钮
+      html += '    <div class="flex items-center gap-1 shrink-0">';
+      html += '      <button onclick="openEditTransactionModal(' + e.id + ')" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">';
+      html += '        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
+      html += '      </button>';
+      html += '      <button onclick="confirmDeleteTransaction(' + e.id + ', \'' + escapeHtml(e.display_name || '').replace(/'/g, "\\'") + '\')" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">';
+      html += '        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
+      html += '      </button>';
+      html += '    </div>';
+      html += '  </div>';
+      html += '</div>';
+    });
+    container.innerHTML = html;
+  }
+
+  // 格式化金额（纯数字）
+  function formatMoney(val) {
+    var num = parseFloat(val) || 0;
+    return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+
+  // 格式化货币（带¥符号）
+  function formatCurrencyRaw(val) {
+    return '¥' + formatMoney(val);
+  }
+
+  // 初始化
+  if (accountId) {
+    initCreditBills();
+  }
+})();
 </script>
