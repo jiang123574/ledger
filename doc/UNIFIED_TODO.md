@@ -58,6 +58,9 @@
 12. 信用卡账单金额格式化函数收敛  
 - 已完成：新增 `app/javascript/bill_formatters.js` 并在账单卡片渲染与 `credit_bill_entries_controller` 复用，避免多处重复实现。
 
+13. 系统账户兜底同步回归测试补充  
+- 已完成：新增 `spec/requests/accounts_system_sync_spec.rb`，覆盖“缺失系统账户时自动补齐”与“系统账户齐全时不重复创建”两条路径。
+
 ## 文档分工
 
 1. `doc/UNIFIED_TODO.md`：唯一活跃待办（可执行项）。
