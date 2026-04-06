@@ -12,10 +12,6 @@
 - 账单模式与日期模式卡片渲染逻辑抽象复用，减少双实现偏差。
 
 ### P2
-2. Payable 交易对方字段收敛
-- 目标：`payables.counterparty`（string）逐步迁移到 `counterparty_id`（foreign key）单轨。
-- 计划：回填 -> 双写兼容 -> 清理旧字段。
-
 ### 长期迁移（Transaction -> Entry）
 5. Attachment / Receivable 关联迁移到 Entry 体系。
 6. 编写旧 `transactions` 存量数据迁移脚本到 Entry。
@@ -39,6 +35,9 @@
 
 4. 应收/应付页面选择器脚本去重  
 - 已完成：`receivables/index` 与 `payables/index` 均改为复用 `app/javascript/selectors.js` 中的通用初始化函数，移除页面内重复选择器实现。
+
+5. Payable 交易对方字段收敛  
+- 已完成：新增迁移将 `payables.counterparty` 历史数据回填到 `counterparty_id`（缺失联系人自动补建），并删除 `payables.counterparty` 字段，控制器筛选/统计改为仅基于外键。
 
 ## 文档分工
 

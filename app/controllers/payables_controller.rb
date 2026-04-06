@@ -213,7 +213,7 @@ class PayablesController < ApplicationController
     records.group_by { |r| counterparty_filter_token_for(r) }
       .map do |filter_value, rows|
         first = rows.first
-        name = first.counterparty&.name.presence || first.counterparty.presence || "未设置联系人"
+        name = first.counterparty&.name.presence || "未设置联系人"
         {
           name: name,
           filter_value: filter_value,
@@ -227,11 +227,14 @@ class PayablesController < ApplicationController
 
   def filter_by_counterparty(scope, counterparty_id)
     return scope if counterparty_id.blank?
-    return scope.where(counterparty_id: nil, counterparty: [ nil, "" ]) if counterparty_id == "none"
+    return scope.where(counterparty_id: nil) if counterparty_id == "none"
 
     if counterparty_id.start_with?("name:")
       name = counterparty_id.delete_prefix("name:")
-      return scope.where(counterparty: name).or(scope.joins(:counterparty).where(counterparties: { name: name }))
+      cp = Counterparty.find_by(name: name)
+      return scope.none unless cp
+
+      return scope.where(counterparty_id: cp.id)
     end
 
     normalized_id = counterparty_id.start_with?("id:") ? counterparty_id.delete_prefix("id:") : counterparty_id
@@ -239,14 +242,12 @@ class PayablesController < ApplicationController
     cp = Counterparty.find_by(id: normalized_id)
     return scope.none unless cp
 
-    scope.where(counterparty_id: cp.id).or(scope.where(counterparty: cp.name))
+    scope.where(counterparty_id: cp.id)
   end
 
   def counterparty_filter_token_for(record)
     if record.counterparty_id.present?
       "id:#{record.counterparty_id}"
-    elsif record.counterparty.present?
-      "name:#{record.counterparty}"
     else
       "none"
     end
