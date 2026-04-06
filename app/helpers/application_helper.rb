@@ -14,7 +14,8 @@ module ApplicationHelper
   def format_currency_with_sign(amount, type:, unit: "", precision: 2)
     amount = 0 if amount.nil?
     sign = type == "INCOME" ? "+" : "-"
-    "#{sign}#{number_to_currency(amount.abs, unit: unit, precision: precision, format: "%n")}"
+    fmt = unit.present? ? "%u%n" : "%n"
+    "#{sign}#{number_to_currency(amount.abs, unit: unit, precision: precision, format: fmt)}"
   end
 
   # Format balance with appropriate sign and CSS class

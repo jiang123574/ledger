@@ -327,7 +327,7 @@ class PixiuImportService
       amount = income > 0 ? income : expense
 
       if from_account && to_account && (income > 0 || expense > 0)
-        note = transaction_type_detail.presence || ''
+        note = transaction_type_detail || "转账: #{transfer_info[:from_name]} → #{transfer_info[:to_name]}"
         create_entry_transfer(
           from_account: from_account,
           to_account: to_account,

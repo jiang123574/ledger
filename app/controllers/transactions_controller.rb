@@ -149,23 +149,25 @@ class TransactionsController < ApplicationController
       @entry.entryable.save!
     end
 
-    # 转账：同步更新配对 Entry
-    if @entry.transfer_id.present? && attrs[:target_account_id].present?
-      target_account = Account.find_by(id: attrs[:target_account_id])
-      if target_account
-        paired_entry = Entry.where(transfer_id: @entry.transfer_id).where.not(id: @entry.id).first
-        if paired_entry
-          paired_entry.update!(
-            account_id: target_account.id,
-            date: @entry.date,
-            amount: attrs[:amount].to_d,
-            notes: @entry.notes
-          )
+    Entry.transaction do
+      # 转账：同步更新配对 Entry（与主 entry 在同一事务中，保证原子性）
+      if @entry.transfer_id.present? && attrs[:target_account_id].present?
+        target_account = Account.find_by(id: attrs[:target_account_id])
+        if target_account
+          paired_entry = Entry.where(transfer_id: @entry.transfer_id).where.not(id: @entry.id).first
+          if paired_entry
+            paired_entry.update!(
+              account_id: target_account.id,
+              date: @entry.date,
+              amount: attrs[:amount].to_d,
+              notes: @entry.notes
+            )
+          end
         end
       end
-    end
 
-    @entry.save!
+      @entry.save!
+    end
   end
 
   def load_lookups

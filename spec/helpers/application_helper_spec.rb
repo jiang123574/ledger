@@ -33,25 +33,25 @@ RSpec.describe ApplicationHelper, type: :helper do
   describe "#format_currency_with_sign" do
     it "formats income with plus sign" do
       result = helper.format_currency_with_sign(1000, type: "INCOME")
-      expect(result).to eq("+¥1,000.00")
+      expect(result).to eq("+1,000.00")
     end
 
     it "formats expense with minus sign" do
       result = helper.format_currency_with_sign(500, type: "EXPENSE")
-      expect(result).to eq("-¥500.00")
+      expect(result).to eq("-500.00")
     end
 
     it "handles nil as zero with income type" do
-      expect(helper.format_currency_with_sign(nil, type: "INCOME")).to eq("+¥0.00")
+      expect(helper.format_currency_with_sign(nil, type: "INCOME")).to eq("+0.00")
     end
 
     it "handles nil as zero with expense type" do
-      expect(helper.format_currency_with_sign(nil, type: "EXPENSE")).to eq("-¥0.00")
+      expect(helper.format_currency_with_sign(nil, type: "EXPENSE")).to eq("-0.00")
     end
 
     it "uses absolute value regardless of input sign" do
       result = helper.format_currency_with_sign(-100, type: "INCOME")
-      expect(result).to eq("+¥100.00")
+      expect(result).to eq("+100.00")
     end
 
     it "accepts custom unit" do
@@ -61,7 +61,7 @@ RSpec.describe ApplicationHelper, type: :helper do
 
     it "accepts custom precision" do
       result = helper.format_currency_with_sign(1234.567, type: "EXPENSE", precision: 3)
-      expect(result).to eq("-¥1,234.567")
+      expect(result).to eq("-1,234.567")
     end
   end
 

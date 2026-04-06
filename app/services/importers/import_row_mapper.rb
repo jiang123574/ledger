@@ -224,7 +224,7 @@ class ImportRecordCreator
     from_account = ImportAccountResolver.find_or_create(parts[0])
     to_account = ImportAccountResolver.find_or_create(parts[1])
 
-    note = data[:note].presence || ''
+    note = "转账: #{parts[0]} → #{parts[1]}#{data[:note] ? " - #{data[:note]}" : ""}"
 
     transfer_id = SecureRandom.uuid.gsub("-", "").to_i(16) % 2_000_000_000
 
