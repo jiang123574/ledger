@@ -8,6 +8,7 @@ class PayablesController < ApplicationController
     @settled = @payables.where.not(settled_at: nil)
     @payable = Payable.new(date: Date.today)
     @accounts = Account.visible.order(:name)
+    @expense_categories = Category.expense.active.by_sort_order.includes(:parent)
     @counterparties = Counterparty.ordered
   end
 
@@ -27,7 +28,8 @@ class PayablesController < ApplicationController
         date: @payable.date,
         name: "[待付款] #{@payable.description}",
         kind: 'income',
-        category_id: category_id
+        category_id: category_id,
+        notes: source_entry_note_for(@payable.id)
       )
       redirect_to payables_path, notice: "应付款已创建"
     else
@@ -36,11 +38,21 @@ class PayablesController < ApplicationController
   end
 
   def update
-    if @payable.update(payable_params)
-      redirect_to payables_path, notice: "应付款已更新"
-    else
-      redirect_to payables_path, alert: @payable.errors.full_messages.join(", ")
+    previous_attrs = {
+      description: @payable.description,
+      date: @payable.date,
+      original_amount: @payable.original_amount,
+      account_id: @payable.account_id
+    }
+
+    ActiveRecord::Base.transaction do
+      @payable.update!(payable_params)
+      sync_source_entry!(previous_attrs)
     end
+
+    redirect_to payables_path, notice: "应付款已更新"
+  rescue ActiveRecord::RecordInvalid
+    redirect_to payables_path, alert: @payable.errors.full_messages.join(", ")
   end
 
   def destroy
@@ -109,7 +121,7 @@ class PayablesController < ApplicationController
     )
   end
 
-  def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil)
+  def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil, notes: nil)
     entryable = Entryable::Transaction.new(
       kind: kind,
       category_id: category_id
@@ -122,6 +134,7 @@ class PayablesController < ApplicationController
       name: name,
       amount: amount,
       currency: 'CNY',
+      notes: notes,
       entryable: entryable
     )
   end
@@ -132,5 +145,54 @@ class PayablesController < ApplicationController
     category_type = kind == "income" ? "INCOME" : "EXPENSE"
     Category.where(type: category_type).find_by(name: category_name)&.id ||
       Category.find_by(name: category_name)&.id
+  end
+
+  def source_entry_note_for(payable_id)
+    "payable:#{payable_id}:source"
+  end
+
+  def find_source_entry(previous_attrs = nil)
+    scope = Entry.transactions_only
+      .with_entryable_transaction
+      .where(entryable_transactions: { kind: "income" })
+
+    token = source_entry_note_for(@payable.id)
+    by_token = scope.where("entries.notes = ? OR entries.notes LIKE ?", token, "%#{token}%")
+      .order(created_at: :desc)
+      .first
+    return by_token if by_token
+
+    attrs = previous_attrs || {}
+    description = attrs[:description].presence || @payable.description
+    amount = attrs[:original_amount].presence || @payable.original_amount
+    date = attrs[:date].presence || @payable.date
+    account_id = attrs[:account_id].presence || @payable.account_id
+
+    scope.where(
+      name: "[待付款] #{description}",
+      amount: amount.to_d,
+      date: date,
+      account_id: account_id
+    ).order(created_at: :desc).first
+  end
+
+  def sync_source_entry!(previous_attrs)
+    source_entry = find_source_entry(previous_attrs) || find_source_entry
+    return unless source_entry
+
+    category_id = resolve_category_id(@payable.category, kind: "income")
+    source_entry.update!(
+      account_id: @payable.account_id,
+      date: @payable.date,
+      name: "[待付款] #{@payable.description}",
+      amount: @payable.original_amount.to_d,
+      notes: source_entry_note_for(@payable.id)
+    )
+    return unless source_entry.entryable.is_a?(Entryable::Transaction)
+
+    source_entry.entryable.update!(
+      kind: "income",
+      category_id: category_id
+    )
   end
 end

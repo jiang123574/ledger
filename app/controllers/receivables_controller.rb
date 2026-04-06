@@ -9,6 +9,7 @@ class ReceivablesController < ApplicationController
     @settled = @receivables.where.not(settled_at: nil)
     @receivable = Receivable.new(date: Date.today)
     @accounts = Account.visible.order(:name)
+    @expense_categories = Category.expense.active.by_sort_order.includes(:parent)
     @counterparties = Counterparty.ordered
   end
 
@@ -29,7 +30,8 @@ class ReceivablesController < ApplicationController
         date: @receivable.date,
         name: "[待报销] #{@receivable.description}",
         kind: 'expense',
-        category_id: category_id
+        category_id: category_id,
+        notes: source_entry_note_for(@receivable.id)
       )
       redirect_to receivables_path, notice: "应收款已创建"
     else
@@ -38,11 +40,21 @@ class ReceivablesController < ApplicationController
   end
 
   def update
-    if @receivable.update(receivable_params)
-      redirect_to receivables_path, notice: "应收款已更新"
-    else
-      redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
+    previous_attrs = {
+      description: @receivable.description,
+      date: @receivable.date,
+      original_amount: @receivable.original_amount,
+      account_id: @receivable.account_id
+    }
+
+    ActiveRecord::Base.transaction do
+      @receivable.update!(receivable_params)
+      sync_source_entry!(previous_attrs)
     end
+
+    redirect_to receivables_path, notice: "应收款已更新"
+  rescue ActiveRecord::RecordInvalid
+    redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
   end
 
   def destroy
@@ -115,7 +127,7 @@ class ReceivablesController < ApplicationController
     )
   end
 
-  def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil)
+  def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil, notes: nil)
     entryable = Entryable::Transaction.new(
       kind: kind,
       category_id: category_id
@@ -128,6 +140,7 @@ class ReceivablesController < ApplicationController
       name: name,
       amount: amount,
       currency: 'CNY',
+      notes: notes,
       entryable: entryable
     )
   end
@@ -138,5 +151,54 @@ class ReceivablesController < ApplicationController
     category_type = kind == "income" ? "INCOME" : "EXPENSE"
     Category.where(type: category_type).find_by(name: category_name)&.id ||
       Category.find_by(name: category_name)&.id
+  end
+
+  def source_entry_note_for(receivable_id)
+    "receivable:#{receivable_id}:source"
+  end
+
+  def find_source_entry(previous_attrs = nil)
+    scope = Entry.transactions_only
+      .with_entryable_transaction
+      .where(entryable_transactions: { kind: "expense" })
+
+    token = source_entry_note_for(@receivable.id)
+    by_token = scope.where("entries.notes = ? OR entries.notes LIKE ?", token, "%#{token}%")
+      .order(created_at: :desc)
+      .first
+    return by_token if by_token
+
+    attrs = previous_attrs || {}
+    description = attrs[:description].presence || @receivable.description
+    amount = attrs[:original_amount].presence || @receivable.original_amount
+    date = attrs[:date].presence || @receivable.date
+    account_id = attrs[:account_id].presence || @receivable.account_id
+
+    scope.where(
+      name: "[待报销] #{description}",
+      amount: -amount.to_d,
+      date: date,
+      account_id: account_id
+    ).order(created_at: :desc).first
+  end
+
+  def sync_source_entry!(previous_attrs)
+    source_entry = find_source_entry(previous_attrs) || find_source_entry
+    return unless source_entry
+
+    category_id = resolve_category_id(@receivable.category, kind: "expense")
+    source_entry.update!(
+      account_id: @receivable.account_id,
+      date: @receivable.date,
+      name: "[待报销] #{@receivable.description}",
+      amount: -@receivable.original_amount.to_d,
+      notes: source_entry_note_for(@receivable.id)
+    )
+    return unless source_entry.entryable.is_a?(Entryable::Transaction)
+
+    source_entry.entryable.update!(
+      kind: "expense",
+      category_id: category_id
+    )
   end
 end

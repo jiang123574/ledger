@@ -190,14 +190,26 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select name="payable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">选择类别</option>
-              <option value="差旅">差旅</option>
-              <option value="餐饮">餐饮</option>
-              <option value="交通">交通</option>
-              <option value="办公用品">办公用品</option>
-              <option value="其他">其他</option>
-            </select>
+            <input type="hidden" name="payable[category]" id="new-payable-category-id" value="">
+            <div class="relative">
+              <input type="text" id="new-payable-category-search"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择类别"
+                     autocomplete="off"
+                     readonly>
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-payable-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-payable-category-filter"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="搜索分类..."
+                         autocomplete="off">
+                </div>
+                <div id="new-payable-category-options" class="py-1"></div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -286,14 +298,26 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select id="edit-payable-category" name="payable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">选择类别</option>
-              <option value="差旅">差旅</option>
-              <option value="餐饮">餐饮</option>
-              <option value="交通">交通</option>
-              <option value="办公用品">办公用品</option>
-              <option value="其他">其他</option>
-            </select>
+            <input type="hidden" name="payable[category]" id="edit-payable-category-id" value="">
+            <div class="relative">
+              <input type="text" id="edit-payable-category-search"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择类别"
+                     autocomplete="off"
+                     readonly>
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="edit-payable-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="edit-payable-category-filter"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="搜索分类..."
+                         autocomplete="off">
+                </div>
+                <div id="edit-payable-category-options" class="py-1"></div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -398,6 +422,9 @@
 <script id="payable-accounts-data" type="application/json">
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
+<script id="payable-categories-data" type="application/json">
+  <%= raw @expense_categories.map { |c| full_name = c.full_name; { name: c.name, full_name: full_name, pinyin: PinYin.abbr(full_name).downcase } }.to_json %>
+</script>
 <script>
 function openNewPayableModal() {
   document.getElementById('new-payable-form').reset();
@@ -411,7 +438,10 @@ function openEditPayableModal(id, description, date, amount, category, counterpa
   document.getElementById('edit-payable-description').value = description;
   document.getElementById('edit-payable-date').value = date;
   document.getElementById('edit-payable-amount').value = amount;
-  document.getElementById('edit-payable-category').value = category;
+  var categoryIdInput = document.getElementById('edit-payable-category-id');
+  var categorySearchInput = document.getElementById('edit-payable-category-search');
+  if (categoryIdInput) categoryIdInput.value = category || '';
+  if (categorySearchInput) categorySearchInput.value = category || '';
   document.getElementById('edit-payable-counterparty').value = counterpartyId || '';
   var accountIdInput = document.getElementById('edit-payable-account-id');
   var accountSearchInput = document.getElementById('edit-payable-account-search');
@@ -440,9 +470,14 @@ document.addEventListener('DOMContentLoaded', function() {
 <% end %>
 
 var payableAllAccounts = [];
+var payableAllCategories = [];
 var payableAccountsDataEl = document.getElementById('payable-accounts-data');
 if (payableAccountsDataEl) {
   payableAllAccounts = JSON.parse(payableAccountsDataEl.textContent);
+}
+var payableCategoriesDataEl = document.getElementById('payable-categories-data');
+if (payableCategoriesDataEl) {
+  payableAllCategories = JSON.parse(payableCategoriesDataEl.textContent);
 }
 
 function findPayableAccountName(accountId) {
@@ -510,6 +545,69 @@ function initPayableAccountSelector(searchInputId, dropdownId, filterInputId, op
   });
 }
 
+function initPayableCategorySelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
+  var searchInput = document.getElementById(searchInputId);
+  var dropdown = document.getElementById(dropdownId);
+  var filterInput = document.getElementById(filterInputId);
+  var optionsContainer = document.getElementById(optionsId);
+  var hiddenInput = document.getElementById(hiddenInputId);
+
+  if (!searchInput || !dropdown || !optionsContainer || !hiddenInput) return;
+
+  function renderOptions(filterText) {
+    var filtered = payableAllCategories.filter(function(cat) {
+      if (!filterText) return true;
+      var query = filterText.toLowerCase();
+      return (cat.name && cat.name.toLowerCase().includes(query)) ||
+             (cat.full_name && cat.full_name.toLowerCase().includes(query)) ||
+             (cat.pinyin && cat.pinyin.includes(query));
+    });
+
+    var rows = ['<div class="payable-category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark" data-name="" data-display="">不设置分类</div>'];
+    rows = rows.concat(filtered.map(function(cat) {
+      var selected = hiddenInput.value === cat.name ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+      var name = String(cat.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      var displayName = String(cat.full_name || cat.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+      return '<div class="payable-category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-name="' + name + '" data-display="' + displayName + '">' + displayName + '</div>';
+    }));
+
+    return rows.join('');
+  }
+
+  function updateOptions() {
+    var filterText = filterInput ? filterInput.value : '';
+    optionsContainer.innerHTML = renderOptions(filterText);
+    optionsContainer.querySelectorAll('.payable-category-option').forEach(function(option) {
+      option.addEventListener('click', function() {
+        hiddenInput.value = this.dataset.name || '';
+        searchInput.value = this.dataset.display || '';
+        if (filterInput) filterInput.value = '';
+        dropdown.classList.add('hidden');
+      });
+    });
+  }
+
+  searchInput.addEventListener('click', function() {
+    dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
+      updateOptions();
+      if (filterInput) filterInput.focus();
+    }
+  });
+
+  if (filterInput) {
+    filterInput.addEventListener('input', updateOptions);
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!dropdown.contains(e.target) && e.target !== searchInput) {
+      dropdown.classList.add('hidden');
+    }
+  });
+}
+
 initPayableAccountSelector('new-payable-account-search', 'new-payable-account-dropdown', 'new-payable-account-filter', 'new-payable-account-options', 'new-payable-account-id');
 initPayableAccountSelector('edit-payable-account-search', 'edit-payable-account-dropdown', 'edit-payable-account-filter', 'edit-payable-account-options', 'edit-payable-account-id');
+initPayableCategorySelector('new-payable-category-search', 'new-payable-category-dropdown', 'new-payable-category-filter', 'new-payable-category-options', 'new-payable-category-id');
+initPayableCategorySelector('edit-payable-category-search', 'edit-payable-category-dropdown', 'edit-payable-category-filter', 'edit-payable-category-options', 'edit-payable-category-id');
 </script>

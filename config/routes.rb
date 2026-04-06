@@ -43,7 +43,7 @@ Rails.application.routes.draw do
   end
   resources :categories, only: [ :create, :update, :destroy ]
   resources :tags, only: [ :index, :create, :update, :destroy ]
-  resources :counterparties
+  resources :counterparties, only: [ :create, :update, :destroy ]
   resources :budgets, only: [ :index, :create, :update, :destroy ] do
     member do
       get :data
