@@ -156,11 +156,29 @@ class TransactionsController < ApplicationController
         if target_account
           paired_entry = Entry.where(transfer_id: @entry.transfer_id).where.not(id: @entry.id).first
           if paired_entry
+            # 配对条目始终是转入方：正数金额 + income kind
+            if paired_entry.entryable.is_a?(Entryable::Transaction)
+              paired_entry.entryable.update!(kind: 'income')
+            end
             paired_entry.update!(
               account_id: target_account.id,
               date: @entry.date,
               amount: attrs[:amount].to_d,
               notes: @entry.notes
+            )
+          else
+            # 孤儿转账（只有转出没有转入）：自动创建配对转入条目
+            transfer_amount = attrs[:amount].to_d
+            transfer_note = @entry.notes.presence || "转账: #{@entry.account.name} → #{target_account.name}"
+            Entry.create!(
+              account_id: target_account.id,
+              date: @entry.date,
+              name: transfer_note,
+              amount: transfer_amount,
+              currency: @entry.currency,
+              notes: transfer_note,
+              entryable: Entryable::Transaction.create!(kind: 'income'),
+              transfer_id: @entry.transfer_id
             )
           end
         end
@@ -199,7 +217,11 @@ class TransactionsController < ApplicationController
   end
 
   def filter_params
-    params.permit(:account_id, :search, :type, :period_type, :period_value, category_ids: [])
+    params.permit(
+      :account_id, :search, :type, :kind, :period_type, :period_value,
+      :show_hidden, :view_mode, :page, :per_page,
+      category_ids: []
+    )
   end
 
   # 覆盖 concern 中的 continue_entry_redirect_url，使用 transactions 专有参数名

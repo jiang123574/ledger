@@ -188,21 +188,29 @@ export default class extends Controller {
   }
 
   updateOrder(draggedId, targetId) {
+    const showHidden = new URLSearchParams(window.location.search).get("show_hidden") === "true"
+
     fetch(`/accounts/${draggedId}/reorder`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
       },
-      body: JSON.stringify({ target_id: targetId })
+      body: JSON.stringify({ target_id: targetId, show_hidden: showHidden })
     })
     .then(res => {
       if (res.ok) {
         // 拖拽排序后刷新交易列表（entries 缓存已在后端清除）
         this._refreshTransactionList()
+      } else {
+        // 后端失败时刷新页面恢复正确顺序
+        window.location.reload()
       }
     })
-    .catch(err => console.error('Failed to update order:', err))
+    .catch(err => {
+      console.error('Failed to update order:', err)
+      window.location.reload()
+    })
   }
 
   // 通过 Turbo 访问刷新右侧交易列表，重新获取最新余额
