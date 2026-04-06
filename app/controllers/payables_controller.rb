@@ -229,14 +229,6 @@ class PayablesController < ApplicationController
     return scope if counterparty_id.blank?
     return scope.where(counterparty_id: nil) if counterparty_id == "none"
 
-    if counterparty_id.start_with?("name:")
-      name = counterparty_id.delete_prefix("name:")
-      cp = Counterparty.find_by(name: name)
-      return scope.none unless cp
-
-      return scope.where(counterparty_id: cp.id)
-    end
-
     normalized_id = counterparty_id.start_with?("id:") ? counterparty_id.delete_prefix("id:") : counterparty_id
 
     cp = Counterparty.find_by(id: normalized_id)

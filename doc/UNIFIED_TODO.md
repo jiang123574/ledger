@@ -11,14 +11,11 @@
 - 账单模式与日期模式卡片渲染逻辑抽象复用，减少双实现偏差。
 
 ### P2
-2. Payables 联系人筛选分支清理
-- `PayablesController#filter_by_counterparty` 中 `name:` 前缀兼容分支当前属于防御性死代码，后续可移除并补对应回归测试。
-
-3. 选择器模块进一步统一
+2. 选择器模块进一步统一
 - `initSelectorWithData` 与 `initGenericSelector` 仍有重复逻辑，后续收敛为单一实现。
 - `receivables/payables` 页面内数据变量命名（如 `receivableAllAccounts` / `payableAllAccounts`）可统一，降低维护成本。
 
-4. 信用卡账单控制器桥接稳定性
+3. 信用卡账单控制器桥接稳定性
 - `accounts/index` 里通过 `window.Stimulus.getControllerForElementAndIdentifier` 获取 controller，后续评估替换为更稳定的桥接方案（避免依赖全局实现细节）。
 
 ### 长期迁移（Transaction -> Entry）
@@ -53,6 +50,9 @@
 
 7. 账单明细状态渲染 XSS 防护  
 - 已完成：`credit_bill_entries_controller.js` 的 `showError/showEmpty` 改为 `textContent` 渲染，移除字符串插值 `innerHTML` 风险。
+
+8. Payables 联系人筛选分支清理  
+- 已完成：移除 `PayablesController#filter_by_counterparty` 中不再使用的 `name:` 前缀兼容分支，保留 `id:` 与 `none` 两种有效路径。
 
 ## 文档分工
 
