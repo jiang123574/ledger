@@ -57,6 +57,24 @@
         <span class="text-xs text-secondary dark:text-secondary-dark"><%= Entry.count %> 笔</span>
       </button>
     </div>
+
+    <!-- 应收应付入口 -->
+    <div class="p-3 border-b border-border dark:border-border-dark">
+      <div class="grid grid-cols-2 gap-2">
+        <%= link_to receivables_path, class: "w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark transition-smooth" do %>
+          <svg class="w-4 h-4 text-income" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9l-5-5m0 0L7 9m5-5v16"/>
+          </svg>
+          <span class="text-sm font-medium">应收款</span>
+        <% end %>
+        <%= link_to payables_path, class: "w-full flex items-center justify-center gap-2 p-2 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark transition-smooth" do %>
+          <svg class="w-4 h-4 text-expense" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 15l5 5m0 0l5-5m-5 5V4"/>
+          </svg>
+          <span class="text-sm font-medium">应付款</span>
+        <% end %>
+      </div>
+    </div>
     
     <!-- 账户列表 -->
     <div id="account-list" class="hidden lg:block flex-1 overflow-y-auto" data-controller="account-sort">
