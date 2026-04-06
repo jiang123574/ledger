@@ -12,91 +12,7 @@ function escapeHtml(str) {
     .replace(/'/g, '&#039;');
 }
 
-// Generic selector initializer with XSS-safe rendering
-function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, dataSource, placeholder) {
-  var searchInput = document.getElementById(searchInputId);
-  var dropdown = document.getElementById(dropdownId);
-  var filterInput = document.getElementById(filterInputId);
-  var optionsContainer = document.getElementById(optionsId);
-  var hiddenInput = document.getElementById(hiddenInputId);
-
-  if (!searchInput || !dropdown || !optionsContainer) return;
-
-  function renderOptions(filterText) {
-    var filtered = dataSource.filter(function(item) {
-      if (!filterText) return true;
-      var query = filterText.toLowerCase();
-      if (item.name && item.name.toLowerCase().includes(query)) return true;
-      if (item.full_name && item.full_name.toLowerCase().includes(query)) return true;
-      if (item.pinyin && item.pinyin.includes(query)) return true;
-      return false;
-    });
-
-    if (filtered.length === 0) {
-      return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配项</div>';
-    }
-
-    return filtered.map(function(item) {
-      var displayName = item.full_name || item.name;
-      var indent = item.level ? 'padding-left: ' + (item.level * 16 + 12) + 'px' : '';
-      var selected = hiddenInput && hiddenInput.value == item.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-      // Use dataset to avoid XSS - safer than string concatenation
-      var div = document.createElement('div');
-      div.className = 'selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected;
-      if (indent) div.style.cssText = indent;
-      div.dataset.id = item.id;
-      div.dataset.name = displayName;
-      div.textContent = displayName;
-      return div.outerHTML;
-    }).join('');
-  }
-
-  function updateOptions() {
-    var filterText = filterInput ? filterInput.value : '';
-    optionsContainer.innerHTML = renderOptions(filterText);
-
-    optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
-      option.addEventListener('click', function() {
-        var id = this.dataset.id;
-        var name = this.dataset.name;
-        if (hiddenInput) hiddenInput.value = id;
-        if (searchInput) searchInput.value = name;
-        if (dropdown) dropdown.classList.add('hidden');
-        if (filterInput) filterInput.value = '';
-      });
-    });
-  }
-
-  if (searchInput) {
-    searchInput.addEventListener('click', function() {
-      dropdown.classList.toggle('hidden');
-      if (!dropdown.classList.contains('hidden')) {
-        updateOptions();
-        if (filterInput) filterInput.focus();
-      }
-    });
-  }
-
-  if (filterInput) {
-    filterInput.addEventListener('focus', function() {
-      this.placeholder = '';
-    });
-    filterInput.addEventListener('blur', function() {
-      this.placeholder = placeholder || '搜索...';
-    });
-    filterInput.addEventListener('input', function() {
-      updateOptions();
-    });
-  }
-
-  document.addEventListener('click', function(e) {
-    if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
-      dropdown.classList.add('hidden');
-    }
-  });
-}
-
-// Configurable selector initializer for inline pages (receivables/payables etc.)
+// Configurable selector initializer
 function initSelectorWithData(config) {
   var searchInput = document.getElementById(config.searchInputId);
   var dropdown = document.getElementById(config.dropdownId);
@@ -105,14 +21,20 @@ function initSelectorWithData(config) {
   var hiddenInput = document.getElementById(config.hiddenInputId);
   var dataSource = config.dataSource || [];
 
-  if (!searchInput || !dropdown || !optionsContainer || !hiddenInput) return;
+  if (!searchInput || !dropdown || !optionsContainer) return;
 
   var valueKey = config.valueKey || 'id';
   var nameKey = config.nameKey || 'name';
   var fullNameKey = config.fullNameKey || 'full_name';
   var pinyinKey = config.pinyinKey || 'pinyin';
+  var levelKey = config.levelKey || 'level';
   var emptyOption = config.emptyOption;
   var noMatchText = config.noMatchText || '无匹配项';
+  var enableLevelIndent = !!config.enableLevelIndent;
+  var levelIndentBase = config.levelIndentBase || 12;
+  var levelIndentSize = config.levelIndentSize || 16;
+  var clearFilterPlaceholderOnFocus = !!config.clearFilterPlaceholderOnFocus;
+  var filterPlaceholder = config.filterPlaceholder || '搜索...';
 
   function renderOptions(filterText) {
     var query = (filterText || '').toLowerCase();
@@ -126,9 +48,12 @@ function initSelectorWithData(config) {
 
     var rows = [];
     if (emptyOption) {
+      var emptyValue = emptyOption.value == null ? '' : String(emptyOption.value);
+      var emptyDisplay = emptyOption.display == null ? '' : String(emptyOption.display);
+      var emptySelected = hiddenInput && String(hiddenInput.value || '') === emptyValue ? 'bg-blue-50 dark:bg-blue-900/20' : '';
       rows.push(
-        '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark" data-value="' +
-          escapeHtml(emptyOption.value || '') + '" data-display="' + escapeHtml(emptyOption.display || '') + '">' +
+        '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark ' + emptySelected + '" data-value="' +
+          escapeHtml(emptyValue) + '" data-display="' + escapeHtml(emptyDisplay) + '">' +
           escapeHtml(emptyOption.label || '不设置') + '</div>'
       );
     }
@@ -139,12 +64,14 @@ function initSelectorWithData(config) {
     }
 
     filtered.forEach(function(item) {
-      var value = item[valueKey];
+      var value = item[valueKey] == null ? '' : String(item[valueKey]);
       var display = item[fullNameKey] || item[nameKey] || '';
-      var selected = String(hiddenInput.value) === String(value) ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+      var selected = hiddenInput && String(hiddenInput.value) === value ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+      var level = enableLevelIndent ? (parseInt(item[levelKey], 10) || 0) : 0;
+      var styleAttr = level > 0 ? ' style="padding-left: ' + (level * levelIndentSize + levelIndentBase) + 'px"' : '';
       rows.push(
         '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' +
-          selected + '" data-value="' + escapeHtml(value) + '" data-display="' + escapeHtml(display) + '">' +
+          selected + '" data-value="' + escapeHtml(value) + '" data-display="' + escapeHtml(display) + '"' + styleAttr + '>' +
           escapeHtml(display) + '</div>'
       );
     });
@@ -155,7 +82,7 @@ function initSelectorWithData(config) {
   function bindOptionEvents() {
     optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
       option.addEventListener('click', function() {
-        hiddenInput.value = this.dataset.value || '';
+        if (hiddenInput) hiddenInput.value = this.dataset.value || '';
         searchInput.value = this.dataset.display || '';
         if (filterInput) filterInput.value = '';
         dropdown.classList.add('hidden');
@@ -178,6 +105,15 @@ function initSelectorWithData(config) {
   });
 
   if (filterInput) {
+    filterInput.placeholder = filterPlaceholder;
+    if (clearFilterPlaceholderOnFocus) {
+      filterInput.addEventListener('focus', function() {
+        this.placeholder = '';
+      });
+      filterInput.addEventListener('blur', function() {
+        this.placeholder = filterPlaceholder;
+      });
+    }
     filterInput.addEventListener('input', updateOptions);
   }
 
@@ -185,6 +121,22 @@ function initSelectorWithData(config) {
     if (!dropdown.contains(e.target) && e.target !== searchInput) {
       dropdown.classList.add('hidden');
     }
+  });
+}
+
+// Generic selector initializer with XSS-safe rendering
+function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, dataSource, placeholder) {
+  initSelectorWithData({
+    searchInputId: searchInputId,
+    dropdownId: dropdownId,
+    filterInputId: filterInputId,
+    optionsId: optionsId,
+    hiddenInputId: hiddenInputId,
+    dataSource: dataSource || [],
+    noMatchText: '无匹配项',
+    enableLevelIndent: true,
+    clearFilterPlaceholderOnFocus: true,
+    filterPlaceholder: placeholder || '搜索...'
   });
 }
 

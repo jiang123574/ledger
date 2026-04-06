@@ -11,10 +11,6 @@
 - 账单模式与日期模式卡片渲染逻辑抽象复用，减少双实现偏差。
 
 ### P2
-2. 选择器模块进一步统一
-- `initSelectorWithData` 与 `initGenericSelector` 仍有重复逻辑，后续收敛为单一实现。
-- `receivables/payables` 页面内数据变量命名（如 `receivableAllAccounts` / `payableAllAccounts`）可统一，降低维护成本。
-
 ### 长期迁移（Transaction -> Entry）
 5. Attachment / Receivable 关联迁移到 Entry 体系。
 6. 编写旧 `transactions` 存量数据迁移脚本到 Entry。
@@ -53,6 +49,9 @@
 
 9. 信用卡账单控制器桥接稳定性  
 - 已完成：`accounts/index` 改为通过自定义事件与 `credit_bill_entries_controller` 通信（`credit-bill-entries:*`），不再依赖 `window.Stimulus.getControllerForElementAndIdentifier`。
+
+10. 选择器模块进一步统一  
+- 已完成：`initGenericSelector` 收敛为基于 `initSelectorWithData` 的包装层，减少重复逻辑；`receivables/payables` 页面选择器数据变量命名已统一。
 
 ## 文档分工
 
