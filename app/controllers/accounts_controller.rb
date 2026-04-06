@@ -293,9 +293,17 @@ class AccountsController < ApplicationController
   end
 
   def destroy
-    @account.destroy
+    blocking_refs = blocking_references_for(@account)
+    if blocking_refs.any?
+      redirect_to accounts_path, alert: "账户仍有关联数据（#{blocking_refs.join("、")}），请先处理后再删除"
+      return
+    end
+
+    @account.destroy!
     expire_accounts_cache
     redirect_to accounts_path, notice: "账户已删除"
+  rescue ActiveRecord::InvalidForeignKey
+    redirect_to accounts_path, alert: "账户仍有关联数据，无法删除"
   end
 
   def reorder
@@ -345,6 +353,18 @@ class AccountsController < ApplicationController
       SystemAccountSyncService::PAYABLE_ACCOUNT_NAME
     ]
     locked_names.include?(account.name)
+  end
+
+  def blocking_references_for(account)
+    refs = []
+
+    if Transaction.where(account_id: account.id).or(Transaction.where(target_account_id: account.id)).exists?
+      refs << "交易记录"
+    end
+    refs << "应收款" if Receivable.where(account_id: account.id).exists?
+    refs << "应付款" if Payable.where(account_id: account.id).exists?
+
+    refs
   end
 
   def prevent_locked_system_account!

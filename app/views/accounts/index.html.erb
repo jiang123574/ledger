@@ -664,7 +664,7 @@ document.getElementById('account-type')?.addEventListener('change', function() {
 });
 
 function confirmDeleteAccount(id, name) {
-  if (!window.confirm('确定要删除账户 "' + name + '" 吗？\n\n注意：删除账户不会删除相关的交易记录。')) return;
+  if (!window.confirm('确定要删除账户 "' + name + '" 吗？\n\n若该账户仍有关联交易/应收/应付记录，将无法删除。')) return;
   
   var form = document.createElement('form');
   form.method = 'POST';
