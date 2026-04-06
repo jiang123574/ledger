@@ -10,10 +10,12 @@ module ApplicationHelper
   end
 
   # Format currency with sign (for income/expense display)
-  def format_currency_with_sign(amount, type:, unit: "¥", precision: 2)
+  # Output format: +123.00 or -123.00 (no currency symbol, just number with sign)
+  def format_currency_with_sign(amount, type:, unit: "", precision: 2)
     amount = 0 if amount.nil?
     sign = type == "INCOME" ? "+" : "-"
-    "#{sign}#{format_currency(amount.abs, unit: unit, precision: precision)}"
+    fmt = unit.present? ? "%u%n" : "%n"
+    "#{sign}#{number_to_currency(amount.abs, unit: unit, precision: precision, format: fmt)}"
   end
 
   # Format balance with appropriate sign and CSS class

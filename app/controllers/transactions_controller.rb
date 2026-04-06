@@ -12,9 +12,6 @@ class TransactionsController < ApplicationController
   end
 
   def edit
-    @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order
-
     render :edit_modal, layout: false if request.xhr?
   end
 
@@ -116,8 +113,10 @@ class TransactionsController < ApplicationController
   end
 
   def set_entry
-    @entry = Entry.find_by(id: params[:id])
+    @entry = Entry.includes(:entryable, :account, entryable: { category: :parent }).find_by(id: params[:id])
     raise ActiveRecord::RecordNotFound unless @entry
+    # 预加载转账配对账户信息
+    Entry.preload_transfer_accounts([@entry]) if @entry.transfer_id.present?
   end
 
   def set_new_transaction
@@ -150,12 +149,30 @@ class TransactionsController < ApplicationController
       @entry.entryable.save!
     end
 
-    @entry.save!
+    Entry.transaction do
+      # 转账：同步更新配对 Entry（与主 entry 在同一事务中，保证原子性）
+      if @entry.transfer_id.present? && attrs[:target_account_id].present?
+        target_account = Account.find_by(id: attrs[:target_account_id])
+        if target_account
+          paired_entry = Entry.where(transfer_id: @entry.transfer_id).where.not(id: @entry.id).first
+          if paired_entry
+            paired_entry.update!(
+              account_id: target_account.id,
+              date: @entry.date,
+              amount: attrs[:amount].to_d,
+              notes: @entry.notes
+            )
+          end
+        end
+      end
+
+      @entry.save!
+    end
   end
 
   def load_lookups
     @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order
+    @categories = Category.active.by_sort_order.includes(:parent)
     @tags = Tag.alphabetically
     @transaction_types = TransactionTypeDisplay::TYPE_LABELS.map { |t, label| [label, t] }
   end

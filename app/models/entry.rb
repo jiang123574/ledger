@@ -25,7 +25,8 @@ class Entry < ApplicationRecord
   
   has_many :child_entries, class_name: "Entry", foreign_key: :parent_entry_id, dependent: :destroy
   
-  validates :date, :name, :amount, :currency, presence: true
+  validates :date, :name, :amount, :currency, presence: true, unless: -> { transfer_id.present? }
+  validates :date, :amount, :currency, presence: true
   validates :date, uniqueness: { scope: [:account_id, :entryable_type] }, if: -> { valuation? }
   validates :date, comparison: { greater_than: -> { 30.years.ago.to_date } }
   validates :external_id, uniqueness: { scope: [:account_id, :source] }, 
@@ -204,7 +205,7 @@ class Entry < ApplicationRecord
 
   # 备注显示（notes 或 name）
   def display_note
-    notes || name
+    notes.presence || name.presence
   end
 
   # 账户名
