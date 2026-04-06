@@ -17,6 +17,7 @@ pin "controllers/budget_gauge_controller", to: "controllers/budget_gauge_control
 pin "controllers/category_donut_chart_controller", to: "controllers/category_donut_chart_controller.js"
 pin "controllers/color_theme_controller", to: "controllers/color_theme_controller.js"
 pin "controllers/credit_bill_entries_controller", to: "controllers/credit_bill_entries_controller.js"
+pin "controllers/entry_list_controller", to: "controllers/entry_list_controller.js"
 pin "controllers/credit_card_form_controller", to: "controllers/credit_card_form_controller.js"
 pin "controllers/dashboard_section_controller", to: "controllers/dashboard_section_controller.js"
 pin "controllers/dashboard_sortable_controller", to: "controllers/dashboard_sortable_controller.js"

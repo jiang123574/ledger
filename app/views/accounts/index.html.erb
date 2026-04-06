@@ -290,11 +290,21 @@
       </div>
     </div>
 
-    <!-- 交易列表 -->
-    <div id="transaction-list" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>" data-page="<%= @page %>" data-per-page="<%= @per_page %>" data-total-count="<%= @total_count %>">
+<!-- 交易列表 -->
+    <div id="transaction-list" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>"
+         data-controller="entry-list"
+         data-entry-list-account-id-value="<%= params[:account_id] %>"
+         data-entry-list-page-value="<%= @page %>"
+         data-entry-list-per-page-value="<%= @per_page %>"
+         data-entry-list-total-count-value="<%= @total_count %>"
+         data-entry-list-period-type-value="<%= params[:period_type] || 'month' %>"
+         data-entry-list-period-value-value="<%= params[:period_value] %>"
+         data-entry-list-filter-type-value="<%= params[:type] %>"
+         data-entry-list-search-value="<%= params[:search] %>"
+         data-entry-list-category-ids-value="<%= Array(params[:category_ids]).reject(&:blank?).join(',') %>">
       <% if @entries_with_balance.any? %>
         <%= render 'skeleton' unless @page > 1 %>
-        <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container">
+        <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container" data-entry-list-target="container">
           <% @entries_with_balance.each do |e, balance| %>
             <div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
               <div class="flex items-center gap-3">
@@ -305,7 +315,6 @@
   entry_type = e.display_entry_type
   is_transfer = entry_type == 'TRANSFER'
   current_account_filter = params[:account_id].to_s
-  # 转账方向：单账户视图下，amount > 0 = 转入（还款），amount < 0 = 转出（消费）
   is_inflow = is_transfer && e.amount.positive?
   display_type = if is_transfer
     if current_account_filter.blank?
@@ -325,7 +334,6 @@
   else
     entry_type
   end
-  # 转账对方账户名称
   transfer_counterpart = if is_inflow
     e.source_account_for_transfer&.name
   else
@@ -361,14 +369,12 @@
                 </div>
                 <div class="text-right shrink-0">
                   <% if is_transfer && current_account_filter.blank? %>
-                    <%# 所有交易视图：转账显示 -xxx / +xxx 双行 %>
                     <p class="text-sm">
                       <span class="text-expense">-<%= format_currency(e.display_amount, unit: "") %></span>
                       <span class="mx-1 text-secondary dark:text-secondary-dark">/</span>
                       <span class="text-income">+<%= format_currency(e.display_amount, unit: "") %></span>
                     </p>
                   <% else %>
-                    <%# 单账户视图：所有交易（含转账）只显示一行纯数字金额 %>
                     <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
                       <%= format_currency(e.display_amount, unit: "") %>
                     </p>
@@ -389,7 +395,7 @@
         </div>
         <!-- 加载更多触发器 -->
         <div id="load-more-sentinel" class="p-4 text-center <%= @total_count > @page * @per_page ? '' : 'hidden' %>">
-          <button id="load-more-btn" onclick="loadMoreTransactions()" class="px-4 py-2 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+          <button id="load-more-btn" class="px-4 py-2 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
             加载更多
           </button>
         </div>
@@ -411,84 +417,6 @@
     </div>
   </div>
 </div>
-
-<script>
-var isLoadingMore = isLoadingMore || false;
-
-function loadMoreTransactions() {
-  if (isLoadingMore) return;
-  
-  var container = document.getElementById('transaction-list');
-  var currentPage = parseInt(container.dataset.page);
-  var perPage = parseInt(container.dataset.perPage);
-  var totalCount = parseInt(container.dataset.totalCount);
-  
-  if (currentPage * perPage >= totalCount) {
-    document.getElementById('load-more-sentinel').classList.add('hidden');
-    return;
-  }
-  
-  isLoadingMore = true;
-  document.getElementById('load-more-btn').classList.add('hidden');
-  document.getElementById('loading-indicator').classList.remove('hidden');
-  
-  // 构建URL参数
-  var params = new URLSearchParams(window.location.search);
-  params.set('page', currentPage + 1);
-  params.set('per_page', perPage);
-  params.set('format', 'turbo'); // 请求HTML片段
-  
-  fetch('/accounts?' + params.toString())
-    .then(response => response.text())
-    .then(html => {
-      // 解析返回的HTML，提取交易列表
-      var parser = new DOMParser();
-      var doc = parser.parseFromString(html, 'text/html');
-      var newTransactions = doc.querySelectorAll('#transactions-container > div');
-      
-      if (newTransactions.length > 0) {
-        var transactionsContainer = document.getElementById('transactions-container');
-        newTransactions.forEach(t => transactionsContainer.appendChild(t));
-        
-        // 更新分页状态（更新 transaction-list 的 dataset）
-        var listContainer = document.getElementById('transaction-list');
-        listContainer.dataset.page = currentPage + 1;
-        
-        // 检查是否还有更多
-        var newPage = currentPage + 1;
-        if (newPage * perPage >= totalCount) {
-          document.getElementById('load-more-sentinel').classList.add('hidden');
-        }
-      }
-      
-      document.getElementById('load-more-btn').classList.remove('hidden');
-      document.getElementById('loading-indicator').classList.add('hidden');
-      isLoadingMore = false;
-    })
-    .catch(err => {
-      console.error('加载失败:', err);
-      document.getElementById('load-more-btn').classList.remove('hidden');
-      document.getElementById('loading-indicator').classList.add('hidden');
-      isLoadingMore = false;
-    });
-}
-
-// 滚动到底部自动加载 - 使用 IntersectionObserver
-document.addEventListener('DOMContentLoaded', function() {
-  var sentinel = document.getElementById('load-more-sentinel');
-  if (!sentinel) return;
-  
-  var observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        loadMoreTransactions();
-      }
-    });
-  }, { rootMargin: '100px' });
-  
-  observer.observe(sentinel);
-});
-</script>
 
 <!-- 新建账户弹窗 -->
 <div id="add-account-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">

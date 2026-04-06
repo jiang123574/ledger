@@ -56,8 +56,16 @@ function createEntryCard(entry, options = {}) {
   row.querySelector('[data-field="type"]').className = `inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   row.querySelector('[data-field="name"]').textContent = entry.display_name || "-"
   row.querySelector('[data-field="note"]').textContent = entry.note || ""
-  row.querySelector('[data-field="amount"]').textContent = amountText
-  row.querySelector('[data-field="amount"]').className = `text-sm font-medium ${amountCls}`
+
+  const amountField = row.querySelector('[data-field="amount"]')
+  if (entry.display_type === "转账" && entry.show_both_amounts) {
+    amountField.innerHTML = `<span class="text-expense">-${amountText}</span><span class="mx-1 text-secondary dark:text-secondary-dark">/</span><span class="text-income">+${amountText}</span>`
+    amountField.className = "text-sm"
+  } else {
+    amountField.textContent = amountText
+    amountField.className = `text-sm font-medium ${amountCls}`
+  }
+
   row.querySelector('[data-field="balance"]').textContent = `余额: ${formatCurrencyRaw(entry.balance_after || 0)}`
 
   const editButton = row.querySelector('[data-role="edit"]')
