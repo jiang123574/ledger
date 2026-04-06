@@ -26,6 +26,10 @@ class Entry < ApplicationRecord
   has_many :child_entries, class_name: "Entry", foreign_key: :parent_entry_id, dependent: :destroy
   has_many :attachments, dependent: :destroy
   
+  # Receivable/Payable 关联（应收款/应付款源交易）
+  has_many :receivables_as_source, class_name: "Receivable", foreign_key: :source_entry_id, dependent: :nullify
+  has_many :payables_as_source, class_name: "Payable", foreign_key: :source_entry_id, dependent: :nullify
+  
   validates :date, :name, :amount, :currency, presence: true, unless: -> { transfer_id.present? }
   validates :date, :amount, :currency, presence: true
   validates :date, uniqueness: { scope: [:account_id, :entryable_type] }, if: -> { valuation? }

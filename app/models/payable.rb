@@ -1,8 +1,15 @@
 class Payable < ApplicationRecord
+  # Entry 关系（新）
+  belongs_to :source_entry, class_name: "Entry", foreign_key: "source_entry_id", optional: true
+  has_many :payment_entries, class_name: "Entry", foreign_key: "payable_id", dependent: :nullify
+  
+  # 遗留关系（保持向后兼容）
   belongs_to :source_transaction, class_name: "Transaction", foreign_key: "source_transaction_id", optional: true
+  has_many :payment_transactions, class_name: "Transaction", foreign_key: "payable_id", dependent: :nullify
+  
+  # 其他关系
   belongs_to :counterparty, optional: true
   belongs_to :account, optional: true
-  has_many :payment_transactions, class_name: "Transaction", foreign_key: "payable_id", dependent: :nullify
 
   validates :description, presence: true
   validates :original_amount, presence: true, numericality: { greater_than: 0 }

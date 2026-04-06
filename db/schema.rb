@@ -294,10 +294,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
     t.decimal "original_amount", precision: 10, scale: 2
     t.decimal "remaining_amount", precision: 10, scale: 2
     t.datetime "settled_at"
+    t.bigint "source_entry_id"
     t.integer "source_transaction_id"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_payables_on_account_id"
     t.index ["counterparty_id"], name: "index_payables_on_counterparty_id"
+    t.index ["source_entry_id"], name: "index_payables_on_source_entry_id"
   end
 
   create_table "plans", force: :cascade do |t|
@@ -330,10 +332,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
     t.decimal "original_amount", precision: 10, scale: 2
     t.decimal "remaining_amount", precision: 10, scale: 2
     t.datetime "settled_at"
+    t.bigint "source_entry_id"
     t.integer "source_transaction_id"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_receivables_on_account_id"
     t.index ["counterparty_id"], name: "index_receivables_on_counterparty_id"
+    t.index ["source_entry_id"], name: "index_receivables_on_source_entry_id"
     t.index ["source_transaction_id"], name: "index_receivables_on_source_transaction_id"
   end
 
@@ -474,9 +478,11 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
   add_foreign_key "one_time_budgets", "categories"
   add_foreign_key "payables", "accounts"
   add_foreign_key "payables", "counterparties"
+  add_foreign_key "payables", "entries", column: "source_entry_id", on_delete: :nullify
   add_foreign_key "plans", "accounts"
   add_foreign_key "receivables", "accounts"
   add_foreign_key "receivables", "counterparties"
+  add_foreign_key "receivables", "entries", column: "source_entry_id", on_delete: :nullify
   add_foreign_key "receivables", "transactions", column: "source_transaction_id"
   add_foreign_key "recurring_transactions", "accounts"
   add_foreign_key "recurring_transactions", "categories"

@@ -204,4 +204,127 @@ namespace :migrate_to_entry do
       puts "取消操作"
     end
   end
+
+  desc '迁移 Receivable/Payable 关联从 Transaction 到 Entry'
+  task receivables_payables: :environment do
+    puts "开始迁移 Receivable/Payable ..."
+    
+    receivable_count = Receivable.where.not(source_transaction_id: nil).count
+    payable_count = Payable.where.not(source_transaction_id: nil).count
+    total = receivable_count + payable_count
+    migrated = 0
+    failed = 0
+    
+    puts "需要迁移 #{receivable_count} 个 receivable 和 #{payable_count} 个 payable"
+    
+    # 迁移 Receivable
+    Receivable.where.not(source_transaction_id: nil).find_each.with_index do |receivable, index|
+      begin
+        entry = find_entry_for_transaction(receivable.source_transaction_id)
+        if entry
+          receivable.update(source_entry_id: entry.id)
+          migrated += 1
+        else
+          puts "警告: 找不到 Receivable #{receivable.id} (transaction_id: #{receivable.source_transaction_id}) 对应的 Entry"
+          failed += 1
+        end
+        
+        if (index + 1) % 50 == 0
+          puts "Receivable 进度: #{index + 1}/#{receivable_count}"
+        end
+      rescue => e
+        puts "错误处理 Receivable #{receivable.id}: #{e.message}"
+        failed += 1
+      end
+    end
+    
+    # 迁移 Payable
+    Payable.where.not(source_transaction_id: nil).find_each.with_index do |payable, index|
+      begin
+        entry = find_entry_for_transaction(payable.source_transaction_id)
+        if entry
+          payable.update(source_entry_id: entry.id)
+          migrated += 1
+        else
+          puts "警告: 找不到 Payable #{payable.id} (transaction_id: #{payable.source_transaction_id}) 对应的 Entry"
+          failed += 1
+        end
+        
+        if (index + 1) % 50 == 0
+          puts "Payable 进度: #{index + 1}/#{payable_count}"
+        end
+      rescue => e
+        puts "错误处理 Payable #{payable.id}: #{e.message}"
+        failed += 1
+      end
+    end
+    
+    puts "\n迁移完成!"
+    puts "成功: #{migrated}"
+    puts "失败: #{failed}"
+    puts "总计: #{total}"
+  end
+
+  desc '验证 Receivable/Payable 迁移'
+  task verify_receivables_payables: :environment do
+    puts "验证 Receivable/Payable 迁移..."
+    
+    receivable_total = Receivable.count
+    receivable_with_entry = Receivable.where.not(source_entry_id: nil).count
+    receivable_with_transaction = Receivable.where.not(source_transaction_id: nil).count
+    
+    payable_total = Payable.count
+    payable_with_entry = Payable.where.not(source_entry_id: nil).count
+    payable_with_transaction = Payable.where.not(source_transaction_id: nil).count
+    
+    puts "Receivable 统计:"
+    puts "  总数: #{receivable_total}"
+    puts "  有 source_entry_id: #{receivable_with_entry}"
+    puts "  仍有 source_transaction_id (旧): #{receivable_with_transaction}"
+    
+    puts "\nPayable 统计:"
+    puts "  总数: #{payable_total}"
+    puts "  有 source_entry_id: #{payable_with_entry}"
+    puts "  仍有 source_transaction_id (旧): #{payable_with_transaction}"
+    
+    if receivable_with_entry + payable_with_entry == receivable_total + payable_total
+      puts "\n✓ 所有 Receivable/Payable 都已迁移到 Entry"
+    else
+      puts "\n⚠ 仍有 #{(receivable_total - receivable_with_entry) + (payable_total - payable_with_entry)} 个 Receivable/Payable 需要迁移"
+    end
+  end
+
+  # 辅助方法：查找 transaction_id 对应的 Entry
+  def find_entry_for_transaction(transaction_id)
+    return nil if transaction_id.blank?
+    
+    # 方法1：通过 Entryable::Transaction 的 extra 字段查找
+    entry = Entry
+      .where(entryable_type: 'Entryable::Transaction')
+      .where("extra->>'old_transaction_id' = ?", transaction_id.to_s)
+      .first
+    
+    return entry if entry.present?
+    
+    # 方法2：通过旧 Transaction 的属性重新匹配
+    old_trans = Transaction.find_by(id: transaction_id)
+    if old_trans.present?
+      entry = Entry.where(
+        account_id: old_trans.account_id,
+        entryable_type: 'Entryable::Transaction'
+      ).where("(extra->>'old_transaction_id')::integer = ?", transaction_id)
+       .or(
+        Entry.where(
+          account_id: old_trans.account_id,
+          entryable_type: 'Entryable::Transaction',
+          date: old_trans.date,
+          amount: old_trans.amount
+        )
+      ).first
+      
+      return entry if entry.present?
+    end
+    
+    nil
+  end
 end
