@@ -92,6 +92,10 @@ class EntriesController < ApplicationController
   end
 
   def filter_params
-    params.permit(:account_id, :search, :kind, :period_type, :period_value, category_ids: [])
+    params.permit(
+      :account_id, :search, :type, :kind, :period_type, :period_value,
+      :show_hidden, :view_mode, :page, :per_page,
+      category_ids: []
+    )
   end
 end

@@ -1,7 +1,7 @@
 require 'ostruct'
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [:show, :edit, :update, :destroy, :bills, :bills_entries]
+  before_action :set_account, only: [:show, :edit, :update, :destroy, :bills, :bills_entries, :reorder]
 
   def index
     av = CacheBuster.version(:accounts)
@@ -297,12 +297,30 @@ class AccountsController < ApplicationController
   def reorder
     target_account = Account.find(params[:target_id])
 
-    current_order = @account.sort_order
-    target_order = target_account.sort_order
+    # 获取当前排序的全部账户列表，确定拖拽后的位置
+    # 如果被拖账户是隐藏的，用 Account.all（否则 visible scope 里找不到它）
+    show_hidden = ActiveModel::Type::Boolean.new.cast(params[:show_hidden]) || @account.hidden?
+    scope = show_hidden ? Account.all : Account.visible
+    all_accounts = scope.order(:sort_order, :name).to_a
+    all_ids = all_accounts.map(&:id)
 
+    dragged_idx = all_ids.index(@account.id)
+    target_idx = all_ids.index(target_account.id)
+
+    unless dragged_idx && target_idx
+      head :bad_request
+      return
+    end
+
+    # 从原位置移除，插入到目标位置
+    all_ids.delete_at(dragged_idx)
+    all_ids.insert(target_idx, @account.id)
+
+    # 用新位置索引更新所有账户的 sort_order
     ActiveRecord::Base.transaction do
-      @account.update!(sort_order: target_order)
-      target_account.update!(sort_order: current_order)
+      all_ids.each_with_index do |id, idx|
+        Account.where(id: id).update_all(sort_order: idx)
+      end
     end
 
     expire_accounts_cache
