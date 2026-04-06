@@ -2,11 +2,11 @@ class Payable < ApplicationRecord
   # Entry 关系（新）
   belongs_to :source_entry, class_name: "Entry", foreign_key: "source_entry_id", optional: true
   has_many :payment_entries, class_name: "Entry", foreign_key: "payable_id", dependent: :nullify
-  
+
   # 遗留关系（保持向后兼容）
   belongs_to :source_transaction, class_name: "Transaction", foreign_key: "source_transaction_id", optional: true
   has_many :payment_transactions, class_name: "Transaction", foreign_key: "payable_id", dependent: :nullify
-  
+
   # 其他关系
   belongs_to :counterparty, optional: true
   belongs_to :account, optional: true
@@ -45,22 +45,12 @@ class Payable < ApplicationRecord
   def ensure_entry_reference
     return if source_entry_id.present?
     return if source_transaction_id.nil?
-    
+
     entry = find_entry_for_transaction(source_transaction_id)
     self.update_column(:source_entry_id, entry.id) if entry.present?
   end
 
-  private
-
-  def find_entry_for_transaction(transaction_id)
-    return nil if transaction_id.nil?
-    
-    Entry
-      .joins("INNER JOIN entryable_transactions ON entryable_transactions.id = entries.entryable_id")
-      .where(entryable_type: 'Entryable::Transaction')
-      .where(entryable_transactions: { source_transaction_id: transaction_id })
-      .first
-  end
+  def settled?
     settled_at.present? || remaining_amount.to_d <= 0
   end
 
@@ -83,6 +73,16 @@ class Payable < ApplicationRecord
   end
 
   private
+
+  def find_entry_for_transaction(transaction_id)
+    return nil if transaction_id.nil?
+
+    Entry
+      .joins("INNER JOIN entryable_transactions ON entryable_transactions.id = entries.entryable_id")
+      .where(entryable_type: "Entryable::Transaction")
+      .where(entryable_transactions: { source_transaction_id: transaction_id })
+      .first
+  end
 
   def sync_system_accounts
     SystemAccountSyncService.sync_all!
