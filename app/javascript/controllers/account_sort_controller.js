@@ -25,11 +25,16 @@ export default class extends Controller {
     const item = event.target.closest("[data-account-id]")
     if (!item || event.button !== 0) return // 只响应左键
 
+    // 如果点击的是按钮/链接/输入框等可交互元素，不启动拖拽
+    const interactiveEl = event.target.closest("button, a, input, select, textarea, label")
+    if (interactiveEl) return
+
     // 避免选中文字
     event.preventDefault()
     item.setPointerCapture(event.pointerId)
 
     this.draggedElement = item
+    this._pointerDownTarget = event.target  // 记录原始点击目标
     this.startY = event.clientY
     this.startX = event.clientX
     this.currentIndex = [...item.parentNode.children].indexOf(item)
