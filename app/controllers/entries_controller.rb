@@ -54,7 +54,7 @@ class EntriesController < ApplicationController
 
   def load_lookups
     @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order.includes(:parent)
+    @categories = Category.active.by_sort_order
     @tags = Tag.alphabetically
   end
 
