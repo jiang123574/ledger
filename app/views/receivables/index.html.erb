@@ -500,128 +500,51 @@ function findAccountName(accountId) {
   return matched ? matched.name : '';
 }
 
-function initReceivableAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
-  var searchInput = document.getElementById(searchInputId);
-  var dropdown = document.getElementById(dropdownId);
-  var filterInput = document.getElementById(filterInputId);
-  var optionsContainer = document.getElementById(optionsId);
-  var hiddenInput = document.getElementById(hiddenInputId);
+var receivableCategorySelectorData = receivableAllCategories.map(function(cat) {
+  return {
+    id: cat.name,
+    name: cat.name,
+    full_name: cat.full_name || cat.name,
+    pinyin: cat.pinyin || ''
+  };
+});
 
-  if (!searchInput || !dropdown || !optionsContainer || !hiddenInput) return;
-
-  function renderOptions(filterText) {
-    var filtered = receivableAllAccounts.filter(function(acc) {
-      if (!filterText) return true;
-      var query = filterText.toLowerCase();
-      return (acc.name && acc.name.toLowerCase().includes(query)) || (acc.pinyin && acc.pinyin.includes(query));
-    });
-
-    if (filtered.length === 0) {
-      return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配账户</div>';
-    }
-
-    return filtered.map(function(acc) {
-      var selected = String(hiddenInput.value) === String(acc.id) ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-      var name = String(acc.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      return '<div class="receivable-account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + name + '">' + name + '</div>';
-    }).join('');
-  }
-
-  function updateOptions() {
-    var filterText = filterInput ? filterInput.value : '';
-    optionsContainer.innerHTML = renderOptions(filterText);
-    optionsContainer.querySelectorAll('.receivable-account-option').forEach(function(option) {
-      option.addEventListener('click', function() {
-        hiddenInput.value = this.dataset.id;
-        searchInput.value = this.dataset.name;
-        if (filterInput) filterInput.value = '';
-        dropdown.classList.add('hidden');
-      });
-    });
-  }
-
-  searchInput.addEventListener('click', function() {
-    dropdown.classList.toggle('hidden');
-    if (!dropdown.classList.contains('hidden')) {
-      updateOptions();
-      if (filterInput) filterInput.focus();
-    }
-  });
-
-  if (filterInput) {
-    filterInput.addEventListener('input', updateOptions);
-  }
-
-  document.addEventListener('click', function(e) {
-    if (!dropdown.contains(e.target) && e.target !== searchInput) {
-      dropdown.classList.add('hidden');
-    }
-  });
-}
-
-function initReceivableCategorySelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
-  var searchInput = document.getElementById(searchInputId);
-  var dropdown = document.getElementById(dropdownId);
-  var filterInput = document.getElementById(filterInputId);
-  var optionsContainer = document.getElementById(optionsId);
-  var hiddenInput = document.getElementById(hiddenInputId);
-
-  if (!searchInput || !dropdown || !optionsContainer || !hiddenInput) return;
-
-  function renderOptions(filterText) {
-    var filtered = receivableAllCategories.filter(function(cat) {
-      if (!filterText) return true;
-      var query = filterText.toLowerCase();
-      return (cat.name && cat.name.toLowerCase().includes(query)) ||
-             (cat.full_name && cat.full_name.toLowerCase().includes(query)) ||
-             (cat.pinyin && cat.pinyin.includes(query));
-    });
-
-    var rows = ['<div class="receivable-category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark" data-name="" data-display="">不设置分类</div>'];
-    rows = rows.concat(filtered.map(function(cat) {
-      var selected = hiddenInput.value === cat.name ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-      var name = String(cat.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      var displayName = String(cat.full_name || cat.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      return '<div class="receivable-category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-name="' + name + '" data-display="' + displayName + '">' + displayName + '</div>';
-    }));
-
-    return rows.join('');
-  }
-
-  function updateOptions() {
-    var filterText = filterInput ? filterInput.value : '';
-    optionsContainer.innerHTML = renderOptions(filterText);
-    optionsContainer.querySelectorAll('.receivable-category-option').forEach(function(option) {
-      option.addEventListener('click', function() {
-        hiddenInput.value = this.dataset.name || '';
-        searchInput.value = this.dataset.display || '';
-        if (filterInput) filterInput.value = '';
-        dropdown.classList.add('hidden');
-      });
-    });
-  }
-
-  searchInput.addEventListener('click', function() {
-    dropdown.classList.toggle('hidden');
-    if (!dropdown.classList.contains('hidden')) {
-      updateOptions();
-      if (filterInput) filterInput.focus();
-    }
-  });
-
-  if (filterInput) {
-    filterInput.addEventListener('input', updateOptions);
-  }
-
-  document.addEventListener('click', function(e) {
-    if (!dropdown.contains(e.target) && e.target !== searchInput) {
-      dropdown.classList.add('hidden');
-    }
-  });
-}
-
-initReceivableAccountSelector('new-receivable-account-search', 'new-receivable-account-dropdown', 'new-receivable-account-filter', 'new-receivable-account-options', 'new-receivable-account-id');
-initReceivableAccountSelector('edit-receivable-account-search', 'edit-receivable-account-dropdown', 'edit-receivable-account-filter', 'edit-receivable-account-options', 'edit-receivable-account-id');
-initReceivableCategorySelector('new-receivable-category-search', 'new-receivable-category-dropdown', 'new-receivable-category-filter', 'new-receivable-category-options', 'new-receivable-category-id');
-initReceivableCategorySelector('edit-receivable-category-search', 'edit-receivable-category-dropdown', 'edit-receivable-category-filter', 'edit-receivable-category-options', 'edit-receivable-category-id');
+window.initSelectorWithData({
+  searchInputId: 'new-receivable-account-search',
+  dropdownId: 'new-receivable-account-dropdown',
+  filterInputId: 'new-receivable-account-filter',
+  optionsId: 'new-receivable-account-options',
+  hiddenInputId: 'new-receivable-account-id',
+  dataSource: receivableAllAccounts,
+  noMatchText: '无匹配账户'
+});
+window.initSelectorWithData({
+  searchInputId: 'edit-receivable-account-search',
+  dropdownId: 'edit-receivable-account-dropdown',
+  filterInputId: 'edit-receivable-account-filter',
+  optionsId: 'edit-receivable-account-options',
+  hiddenInputId: 'edit-receivable-account-id',
+  dataSource: receivableAllAccounts,
+  noMatchText: '无匹配账户'
+});
+window.initSelectorWithData({
+  searchInputId: 'new-receivable-category-search',
+  dropdownId: 'new-receivable-category-dropdown',
+  filterInputId: 'new-receivable-category-filter',
+  optionsId: 'new-receivable-category-options',
+  hiddenInputId: 'new-receivable-category-id',
+  dataSource: receivableCategorySelectorData,
+  emptyOption: { label: '不设置分类', value: '', display: '' },
+  noMatchText: '无匹配分类'
+});
+window.initSelectorWithData({
+  searchInputId: 'edit-receivable-category-search',
+  dropdownId: 'edit-receivable-category-dropdown',
+  filterInputId: 'edit-receivable-category-filter',
+  optionsId: 'edit-receivable-category-options',
+  hiddenInputId: 'edit-receivable-category-id',
+  dataSource: receivableCategorySelectorData,
+  emptyOption: { label: '不设置分类', value: '', display: '' },
+  noMatchText: '无匹配分类'
+});
 </script>

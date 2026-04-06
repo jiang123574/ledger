@@ -16,10 +16,6 @@
 - 目标：`payables.counterparty`（string）逐步迁移到 `counterparty_id`（foreign key）单轨。
 - 计划：回填 -> 双写兼容 -> 清理旧字段。
 
-3. 应收/应付页面选择器脚本去重
-- 现状：`receivables/index` 与 `payables/index` 选择器逻辑高度重复。
-- 目标：提取公共模块（优先复用 `app/javascript/selectors.js`）。
-
 ### 长期迁移（Transaction -> Entry）
 5. Attachment / Receivable 关联迁移到 Entry 体系。
 6. 编写旧 `transactions` 存量数据迁移脚本到 Entry。
@@ -40,6 +36,9 @@
 
 3. `accounts#index` 系统账户同步调用优化  
 - 已完成：改为“仅系统账户缺失时兜底触发 `SystemAccountSyncService.sync_all!`”，避免每次进入账户页都同步。
+
+4. 应收/应付页面选择器脚本去重  
+- 已完成：`receivables/index` 与 `payables/index` 均改为复用 `app/javascript/selectors.js` 中的通用初始化函数，移除页面内重复选择器实现。
 
 ## 文档分工
 

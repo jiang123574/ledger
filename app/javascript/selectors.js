@@ -96,6 +96,98 @@ function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId
   });
 }
 
+// Configurable selector initializer for inline pages (receivables/payables etc.)
+function initSelectorWithData(config) {
+  var searchInput = document.getElementById(config.searchInputId);
+  var dropdown = document.getElementById(config.dropdownId);
+  var filterInput = document.getElementById(config.filterInputId);
+  var optionsContainer = document.getElementById(config.optionsId);
+  var hiddenInput = document.getElementById(config.hiddenInputId);
+  var dataSource = config.dataSource || [];
+
+  if (!searchInput || !dropdown || !optionsContainer || !hiddenInput) return;
+
+  var valueKey = config.valueKey || 'id';
+  var nameKey = config.nameKey || 'name';
+  var fullNameKey = config.fullNameKey || 'full_name';
+  var pinyinKey = config.pinyinKey || 'pinyin';
+  var emptyOption = config.emptyOption;
+  var noMatchText = config.noMatchText || '无匹配项';
+
+  function renderOptions(filterText) {
+    var query = (filterText || '').toLowerCase();
+    var filtered = dataSource.filter(function(item) {
+      if (!query) return true;
+      var name = (item[nameKey] || '').toLowerCase();
+      var fullName = (item[fullNameKey] || '').toLowerCase();
+      var pinyin = (item[pinyinKey] || '').toLowerCase();
+      return name.includes(query) || fullName.includes(query) || pinyin.includes(query);
+    });
+
+    var rows = [];
+    if (emptyOption) {
+      rows.push(
+        '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark" data-value="' +
+          escapeHtml(emptyOption.value || '') + '" data-display="' + escapeHtml(emptyOption.display || '') + '">' +
+          escapeHtml(emptyOption.label || '不设置') + '</div>'
+      );
+    }
+
+    if (filtered.length === 0) {
+      rows.push('<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">' + escapeHtml(noMatchText) + '</div>');
+      return rows.join('');
+    }
+
+    filtered.forEach(function(item) {
+      var value = item[valueKey];
+      var display = item[fullNameKey] || item[nameKey] || '';
+      var selected = String(hiddenInput.value) === String(value) ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+      rows.push(
+        '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' +
+          selected + '" data-value="' + escapeHtml(value) + '" data-display="' + escapeHtml(display) + '">' +
+          escapeHtml(display) + '</div>'
+      );
+    });
+
+    return rows.join('');
+  }
+
+  function bindOptionEvents() {
+    optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
+      option.addEventListener('click', function() {
+        hiddenInput.value = this.dataset.value || '';
+        searchInput.value = this.dataset.display || '';
+        if (filterInput) filterInput.value = '';
+        dropdown.classList.add('hidden');
+      });
+    });
+  }
+
+  function updateOptions() {
+    var filterText = filterInput ? filterInput.value : '';
+    optionsContainer.innerHTML = renderOptions(filterText);
+    bindOptionEvents();
+  }
+
+  searchInput.addEventListener('click', function() {
+    dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
+      updateOptions();
+      if (filterInput) filterInput.focus();
+    }
+  });
+
+  if (filterInput) {
+    filterInput.addEventListener('input', updateOptions);
+  }
+
+  document.addEventListener('click', function(e) {
+    if (!dropdown.contains(e.target) && e.target !== searchInput) {
+      dropdown.classList.add('hidden');
+    }
+  });
+}
+
 // Account selector - used across multiple views
 function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, placeholder) {
   var accountsDataEl = document.getElementById('accounts-data');
@@ -133,3 +225,4 @@ window.escapeHtml = escapeHtml;
 window.initAccountSelector = initAccountSelector;
 window.initCategorySelector = initCategorySelector;
 window.initGenericSelector = initGenericSelector;
+window.initSelectorWithData = initSelectorWithData;
