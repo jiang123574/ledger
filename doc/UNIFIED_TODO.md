@@ -53,6 +53,9 @@
 10. 选择器模块进一步统一  
 - 已完成：`initGenericSelector` 收敛为基于 `initSelectorWithData` 的包装层，减少重复逻辑；`receivables/payables` 页面选择器数据变量命名已统一。
 
+11. Payables 联系人筛选回归测试补充  
+- 已完成：新增 `spec/requests/payables_spec.rb`，覆盖 `counterparty_id`（`id:` token）与 `none` 两条筛选路径，保障应付款列表筛选行为。
+
 ## 文档分工
 
 1. `doc/UNIFIED_TODO.md`：唯一活跃待办（可执行项）。
