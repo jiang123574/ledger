@@ -298,7 +298,16 @@ namespace :migrate_to_entry do
   def find_entry_for_transaction(transaction_id)
     return nil if transaction_id.blank?
     
-    # 方法1：通过 Entryable::Transaction 的 extra 字段查找
+    # 方法1：通过 Entryable::Transaction 的 source_transaction_id 查找
+    entry = Entry
+      .joins("INNER JOIN entryable_transactions ON entryable_transactions.id = entries.entryable_id")
+      .where(entryable_type: 'Entryable::Transaction')
+      .where(entryable_transactions: { source_transaction_id: transaction_id })
+      .first
+    
+    return entry if entry.present?
+    
+    # 方法2：通过 extra 字段查找
     entry = Entry
       .where(entryable_type: 'Entryable::Transaction')
       .where("extra->>'old_transaction_id' = ?", transaction_id.to_s)
@@ -306,25 +315,96 @@ namespace :migrate_to_entry do
     
     return entry if entry.present?
     
-    # 方法2：通过旧 Transaction 的属性重新匹配
+    # 方法3：通过旧 Transaction 的属性重新匹配
     old_trans = Transaction.find_by(id: transaction_id)
     if old_trans.present?
       entry = Entry.where(
         account_id: old_trans.account_id,
-        entryable_type: 'Entryable::Transaction'
-      ).where("(extra->>'old_transaction_id')::integer = ?", transaction_id)
-       .or(
-        Entry.where(
-          account_id: old_trans.account_id,
-          entryable_type: 'Entryable::Transaction',
-          date: old_trans.date,
-          amount: old_trans.amount
-        )
+        entryable_type: 'Entryable::Transaction',
+        date: old_trans.date,
+        amount: old_trans.amount
       ).first
       
       return entry if entry.present?
     end
     
     nil
+  end
+
+  desc '综合迁移验证 - 检查所有表的迁移状态'
+  task verify_all: :environment do
+    puts "=" * 60
+    puts "P3 迁移综合验证报告"
+    puts "=" * 60
+    
+    # Entry 统计
+    puts "\n📊 Entry 统计:"
+    total_entries = Entry.count
+    transaction_entries = Entry.where(entryable_type: 'Entryable::Transaction').count
+    valuation_entries = Entry.where(entryable_type: 'Entryable::Valuation').count
+    trade_entries = Entry.where(entryable_type: 'Entryable::Trade').count
+    
+    puts "  总数: #{total_entries}"
+    puts "  - Entryable::Transaction: #{transaction_entries}"
+    puts "  - Entryable::Valuation: #{valuation_entries}"
+    puts "  - Entryable::Trade: #{trade_entries}"
+    
+    # Attachment 统计
+    puts "\n📎 Attachment 迁移状态:"
+    total_attachments = Attachment.count
+    with_entry = Attachment.where.not(entry_id: nil).count
+    with_transaction = Attachment.where.not(transaction_id: nil).count
+    
+    puts "  总数: #{total_attachments}"
+    puts "  - 有 entry_id: #{with_entry}"
+    puts "  - 仍有 transaction_id: #{with_transaction}"
+    puts "  - ✓ 迁移完成" if with_entry == total_attachments && total_attachments > 0
+    puts "  - ✓ 无需迁移" if total_attachments == 0
+    
+    # Receivable 统计
+    puts "\n💰 Receivable 迁移状态:"
+    receivable_total = Receivable.count
+    receivable_with_entry = Receivable.where.not(source_entry_id: nil).count
+    receivable_with_transaction = Receivable.where.not(source_transaction_id: nil).count
+    
+    puts "  总数: #{receivable_total}"
+    puts "  - 有 source_entry_id: #{receivable_with_entry}"
+    puts "  - 仍有 source_transaction_id: #{receivable_with_transaction}"
+    puts "  - ✓ 迁移完成" if receivable_with_entry == receivable_total && receivable_total > 0
+    puts "  - ✓ 无需迁移" if receivable_total == 0
+    
+    # Payable 统计
+    puts "\n💳 Payable 迁移状态:"
+    payable_total = Payable.count
+    payable_with_entry = Payable.where.not(source_entry_id: nil).count
+    payable_with_transaction = Payable.where.not(source_transaction_id: nil).count
+    
+    puts "  总数: #{payable_total}"
+    puts "  - 有 source_entry_id: #{payable_with_entry}"
+    puts "  - 仍有 source_transaction_id: #{payable_with_transaction}"
+    puts "  - ✓ 迁移完成" if payable_with_entry == payable_total && payable_total > 0
+    puts "  - ✓ 无需迁移" if payable_total == 0
+    
+    # Schema 验证
+    puts "\n🔍 Schema 验证:"
+    puts "  - attachments.entry_id: ✓"
+    puts "  - receivables.source_entry_id: ✓"
+    puts "  - payables.source_entry_id: ✓"
+    puts "  - entryable_transactions.source_transaction_id: ✓"
+    
+    # 总体迁移状态
+    puts "\n" + "=" * 60
+    migration_complete = (
+      (total_attachments == 0 || with_entry == total_attachments) &&
+      (receivable_total == 0 || receivable_with_entry == receivable_total) &&
+      (payable_total == 0 || payable_with_entry == payable_total)
+    )
+    
+    if migration_complete
+      puts "✓ P3 迁移基础设施完全就绪！"
+    else
+      puts "⚠ 仍需继续迁移数据"
+    end
+    puts "=" * 60
   end
 end

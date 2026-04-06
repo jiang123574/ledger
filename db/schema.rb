@@ -231,10 +231,12 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
     t.string "kind"
     t.jsonb "locked_attributes", default: {}
     t.integer "merchant_id"
+    t.bigint "source_transaction_id"
     t.jsonb "tags", default: []
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "idx_trans_category"
     t.index ["merchant_id"], name: "idx_trans_merchant"
+    t.index ["source_transaction_id"], name: "index_entryable_transactions_on_source_transaction_id"
     t.index ["tags"], name: "idx_trans_tags_gin", using: :gin
   end
 

@@ -8,6 +8,7 @@ class Entryable::Transaction < ApplicationRecord
   
   belongs_to :category, class_name: '::Category', optional: true
   belongs_to :merchant, class_name: '::Merchant', optional: true
+  belongs_to :source_transaction, class_name: '::Transaction', foreign_key: :source_transaction_id, optional: true
   
   has_many :taggings, as: :taggable, class_name: '::Tagging', dependent: :destroy
   has_many :tags, through: :taggings
