@@ -21,7 +21,7 @@ class CounterpartiesController < ApplicationController
 
   def destroy
     has_receivables = @counterparty.receivables.exists?
-    has_payables = Payable.where(counterparty_id: @counterparty.id).or(Payable.where(counterparty: @counterparty.name)).exists?
+    has_payables = Payable.where(counterparty_id: @counterparty.id).exists?
 
     if has_receivables || has_payables
       linked = []

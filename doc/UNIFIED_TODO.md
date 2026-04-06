@@ -6,23 +6,20 @@
 ## 当前待办（Open）
 
 ### P1
-1. 信用卡账单模块前端重构（PR #50 暂缓项）
-- 账单交易明细 `renderBillEntries` 从内联 HTML 拼接迁移到 Stimulus + template。
+1. 信用卡账单模块前端重构
 - 账单相关函数（`renderBillEntries` / `formatMoney` / `formatCurrencyRaw`）收敛到模块内部，避免全局函数。
 - 账单模式与日期模式卡片渲染逻辑抽象复用，减少双实现偏差。
 
 ### P2
-2. Payable 交易对方字段收敛
-- 目标：`payables.counterparty`（string）逐步迁移到 `counterparty_id`（foreign key）单轨。
-- 计划：回填 -> 双写兼容 -> 清理旧字段。
+2. Payables 联系人筛选分支清理
+- `PayablesController#filter_by_counterparty` 中 `name:` 前缀兼容分支当前属于防御性死代码，后续可移除并补对应回归测试。
 
-3. `accounts#index` 系统账户同步调用优化
-- 现状：每次访问账户页调用 `SystemAccountSyncService.sync_all!`。
-- 目标：在不牺牲一致性的前提下改为降频或兜底触发。
+3. 选择器模块进一步统一
+- `initSelectorWithData` 与 `initGenericSelector` 仍有重复逻辑，后续收敛为单一实现。
+- `receivables/payables` 页面内数据变量命名（如 `receivableAllAccounts` / `payableAllAccounts`）可统一，降低维护成本。
 
-4. 应收/应付页面选择器脚本去重
-- 现状：`receivables/index` 与 `payables/index` 选择器逻辑高度重复。
-- 目标：提取公共模块（优先复用 `app/javascript/selectors.js`）。
+4. 信用卡账单控制器桥接稳定性
+- `accounts/index` 里通过 `window.Stimulus.getControllerForElementAndIdentifier` 获取 controller，后续评估替换为更稳定的桥接方案（避免依赖全局实现细节）。
 
 ### 长期迁移（Transaction -> Entry）
 5. Attachment / Receivable 关联迁移到 Entry 体系。
@@ -41,6 +38,21 @@
 - `doc/REPAIR_TASKS.md` 标记为“已归档”；  
 - `.workbuddy/memory/MEMORY.md` 标注为“历史背景记忆”；  
 - 本文件设为唯一活跃待办来源。
+
+3. `accounts#index` 系统账户同步调用优化  
+- 已完成：改为“仅系统账户缺失时兜底触发 `SystemAccountSyncService.sync_all!`”，避免每次进入账户页都同步。
+
+4. 应收/应付页面选择器脚本去重  
+- 已完成：`receivables/index` 与 `payables/index` 均改为复用 `app/javascript/selectors.js` 中的通用初始化函数，移除页面内重复选择器实现。
+
+5. Payable 交易对方字段收敛  
+- 已完成：新增迁移将 `payables.counterparty` 历史数据回填到 `counterparty_id`（缺失联系人自动补建），并删除 `payables.counterparty` 字段，控制器筛选/统计改为仅基于外键。
+
+6. 信用卡账单明细渲染改造  
+- 已完成：账单交易明细 `renderBillEntries` 从页面内联 HTML 拼接迁移到 Stimulus 控制器 + `<template>` 渲染，筛选与加载流程改为调用控制器渲染接口。
+
+7. 账单明细状态渲染 XSS 防护  
+- 已完成：`credit_bill_entries_controller.js` 的 `showError/showEmpty` 改为 `textContent` 渲染，移除字符串插值 `innerHTML` 风险。
 
 ## 文档分工
 

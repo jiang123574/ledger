@@ -23,7 +23,6 @@ class SettingsController < ApplicationController
       receivable_counts_by_name = Receivable.where(counterparty: names).group(:counterparty).count
 
       payable_counts_by_id = Payable.where(counterparty_id: ids).group(:counterparty_id).count
-      payable_counts_by_name = Payable.where(counterparty: names).group(:counterparty).count
 
       @receivable_counts = {}
       @payable_counts = {}
@@ -31,7 +30,7 @@ class SettingsController < ApplicationController
 
       @counterparties.each do |counterparty|
         receivable_count = receivable_counts_by_id[counterparty.id].to_i + receivable_counts_by_name[counterparty.name].to_i
-        payable_count = payable_counts_by_id[counterparty.id].to_i + payable_counts_by_name[counterparty.name].to_i
+        payable_count = payable_counts_by_id[counterparty.id].to_i
 
         @receivable_counts[counterparty.id] = receivable_count
         @payable_counts[counterparty.id] = payable_count

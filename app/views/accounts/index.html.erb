@@ -1991,7 +1991,7 @@ document.addEventListener('turbo:render', fixModalPositions);
   </div>
 
   <!-- 账单交易明细区域 -->
-  <div id="bill-detail-section" class="hidden">
+  <div id="bill-detail-section" class="hidden" data-controller="credit-bill-entries">
     <!-- 账期信息 + 筛选栏 -->
     <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark flex items-center gap-3 text-xs">
       <span id="bill-period-info" class="font-medium text-primary dark:text-primary-dark"></span>
@@ -2004,7 +2004,33 @@ document.addEventListener('turbo:render', fixModalPositions);
       <button onclick="filterBillEntries('spend')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
     </div>
     <!-- 交易明细（和按日期模式一致的卡片式布局） -->
-    <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container"></div>
+    <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container" data-credit-bill-entries-target="container"></div>
+    <template data-credit-bill-entries-target="template">
+      <div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+        <div class="flex items-center gap-3">
+          <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20" data-field="date"></div>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span data-field="type"></span>
+              <p class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></p>
+            </div>
+            <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5" data-field="note"></p>
+          </div>
+          <div class="text-right shrink-0">
+            <p data-field="amount"></p>
+            <p class="text-xs text-secondary dark:text-secondary-dark" data-field="balance"></p>
+          </div>
+          <div class="flex items-center gap-1 shrink-0">
+            <button type="button" data-role="edit" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+            </button>
+            <button type="button" data-role="delete" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </template>
   </div>
 
   <!-- 默认显示普通交易列表的提示（当未选中任何账单时） -->
@@ -2035,6 +2061,42 @@ document.addEventListener('turbo:render', fixModalPositions);
       wrapper.classList.remove('hidden');
       loadBillCards();
     }
+  }
+
+  function getBillEntriesController() {
+    var section = document.getElementById('bill-detail-section');
+    if (!section || !window.Stimulus) return null;
+    return window.Stimulus.getControllerForElementAndIdentifier(section, 'credit-bill-entries');
+  }
+
+  function renderBillEntryList(entries) {
+    var controller = getBillEntriesController();
+    if (controller) {
+      controller.render(entries || []);
+      return;
+    }
+    var container = document.getElementById('bill-entries-container');
+    if (container) container.innerHTML = '<div class="p-8 text-center text-secondary dark:text-secondary-dark text-sm">该期暂无交易记录</div>';
+  }
+
+  function showBillEntriesLoading() {
+    var controller = getBillEntriesController();
+    if (controller) {
+      controller.showLoading();
+      return;
+    }
+    var container = document.getElementById('bill-entries-container');
+    if (container) container.innerHTML = '<div class="p-4 text-center text-secondary dark:text-secondary-dark text-sm">加载中...</div>';
+  }
+
+  function showBillEntriesError() {
+    var controller = getBillEntriesController();
+    if (controller) {
+      controller.showError('加载失败');
+      return;
+    }
+    var container = document.getElementById('bill-entries-container');
+    if (container) container.innerHTML = '<div class="p-4 text-center text-red-500 text-sm">加载失败</div>';
   }
 
   // 切换视图模式（按日期 / 按账单）
@@ -2211,8 +2273,7 @@ document.addEventListener('turbo:render', fixModalPositions);
   window.loadBillEntries = function() {
     if (!accountId || !selectedStartDate || !selectedEndDate) return;
 
-    var container = document.getElementById('bill-entries-container');
-    if (container) container.innerHTML = '<div class="p-4 text-center text-secondary dark:text-secondary-dark text-sm">加载中...</div>';
+    showBillEntriesLoading();
 
     fetch('/accounts/' + accountId + '/bills_entries.json?start_date=' + selectedStartDate + '&end_date=' + selectedEndDate, {
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
@@ -2220,11 +2281,11 @@ document.addEventListener('turbo:render', fixModalPositions);
     .then(r => r.json())
     .then(data => {
       allBillEntries = data.entries || [];
-      renderBillEntries(allBillEntries);
+      renderBillEntryList(allBillEntries);
     })
     .catch(err => {
       console.error(err);
-      if (container) container.innerHTML = '<div class="p-4 text-center text-red-500 text-sm">加载失败</div>';
+      showBillEntriesError();
     });
   };
 
@@ -2246,70 +2307,7 @@ document.addEventListener('turbo:render', fixModalPositions);
       if (filter === 'spend') return e.is_spend;
       return true;
     });
-    renderBillEntries(filtered);
-  };
-
-  // 渲染交易列表（和按日期模式完全一致的卡片式布局）
-  function renderBillEntries(entries) {
-    var container = document.getElementById('bill-entries-container');
-    if (!container) return;
-
-    if (!entries || entries.length === 0) {
-      container.innerHTML = '<div class="p-8 text-center text-secondary dark:text-secondary-dark text-sm">该期暂无交易记录</div>';
-      return;
-    }
-
-    var html = '';
-    entries.forEach(function(e) {
-      // 类型标签颜色
-      var typeBadgeClass = 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300';
-      if (e.display_type === '收入' || e.display_type === '转入') {
-        typeBadgeClass = 'bg-income-light text-income';
-      } else if (e.display_type === '支出' || e.display_type === '转出') {
-        typeBadgeClass = 'bg-expense-light text-expense';
-      } else if (e.display_type === '转账') {
-        typeBadgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300';
-      }
-
-      // 金额颜色
-      var amountClass = 'text-expense';
-      if (e.display_amount_type === 'INCOME') {
-        amountClass = 'text-income';
-      }
-
-      // 格式化金额
-      var amountStr = formatMoney(Math.abs(e.display_amount));
-
-      html += '<div class="p-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">';
-      html += '  <div class="flex items-center gap-3">';
-      // 日期
-      html += '    <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">' + e.date + '</div>';
-      // 中间：类型 + 名称 + 备注
-      html += '    <div class="flex-1 min-w-0">';
-      html += '      <div class="flex items-center gap-2">';
-      html += '        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ' + typeBadgeClass + '">' + escapeHtml(e.display_type || '') + '</span>';
-      html += '        <p class="text-sm font-medium text-primary dark:text-primary-dark truncate">' + escapeHtml(e.display_name || '-') + '</p>';
-      html += '      </div>';
-      html += '      <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5">' + escapeHtml(e.note || '') + '</p>';
-      html += '    </div>';
-      // 金额 + 余额
-      html += '    <div class="text-right shrink-0">';
-      html += '      <p class="text-sm font-medium ' + amountClass + '">' + amountStr + '</p>';
-      html += '      <p class="text-xs text-secondary dark:text-secondary-dark">余额: ' + formatCurrencyRaw(e.balance_after) + '</p>';
-      html += '    </div>';
-      // 操作按钮
-      html += '    <div class="flex items-center gap-1 shrink-0">';
-      html += '      <button onclick="openEditTransactionModal(' + e.id + ')" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">';
-      html += '        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>';
-      html += '      </button>';
-      html += '      <button onclick="confirmDeleteTransaction(' + e.id + ', \'' + escapeHtml(e.display_name || '').replace(/'/g, "\\'") + '\')" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">';
-      html += '        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>';
-      html += '      </button>';
-      html += '    </div>';
-      html += '  </div>';
-      html += '</div>';
-    });
-    container.innerHTML = html;
+    renderBillEntryList(filtered);
   }
 
   // HTML 转义，防止 XSS
@@ -2323,11 +2321,6 @@ document.addEventListener('turbo:render', fixModalPositions);
   function formatMoney(val) {
     var num = parseFloat(val) || 0;
     return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  // 格式化货币（带¥符号）
-  function formatCurrencyRaw(val) {
-    return '¥' + formatMoney(val);
   }
 
   // 初始化
