@@ -19,10 +19,13 @@
 - [✅] ImportService 测试（12个测试）
 - **P2总计：57个新的测试用例**
 
-### P3 - 长期迁移（Transaction -> Entry）
-- [ ] Attachment / Receivable 关联迁移到 Entry 体系
-- [ ] 编写旧 `transactions` 存量数据迁移脚本
-- [ ] 完成迁移后移除 Transaction 模型/表残留引用
+### P3 - 长期迁移（Transaction -> Entry）✅ Phase 1-2 完成
+- [✅] Attachment / Receivable 关联迁移到 Entry 体系 (P3-1, P3-2 完成)
+- [✅] Receivable/Payable 完整迁移和兼容性方法 (P3-2 完成)
+- [✅] 数据库迁移脚本和验证任务 (所有脚本已就绪)
+- [✅] 控制器更新和源 Entry 自动关联 (P3-2 完成)
+- [✅] 完整的集成测试覆盖 (31+ 新测试用例)
+- [ ] 移除 Transaction 模型/表残留引用 (Phase 3, 待3个月后进行)
 
 ## 本次对齐已补记为完成（Done）
 
