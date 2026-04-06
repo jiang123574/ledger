@@ -53,7 +53,50 @@
 
 ## 实施步骤
 1. ✅ P3-1: 添加必要的Schema迁移
+   - ✅ Attachments 表迁移 (entry_id, 索引, transaction_id nullable)
+   - ✅ Receivables/Payables 表迁移 (source_entry_id, 索引)
+   - ✅ Entryable::Transaction 增强 (source_transaction_id, 索引)
+   
 2. ✅ P3-2: 更新Entry/Entryable关联
-3. ✅ P3-3: 编写数据迁移脚本  
+   - ✅ Entry 模型: has_many :attachments, receivables_as_source, payables_as_source
+   - ✅ Attachment 模型: 双向支持 (entry_id + transaction_id)
+   - ✅ Receivable 模型: source_entry, source_transaction 并存
+   - ✅ Payable 模型: source_entry, source_transaction 并存
+   - ✅ Entryable::Transaction: source_transaction 追踪
+   
+3. ✅ P3-3: 编写数据迁移脚本
+   - ✅ rake migrate_to_entry:attachments - 迁移附件关联
+   - ✅ rake migrate_to_entry:verify_attachments - 验证附件迁移
+   - ✅ rake migrate_to_entry:receivables_payables - 迁移应收/应付
+   - ✅ rake migrate_to_entry:verify_receivables_payables - 验证应收/应付迁移
+   - ✅ rake migrate_to_entry:verify_all - 综合验证所有迁移状态
+   
 4. ✅ P3-4: 测试迁移脚本
-5. ✅ P3-5: 代码清理和兼容层移除
+   - ✅ Schema 迁移成功应用
+   - ✅ 所有 rake 任务正常运行
+   - ✅ 数据验证通过
+   - ✅ Entry 数据验证通过 (29,678 Entry)
+   
+5. 📋 P3-5: 代码清理和兼容层移除 (待future PR)
+   - 待做：渐进式废弃 Transaction 查询
+   - 待做：移除 transaction_id 引用
+   - 待做：最终清理旧表
+
+## 当前状态 (2026-04-06 更新)
+- ✅ Schema 完全就绪: Attachment, Receivable, Payable 都支持 Entry 关联
+- ✅ 迁移基础设施: 仓库中存在4个schema迁移，7个rake任务，完整的验证体系
+- ✅ 模型系统: Entry 是中心，所有模型都支持新旧关系并存（向后兼容）
+- ✅ 测试就绪: 所有迁移任务已激活并可用
+
+系统数据现状:
+- 29,678 Entry (全为 Entryable::Transaction)
+- 0 Attachment
+- 6 Receivable (无legacy transaction引用)
+- 1 Payable (无legacy transaction引用)
+
+## 迁移完成度
+- Schema 迁移: ✅ 100%
+- 模型更新: ✅ 100%
+- 迁移脚本: ✅ 100%
+- 数据迁移: ✓ 无需迁移 (系统已是纯Entry)
+- 代码清理: ⏳ 待future PR
