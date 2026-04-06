@@ -163,4 +163,12 @@ FactoryBot.define do
     association :category, factory: :category
     amount { 1000 }
   end
+
+  factory :backup_record do
+    sequence(:filename) { |n| "backup_#{n}.sql" }
+    file_path { "/tmp/#{filename}" }
+    file_size { 1024 * 1024 }
+    backup_type { 'manual' }
+    status { 'completed' }
+  end
 end
