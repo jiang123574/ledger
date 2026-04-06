@@ -16,11 +16,7 @@
 - 目标：`payables.counterparty`（string）逐步迁移到 `counterparty_id`（foreign key）单轨。
 - 计划：回填 -> 双写兼容 -> 清理旧字段。
 
-3. `accounts#index` 系统账户同步调用优化
-- 现状：每次访问账户页调用 `SystemAccountSyncService.sync_all!`。
-- 目标：在不牺牲一致性的前提下改为降频或兜底触发。
-
-4. 应收/应付页面选择器脚本去重
+3. 应收/应付页面选择器脚本去重
 - 现状：`receivables/index` 与 `payables/index` 选择器逻辑高度重复。
 - 目标：提取公共模块（优先复用 `app/javascript/selectors.js`）。
 
@@ -41,6 +37,9 @@
 - `doc/REPAIR_TASKS.md` 标记为“已归档”；  
 - `.workbuddy/memory/MEMORY.md` 标注为“历史背景记忆”；  
 - 本文件设为唯一活跃待办来源。
+
+3. `accounts#index` 系统账户同步调用优化  
+- 已完成：改为“仅系统账户缺失时兜底触发 `SystemAccountSyncService.sync_all!`”，避免每次进入账户页都同步。
 
 ## 文档分工
 

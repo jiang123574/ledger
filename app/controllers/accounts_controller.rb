@@ -5,8 +5,8 @@ class AccountsController < ApplicationController
   before_action :prevent_locked_system_account!, only: [:edit, :update, :destroy]
 
   def index
-    # 确保应收/应付系统账户金额与未结清余额保持联动
-    SystemAccountSyncService.sync_all!
+    # 仅在系统账户缺失时兜底同步；常规联动由 Receivable/Payable 的 after_commit 负责
+    SystemAccountSyncService.sync_all! if system_accounts_sync_needed?
 
     av = CacheBuster.version(:accounts)
     ev = CacheBuster.version(:entries)
@@ -344,6 +344,14 @@ class AccountsController < ApplicationController
   end
 
   private
+
+  def system_accounts_sync_needed?
+    required_names = [
+      SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME,
+      SystemAccountSyncService::PAYABLE_ACCOUNT_NAME
+    ]
+    Account.where(name: required_names).distinct.count(:name) < required_names.size
+  end
 
   def locked_system_account?(account)
     return false unless account
