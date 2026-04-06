@@ -1,8 +1,8 @@
-require 'ostruct'
+require "ostruct"
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [:show, :edit, :update, :destroy, :bills, :bills_entries, :reorder]
-  before_action :prevent_locked_system_account!, only: [:edit, :update, :destroy]
+  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder ]
+  before_action :prevent_locked_system_account!, only: [ :edit, :update, :destroy ]
 
   def index
     # 仅在系统账户缺失时兜底同步；常规联动由 Receivable/Payable 的 after_commit 负责
@@ -12,7 +12,7 @@ class AccountsController < ApplicationController
     ev = CacheBuster.version(:entries)
 
     @accounts = Rails.cache.fetch("accounts_list/#{params[:show_hidden]}/#{av}", expires_in: CacheConfig::TEN_MINUTES) do
-      if params[:show_hidden] == 'true'
+      if params[:show_hidden] == "true"
         Account.order(:sort_order, :name).to_a
       else
         Account.visible.order(:sort_order, :name).to_a
@@ -23,7 +23,7 @@ class AccountsController < ApplicationController
     # 预计算所有账户余额，避免视图中 N+1 查询
     @account_balances = Rails.cache.fetch("account_balances/#{ev}", expires_in: CacheConfig::SHORT) do
       account_ids = @accounts.map(&:id)
-      results = Entry.where(account_id: account_ids, entryable_type: 'Entryable::Transaction')
+      results = Entry.where(account_id: account_ids, entryable_type: "Entryable::Transaction")
                        .group(:account_id)
                        .sum(:amount)
       Account.where(id: account_ids).pluck(:id, :initial_balance).each_with_object({}) do |(id, ib), hash|
@@ -50,8 +50,8 @@ class AccountsController < ApplicationController
       @entries.count
     end
 
-    @page = [[params[:page].to_i, 1].max, 1000].min
-    @per_page = [[params[:per_page].to_i, 5].max, 200].min
+    @page = [ [ params[:page].to_i, 1 ].max, 1000 ].min
+    @per_page = [ [ params[:per_page].to_i, 15 ].max, 200 ].min
 
     entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
     # 缓存 ID+balance 而非完整 ActiveRecord 对象：
@@ -63,7 +63,7 @@ class AccountsController < ApplicationController
         @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
       )
       # 缓存只存 ID 和 balance，不缓存 ActiveRecord 对象（序列化会丢失预加载）
-      result.map { |entry, balance| [entry.id, balance] }
+      result.map { |entry, balance| [ entry.id, balance ] }
     end
 
     # 重新查询并预加载（每次请求都执行，确保预加载信息完整）
@@ -76,8 +76,8 @@ class AccountsController < ApplicationController
         .includes(:entryable, entryable: :category)
         .reverse_chronological
         .to_a
-      AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [e, nil] })
-      entries.map { |e| [e, balance_map[e.id]] }
+      AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
+      entries.map { |e| [ e, balance_map[e.id] ] }
     end
 
     category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
@@ -101,7 +101,7 @@ class AccountsController < ApplicationController
     @new_transaction = ::OpenStruct.new(
       type: "EXPENSE", account_id: nil, category_id: nil,
       target_account_id: nil, account: nil, category: nil, target_account: nil,
-      persisted?: false, model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
+      persisted?: false, model_name: ActiveModel::Name.new(Entry, nil, "transaction")
     )
   end
 
@@ -139,15 +139,15 @@ class AccountsController < ApplicationController
       entries_query.count
     end
 
-    page = [[params[:page].to_i, 1].max, 1000].min
-    per_page = [[params[:per_page].to_i, 5].max, 200].min
+    page = [ [ params[:page].to_i, 1 ].max, 1000 ].min
+    per_page = [ [ params[:per_page].to_i, 15 ].max, 200 ].min
 
     entries_cache_key = "entries_list/#{filter_cache_key}/#{page}/#{per_page}/#{ev}"
     cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
       result = AccountStatsService.entries_with_balance(
         entries_query, page: page, per_page: per_page, account_id: params[:account_id].presence
       )
-      result.map { |entry, balance| [entry.id, balance] }
+      result.map { |entry, balance| [ entry.id, balance ] }
     end
 
     entry_ids = cached_data.map(&:first)
@@ -163,12 +163,12 @@ class AccountsController < ApplicationController
       .reverse_chronological
       .to_a
 
-    AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [e, nil] })
+    AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
 
     current_account_filter = params[:account_id].to_s
     entry_data = entries.map do |e|
       entry_type = e.display_entry_type
-      is_transfer = entry_type == 'TRANSFER'
+      is_transfer = entry_type == "TRANSFER"
       is_inflow = is_transfer && e.amount.positive?
 
       display_type = if is_transfer
@@ -204,7 +204,7 @@ class AccountsController < ApplicationController
           "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}"
         end
       else
-        e.display_category&.name || '-'
+        e.display_category&.name || "-"
       end
 
       {
@@ -305,7 +305,7 @@ class AccountsController < ApplicationController
 
     entry_data = entries.map do |e|
       entry_type = e.display_entry_type
-      is_transfer = entry_type == 'TRANSFER'
+      is_transfer = entry_type == "TRANSFER"
       # 单账户视图：amount > 0 = 转入（还款），amount < 0 = 转出（消费）
       is_inflow = is_transfer && e.amount.positive?
 
@@ -328,7 +328,7 @@ class AccountsController < ApplicationController
         counterpart = is_inflow ? e.source_account_for_transfer&.name : e.target_account_for_display&.name
         (is_inflow ? "← " : "→ ") + (counterpart || "未知账户")
       else
-        e.display_category&.name || '-'
+        e.display_category&.name || "-"
       end
 
       {
@@ -501,7 +501,7 @@ class AccountsController < ApplicationController
   end
 
   def build_entries_query(period_type, period_value)
-    entries = Entry.where(entryable_type: 'Entryable::Transaction')
+    entries = Entry.where(entryable_type: "Entryable::Transaction")
 
     if params[:account_id].present?
       entries = entries.where(account_id: params[:account_id])

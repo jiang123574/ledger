@@ -19,6 +19,15 @@ export default class extends Controller {
     this.isLoading = false
     this.currentPage = this.pageValue
     this.setupIntersectionObserver()
+    window.loadMoreEntries = () => {
+      if (!this.isLoading) {
+        this.loadMore()
+      }
+    }
+  }
+
+  setupLoadMoreButton() {
+    // Button click is handled via onclick attribute in HTML
   }
 
   disconnect() {

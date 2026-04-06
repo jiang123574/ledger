@@ -395,7 +395,7 @@
         </div>
         <!-- 加载更多触发器 -->
         <div id="load-more-sentinel" class="p-4 text-center <%= @total_count > @page * @per_page ? '' : 'hidden' %>">
-          <button id="load-more-btn" class="px-4 py-2 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+          <button id="load-more-btn" onclick="window.loadMoreEntries && window.loadMoreEntries()" class="px-4 py-2 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
             加载更多
           </button>
         </div>

@@ -35,6 +35,7 @@ import ReportTabsController from "controllers/report_tabs_controller"
 import AssetTrendChartController from "controllers/asset_trend_chart_controller"
 import CategoryComparisonController from "controllers/category_comparison_controller"
 import FilterPopoverController from "controllers/filter_popover_controller"
+import EntryListController from "controllers/entry_list_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -70,3 +71,4 @@ application.register("report-tabs", ReportTabsController)
 application.register("asset-trend-chart", AssetTrendChartController)
 application.register("category-comparison", CategoryComparisonController)
 application.register("filter-popover", FilterPopoverController)
+application.register("entry-list", EntryListController)
