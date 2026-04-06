@@ -483,24 +483,24 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 <% end %>
 
-var payableAllAccounts = [];
-var payableAllCategories = [];
+var allAccountsForSelector = [];
+var allCategoriesForSelector = [];
 var payableAccountsDataEl = document.getElementById('payable-accounts-data');
 if (payableAccountsDataEl) {
-  payableAllAccounts = JSON.parse(payableAccountsDataEl.textContent);
+  allAccountsForSelector = JSON.parse(payableAccountsDataEl.textContent);
 }
 var payableCategoriesDataEl = document.getElementById('payable-categories-data');
 if (payableCategoriesDataEl) {
-  payableAllCategories = JSON.parse(payableCategoriesDataEl.textContent);
+  allCategoriesForSelector = JSON.parse(payableCategoriesDataEl.textContent);
 }
 
 function findPayableAccountName(accountId) {
   if (!accountId) return '';
-  var matched = payableAllAccounts.find(function(acc) { return String(acc.id) === String(accountId); });
+  var matched = allAccountsForSelector.find(function(acc) { return String(acc.id) === String(accountId); });
   return matched ? matched.name : '';
 }
 
-var payableCategorySelectorData = payableAllCategories.map(function(cat) {
+var categorySelectorData = allCategoriesForSelector.map(function(cat) {
   return {
     id: cat.name,
     name: cat.name,
@@ -515,7 +515,7 @@ window.initSelectorWithData({
   filterInputId: 'new-payable-account-filter',
   optionsId: 'new-payable-account-options',
   hiddenInputId: 'new-payable-account-id',
-  dataSource: payableAllAccounts,
+  dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
 window.initSelectorWithData({
@@ -524,7 +524,7 @@ window.initSelectorWithData({
   filterInputId: 'edit-payable-account-filter',
   optionsId: 'edit-payable-account-options',
   hiddenInputId: 'edit-payable-account-id',
-  dataSource: payableAllAccounts,
+  dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
 window.initSelectorWithData({
@@ -533,7 +533,7 @@ window.initSelectorWithData({
   filterInputId: 'new-payable-category-filter',
   optionsId: 'new-payable-category-options',
   hiddenInputId: 'new-payable-category-id',
-  dataSource: payableCategorySelectorData,
+  dataSource: categorySelectorData,
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });
@@ -543,7 +543,7 @@ window.initSelectorWithData({
   filterInputId: 'edit-payable-category-filter',
   optionsId: 'edit-payable-category-options',
   hiddenInputId: 'edit-payable-category-id',
-  dataSource: payableCategorySelectorData,
+  dataSource: categorySelectorData,
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });

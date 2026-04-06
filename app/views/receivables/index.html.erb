@@ -483,24 +483,24 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 <% end %>
 
-var receivableAllAccounts = [];
-var receivableAllCategories = [];
+var allAccountsForSelector = [];
+var allCategoriesForSelector = [];
 var receivableAccountsDataEl = document.getElementById('receivable-accounts-data');
 if (receivableAccountsDataEl) {
-  receivableAllAccounts = JSON.parse(receivableAccountsDataEl.textContent);
+  allAccountsForSelector = JSON.parse(receivableAccountsDataEl.textContent);
 }
 var receivableCategoriesDataEl = document.getElementById('receivable-categories-data');
 if (receivableCategoriesDataEl) {
-  receivableAllCategories = JSON.parse(receivableCategoriesDataEl.textContent);
+  allCategoriesForSelector = JSON.parse(receivableCategoriesDataEl.textContent);
 }
 
 function findAccountName(accountId) {
   if (!accountId) return '';
-  var matched = receivableAllAccounts.find(function(acc) { return String(acc.id) === String(accountId); });
+  var matched = allAccountsForSelector.find(function(acc) { return String(acc.id) === String(accountId); });
   return matched ? matched.name : '';
 }
 
-var receivableCategorySelectorData = receivableAllCategories.map(function(cat) {
+var categorySelectorData = allCategoriesForSelector.map(function(cat) {
   return {
     id: cat.name,
     name: cat.name,
@@ -515,7 +515,7 @@ window.initSelectorWithData({
   filterInputId: 'new-receivable-account-filter',
   optionsId: 'new-receivable-account-options',
   hiddenInputId: 'new-receivable-account-id',
-  dataSource: receivableAllAccounts,
+  dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
 window.initSelectorWithData({
@@ -524,7 +524,7 @@ window.initSelectorWithData({
   filterInputId: 'edit-receivable-account-filter',
   optionsId: 'edit-receivable-account-options',
   hiddenInputId: 'edit-receivable-account-id',
-  dataSource: receivableAllAccounts,
+  dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
 window.initSelectorWithData({
@@ -533,7 +533,7 @@ window.initSelectorWithData({
   filterInputId: 'new-receivable-category-filter',
   optionsId: 'new-receivable-category-options',
   hiddenInputId: 'new-receivable-category-id',
-  dataSource: receivableCategorySelectorData,
+  dataSource: categorySelectorData,
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });
@@ -543,7 +543,7 @@ window.initSelectorWithData({
   filterInputId: 'edit-receivable-category-filter',
   optionsId: 'edit-receivable-category-options',
   hiddenInputId: 'edit-receivable-category-id',
-  dataSource: receivableCategorySelectorData,
+  dataSource: categorySelectorData,
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });

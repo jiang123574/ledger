@@ -2,6 +2,7 @@
 
 import "@hotwired/turbo-rails"
 import "controllers"
+import "bill_formatters"
 import "web_vitals"
 import "selectors"
 

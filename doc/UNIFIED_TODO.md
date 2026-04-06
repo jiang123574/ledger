@@ -7,20 +7,9 @@
 
 ### P1
 1. 信用卡账单模块前端重构
-- 账单相关函数（`renderBillEntries` / `formatMoney` / `formatCurrencyRaw`）收敛到模块内部，避免全局函数。
 - 账单模式与日期模式卡片渲染逻辑抽象复用，减少双实现偏差。
 
 ### P2
-2. Payables 联系人筛选分支清理
-- `PayablesController#filter_by_counterparty` 中 `name:` 前缀兼容分支当前属于防御性死代码，后续可移除并补对应回归测试。
-
-3. 选择器模块进一步统一
-- `initSelectorWithData` 与 `initGenericSelector` 仍有重复逻辑，后续收敛为单一实现。
-- `receivables/payables` 页面内数据变量命名（如 `receivableAllAccounts` / `payableAllAccounts`）可统一，降低维护成本。
-
-4. 信用卡账单控制器桥接稳定性
-- `accounts/index` 里通过 `window.Stimulus.getControllerForElementAndIdentifier` 获取 controller，后续评估替换为更稳定的桥接方案（避免依赖全局实现细节）。
-
 ### 长期迁移（Transaction -> Entry）
 5. Attachment / Receivable 关联迁移到 Entry 体系。
 6. 编写旧 `transactions` 存量数据迁移脚本到 Entry。
@@ -53,6 +42,24 @@
 
 7. 账单明细状态渲染 XSS 防护  
 - 已完成：`credit_bill_entries_controller.js` 的 `showError/showEmpty` 改为 `textContent` 渲染，移除字符串插值 `innerHTML` 风险。
+
+8. Payables 联系人筛选分支清理  
+- 已完成：移除 `PayablesController#filter_by_counterparty` 中不再使用的 `name:` 前缀兼容分支，保留 `id:` 与 `none` 两种有效路径。
+
+9. 信用卡账单控制器桥接稳定性  
+- 已完成：`accounts/index` 改为通过自定义事件与 `credit_bill_entries_controller` 通信（`credit-bill-entries:*`），不再依赖 `window.Stimulus.getControllerForElementAndIdentifier`。
+
+10. 选择器模块进一步统一  
+- 已完成：`initGenericSelector` 收敛为基于 `initSelectorWithData` 的包装层，减少重复逻辑；`receivables/payables` 页面选择器数据变量命名已统一。
+
+11. Payables 联系人筛选回归测试补充  
+- 已完成：新增 `spec/requests/payables_spec.rb`，覆盖 `counterparty_id`（`id:` token）与 `none` 两条筛选路径，保障应付款列表筛选行为。
+
+12. 信用卡账单金额格式化函数收敛  
+- 已完成：新增 `app/javascript/bill_formatters.js` 并在账单卡片渲染与 `credit_bill_entries_controller` 复用，避免多处重复实现。
+
+13. 系统账户兜底同步回归测试补充  
+- 已完成：新增 `spec/requests/accounts_system_sync_spec.rb`，覆盖“缺失系统账户时自动补齐”与“系统账户齐全时不重复创建”两条路径。
 
 ## 文档分工
 

@@ -1,7 +1,26 @@
 import { Controller } from "@hotwired/stimulus"
+import { formatMoney, formatCurrencyRaw } from "bill_formatters"
 
 export default class extends Controller {
   static targets = ["container", "template"]
+
+  connect() {
+    this.onRender = this.onRender.bind(this)
+    this.onLoading = this.onLoading.bind(this)
+    this.onError = this.onError.bind(this)
+
+    this.element.addEventListener("credit-bill-entries:render", this.onRender)
+    this.element.addEventListener("credit-bill-entries:loading", this.onLoading)
+    this.element.addEventListener("credit-bill-entries:error", this.onError)
+    this.element.dataset.creditBillEntriesReady = "true"
+  }
+
+  disconnect() {
+    this.element.removeEventListener("credit-bill-entries:render", this.onRender)
+    this.element.removeEventListener("credit-bill-entries:loading", this.onLoading)
+    this.element.removeEventListener("credit-bill-entries:error", this.onError)
+    delete this.element.dataset.creditBillEntriesReady
+  }
 
   render(entries) {
     if (!entries || entries.length === 0) {
@@ -15,7 +34,7 @@ export default class extends Controller {
 
       const typeBadgeClass = this.typeBadgeClass(entry.display_type)
       const amountClass = this.amountClass(entry.display_amount_type)
-      const amountText = this.formatMoney(Math.abs(entry.display_amount || 0))
+      const amountText = formatMoney(Math.abs(entry.display_amount || 0))
 
       row.querySelector('[data-field="date"]').textContent = entry.date || ""
       row.querySelector('[data-field="type"]').textContent = entry.display_type || ""
@@ -25,7 +44,7 @@ export default class extends Controller {
       row.querySelector('[data-field="note"]').textContent = entry.note || ""
       row.querySelector('[data-field="amount"]').textContent = amountText
       row.querySelector('[data-field="amount"]').className = `text-sm font-medium ${amountClass}`
-      row.querySelector('[data-field="balance"]').textContent = `余额: ${this.formatCurrencyRaw(entry.balance_after)}`
+      row.querySelector('[data-field="balance"]').textContent = `余额: ${formatCurrencyRaw(entry.balance_after)}`
 
       const editButton = row.querySelector('[data-role="edit"]')
       const deleteButton = row.querySelector('[data-role="delete"]')
@@ -69,20 +88,23 @@ export default class extends Controller {
     return displayAmountType === "INCOME" ? "text-income" : "text-expense"
   }
 
-  formatMoney(value) {
-    const num = parseFloat(value) || 0
-    return num.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
-
-  formatCurrencyRaw(value) {
-    return `¥${this.formatMoney(value)}`
-  }
-
   renderStatus(className, message) {
     this.containerTarget.innerHTML = ""
     const node = document.createElement("div")
     node.className = className
     node.textContent = message || ""
     this.containerTarget.appendChild(node)
+  }
+
+  onRender(event) {
+    this.render(event.detail?.entries || [])
+  }
+
+  onLoading() {
+    this.showLoading()
+  }
+
+  onError(event) {
+    this.showError(event.detail?.message || "加载失败")
   }
 }
