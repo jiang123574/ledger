@@ -341,7 +341,7 @@
                     </p>
                   <% else %>
                     <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
-                      <%= format_currency_with_sign(e.display_amount, type: display_amount_type) %>
+                      <%= format_currency(e.display_amount, unit: "") %>
                     </p>
                   <% end %>
                   <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= format_currency(balance) %></p>
