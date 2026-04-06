@@ -3,7 +3,7 @@ class ReceivablesController < ApplicationController
   before_action :check_not_settled, only: %i[update destroy]
 
   def index
-    @receivables = Receivable.includes(:source_transaction, :counterparty, :account)
+    @receivables = Receivable.includes(:counterparty, :account)
       .order(date: :desc)
     @unsettled = @receivables.where(settled_at: nil)
     @settled = @receivables.where.not(settled_at: nil)
@@ -20,6 +20,8 @@ class ReceivablesController < ApplicationController
     @receivable.remaining_amount = @receivable.original_amount
 
     if @receivable.save
+      category_id = resolve_category_id(@receivable.category, kind: "expense")
+
       # 自动创建支出 Entry
       create_entry(
         account_id: @receivable.account_id,
@@ -27,7 +29,7 @@ class ReceivablesController < ApplicationController
         date: @receivable.date,
         name: "[待报销] #{@receivable.description}",
         kind: 'expense',
-        category_id: @receivable.category_id
+        category_id: category_id
       )
       redirect_to receivables_path, notice: "应收款已创建"
     else
@@ -128,5 +130,13 @@ class ReceivablesController < ApplicationController
       currency: 'CNY',
       entryable: entryable
     )
+  end
+
+  def resolve_category_id(category_name, kind:)
+    return nil if category_name.blank?
+
+    category_type = kind == "income" ? "INCOME" : "EXPENSE"
+    Category.where(type: category_type).find_by(name: category_name)&.id ||
+      Category.find_by(name: category_name)&.id
   end
 end

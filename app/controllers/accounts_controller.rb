@@ -4,6 +4,9 @@ class AccountsController < ApplicationController
   before_action :set_account, only: [:show, :edit, :update, :destroy, :bills, :bills_entries, :reorder]
 
   def index
+    # 确保应收/应付系统账户金额与未结清余额保持联动
+    SystemAccountSyncService.sync_all!
+
     av = CacheBuster.version(:accounts)
     ev = CacheBuster.version(:entries)
 

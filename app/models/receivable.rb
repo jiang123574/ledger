@@ -18,6 +18,8 @@ class Receivable < ApplicationRecord
 
   CATEGORIES = %w[差旅 餐饮 交通 办公用品 其他].freeze
 
+  after_commit :sync_system_accounts
+
   def settled?
     settled_at.present? || remaining_amount.to_d <= 0
   end
@@ -38,5 +40,11 @@ class Receivable < ApplicationRecord
     when "部分报销" then "orange"
     else "gray"
     end
+  end
+
+  private
+
+  def sync_system_accounts
+    SystemAccountSyncService.sync_all!
   end
 end
