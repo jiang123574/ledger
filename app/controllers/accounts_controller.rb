@@ -2,6 +2,7 @@ require 'ostruct'
 
 class AccountsController < ApplicationController
   before_action :set_account, only: [:show, :edit, :update, :destroy, :bills, :bills_entries, :reorder]
+  before_action :prevent_locked_system_account!, only: [:edit, :update, :destroy]
 
   def index
     # 确保应收/应付系统账户金额与未结清余额保持联动
@@ -335,6 +336,22 @@ class AccountsController < ApplicationController
   end
 
   private
+
+  def locked_system_account?(account)
+    return false unless account
+
+    locked_names = [
+      SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME,
+      SystemAccountSyncService::PAYABLE_ACCOUNT_NAME
+    ]
+    locked_names.include?(account.name)
+  end
+
+  def prevent_locked_system_account!
+    return unless locked_system_account?(@account)
+
+    redirect_to accounts_path, alert: "系统账户（应收款/应付款）已锁定，无法编辑或删除"
+  end
 
   def expire_accounts_cache
     CacheBuster.bump(:accounts)

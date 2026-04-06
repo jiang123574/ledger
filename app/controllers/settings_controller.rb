@@ -16,8 +16,27 @@ class SettingsController < ApplicationController
 
     if @section == 'contacts'
       @counterparties = Counterparty.all.order(:name)
-      @receivable_counts = Receivable.where(counterparty: @counterparties.map(&:name))
-                                      .group(:counterparty).count
+      ids = @counterparties.map(&:id)
+      names = @counterparties.map(&:name)
+
+      receivable_counts_by_id = Receivable.where(counterparty_id: ids).group(:counterparty_id).count
+      receivable_counts_by_name = Receivable.where(counterparty: names).group(:counterparty).count
+
+      payable_counts_by_id = Payable.where(counterparty_id: ids).group(:counterparty_id).count
+      payable_counts_by_name = Payable.where(counterparty: names).group(:counterparty).count
+
+      @receivable_counts = {}
+      @payable_counts = {}
+      @total_link_counts = {}
+
+      @counterparties.each do |counterparty|
+        receivable_count = receivable_counts_by_id[counterparty.id].to_i + receivable_counts_by_name[counterparty.name].to_i
+        payable_count = payable_counts_by_id[counterparty.id].to_i + payable_counts_by_name[counterparty.name].to_i
+
+        @receivable_counts[counterparty.id] = receivable_count
+        @payable_counts[counterparty.id] = payable_count
+        @total_link_counts[counterparty.id] = receivable_count + payable_count
+      end
     end
   end
 

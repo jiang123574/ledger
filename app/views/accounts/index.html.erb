@@ -81,6 +81,9 @@
                   <div class="flex-1 min-w-0">
                     <div class="flex items-center gap-2">
                       <p class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= account.name %></p>
+                      <% if [SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME, SystemAccountSyncService::PAYABLE_ACCOUNT_NAME].include?(account.name) %>
+                        <span class="text-[10px] px-1 py-0.5 rounded bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300">系统锁定</span>
+                      <% end %>
                       <% if account.hidden == 1 %>
                         <span class="text-[10px] px-1 py-0.5 rounded bg-orange-100 dark:bg-orange-900 text-orange-600 dark:text-orange-300">隐藏</span>
                       <% end %>
@@ -94,23 +97,29 @@
                   </div>
                   <div class="flex items-center gap-1">
                     <p class="font-medium text-sm text-primary dark:text-primary-dark"><%= format_currency(@account_balances[account.id] || 0) %></p>
-                    <button onclick="event.stopPropagation(); openEditAccountModal(this)" 
-                            data-id="<%= account.id %>"
-                            data-name="<%= account.name %>"
-                            data-type="<%= account.type %>"
-                            data-initial-balance="<%= account.initial_balance || 0 %>"
-                            data-include-in-total="<%= account.include_in_total %>"
-                            data-hidden="<%= account.hidden %>"
-                            data-currency="<%= account.currency %>"
-                            data-credit-limit="<%= account.credit_limit || '' %>"
-                            data-billing-day="<%= account.billing_day || '' %>"
-                            data-billing-day-mode="<%= account.billing_day_mode || 'current' %>"
-                            data-due-day-mode="<%= account.due_day_mode || 'fixed' %>"
-                            data-due-day="<%= account.due_day || '' %>"
-                            data-due-day-offset="<%= account.due_day_offset || '' %>"
-                            class="p-1 rounded lg:opacity-0 lg:group-hover:opacity-100 hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth">
-                      <svg class="w-3.5 h-3.5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-                    </button>
+                    <% if [SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME, SystemAccountSyncService::PAYABLE_ACCOUNT_NAME].include?(account.name) %>
+                      <span class="p-1 rounded text-secondary dark:text-secondary-dark opacity-60" title="系统账户已锁定">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 0h12a2 2 0 002-2v-5a2 2 0 00-2-2h-1V7a5 5 0 00-10 0v1H6a2 2 0 00-2 2v5a2 2 0 002 2zm3-9V7a3 3 0 016 0v1H9z"></path></svg>
+                      </span>
+                    <% else %>
+                      <button onclick="event.stopPropagation(); openEditAccountModal(this)" 
+                              data-id="<%= account.id %>"
+                              data-name="<%= account.name %>"
+                              data-type="<%= account.type %>"
+                              data-initial-balance="<%= account.initial_balance || 0 %>"
+                              data-include-in-total="<%= account.include_in_total %>"
+                              data-hidden="<%= account.hidden %>"
+                              data-currency="<%= account.currency %>"
+                              data-credit-limit="<%= account.credit_limit || '' %>"
+                              data-billing-day="<%= account.billing_day || '' %>"
+                              data-billing-day-mode="<%= account.billing_day_mode || 'current' %>"
+                              data-due-day-mode="<%= account.due_day_mode || 'fixed' %>"
+                              data-due-day="<%= account.due_day || '' %>"
+                              data-due-day-offset="<%= account.due_day_offset || '' %>"
+                              class="p-1 rounded lg:opacity-0 lg:group-hover:opacity-100 hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth">
+                        <svg class="w-3.5 h-3.5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                      </button>
+                    <% end %>
                   </div>
                 </div>
               </div>

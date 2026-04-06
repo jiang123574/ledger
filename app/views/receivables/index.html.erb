@@ -30,57 +30,71 @@
     <% end %>
   </div>
 
-  <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+  <% if @unsettled_counterparty_stats.any? %>
+    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs p-3">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-sm font-semibold text-primary dark:text-primary-dark">待报销按联系人</h2>
+        <span class="text-xs text-secondary dark:text-secondary-dark">Top <%= @unsettled_counterparty_stats.size %></span>
+      </div>
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        <%= link_to receivables_path, class: "shrink-0 min-w-[140px] px-3 py-2 rounded-lg border #{ @selected_counterparty_id.blank? ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-surface dark:bg-surface-dark border-border dark:border-border-dark' }" do %>
+          <p class="text-sm font-medium text-primary dark:text-primary-dark">全部联系人</p>
+          <p class="text-xs text-secondary dark:text-secondary-dark mt-0.5"><%= @unsettled.size %> 条待报销</p>
+          <p class="text-sm font-semibold text-expense mt-1"><%= format_currency(@unsettled.sum { |r| r.remaining_amount.to_d }) %></p>
+        <% end %>
+        <% @unsettled_counterparty_stats.each do |item| %>
+          <%= link_to receivables_path(counterparty_id: item[:filter_value], anchor: "unsettled-receivables"), class: "shrink-0 min-w-[170px] px-3 py-2 rounded-lg border #{ @selected_counterparty_id.to_s == item[:filter_value].to_s ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-surface dark:bg-surface-dark border-border dark:border-border-dark' }" do %>
+            <p class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= item[:name] %></p>
+            <p class="text-xs text-secondary dark:text-secondary-dark mt-0.5"><%= item[:count] %> 条待报销</p>
+            <p class="text-sm font-semibold text-expense mt-1"><%= format_currency(item[:amount]) %></p>
+          <% end %>
+        <% end %>
+      </div>
+    </section>
+  <% end %>
+
+  <section id="unsettled-receivables" class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
       <h2 class="text-base font-semibold text-primary dark:text-primary-dark">待报销</h2>
-      <span class="text-xs text-secondary dark:text-secondary-dark"><%= @unsettled.size %> 条</span>
+      <span class="text-xs text-secondary dark:text-secondary-dark"><%= @filtered_unsettled.size %> 条</span>
+    </div>
+    <div class="px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset/40 dark:bg-surface-dark-inset/40">
+      <form method="get" action="<%= receivables_path %>" class="flex items-center gap-2">
+        <label for="receivable-counterparty-filter" class="text-xs text-secondary dark:text-secondary-dark shrink-0">联系人</label>
+        <select id="receivable-counterparty-filter" name="counterparty_id" onchange="this.form.submit()" class="w-full sm:w-auto px-2 py-1 text-xs rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark">
+          <option value="">全部联系人</option>
+          <option value="none" <%= "selected" if @selected_counterparty_id == "none" %>>未设置联系人</option>
+          <% @counterparties.each do |c| %>
+            <option value="<%= c.id %>" <%= "selected" if [c.id.to_s, "id:#{c.id}"].include?(@selected_counterparty_id.to_s) %>><%= c.name %></option>
+          <% end %>
+        </select>
+      </form>
     </div>
     <div class="divide-y divide-border">
-      <% if @unsettled.any? %>
-        <% @unsettled.each do |receivable| %>
+      <% if @filtered_unsettled.any? %>
+        <% @filtered_unsettled.each do |receivable| %>
           <% reimbursed = receivable.original_amount.to_d - receivable.remaining_amount.to_d %>
-          <% progress = [[receivable.progress_percentage, 0].max, 100].min %>
-          <div class="p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
-                  <span class="px-2 py-0.5 text-xs rounded-full bg-expense-soft text-expense whitespace-nowrap"><%= receivable.status %></span>
-                </div>
-                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
-                  <span><%= receivable.date&.strftime("%Y-%m-%d") %></span>
-                  <% if receivable.category.present? %>
-                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= receivable.category %></span>
-                  <% end %>
-                  <% if receivable.counterparty.present? %>
-                    <span>联系人：<%= receivable.counterparty.name %></span>
-                  <% end %>
-                  <% if receivable.account.present? %>
-                    <span>账户：<%= receivable.account.name %></span>
-                  <% end %>
-                </div>
-                <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
-                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
-                  <span class="text-income">已报销 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
-                  <span class="text-expense">未报销 <span class="font-medium"><%= format_currency(receivable.remaining_amount) %></span></span>
-                </div>
-                <div class="mt-2">
-                  <div class="flex justify-between text-xs text-secondary dark:text-secondary-dark mb-0.5">
-                    <span>报销进度</span>
-                    <span><%= progress %>%</span>
-                  </div>
-                  <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
-                    <div class="bg-inverse h-2 rounded-full transition-all" style="width: <%= progress %>"></div>
-                  </div>
-                </div>
-                <% if receivable.note.present? %>
-                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= receivable.note %></p>
-                <% end %>
+          <div class="px-3 py-2 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+            <div class="flex items-center gap-2">
+              <div class="w-44 shrink-0">
+                <h3 class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
               </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">报销</button>
-                <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">编辑</button>
-                <button type="button" onclick="if(confirm('确定删除此报销记录？')) { document.getElementById('delete-receivable-form-<%= receivable.id %>').submit(); }" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">删除</button>
+              <div class="text-[11px] text-secondary dark:text-secondary-dark shrink-0"><%= receivable.date&.strftime("%Y-%m-%d") %></div>
+              <% if receivable.category.present? %>
+                <div class="px-1 py-0.5 rounded bg-surface dark:bg-surface-dark text-[11px] text-primary dark:text-primary-dark shrink-0"><%= receivable.category %></div>
+              <% end %>
+              <% if receivable.account.present? %>
+                <div class="text-[11px] text-secondary dark:text-secondary-dark truncate max-w-28"><%= receivable.account.name %></div>
+              <% end %>
+              <div class="ml-auto flex items-center gap-2 text-[11px] shrink-0">
+                <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
+                <span class="text-income">已报 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
+                <span class="text-expense">待报 <span class="font-medium"><%= format_currency(receivable.remaining_amount) %></span></span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-2 py-1 text-xs font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">报销</button>
+                <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">编辑</button>
+                <button type="button" onclick="if(confirm('确定删除此报销记录？')) { document.getElementById('delete-receivable-form-<%= receivable.id %>').submit(); }" class="px-2 py-1 text-xs font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">删除</button>
                 <form id="delete-receivable-form-<%= receivable.id %>" method="post" action="/receivables/<%= receivable.id %>" style="display:none">
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                   <input type="hidden" name="_method" value="delete">
