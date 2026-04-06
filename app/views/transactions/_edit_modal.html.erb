@@ -12,43 +12,68 @@
   </button>
 </div>
 
-<%= form_with model: @entry, url: transaction_path(@entry), method: :patch, local: false, id: "transaction-edit-form", namespace: "transaction" do |f| %>
+<%= form_with model: @entry, url: transaction_path(@entry), method: :patch, local: false, id: "transaction-edit-form" do |f| %>
   <input type="hidden" id="edit-transaction-type" value="<%= entry_type %>">
   <div class="space-y-4">
-    <!-- 1. 分类（收支）/ 转账切换 -->
-    <div>
+    <!-- 1. 分类（收支时显示） -->
+    <div id="edit-category-field-wrapper" class="<%= is_transfer ? 'hidden' : '' %>">
       <div class="flex items-center justify-between mb-1.5">
-        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark" id="edit-category-field-label"><%= is_transfer ? '转账' : '分类' %> *</label>
-        <button type="button" id="edit-toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">
-          <%= is_transfer ? '收支' : '转账' %>
-        </button>
+        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark">分类 *</label>
+        <button type="button" id="edit-toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
       </div>
-      <!-- 收支分类选择器 -->
-      <div id="edit-category-field" class="<%= is_transfer ? 'hidden' : '' %>">
-        <input type="hidden" name="category_id" id="edit_category_id" value="<%= @entry.display_category_id %>">
-        <div class="relative">
-          <input type="text" id="edit-category-search-input"
-                 class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                 placeholder="选择分类"
-                 autocomplete="off"
-                 readonly
-                 value="<%= @entry.display_category&.full_name || '' %>">
-          <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-          </svg>
-          <div id="edit-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-            <div class="p-2 border-b border-border dark:border-border-dark">
-              <input type="text" id="edit-category-filter-input"
-                     class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                     placeholder="搜索分类..."
-                     autocomplete="off">
-            </div>
-            <div id="edit-category-options" class="py-1"></div>
+      <input type="hidden" name="category_id" id="edit_category_id" value="<%= @entry.display_category_id %>">
+      <div class="relative">
+        <input type="text" id="edit-category-search-input"
+               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+               placeholder="选择分类"
+               autocomplete="off"
+               readonly
+               value="<%= @entry.display_category&.full_name || '' %>">
+        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+        <div id="edit-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+          <div class="p-2 border-b border-border dark:border-border-dark">
+            <input type="text" id="edit-category-filter-input"
+                   class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                   placeholder="搜索分类..."
+                   autocomplete="off">
           </div>
+          <div id="edit-category-options" class="py-1"></div>
         </div>
       </div>
-      <!-- 转账字段 -->
-      <div id="edit-target-account-field" class="<%= is_transfer ? '' : 'hidden' %>">
+    </div>
+
+    <!-- 转账：转出账户（转账时显示） -->
+    <div id="edit-transfer-source-field" class="<%= is_transfer ? '' : 'hidden' %>">
+      <div class="flex items-center justify-between mb-1.5">
+        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark">转出账户 *</label>
+        <button type="button" id="edit-toggle-transfer-btn-alt" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">收支</button>
+      </div>
+      <input type="hidden" name="account_id" id="edit_account_id" value="<%= @entry.source_account_id_for_transfer %>">
+      <div class="relative">
+        <input type="text" id="edit-account-search-input"
+               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+               placeholder="选择转出账户"
+               autocomplete="off"
+               readonly
+               value="<%= @entry.source_account_for_transfer&.name || '' %>">
+        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+        <div id="edit-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+          <div class="p-2 border-b border-border dark:border-border-dark">
+            <input type="text" id="edit-account-filter-input"
+                   class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                   placeholder="搜索账户..."
+                   autocomplete="off">
+          </div>
+          <div id="edit-account-options" class="py-1"></div>
+        </div>
+      </div>
+      <!-- 转入账户 -->
+      <div class="mt-3">
+        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">转入账户 *</label>
         <input type="hidden" name="target_account_id" id="edit_target_account_id" value="<%= @entry.target_account_id_for_display %>">
         <div class="relative">
           <input type="text" id="edit-target-account-search-input"
@@ -70,13 +95,14 @@
             <div id="edit-target-account-options" class="py-1"></div>
           </div>
         </div>
-        <button type="button" id="edit-swap-accounts-btn" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-          </svg>
-          互换转出/转入账户
-        </button>
       </div>
+      <!-- 互换账户按钮 -->
+      <button type="button" id="edit-swap-accounts-btn" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+        </svg>
+        互换转出/转入账户
+      </button>
     </div>
 
     <!-- 2. 金额 -->
@@ -88,28 +114,28 @@
       </div>
     </div>
 
-    <!-- 3. 账户 -->
-    <div id="edit-account-field-wrapper">
-      <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5" id="edit-account-field-label"><%= is_transfer ? '转出账户' : '账户' %> *</label>
-      <input type="hidden" name="account_id" id="edit_account_id" value="<%= @entry.source_account_id_for_transfer %>">
+    <!-- 3. 账户（收支时显示） -->
+    <div id="edit-account-field-wrapper" class="<%= is_transfer ? 'hidden' : '' %>">
+      <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
+      <input type="hidden" name="account_id" id="edit_account_id_income" value="<%= @entry.account_id %>">
       <div class="relative">
-        <input type="text" id="edit-account-search-input"
+        <input type="text" id="edit-account-search-input-income"
                class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                placeholder="选择账户"
                autocomplete="off"
                readonly
-               value="<%= @entry.source_account_for_transfer&.name || '' %>">
+               value="<%= @entry.account&.name || '' %>">
         <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
-        <div id="edit-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+        <div id="edit-account-dropdown-income" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
           <div class="p-2 border-b border-border dark:border-border-dark">
-            <input type="text" id="edit-account-filter-input"
+            <input type="text" id="edit-account-filter-input-income"
                    class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
                    placeholder="搜索账户..."
                    autocomplete="off">
           </div>
-          <div id="edit-account-options" class="py-1"></div>
+          <div id="edit-account-options-income" class="py-1"></div>
         </div>
       </div>
     </div>
@@ -123,7 +149,7 @@
     <!-- 备注 -->
     <div>
       <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
-      <%= f.text_field :note, value: @entry.note, placeholder: "添加备注", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+      <%= f.text_field :notes, value: @entry.notes, placeholder: "添加备注", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
     </div>
   </div>
 
@@ -211,7 +237,7 @@
     return allCategories.filter(function(c) { return c.category_type === 'EXPENSE'; });
   }
 
-  // 初始化账户选择器
+  // 初始化转账模式下的账户选择器
   initSelector({
     searchInputId: 'edit-account-search-input', dropdownId: 'edit-account-dropdown',
     filterInputId: 'edit-account-filter-input', optionsId: 'edit-account-options',
@@ -223,44 +249,62 @@
     hiddenInputId: 'edit_target_account_id', items: allAccounts, itemClass: 'edit-target-account-opt'
   });
 
-  // 初始化分类选择器
+  // 初始化收支模式下的选择器
   if (currentType !== 'TRANSFER') {
     initSelector({
       searchInputId: 'edit-category-search-input', dropdownId: 'edit-category-dropdown',
       filterInputId: 'edit-category-filter-input', optionsId: 'edit-category-options',
       hiddenInputId: 'edit_category_id', items: getFilteredCategories(), itemClass: 'edit-category-opt'
     });
+    initSelector({
+      searchInputId: 'edit-account-search-input-income', dropdownId: 'edit-account-dropdown-income',
+      filterInputId: 'edit-account-filter-input-income', optionsId: 'edit-account-options-income',
+      hiddenInputId: 'edit_account_id_income', items: allAccounts, itemClass: 'edit-account-opt-income'
+    });
   }
 
-  // 转账切换按钮
+  // 转账切换（收支 → 转账）
   document.getElementById('edit-toggle-transfer-btn').addEventListener('click', function() {
-    var categoryField = document.getElementById('edit-category-field');
-    var targetField = document.getElementById('edit-target-account-field');
-    var accountLabel = document.getElementById('edit-account-field-label');
-    var categoryLabel = document.getElementById('edit-category-field-label');
+    if (currentType !== 'TRANSFER') {
+      currentType = 'TRANSFER';
+      document.getElementById('edit-category-field-wrapper').classList.add('hidden');
+      document.getElementById('edit-transfer-source-field').classList.remove('hidden');
+      document.getElementById('edit-account-field-wrapper').classList.add('hidden');
+      // 重新初始化转账账户选择器（DOM 被重新显示）
+      initSelector({
+        searchInputId: 'edit-account-search-input', dropdownId: 'edit-account-dropdown',
+        filterInputId: 'edit-account-filter-input', optionsId: 'edit-account-options',
+        hiddenInputId: 'edit_account_id', items: allAccounts, itemClass: 'edit-account-opt'
+      });
+      initSelector({
+        searchInputId: 'edit-target-account-search-input', dropdownId: 'edit-target-account-dropdown',
+        filterInputId: 'edit-target-account-filter-input', optionsId: 'edit-target-account-options',
+        hiddenInputId: 'edit_target_account_id', items: allAccounts, itemClass: 'edit-target-account-opt'
+      });
+      document.getElementById('edit-transaction-type').value = currentType;
+    }
+  });
 
+  // 转账切换（转账 → 收支）
+  document.getElementById('edit-toggle-transfer-btn-alt').addEventListener('click', function() {
     if (currentType === 'TRANSFER') {
       currentType = 'EXPENSE';
-      categoryField.classList.remove('hidden');
-      targetField.classList.add('hidden');
-      if (accountLabel) accountLabel.textContent = '账户';
-      if (categoryLabel) categoryLabel.textContent = '分类';
-      this.textContent = '转账';
-      // 重新初始化分类
+      document.getElementById('edit-category-field-wrapper').classList.remove('hidden');
+      document.getElementById('edit-transfer-source-field').classList.add('hidden');
+      document.getElementById('edit-account-field-wrapper').classList.remove('hidden');
+      // 重新初始化收支选择器
       initSelector({
         searchInputId: 'edit-category-search-input', dropdownId: 'edit-category-dropdown',
         filterInputId: 'edit-category-filter-input', optionsId: 'edit-category-options',
         hiddenInputId: 'edit_category_id', items: getFilteredCategories(), itemClass: 'edit-category-opt'
       });
-    } else {
-      currentType = 'TRANSFER';
-      categoryField.classList.add('hidden');
-      targetField.classList.remove('hidden');
-      if (accountLabel) accountLabel.textContent = '转出账户';
-      if (categoryLabel) categoryLabel.textContent = '转账';
-      this.textContent = '收支';
+      initSelector({
+        searchInputId: 'edit-account-search-input-income', dropdownId: 'edit-account-dropdown-income',
+        filterInputId: 'edit-account-filter-input-income', optionsId: 'edit-account-options-income',
+        hiddenInputId: 'edit_account_id_income', items: allAccounts, itemClass: 'edit-account-opt-income'
+      });
+      document.getElementById('edit-transaction-type').value = currentType;
     }
-    document.getElementById('edit-transaction-type').value = currentType;
   });
 
   // 互换账户
@@ -279,25 +323,33 @@
     if (targetInput) targetInput.value = tmpName;
   });
 
-  // 表单提交 — 参数放入 transaction 命名空间以匹配 transaction_params
+  // 表单提交
   document.getElementById('transaction-edit-form').addEventListener('submit', function(e) {
     e.preventDefault();
     var formData = new FormData();
     formData.append('transaction[date]', document.querySelector('#transaction-edit-form [name="entry[date]"]')?.value || '');
     formData.append('transaction[amount]', document.querySelector('#transaction-edit-form [name="entry[amount]"]')?.value || '');
-    formData.append('transaction[note]', document.querySelector('#transaction-edit-form [name="entry[note]"]')?.value || '');
+    formData.append('transaction[note]', document.querySelector('#transaction-edit-form [name="entry[notes]"]')?.value || '');
     formData.append('transaction[type]', currentType);
-    formData.append('transaction[account_id]', document.getElementById('edit_account_id')?.value || '');
     formData.append('transaction[category_id]', document.getElementById('edit_category_id')?.value || '');
-    var targetId = document.getElementById('edit_target_account_id')?.value;
-    if (currentType === 'TRANSFER' && targetId) {
-      formData.append('transaction[target_account_id]', targetId);
+
+    if (currentType === 'TRANSFER') {
+      formData.append('transaction[account_id]', document.getElementById('edit_account_id')?.value || '');
+      var targetId = document.getElementById('edit_target_account_id')?.value;
+      if (targetId) {
+        formData.append('transaction[target_account_id]', targetId);
+      }
+    } else {
+      formData.append('transaction[account_id]', document.getElementById('edit_account_id_income')?.value || '');
     }
 
     fetch(this.action, {
       method: 'PATCH',
       body: formData,
-      headers: { 'Accept': 'text/html' }
+      headers: {
+        'Accept': 'text/html',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
+      }
     })
     .then(function(res) {
       document.getElementById('edit-transaction-modal').classList.add('hidden');

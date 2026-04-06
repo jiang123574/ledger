@@ -5,6 +5,16 @@
 class EntryCreationService
   class CreationError < StandardError; end
 
+  class << self
+    private
+
+    def display_category_name(category_id)
+      return '' if category_id.blank?
+      category = Category.find_by(id: category_id)
+      category&.full_name || ''
+    end
+  end
+
   # 创建普通收支 Entry
   def self.create_regular(type:, account_id:, amount:, date:, currency: 'CNY', note: nil, category_id: nil)
     kind = type.downcase
@@ -18,7 +28,7 @@ class EntryCreationService
       Entry.create!(
         account_id: account_id,
         date: date,
-        name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
+        name: note.presence || display_category_name(category_id),
         amount: kind == 'income' ? amount : -amount,
         currency: currency,
         notes: note,
@@ -33,7 +43,7 @@ class EntryCreationService
     to_account = Account.find(to_account_id)
 
     transfer_id = SecureRandom.random_number(2**31)
-    transfer_note = note.presence || "转账: #{from_account.name} → #{to_account.name}"
+    transfer_note = note.presence || ''
 
     Entry.transaction do
       entry_out = Entry.create!(
@@ -109,7 +119,7 @@ class EntryCreationService
       Entry.create!(
         account_id: destination_account.id,
         date: date,
-        name: note.presence || "支出 #{amount}",
+        name: note.presence || '',
         amount: -amount,
         currency: currency,
         notes: note,

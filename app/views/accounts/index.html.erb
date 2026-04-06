@@ -690,8 +690,8 @@ function confirmDeleteAccount(id, name) {
         <%= f.hidden_field :currency, value: "CNY" %>
         <%= f.hidden_field :type, value: "EXPENSE", id: "transaction-type-input" %>
         <div class="space-y-4">
-          <!-- 1. 分类（收支合并 + 转账切换） -->
-          <div>
+          <!-- 1. 分类（收支模式）/ 转出账户（转账模式） -->
+          <div id="category-field-wrapper">
             <div class="flex items-center justify-between mb-1.5">
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark" id="category-field-label">分类 *</label>
               <button type="button" id="toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
@@ -719,13 +719,42 @@ function confirmDeleteAccount(id, name) {
                 </div>
               </div>
             </div>
-            <!-- 转账字段（默认隐藏） -->
-            <div id="target-account-field" class="hidden">
+          </div>
+          <!-- 转账字段（默认隐藏）：转出账户 → 转入账户 → 互换按钮 -->
+          <div id="target-account-field" class="hidden">
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark">转出账户 *</label>
+              <button type="button" id="toggle-transfer-btn-alt" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">收支</button>
+            </div>
+            <!-- 转出账户 -->
+            <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="">
+            <div class="relative">
+              <input type="text" id="account-search-input" 
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择转出账户"
+                     autocomplete="off"
+                     readonly>
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="account-filter-input" 
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="搜索账户..."
+                         autocomplete="off">
+                </div>
+                <div id="account-options" class="py-1"></div>
+              </div>
+            </div>
+            <!-- 转入账户 -->
+            <div class="mt-3">
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">转入账户 *</label>
               <input type="hidden" name="transaction[target_account_id]" id="target_account_id" value="">
               <div class="relative">
                 <input type="text" id="target-account-search-input" 
                        class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                       placeholder="选择转出账户"
+                       placeholder="选择转入账户"
                        autocomplete="off"
                        readonly>
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -741,14 +770,14 @@ function confirmDeleteAccount(id, name) {
                   <div id="target-account-options" class="py-1"></div>
                 </div>
               </div>
-              <!-- 互换账户按钮 -->
-              <button type="button" onclick="swapTransferAccounts()" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
-                </svg>
-                互换转出/转入账户
-              </button>
             </div>
+            <!-- 互换账户按钮 -->
+            <button type="button" onclick="swapTransferAccounts()" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+              </svg>
+              互换转出/转入账户
+            </button>
           </div>
           <!-- 2. 金额 -->
           <div>
@@ -758,12 +787,12 @@ function confirmDeleteAccount(id, name) {
               <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
           </div>
-          <!-- 3. 账户（转账时显示为"转出账户"） -->
+          <!-- 3. 账户（收支模式） -->
           <div id="account-field-wrapper">
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5" id="account-field-label">账户 *</label>
-            <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="">
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
+            <input type="hidden" name="transaction[account_id_income]" id="transaction_account_id_income" value="">
             <div class="relative">
-              <input type="text" id="account-search-input" 
+              <input type="text" id="account-search-input-income" 
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      placeholder="选择账户"
                      autocomplete="off"
@@ -771,14 +800,14 @@ function confirmDeleteAccount(id, name) {
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
-              <div id="account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+              <div id="account-dropdown-income" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
                 <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="account-filter-input" 
+                  <input type="text" id="account-filter-input-income" 
                          class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
                          placeholder="搜索账户..."
                          autocomplete="off">
                 </div>
-                <div id="account-options" class="py-1"></div>
+                <div id="account-options-income" class="py-1"></div>
               </div>
             </div>
           </div>
@@ -1373,37 +1402,40 @@ var transactionMode = 'category';
 
 // 切换转账模式
 function toggleTransferMode() {
-  var accountLabel = document.getElementById('account-field-label');
-  var accountSearchInputEl = document.getElementById('account-search-input');
-  var categoryLabel = document.getElementById('category-field-label');
+  var categoryFieldWrapper = document.getElementById('category-field-wrapper');
+  var targetAccountField = document.getElementById('target-account-field');
+  var accountFieldWrapper = document.getElementById('account-field-wrapper');
+  var toggleTransferBtn = document.getElementById('toggle-transfer-btn');
+  var toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
   
   if (transactionMode === 'transfer') {
     // 切回收支模式
     transactionMode = 'category';
     targetAccountField.classList.add('hidden');
-    categoryField.classList.remove('hidden');
-    toggleTransferBtn.textContent = '转账';
-    if (targetAccountHiddenInput) targetAccountHiddenInput.value = '';
-    if (targetAccountSearchInput) targetAccountSearchInput.value = '';
-    // 还原账户 label
-    if (accountLabel) accountLabel.textContent = '账户 *';
-    if (accountSearchInputEl) accountSearchInputEl.placeholder = '选择账户';
-    // 还原分类 label
-    if (categoryLabel) categoryLabel.textContent = '分类 *';
+    categoryFieldWrapper.classList.remove('hidden');
+    accountFieldWrapper.classList.remove('hidden');
+    // 重置转账字段值
+    var targetHiddenInput = document.getElementById('target_account_id');
+    var targetSearchInput = document.getElementById('target-account-search-input');
+    var transferAccountHidden = document.getElementById('transaction_account_id');
+    var transferAccountSearch = document.getElementById('account-search-input');
+    if (targetHiddenInput) targetHiddenInput.value = '';
+    if (targetSearchInput) targetSearchInput.value = '';
+    if (transferAccountHidden) transferAccountHidden.value = '';
+    if (transferAccountSearch) transferAccountSearch.value = '';
   } else {
     // 切到转账模式
     transactionMode = 'transfer';
-    categoryField.classList.add('hidden');
+    categoryFieldWrapper.classList.add('hidden');
+    accountFieldWrapper.classList.add('hidden');
     targetAccountField.classList.remove('hidden');
-    toggleTransferBtn.textContent = '记收支';
+    // 清空收支字段值
     if (categoryHiddenInput) categoryHiddenInput.value = '';
     if (categorySearchInput) categorySearchInput.value = '';
-    // 账户 label 改为"转入账户"（下面是转入）
-    if (accountLabel) accountLabel.textContent = '转入账户 *';
-    if (accountSearchInputEl) accountSearchInputEl.placeholder = '选择转入账户';
-    // 分类 label 改为"转出账户"（上面是转出）
-    if (categoryLabel) categoryLabel.textContent = '转出账户 *';
-    if (categorySearchInput) categorySearchInput.placeholder = '选择转出账户';
+    var incomeAccountHidden = document.getElementById('transaction_account_id_income');
+    var incomeAccountSearch = document.getElementById('account-search-input-income');
+    if (incomeAccountHidden) incomeAccountHidden.value = '';
+    if (incomeAccountSearch) incomeAccountSearch.value = '';
   }
   // 同步 type
   transactionTypeInput.value = transactionMode === 'transfer' ? 'TRANSFER' : (currentCategoryType || 'EXPENSE');
@@ -1424,9 +1456,14 @@ function updateFundingVisibility() {
   }
 }
 
-// 切换转账按钮
+// 切换转账按钮（收支模式中的"转账"按钮）
 if (toggleTransferBtn) {
   toggleTransferBtn.addEventListener('click', toggleTransferMode);
+}
+// 切换转账按钮（转账模式中的"收支"按钮）
+var toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
+if (toggleTransferBtnAlt) {
+  toggleTransferBtnAlt.addEventListener('click', toggleTransferMode);
 }
 
 // 分类选择器逻辑
@@ -1617,13 +1654,21 @@ function submitAndContinue(event) {
   var form = document.querySelector('#add-transaction-modal form');
   if (!form) return;
   
+  // 收支模式：同步 account_id
+  if (transactionMode === 'category') {
+    var incomeHidden = document.getElementById('transaction_account_id_income');
+    var transferHidden = document.getElementById('transaction_account_id');
+    if (incomeHidden && transferHidden) {
+      transferHidden.value = incomeHidden.value;
+    }
+  }
+  
   // 获取 CSRF token
   var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
   
   // 收集表单数据
   var formData = new FormData(form);
   formData.append('continue_entry', '1');
-  formData.append('format', 'json');
   
   // 显示加载状态
   var continueBtn = event.target;
@@ -1631,16 +1676,24 @@ function submitAndContinue(event) {
   continueBtn.textContent = '保存中...';
   continueBtn.disabled = true;
   
-  // AJAX 提交
-  fetch(form.action, {
+  // AJAX 提交（URL 加 .json 确保 Rails 走 JSON 分支）
+  fetch(form.action.replace(/\/$/, '') + '.json', {
     method: 'POST',
     headers: {
       'X-CSRF-Token': csrfToken,
-      'Accept': 'application/json'
+      'Accept': 'application/json',
+      'X-Requested-With': 'XMLHttpRequest'
     },
     body: formData
   })
-  .then(response => response.json())
+  .then(response => {
+    if (!response.ok) {
+      return response.text().then(text => {
+        try { return JSON.parse(text); } catch(e) { return { success: false, error: '服务器错误: ' + response.status }; }
+      });
+    }
+    return response.json();
+  })
   .then(data => {
     if (data.success) {
       // 显示成功提示
@@ -1653,11 +1706,7 @@ function submitAndContinue(event) {
       if (amountInput) amountInput.value = '';
       if (noteInput) noteInput.value = '';
       
-      // 更新日期为今天
-      var dateInput = form.querySelector('input[name="transaction[date]"]');
-      if (dateInput) dateInput.value = new Date().toISOString().split('T')[0];
-      
-      // 保持账户、分类、类型等选择不变
+      // 保持账户、分类、类型、日期等选择不变
       // 不关闭弹窗，不刷新页面
     } else {
       // 显示错误提示
@@ -1799,10 +1848,27 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   });
 }
 
-// 初始化三个账户选择器
-initAccountSelector('account-search-input', 'account-dropdown', 'account-filter-input', 'account-options', 'transaction_account_id', '选择账户');
+// 初始化账户选择器
+initAccountSelector('account-search-input', 'account-dropdown', 'account-filter-input', 'account-options', 'transaction_account_id', '选择转出账户');
+initAccountSelector('account-search-input-income', 'account-dropdown-income', 'account-filter-input-income', 'account-options-income', 'transaction_account_id_income', '选择账户');
 initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 'funding-account-filter-input', 'funding-account-options', 'funding_account_id', '不补记资金来源');
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
+
+// 表单提交前，根据模式将正确的 account_id 写入 transaction[account_id]
+var addTransactionForm = document.querySelector('#add-transaction-modal form');
+if (addTransactionForm) {
+  addTransactionForm.addEventListener('submit', function(e) {
+    if (transactionMode === 'category') {
+      // 收支模式：将 income hidden input 的值复制到 account_id
+      var incomeHidden = document.getElementById('transaction_account_id_income');
+      var transferHidden = document.getElementById('transaction_account_id');
+      if (incomeHidden && transferHidden) {
+        transferHidden.value = incomeHidden.value;
+      }
+    }
+    // 转账模式：transaction_account_id 已经直接绑定了转出账户选择器
+  });
+}
 
 // 设置默认账户（如果在某个账户的视图中）
 function setDefaultAccount() {
@@ -1817,14 +1883,17 @@ function setDefaultAccount() {
       var account = accounts.find(function(acc) { return acc.id == accountId; });
       
       if (account) {
-        // 设置账户选择器的默认值
-        var accountHiddenInput = document.getElementById('transaction_account_id');
-        var accountSearchInput = document.getElementById('account-search-input');
-        
-        if (accountHiddenInput) accountHiddenInput.value = account.id;
-        if (accountSearchInput) accountSearchInput.value = account.name;
-        
-        console.log('Default account set:', account.name);
+        // 收支模式：设置到 income 账户选择器
+        var incomeHidden = document.getElementById('transaction_account_id_income');
+        var incomeSearch = document.getElementById('account-search-input-income');
+        if (incomeHidden) incomeHidden.value = account.id;
+        if (incomeSearch) incomeSearch.value = account.name;
+
+        // 转账模式：设置为默认转出账户
+        var transferHidden = document.getElementById('transaction_account_id');
+        var transferSearch = document.getElementById('account-search-input');
+        if (transferHidden) transferHidden.value = account.id;
+        if (transferSearch) transferSearch.value = account.name;
       }
     }
   }
