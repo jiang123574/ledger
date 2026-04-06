@@ -2097,7 +2097,7 @@ document.addEventListener('turbo:render', fixModalPositions);
         cardClass += 'bg-gray-50 dark:bg-surface-dark border border-transparent hover:border-border dark:hover:border-border-dark';
       }
 
-      html += '<div class="' + cardClass + '" onclick="selectBill(\'' + bill.label + '\', \'' + bill.start_date + '\', \'' + bill.end_date + '\')" data-label="' + bill.label + '">';
+      html += '<div class="' + cardClass + '" onclick="selectBill(\'' + escapeHtml(bill.label) + '\', \'' + bill.start_date + '\', \'' + bill.end_date + '\')" data-label="' + escapeHtml(bill.label) + '">';
       // 卡片标题
       html += '<div class="flex items-center justify-between mb-2">';
       if (isUnbilled) {
@@ -2290,6 +2290,13 @@ document.addEventListener('turbo:render', fixModalPositions);
       html += '</div>';
     });
     container.innerHTML = html;
+  }
+
+  // HTML 转义，防止 XSS
+  function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
   // 格式化金额（纯数字）
