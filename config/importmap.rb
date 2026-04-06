@@ -1,6 +1,7 @@
 # Pin npm packages by running ./bin/importmap
 
 pin "application"
+pin "bill_formatters"
 pin "web_vitals"
 pin "selectors"
 

@@ -2044,6 +2044,13 @@ document.addEventListener('turbo:render', fixModalPositions);
   var wrapper = document.getElementById('credit-bill-wrapper');
   var accountId = wrapper?.dataset?.accountId;
   var currentViewMode = '<%= params[:view_mode] %>' || 'date';
+  var billFormatters = window.BillFormatters || {};
+
+  function formatBillMoney(value) {
+    if (billFormatters.formatMoney) return billFormatters.formatMoney(value);
+    var num = parseFloat(value) || 0;
+    return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
 
   function initCreditBills() {
     wrapper = document.getElementById('credit-bill-wrapper');
@@ -2203,14 +2210,14 @@ document.addEventListener('turbo:render', fixModalPositions);
       html += '</div>';
       // 金额汇总
       html += '<div class="flex justify-between text-xs pt-1.5 border-t border-border/50 dark:border-border-dark/50">';
-      html += '<div><span class="text-secondary dark:text-secondary-dark">消费&取现金额：</span><br/><span class="font-medium text-expense">' + formatMoney(bill.spend_amount) + '</span></div>';
-      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款&退款金额：</span><br/><span class="font-medium text-income">' + formatMoney(bill.repay_amount) + '</span></div>';
+      html += '<div><span class="text-secondary dark:text-secondary-dark">消费&取现金额：</span><br/><span class="font-medium text-expense">' + formatBillMoney(bill.spend_amount) + '</span></div>';
+      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款&退款金额：</span><br/><span class="font-medium text-income">' + formatBillMoney(bill.repay_amount) + '</span></div>';
       html += '</div>';
       // 待还
       if (bill.balance_due > 0) {
         html += '<div class="text-xs mt-1.5 pt-1 border-t border-border/30 dark:border-border-dark/30">';
         html += '<span class="text-secondary dark:text-secondary-dark">待还&退款金额：</span>';
-        html += '<span class="font-bold text-expense">' + formatMoney(bill.balance_due) + '</span>';
+        html += '<span class="font-bold text-expense">' + formatBillMoney(bill.balance_due) + '</span>';
         html += '</div>';
       }
       html += '</div>';
@@ -2316,12 +2323,6 @@ document.addEventListener('turbo:render', fixModalPositions);
     if (!str) return '';
     return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
               .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-
-  // 格式化金额（纯数字）
-  function formatMoney(val) {
-    var num = parseFloat(val) || 0;
-    return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
   // 初始化

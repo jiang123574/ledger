@@ -7,7 +7,6 @@
 
 ### P1
 1. 信用卡账单模块前端重构
-- 账单相关函数（`renderBillEntries` / `formatMoney` / `formatCurrencyRaw`）收敛到模块内部，避免全局函数。
 - 账单模式与日期模式卡片渲染逻辑抽象复用，减少双实现偏差。
 
 ### P2
@@ -55,6 +54,9 @@
 
 11. Payables 联系人筛选回归测试补充  
 - 已完成：新增 `spec/requests/payables_spec.rb`，覆盖 `counterparty_id`（`id:` token）与 `none` 两条筛选路径，保障应付款列表筛选行为。
+
+12. 信用卡账单金额格式化函数收敛  
+- 已完成：新增 `app/javascript/bill_formatters.js` 并在账单卡片渲染与 `credit_bill_entries_controller` 复用，避免多处重复实现。
 
 ## 文档分工
 

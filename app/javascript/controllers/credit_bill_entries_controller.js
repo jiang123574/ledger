@@ -1,4 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
+import { formatMoney, formatCurrencyRaw } from "bill_formatters"
 
 export default class extends Controller {
   static targets = ["container", "template"]
@@ -33,7 +34,7 @@ export default class extends Controller {
 
       const typeBadgeClass = this.typeBadgeClass(entry.display_type)
       const amountClass = this.amountClass(entry.display_amount_type)
-      const amountText = this.formatMoney(Math.abs(entry.display_amount || 0))
+      const amountText = formatMoney(Math.abs(entry.display_amount || 0))
 
       row.querySelector('[data-field="date"]').textContent = entry.date || ""
       row.querySelector('[data-field="type"]').textContent = entry.display_type || ""
@@ -43,7 +44,7 @@ export default class extends Controller {
       row.querySelector('[data-field="note"]').textContent = entry.note || ""
       row.querySelector('[data-field="amount"]').textContent = amountText
       row.querySelector('[data-field="amount"]').className = `text-sm font-medium ${amountClass}`
-      row.querySelector('[data-field="balance"]').textContent = `余额: ${this.formatCurrencyRaw(entry.balance_after)}`
+      row.querySelector('[data-field="balance"]').textContent = `余额: ${formatCurrencyRaw(entry.balance_after)}`
 
       const editButton = row.querySelector('[data-role="edit"]')
       const deleteButton = row.querySelector('[data-role="delete"]')
@@ -85,15 +86,6 @@ export default class extends Controller {
 
   amountClass(displayAmountType) {
     return displayAmountType === "INCOME" ? "text-income" : "text-expense"
-  }
-
-  formatMoney(value) {
-    const num = parseFloat(value) || 0
-    return num.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-  }
-
-  formatCurrencyRaw(value) {
-    return `¥${this.formatMoney(value)}`
   }
 
   renderStatus(className, message) {
