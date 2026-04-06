@@ -178,8 +178,8 @@ class AccountsController < ApplicationController
       return
     end
 
-    start_date = Date.parse(start_s) rescue nil
-    end_date = Date.parse(end_s) rescue nil
+    start_date = Date.parse(start_s) rescue Date::Error, nil
+    end_date = Date.parse(end_s) rescue Date::Error, nil
 
     unless start_date && end_date
       render json: { entries: [], error: "日期格式错误" }, status: :bad_request
@@ -190,6 +190,8 @@ class AccountsController < ApplicationController
                     .where(date: start_date..end_date)
                     .includes(:entryable, entryable: :category)
                     .order(date: :desc)
+
+    Entry.preload_transfer_accounts(entries.to_a)
 
     entry_data = entries.map do |e|
       entry_type = e.display_entry_type
