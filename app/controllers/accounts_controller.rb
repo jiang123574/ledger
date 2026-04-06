@@ -127,6 +127,104 @@ class AccountsController < ApplicationController
     render json: stats_data
   end
 
+  def entries
+    ev = CacheBuster.version(:entries)
+    period_type = params[:period_type].presence || "month"
+    period_value = params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
+
+    entries_query = build_entries_query(period_type, period_value)
+
+    filter_cache_key = build_filter_cache_key
+    total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
+      entries_query.count
+    end
+
+    page = [[params[:page].to_i, 1].max, 1000].min
+    per_page = [[params[:per_page].to_i, 5].max, 200].min
+
+    entries_cache_key = "entries_list/#{filter_cache_key}/#{page}/#{per_page}/#{ev}"
+    cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
+      result = AccountStatsService.entries_with_balance(
+        entries_query, page: page, per_page: per_page, account_id: params[:account_id].presence
+      )
+      result.map { |entry, balance| [entry.id, balance] }
+    end
+
+    entry_ids = cached_data.map(&:first)
+    balance_map = cached_data.to_h
+
+    if entry_ids.empty?
+      render json: { entries: [], total: 0 }
+      return
+    end
+
+    entries = Entry.where(id: entry_ids)
+      .includes(:entryable, entryable: :category)
+      .reverse_chronological
+      .to_a
+
+    AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [e, nil] })
+
+    current_account_filter = params[:account_id].to_s
+    entry_data = entries.map do |e|
+      entry_type = e.display_entry_type
+      is_transfer = entry_type == 'TRANSFER'
+      is_inflow = is_transfer && e.amount.positive?
+
+      display_type = if is_transfer
+        if current_account_filter.blank?
+          "转账"
+        else
+          is_inflow ? "转入" : "转出"
+        end
+      else
+        e.display_type_label
+      end
+
+      display_amount_type = if is_transfer
+        if current_account_filter.blank?
+          "TRANSFER"
+        else
+          is_inflow ? "INCOME" : "EXPENSE"
+        end
+      else
+        entry_type
+      end
+
+      transfer_counterpart = if is_inflow
+        e.source_account_for_transfer&.name
+      else
+        e.target_account_for_display&.name
+      end
+
+      display_name = if is_transfer
+        if current_account_filter.present?
+          (is_inflow ? "← " : "→ ") + (transfer_counterpart || "未知账户")
+        else
+          "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}"
+        end
+      else
+        e.display_category&.name || '-'
+      end
+
+      {
+        id: e.id,
+        date: e.date&.strftime("%Y-%m-%d"),
+        amount: e.amount,
+        display_amount: e.display_amount,
+        type: entry_type,
+        display_type: display_type,
+        display_amount_type: display_amount_type,
+        display_name: display_name,
+        note: e.display_note || @accounts_map&.dig(e.account_id)&.name || "未知账户",
+        balance_after: balance_map[e.id],
+        show_both_amounts: is_transfer && current_account_filter.blank?
+      }
+    end
+
+    render json: { entries: entry_data, total: total_count }
+  end
+
   # 信用卡账单列表（JSON）
   # 返回最近 N 期的账单卡片数据 + 每期汇总
   def bills

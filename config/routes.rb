@@ -36,6 +36,7 @@ Rails.application.routes.draw do
     end
     collection do
       get :stats
+      get :entries
     end
     member do
       patch :reorder
