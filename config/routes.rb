@@ -69,6 +69,13 @@ Rails.application.routes.draw do
       post :revert
     end
   end
+  resources :payables, only: [:index, :show, :create, :update, :destroy] do
+    member do
+      get :settle
+      post :settle
+      post :revert
+    end
+  end
   resources :recurring, controller: "recurring", only: [:index, :create, :update, :destroy] do
     member do
       post :execute
