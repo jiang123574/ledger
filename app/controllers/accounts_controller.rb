@@ -1,7 +1,7 @@
 require 'ostruct'
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [:show, :edit, :update, :destroy]
+  before_action :set_account, only: [:show, :edit, :update, :destroy, :bills, :bills_entries]
 
   def index
     av = CacheBuster.version(:accounts)
@@ -121,6 +121,133 @@ class AccountsController < ApplicationController
     end
 
     render json: stats_data
+  end
+
+  # 信用卡账单列表（JSON）
+  # 返回最近 N 期的账单卡片数据 + 每期汇总
+  def bills
+    unless @account.credit_card?
+      render json: { error: "该账户不是信用卡或未设置账单日" }, status: :unprocessable_entity
+      return
+    end
+
+    count = (params[:count] || 3).to_i.clamp(1, 12)
+    cycles = @account.bill_cycles(count)
+
+    bill_data = cycles.map do |cycle|
+      summary = @account.bill_cycle_summary(
+        start_date: cycle[:start_date],
+        end_date: cycle[:end_date]
+      )
+
+      {
+        label: cycle[:label],
+        current: cycle[:current],
+        start_date: cycle[:start_date],
+        end_date: cycle[:end_date],
+        due_date: cycle[:due_date],
+        spend_amount: summary[:spend_amount],
+        repay_amount: summary[:repay_amount],
+        balance_due: summary[:balance_due],
+        spend_count: summary[:spend_count],
+        repay_count: summary[:repay_count]
+      }
+    end
+
+    render json: {
+      account_id: @account.id,
+      account_name: @account.name,
+      credit_limit: @account.credit_limit,
+      current_balance: @account.current_balance,
+      bills: bill_data
+    }
+  end
+
+  # 某期账单的交易明细（JSON，用于下方表格）
+  def bills_entries
+    unless @account.credit_card?
+      render json: { entries: [] }
+      return
+    end
+
+    start_s = params[:start_date]
+    end_s = params[:end_date]
+
+    if start_s.blank? || end_s.blank?
+      render json: { entries: [], error: "缺少日期参数" }, status: :bad_request
+      return
+    end
+
+    start_date = Date.parse(start_s) rescue nil
+    end_date = Date.parse(end_s) rescue nil
+
+    unless start_date && end_date
+      render json: { entries: [], error: "日期格式错误" }, status: :bad_request
+      return
+    end
+
+    entries = @account.transaction_entries
+                    .where(date: start_date..end_date)
+                    .includes(:entryable, entryable: :category)
+                    .order(date: :desc)
+
+    entry_data = entries.map do |e|
+      entry_type = e.display_entry_type
+      is_transfer = entry_type == 'TRANSFER'
+      # 单账户视图：amount > 0 = 转入（还款），amount < 0 = 转出（消费）
+      is_inflow = is_transfer && e.amount.positive?
+
+      # 显示类型标签（和按日期视图一致）
+      display_type = if is_transfer
+        is_inflow ? "转入" : "转出"
+      else
+        e.display_type_label
+      end
+
+      # 金额类型（决定颜色）
+      display_amount_type = if is_transfer
+        is_inflow ? "INCOME" : "EXPENSE"
+      else
+        entry_type
+      end
+
+      # 显示名称（对方账户）
+      display_name = if is_transfer
+        counterpart = is_inflow ? e.source_account_for_transfer&.name : e.target_account_for_display&.name
+        (is_inflow ? "← " : "→ ") + (counterpart || "未知账户")
+      else
+        e.display_category&.name || '-'
+      end
+
+      {
+        id: e.id,
+        date: e.date,
+        amount: e.amount,
+        display_amount: e.display_amount,
+        type: entry_type,
+        type_label: e.display_type_label,
+        display_type: display_type,
+        display_amount_type: display_amount_type,
+        display_name: display_name,
+        note: e.display_note,
+        category_name: e.display_category&.name,
+        is_repayment: e.amount.positive?,
+        is_spend: e.amount.negative?,
+        balance_after: nil
+      }
+    end
+
+    # 计算运行余额（从最早到最新）
+    running_balance = @account.initial_balance.to_d
+    balance_map = {}
+    entry_data.reverse_each do |ed|
+      running_balance += ed[:amount]
+      balance_map[ed[:id]] = running_balance
+    end
+
+    entry_data.each { |ed| ed[:balance_after] = balance_map[ed[:id]] }
+
+    render json: { entries: entry_data, total: entry_data.size }
   end
 
   def show

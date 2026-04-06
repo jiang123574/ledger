@@ -31,6 +31,8 @@ Rails.application.routes.draw do
   resources :accounts do
     member do
       get :versions
+      get :bills
+      get :bills_entries
     end
     collection do
       get :stats
