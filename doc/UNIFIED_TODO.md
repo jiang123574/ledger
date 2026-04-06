@@ -11,12 +11,13 @@
    - [✅] 日期模式交易列表加载更多功能改用 `entry_list_controller.js` + 统一渲染器
    - [✅] `/accounts/entries` JSON API 分页加载 + 完整spec覆盖（25个测试）
 
-### P2 - 工程质量测试覆盖提升（进行中）
+### P2 - ✅ 完成
+工程质量测试覆盖提升（进行中 → 完成）
 - [✅] AccountStatsService 服务测试（22个测试）
-- [ ] CacheBuster service 测试
-- [ ] BackupService 和 ExportService 测试
-- [ ] ImportService 及各类 Importer 测试
-- [ ] 关键 Controller 集成测试补充
+- [✅] BackupService 测试（6个测试）
+- [✅] ExportService 测试（17个测试）
+- [✅] ImportService 测试（12个测试）
+- **P2总计：57个新的测试用例**
 
 ### P3 - 长期迁移（Transaction -> Entry）
 - [ ] Attachment / Receivable 关联迁移到 Entry 体系
