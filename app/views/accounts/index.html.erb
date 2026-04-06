@@ -831,13 +831,8 @@ function confirmDeleteAccount(id, name) {
 <!-- 编辑交易弹窗 -->
 <div id="edit-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')"></div>
-  <div class="relative min-h-screen flex items-center justify-center p-4">
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-2xl p-8 z-10">
-      <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="absolute top-4 right-4 p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-colors z-20">
-        <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5 z-10">
       <div id="edit-transaction-content"></div>
     </div>
   </div>

@@ -1,399 +1,310 @@
-<!-- 交易编辑弹窗内容 -->
-<div class="mb-6">
-  <h2 class="text-2xl font-bold text-primary dark:text-primary-dark mb-2">
-    编辑交易
-  </h2>
+<!-- 交易编辑弹窗内容（与新建交易 UI 一致） -->
+<%
+  entry_type = @entry.display_entry_type
+  is_transfer = entry_type == 'TRANSFER'
+  is_income = entry_type == 'INCOME'
+  is_expense = entry_type == 'EXPENSE'
+%>
+<div class="flex items-center justify-between mb-4">
+  <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">编辑交易</h3>
+  <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+    <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+  </button>
 </div>
 
-<!-- 表单 -->
-<%= form_with model: @entry, url: transaction_path(@entry), method: :patch, local: false, id: "transaction-edit-form", class: "space-y-6", namespace: "transaction" do |f| %>
-        <!-- Transaction Type Tabs -->
-        <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-1 flex">
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @entry.display_entry_type == 'EXPENSE' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="EXPENSE">
-            <span class="flex items-center justify-center gap-2">
-              <%= render(Ds::IconComponent.new(name: "minus-circle", size: :sm, color: :expense)) %>
-              支出
-            </span>
-          </button>
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @entry.display_entry_type == 'INCOME' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="INCOME">
-            <span class="flex items-center justify-center gap-2">
-              <%= render(Ds::IconComponent.new(name: "plus-circle", size: :sm, color: :income)) %>
-              收入
-            </span>
-          </button>
-          <button type="button" class="flex-1 px-4 py-1.5 text-sm font-medium rounded-lg transition-smooth btn-modern type-tab <%= @entry.display_entry_type == 'TRANSFER' ? 'bg-white dark:bg-gray-800 ring-2 ring-blue-500' : '' %>" data-type="TRANSFER">
-            <span class="flex items-center justify-center gap-2">
-              <%= render(Ds::IconComponent.new(name: "arrow-right-left", size: :sm)) %>
-              转账
-            </span>
-          </button>
-        </div>
-        <%= hidden_field_tag :type, @entry.display_entry_type, id: "transaction_type" %>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">日期</label>
-            <%= render Ds::InputComponent.new(form: f, field: :date, type: :text) %>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">金额</label>
-            <%= render Ds::InputComponent.new(form: f, field: :amount, type: :number, placeholder: "0.00", prefix: "¥") %>
-          </div>
-
-          <div id="account-field-out">
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5" id="account-label-out">账户</label>
-            <input type="hidden" name="account_id" id="transaction_account_id" value="<%= @entry.source_account_id_for_transfer %>">
-            <div class="relative">
-              <input type="text" id="account-selector-search" 
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择账户"
-                     autocomplete="off"
-                     readonly
-                     value="<%= @entry.source_account_for_transfer&.name || '' %>">
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-              <div id="account-selector-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="account-selector-filter" 
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索账户..."
-                         autocomplete="off">
-                </div>
-                <div id="account-selector-options" class="py-1"></div>
-              </div>
+<%= form_with model: @entry, url: transaction_path(@entry), method: :patch, local: false, id: "transaction-edit-form", namespace: "transaction" do |f| %>
+  <input type="hidden" id="edit-transaction-type" value="<%= entry_type %>">
+  <div class="space-y-4">
+    <!-- 1. 分类（收支）/ 转账切换 -->
+    <div>
+      <div class="flex items-center justify-between mb-1.5">
+        <label class="block text-sm font-medium text-secondary dark:text-secondary-dark" id="edit-category-field-label"><%= is_transfer ? '转账' : '分类' %> *</label>
+        <button type="button" id="edit-toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">
+          <%= is_transfer ? '收支' : '转账' %>
+        </button>
+      </div>
+      <!-- 收支分类选择器 -->
+      <div id="edit-category-field" class="<%= is_transfer ? 'hidden' : '' %>">
+        <input type="hidden" name="category_id" id="edit_category_id" value="<%= @entry.display_category_id %>">
+        <div class="relative">
+          <input type="text" id="edit-category-search-input"
+                 class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                 placeholder="选择分类"
+                 autocomplete="off"
+                 readonly
+                 value="<%= @entry.display_category&.full_name || '' %>">
+          <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+          <div id="edit-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+            <div class="p-2 border-b border-border dark:border-border-dark">
+              <input type="text" id="edit-category-filter-input"
+                     class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                     placeholder="搜索分类..."
+                     autocomplete="off">
             </div>
+            <div id="edit-category-options" class="py-1"></div>
           </div>
-
-          <div id="category-field">
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类</label>
-            <input type="hidden" name="category_id" id="transaction_category_id" value="<%= @entry.display_category_id %>">
-            <div class="relative">
-              <input type="text" id="category-selector-search" 
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择分类"
-                     autocomplete="off"
-                     readonly
-                     value="<%= @entry.display_category&.full_name || '' %>">
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-              <div id="category-selector-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="category-selector-filter" 
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索分类..."
-                         autocomplete="off">
-                </div>
-                <div id="category-selector-options" class="py-1"></div>
-              </div>
+        </div>
+      </div>
+      <!-- 转账字段 -->
+      <div id="edit-target-account-field" class="<%= is_transfer ? '' : 'hidden' %>">
+        <input type="hidden" name="target_account_id" id="edit_target_account_id" value="<%= @entry.target_account_id_for_display %>">
+        <div class="relative">
+          <input type="text" id="edit-target-account-search-input"
+                 class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                 placeholder="选择转入账户"
+                 autocomplete="off"
+                 readonly
+                 value="<%= @entry.target_account_for_display&.name || '' %>">
+          <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+          </svg>
+          <div id="edit-target-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+            <div class="p-2 border-b border-border dark:border-border-dark">
+              <input type="text" id="edit-target-account-filter-input"
+                     class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                     placeholder="搜索账户..."
+                     autocomplete="off">
             </div>
-          </div>
-
-          <div id="target-account-field" class="hidden">
-            <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">转入账户</label>
-            <input type="hidden" name="target_account_id" id="transaction_target_account_id" value="<%= @entry.target_account_id_for_display %>">
-            <div class="relative">
-              <input type="text" id="target-account-selector-search" 
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择转入账户"
-                     autocomplete="off"
-                     readonly
-                     value="<%= @entry.target_account_for_display&.name || '' %>">
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-              <div id="target-account-selector-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="target-account-selector-filter" 
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索账户..."
-                         autocomplete="off">
-                </div>
-                <div id="target-account-selector-options" class="py-1"></div>
-              </div>
-            </div>
+            <div id="edit-target-account-options" class="py-1"></div>
           </div>
         </div>
+        <button type="button" id="edit-swap-accounts-btn" class="mt-2 w-full py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/>
+          </svg>
+          互换转出/转入账户
+        </button>
+      </div>
+    </div>
 
-        <div>
-          <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">备注</label>
-          <%= render Ds::InputComponent.new(form: f, field: :note, type: :textarea, placeholder: "添加备注...") %>
-        </div>
+    <!-- 2. 金额 -->
+    <div>
+      <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">金额 *</label>
+      <div class="relative">
+        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+        <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, value: @entry.display_amount, class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+      </div>
+    </div>
 
-        <div class="flex justify-end gap-3 pt-4 border-t border-border dark:border-border-dark">
-          <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
-            取消
-          </button>
-          <%= render(Ds::ButtonComponent.new(type: :submit, variant: :primary)) do %>
-            保存
-          <% end %>
+    <!-- 3. 账户 -->
+    <div id="edit-account-field-wrapper">
+      <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5" id="edit-account-field-label"><%= is_transfer ? '转出账户' : '账户' %> *</label>
+      <input type="hidden" name="account_id" id="edit_account_id" value="<%= @entry.source_account_id_for_transfer %>">
+      <div class="relative">
+        <input type="text" id="edit-account-search-input"
+               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+               placeholder="选择账户"
+               autocomplete="off"
+               readonly
+               value="<%= @entry.source_account_for_transfer&.name || '' %>">
+        <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+        </svg>
+        <div id="edit-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+          <div class="p-2 border-b border-border dark:border-border-dark">
+            <input type="text" id="edit-account-filter-input"
+                   class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                   placeholder="搜索账户..."
+                   autocomplete="off">
+          </div>
+          <div id="edit-account-options" class="py-1"></div>
         </div>
-      <% end %>
+      </div>
+    </div>
+
+    <!-- 4. 日期 -->
+    <div>
+      <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">日期 *</label>
+      <%= f.date_field :date, value: @entry.date, required: true, class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+    </div>
+
+    <!-- 备注 -->
+    <div>
+      <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
+      <%= f.text_field :note, value: @entry.note, placeholder: "添加备注", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+    </div>
+  </div>
+
+  <div class="flex justify-end gap-3 mt-6">
+    <button type="button" onclick="document.getElementById('edit-transaction-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+    <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+  </div>
+<% end %>
 
 <script>
-  (function() {
-    var allAccounts = <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>;
-    var expenseCategories = <%= raw @categories.select(&:expense?).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>;
-    var incomeCategories = <%= raw @categories.select(&:income?).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json %>;
-    
-    function escapeHtml(str) {
-      if (!str) return '';
-      return String(str)
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#39;');
-    }
+(function() {
+  var allAccounts = <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>;
+  var allCategories = <%= raw @categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id, category_type: c.category_type || c.type } }.to_json %>;
 
-  function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, placeholder) {
-    var searchInput = document.getElementById(searchInputId);
-    var dropdown = document.getElementById(dropdownId);
-    var filterInput = document.getElementById(filterInputId);
-    var optionsContainer = document.getElementById(optionsId);
-    var hiddenInput = document.getElementById(hiddenInputId);
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
 
+  // 通用选择器初始化
+  function initSelector(config) {
+    var searchInput = document.getElementById(config.searchInputId);
+    var dropdown = document.getElementById(config.dropdownId);
+    var filterInput = document.getElementById(config.filterInputId);
+    var optionsContainer = document.getElementById(config.optionsId);
+    var hiddenInput = document.getElementById(config.hiddenInputId);
     if (!searchInput || !dropdown || !optionsContainer) return;
 
-    function renderOptions(filterText) {
-      var filtered = allAccounts.filter(function(acc) {
+    function renderOptions(filterText, items) {
+      var filtered = items.filter(function(item) {
         if (!filterText) return true;
         var query = filterText.toLowerCase();
-        if (acc.name && acc.name.toLowerCase().includes(query)) return true;
-        if (acc.pinyin && acc.pinyin.includes(query)) return true;
+        if (item.name && item.name.toLowerCase().includes(query)) return true;
+        if (item.full_name && item.full_name.toLowerCase().includes(query)) return true;
+        if (item.pinyin && item.pinyin.includes(query)) return true;
         return false;
       });
-
-      if (filtered.length === 0) {
-        return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配账户</div>';
-      }
-
-      return filtered.map(function(acc) {
-        var selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        // 使用 escapeHtml 防止 XSS
-        var escapedName = escapeHtml(acc.name);
-        return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + escapedName + '">' +
-                 escapedName +
-               '</div>';
+      if (filtered.length === 0) return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配</div>';
+      return filtered.map(function(item) {
+        var indent = item.level ? 'padding-left: ' + (item.level * 16 + 12) + 'px;' : '';
+        var selected = hiddenInput && hiddenInput.value == item.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+        var label = escapeHtml(item.full_name || item.name);
+        return '<div class="' + config.itemClass + ' px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + item.id + '" data-name="' + label + '">' + label + '</div>';
       }).join('');
     }
 
     function updateOptions() {
       var filterText = filterInput ? filterInput.value : '';
-      optionsContainer.innerHTML = renderOptions(filterText);
-
-      optionsContainer.querySelectorAll('.account-option').forEach(function(option) {
+      optionsContainer.innerHTML = renderOptions(filterText, config.items);
+      optionsContainer.querySelectorAll('.' + config.itemClass).forEach(function(option) {
         option.addEventListener('click', function() {
-          var id = this.dataset.id;
-          var name = this.dataset.name;
-          if (hiddenInput) hiddenInput.value = id;
-          if (searchInput) searchInput.value = name;
-          if (dropdown) dropdown.classList.add('hidden');
+          if (hiddenInput) hiddenInput.value = this.dataset.id;
+          if (searchInput) searchInput.value = this.dataset.name;
+          dropdown.classList.add('hidden');
           if (filterInput) filterInput.value = '';
         });
       });
     }
 
-    if (searchInput) {
-      searchInput.addEventListener('click', function() {
-        dropdown.classList.toggle('hidden');
-        if (!dropdown.classList.contains('hidden')) {
-          updateOptions();
-          if (filterInput) filterInput.focus();
-        }
-      });
-    }
-
-    if (filterInput) {
-      filterInput.addEventListener('focus', function() {
-        this.placeholder = '';
-      });
-      filterInput.addEventListener('blur', function() {
-        this.placeholder = placeholder || '搜索账户...';
-      });
-      filterInput.addEventListener('input', function() {
-        updateOptions();
-      });
-    }
-
-    document.addEventListener('click', function(e) {
-      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
-        dropdown.classList.add('hidden');
-      }
-    });
-  }
-
-  function initCategorySelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, categories, placeholder) {
-    var searchInput = document.getElementById(searchInputId);
-    var dropdown = document.getElementById(dropdownId);
-    var filterInput = document.getElementById(filterInputId);
-    var optionsContainer = document.getElementById(optionsId);
-    var hiddenInput = document.getElementById(hiddenInputId);
-
-    if (!searchInput || !dropdown || !optionsContainer) return;
-
-    // 移除旧的事件监听器（通过克隆元素）
+    // 移除旧监听器
     var newSearchInput = searchInput.cloneNode(true);
     searchInput.parentNode.replaceChild(newSearchInput, searchInput);
     searchInput = newSearchInput;
-    
-    // 重置下拉菜单状态
     dropdown.classList.add('hidden');
 
-    function renderOptions(filterText) {
-      var filtered = categories.filter(function(cat) {
-        if (!filterText) return true;
-        var query = filterText.toLowerCase();
-        if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
-        if (cat.name && cat.name.toLowerCase().includes(query)) return true;
-        if (cat.pinyin && cat.pinyin.includes(query)) return true;
-        return false;
-      });
-
-      if (filtered.length === 0) {
-        return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
-      }
-
-      return filtered.map(function(cat) {
-        var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
-        var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        // 使用 escapeHtml 防止 XSS
-        var escapedName = escapeHtml(cat.full_name);
-        return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
-                 escapedName +
-               '</div>';
-      }).join('');
-    }
-
-    function updateOptions() {
-      var filterText = filterInput ? filterInput.value : '';
-      optionsContainer.innerHTML = renderOptions(filterText);
-
-      optionsContainer.querySelectorAll('.category-option').forEach(function(option) {
-        option.addEventListener('click', function() {
-          var id = this.dataset.id;
-          var name = this.dataset.name;
-          if (hiddenInput) hiddenInput.value = id;
-          if (searchInput) searchInput.value = name;
-          if (dropdown) dropdown.classList.add('hidden');
-          if (filterInput) filterInput.value = '';
-        });
-      });
-    }
-
-    if (searchInput) {
-      searchInput.addEventListener('click', function(e) {
-        e.stopPropagation();
-        dropdown.classList.toggle('hidden');
-        if (!dropdown.classList.contains('hidden')) {
-          updateOptions();
-          if (filterInput) filterInput.focus();
-        }
-      });
-    }
-
-    if (filterInput) {
-      filterInput.addEventListener('focus', function() {
-        this.placeholder = '';
-      });
-      filterInput.addEventListener('blur', function() {
-        this.placeholder = placeholder || '搜索分类...';
-      });
-      filterInput.addEventListener('input', function() {
-        updateOptions();
-      });
-    }
-
-    // 使用命名函数以便移除
-    var closeDropdownHandler = function(e) {
-      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
-        dropdown.classList.add('hidden');
-      }
-    };
-    
-    // 移除旧的处理器（如果存在）
-    document.removeEventListener('click', window._categoryCloseDropdownHandler);
-    window._categoryCloseDropdownHandler = closeDropdownHandler;
-    document.addEventListener('click', closeDropdownHandler);
-  }
-
-  // 初始化选择器
-  initAccountSelector('account-selector-search', 'account-selector-dropdown', 'account-selector-filter', 'account-selector-options', 'transaction_account_id', '选择账户');
-  initAccountSelector('target-account-selector-search', 'target-account-selector-dropdown', 'target-account-selector-filter', 'target-account-selector-options', 'transaction_target_account_id', '选择转入账户');
-  initCategorySelector('category-selector-search', 'category-selector-dropdown', 'category-selector-filter', 'category-selector-options', 'transaction_category_id', expenseCategories, '选择分类');
-  
-  // 监听交易类型切换
-  document.querySelectorAll('.type-tab').forEach(function(tab) {
-    tab.addEventListener('click', function() {
-      document.querySelectorAll('.type-tab').forEach(function(t) {
-        t.classList.remove('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-blue-500');
-      });
-      tab.classList.add('bg-white', 'dark:bg-gray-800', 'ring-2', 'ring-blue-500');
-      document.getElementById('transaction_type').value = tab.dataset.type;
-      
-      const categoryField = document.getElementById('category-field');
-      const targetAccountField = document.getElementById('target-account-field');
-      const accountLabelOut = document.getElementById('account-label-out');
-      
-      if (tab.dataset.type === 'TRANSFER') {
-        categoryField.classList.add('hidden');
-        targetAccountField.classList.remove('hidden');
-        if (accountLabelOut) accountLabelOut.textContent = '转出账户';
-      } else {
-        categoryField.classList.remove('hidden');
-        targetAccountField.classList.add('hidden');
-        if (accountLabelOut) accountLabelOut.textContent = '账户';
-        // 清空已选分类值（P1-6 修复）
-        document.getElementById('transaction_category_id').value = '';
-        document.getElementById('category-selector-search').value = '';
-        // 根据类型切换分类列表
-        var currentType = tab.dataset.type;
-        var categoryList = currentType === 'EXPENSE' ? expenseCategories : incomeCategories;
-        // 重新初始化分类选择器
-        initCategorySelector('category-selector-search', 'category-selector-dropdown', 'category-selector-filter', 'category-selector-options', 'transaction_category_id', categoryList, '选择分类');
-      }
+    searchInput.addEventListener('click', function(e) {
+      e.stopPropagation();
+      dropdown.classList.toggle('hidden');
+      if (!dropdown.classList.contains('hidden')) { updateOptions(); if (filterInput) filterInput.focus(); }
     });
+    if (filterInput) {
+      filterInput.addEventListener('input', function() { updateOptions(); });
+    }
+    document.addEventListener('click', function(e) {
+      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) dropdown.classList.add('hidden');
+    });
+    // 初始渲染
+    updateOptions();
+  }
+
+  var currentType = document.getElementById('edit-transaction-type').value;
+
+  function getFilteredCategories() {
+    if (currentType === 'INCOME') return allCategories.filter(function(c) { return c.category_type === 'INCOME'; });
+    return allCategories.filter(function(c) { return c.category_type === 'EXPENSE'; });
+  }
+
+  // 初始化账户选择器
+  initSelector({
+    searchInputId: 'edit-account-search-input', dropdownId: 'edit-account-dropdown',
+    filterInputId: 'edit-account-filter-input', optionsId: 'edit-account-options',
+    hiddenInputId: 'edit_account_id', items: allAccounts, itemClass: 'edit-account-opt'
   });
-  
-  // 初始化当前交易类型的分类选择器
-  var initialType = document.getElementById('transaction_type')?.value;
-  if (initialType === 'INCOME') {
-    initCategorySelector('category-selector-search', 'category-selector-dropdown', 'category-selector-filter', 'category-selector-options', 'transaction_category_id', incomeCategories, '选择分类');
-  } else if (initialType === 'EXPENSE') {
-    initCategorySelector('category-selector-search', 'category-selector-dropdown', 'category-selector-filter', 'category-selector-options', 'transaction_category_id', expenseCategories, '选择分类');
+  initSelector({
+    searchInputId: 'edit-target-account-search-input', dropdownId: 'edit-target-account-dropdown',
+    filterInputId: 'edit-target-account-filter-input', optionsId: 'edit-target-account-options',
+    hiddenInputId: 'edit_target_account_id', items: allAccounts, itemClass: 'edit-target-account-opt'
+  });
+
+  // 初始化分类选择器
+  if (currentType !== 'TRANSFER') {
+    initSelector({
+      searchInputId: 'edit-category-search-input', dropdownId: 'edit-category-dropdown',
+      filterInputId: 'edit-category-filter-input', optionsId: 'edit-category-options',
+      hiddenInputId: 'edit_category_id', items: getFilteredCategories(), itemClass: 'edit-category-opt'
+    });
   }
-  
-  if (document.getElementById('transaction_type')?.value === 'TRANSFER') {
-    document.getElementById('category-field').classList.add('hidden');
-    document.getElementById('target-account-field').classList.remove('hidden');
-    const accountLabelOut = document.getElementById('account-label-out');
-    if (accountLabelOut) accountLabelOut.textContent = '转出账户';
-  }
-  
+
+  // 转账切换按钮
+  document.getElementById('edit-toggle-transfer-btn').addEventListener('click', function() {
+    var categoryField = document.getElementById('edit-category-field');
+    var targetField = document.getElementById('edit-target-account-field');
+    var accountLabel = document.getElementById('edit-account-field-label');
+    var categoryLabel = document.getElementById('edit-category-field-label');
+
+    if (currentType === 'TRANSFER') {
+      currentType = 'EXPENSE';
+      categoryField.classList.remove('hidden');
+      targetField.classList.add('hidden');
+      if (accountLabel) accountLabel.textContent = '账户';
+      if (categoryLabel) categoryLabel.textContent = '分类';
+      this.textContent = '转账';
+      // 重新初始化分类
+      initSelector({
+        searchInputId: 'edit-category-search-input', dropdownId: 'edit-category-dropdown',
+        filterInputId: 'edit-category-filter-input', optionsId: 'edit-category-options',
+        hiddenInputId: 'edit_category_id', items: getFilteredCategories(), itemClass: 'edit-category-opt'
+      });
+    } else {
+      currentType = 'TRANSFER';
+      categoryField.classList.add('hidden');
+      targetField.classList.remove('hidden');
+      if (accountLabel) accountLabel.textContent = '转出账户';
+      if (categoryLabel) categoryLabel.textContent = '转账';
+      this.textContent = '收支';
+    }
+    document.getElementById('edit-transaction-type').value = currentType;
+  });
+
+  // 互换账户
+  document.getElementById('edit-swap-accounts-btn').addEventListener('click', function() {
+    var accountId = document.getElementById('edit_account_id');
+    var targetId = document.getElementById('edit_target_account_id');
+    var accountInput = document.getElementById('edit-account-search-input');
+    var targetInput = document.getElementById('edit-target-account-search-input');
+    if (!accountId || !targetId) return;
+
+    var tmpId = accountId.value;
+    var tmpName = accountInput ? accountInput.value : '';
+    accountId.value = targetId.value;
+    if (accountInput) accountInput.value = targetInput ? targetInput.value : '';
+    targetId.value = tmpId;
+    if (targetInput) targetInput.value = tmpName;
+  });
+
+  // 表单提交 — 参数放入 transaction 命名空间以匹配 transaction_params
   document.getElementById('transaction-edit-form').addEventListener('submit', function(e) {
     e.preventDefault();
-    const form = this;
-    const formData = new FormData(form);
-    
-    fetch(form.action, {
+    var formData = new FormData();
+    formData.append('transaction[date]', document.querySelector('#transaction-edit-form [name="entry[date]"]')?.value || '');
+    formData.append('transaction[amount]', document.querySelector('#transaction-edit-form [name="entry[amount]"]')?.value || '');
+    formData.append('transaction[note]', document.querySelector('#transaction-edit-form [name="entry[note]"]')?.value || '');
+    formData.append('transaction[type]', currentType);
+    formData.append('transaction[account_id]', document.getElementById('edit_account_id')?.value || '');
+    formData.append('transaction[category_id]', document.getElementById('edit_category_id')?.value || '');
+    var targetId = document.getElementById('edit_target_account_id')?.value;
+    if (currentType === 'TRANSFER' && targetId) {
+      formData.append('transaction[target_account_id]', targetId);
+    }
+
+    fetch(this.action, {
       method: 'PATCH',
       body: formData,
       headers: { 'Accept': 'text/html' }
     })
-    .then(res => {
+    .then(function(res) {
       document.getElementById('edit-transaction-modal').classList.add('hidden');
-      if (res.redirected) {
-        window.location.href = res.url;
-      } else {
-        window.location.reload();
-      }
+      if (res.redirected) { window.location.href = res.url; }
+      else { window.location.reload(); }
     })
-    .catch(err => console.error('Error saving transaction:', err));
+    .catch(function(err) { console.error('Error saving transaction:', err); });
   });
-  })();
+})();
 </script>
-
-</div>
-

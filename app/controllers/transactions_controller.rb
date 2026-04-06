@@ -13,7 +13,7 @@ class TransactionsController < ApplicationController
 
   def edit
     @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order
+    @categories = Category.active.by_sort_order.includes(:parent)
 
     render :edit_modal, layout: false if request.xhr?
   end
@@ -155,7 +155,7 @@ class TransactionsController < ApplicationController
 
   def load_lookups
     @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order
+    @categories = Category.active.by_sort_order.includes(:parent)
     @tags = Tag.alphabetically
     @transaction_types = TransactionTypeDisplay::TYPE_LABELS.map { |t, label| [label, t] }
   end
