@@ -77,6 +77,14 @@ FactoryBot.define do
     date { Date.current }
   end
 
+  factory :payable do
+    description { 'Test payable' }
+    original_amount { 1000 }
+    remaining_amount { 1000 }
+    currency { 'CNY' }
+    date { Date.current }
+  end
+
   factory :plan do
     sequence(:name) { |n| "Plan #{n}" }
     type { Plan::RECURRING }
