@@ -1,8 +1,10 @@
 class Attachment < ApplicationRecord
-  # TODO: 迁移 belongs_to :entry (polymorphic entryable)
-  belongs_to :ledger_transaction, class_name: "Transaction", foreign_key: :transaction_id
+  # 支持两种关联：旧的Transaction（迁移过程中保持）和新的Entry
+  belongs_to :ledger_transaction, class_name: "Transaction", foreign_key: :transaction_id, optional: true
+  belongs_to :entry, optional: true
 
   validates :file_path, :file_name, :file_type, presence: true
+  validate :ensure_entry_or_transaction_present
 
   def image?
     file_type.to_s.start_with?("image/")
@@ -17,6 +19,14 @@ class Attachment < ApplicationRecord
       "#{(size / 1024.0).round(2)} KB"
     else
       "#{(size / (1024.0 * 1024.0)).round(2)} MB"
+    end
+  end
+
+  private
+
+  def ensure_entry_or_transaction_present
+    if entry.blank? && ledger_transaction.blank?
+      errors.add(:base, "必须关联到 Entry 或 Transaction")
     end
   end
 end

@@ -24,6 +24,7 @@ class Entry < ApplicationRecord
   belongs_to :parent_entry, class_name: "Entry", optional: true
   
   has_many :child_entries, class_name: "Entry", foreign_key: :parent_entry_id, dependent: :destroy
+  has_many :attachments, dependent: :destroy
   
   validates :date, :name, :amount, :currency, presence: true, unless: -> { transfer_id.present? }
   validates :date, :amount, :currency, presence: true

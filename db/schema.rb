@@ -87,13 +87,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
 
   create_table "attachments", force: :cascade do |t|
     t.datetime "created_at", null: false
+    t.bigint "entry_id"
     t.string "file_name", limit: 255, null: false
     t.string "file_path", limit: 500, null: false
     t.integer "file_size", default: 0
     t.string "file_type", limit: 50, null: false
     t.string "thumbnail_path", limit: 500
-    t.integer "transaction_id", null: false
+    t.integer "transaction_id"
     t.datetime "updated_at", null: false
+    t.index ["entry_id"], name: "index_attachments_on_entry_id"
     t.index ["transaction_id", "file_type"], name: "idx_attachments_trans_type"
     t.index ["transaction_id"], name: "index_attachments_on_transaction_id"
   end
@@ -460,6 +462,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
 
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
+  add_foreign_key "attachments", "entries", on_delete: :cascade
   add_foreign_key "attachments", "transactions"
   add_foreign_key "budget_items", "categories", on_delete: :nullify
   add_foreign_key "budget_items", "single_budgets"
