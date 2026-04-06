@@ -48,6 +48,9 @@ RSpec.describe BackupService, type: :service do
 
         # 检查返回值中是否有成功标记
         expect(result).to be_a(Hash)
+        expect(result[:success]).to be true
+        # 验证记录已被删除
+        expect { BackupRecord.find(backup_record.id) }.to raise_error(ActiveRecord::RecordNotFound)
       end
     end
 

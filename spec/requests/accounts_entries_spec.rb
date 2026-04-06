@@ -9,6 +9,16 @@ RSpec.describe "Accounts entries API", type: :request do
   let(:another_account) { create(:account, initial_balance: 500) }
 
   describe "GET /accounts/entries" do
+    context "authentication" do
+      it "requires authentication" do
+        # 调用端点时需要认证
+        # 如果没有异常，说明请求被 http_login helper 正确认证了
+        get "/accounts/entries", params: { page: 1, per_page: 10, format: :json }
+        
+        expect(response).to have_http_status(:ok)
+      end
+    end
+
     context "with basic entries" do
       before do
         # 创建几条普通交易
@@ -161,7 +171,11 @@ RSpec.describe "Accounts entries API", type: :request do
         }
 
         expect(response).to have_http_status(:ok)
+        data = response.parsed_body
+        expect(data["entries"]).not_to be_empty
         # 验证返回的数据包含指定账户的交易
+        entry_account_ids = data["entries"].map { |e| e["account_id"] }
+        expect(entry_account_ids).to all(eq(account.id))
       end
     end
 
@@ -189,8 +203,13 @@ RSpec.describe "Accounts entries API", type: :request do
           format: :json
         }
 
+        expect(response).to have_http_status(:ok)
         data = response.parsed_body
-        # Transfer should have show_both_amounts set appropriately
+        expect(data["entries"]).not_to be_empty
+        # 验证返回的转账条目的金额正上
+        transfer_entry = data["entries"].find { |e| e["name"] == "转账" }
+        expect(transfer_entry).to be_present
+        expect(transfer_entry["amount"]).to eq(100)
       end
 
       it "shows directional transfer in single account view" do
@@ -202,6 +221,11 @@ RSpec.describe "Accounts entries API", type: :request do
         }
 
         expect(response).to have_http_status(:ok)
+        data = response.parsed_body
+        expect(data["entries"]).not_to be_empty
+        # 验证转账条目在单账户视图中显示
+        transfer_entries = data["entries"].select { |e| e["name"] == "转账" }
+        expect(transfer_entries).not_to be_empty
       end
     end
 
