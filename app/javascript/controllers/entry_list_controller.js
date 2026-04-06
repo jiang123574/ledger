@@ -100,10 +100,18 @@ export default class extends Controller {
     entries.forEach((entry) => {
       const card = window.EntryCardRenderer.createEntryCard(entry, {
         onEdit: (id) => {
-          if (window.openEditTransactionModal) window.openEditTransactionModal(id)
+          if (window.openEditTransactionModal) {
+            window.openEditTransactionModal(id)
+          } else {
+            console.warn("openEditTransactionModal not found")
+          }
         },
         onDelete: (id, name) => {
-          if (window.confirmDeleteTransaction) window.confirmDeleteTransaction(id, name)
+          if (window.confirmDeleteTransaction) {
+            window.confirmDeleteTransaction(id, name)
+          } else {
+            console.warn("confirmDeleteTransaction not found")
+          }
         }
       })
       this.containerTarget.appendChild(card)
