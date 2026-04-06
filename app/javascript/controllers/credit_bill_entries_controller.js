@@ -47,15 +47,15 @@ export default class extends Controller {
   }
 
   showLoading() {
-    this.containerTarget.innerHTML = '<div class="p-4 text-center text-secondary dark:text-secondary-dark text-sm">加载中...</div>'
+    this.renderStatus("p-4 text-center text-secondary dark:text-secondary-dark text-sm", "加载中...")
   }
 
   showError(message = "加载失败") {
-    this.containerTarget.innerHTML = `<div class="p-4 text-center text-red-500 text-sm">${message}</div>`
+    this.renderStatus("p-4 text-center text-red-500 text-sm", message)
   }
 
   showEmpty(message = "暂无数据") {
-    this.containerTarget.innerHTML = `<div class="p-8 text-center text-secondary dark:text-secondary-dark text-sm">${message}</div>`
+    this.renderStatus("p-8 text-center text-secondary dark:text-secondary-dark text-sm", message)
   }
 
   typeBadgeClass(displayType) {
@@ -76,5 +76,13 @@ export default class extends Controller {
 
   formatCurrencyRaw(value) {
     return `¥${this.formatMoney(value)}`
+  }
+
+  renderStatus(className, message) {
+    this.containerTarget.innerHTML = ""
+    const node = document.createElement("div")
+    node.className = className
+    node.textContent = message || ""
+    this.containerTarget.appendChild(node)
   }
 }
