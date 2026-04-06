@@ -5,11 +5,11 @@
 
 ## 当前待办（Open）
 
-### P1
+### P1 - ✅ 已完成
 1. 信用卡账单模块前端重构
-- [已完成] 账单明细渲染已统一到 `entry_card_renderer.js`，移除内联 template。
-- [已完成] 日期模式交易列表加载更多功能改用 `entry_list_controller.js` + 统一渲染器。
-- 新增 `/accounts/entries` JSON API 用于分页加载。
+- [✅ 已完成] 账单明细渲染已统一到 `entry_card_renderer.js`，移除内联 template。
+- [✅ 已完成] 日期模式交易列表加载更多功能改用 `entry_list_controller.js` + 统一渲染器。
+- [✅ 已完成] `/accounts/entries` JSON API 分页加载 + 完整spec覆盖（25个测试用例）。
 
 ### P2
 ### 长期迁移（Transaction -> Entry）
