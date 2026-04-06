@@ -375,14 +375,14 @@
     <% end %>
 
     <!-- ====== 面板 6: 年度月度对比（仅年度） ====== -->
-    <% if @report_type == :yearly && @category_monthly_comparison&.any? %>
+    <% if @report_type == :yearly && @category_monthly_comparison[:categories]&.any? %>
     <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden" role="tabpanel" aria-label="分类月度对比">
       <!-- 筛选按钮 + 弹窗 -->
       <div class="relative mb-4" data-controller="filter-popover">
         <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           筛选分类
-          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @category_monthly_comparison.size %></span>
+          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @category_monthly_comparison[:categories].size %></span>
         </button>
         <div data-filter-popover-target="panel" class="hidden absolute left-0 mt-2 w-64 max-h-72 bg-container dark:bg-container-dark rounded-xl shadow-lg border border-border dark:border-border-dark z-20 overflow-hidden">
           <div class="px-3 py-2 border-b border-border dark:border-border-dark flex items-center justify-between">
@@ -394,10 +394,11 @@
             </div>
           </div>
           <div class="p-2 overflow-y-auto max-h-56 space-y-0.5" data-filter-group="comparison">
-            <% @category_monthly_comparison.each do |(cat_id, cat_data)| %>
+            <% @category_monthly_comparison[:categories].each do |(cat_id, cat_data)| %>
               <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-                <input type="checkbox" value="<%= cat_id %>" data-tab-filter checked
+                <input type="checkbox" value="<%= cat_id %>" data-tab-filter data-category-kind="<%= cat_data[:kind] %>" checked
                        class="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500/30">
+                <span class="text-xs px-1.5 py-0.5 rounded <%= cat_data[:kind] == 'income' ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense' %>"><%= cat_data[:kind] == 'income' ? '收' : '支' %></span>
                 <span class="text-sm text-primary dark:text-primary-dark"><%= cat_data[:name] %></span>
               </label>
             <% end %>
@@ -416,12 +417,15 @@
           </div>
         </div>
         <div class="p-4 overflow-x-auto">
+          <% comparison_cats = @category_monthly_comparison[:categories] %>
+          <% comparison_totals = @category_monthly_comparison[:monthly_totals] %>
+          <% comparison_max_val = comparison_cats.values.map { |c| c[:monthly].values.max }.compact.max || 1 %>
           <div id="category-comparison-wrapper" data-controller="category-comparison"
-               data-category-comparison-categories-value="<%= @category_monthly_comparison.to_json %>">
+               data-category-comparison-categories-value="<%= comparison_cats.to_json %>">
             <table class="w-full text-xs">
               <thead>
                 <tr class="border-b border-border dark:border-border-dark">
-                  <th class="text-left py-1.5 px-2 font-medium text-secondary dark:text-secondary-dark sticky left-0 bg-container dark:bg-container-dark z-10">分类名称</th>
+                  <th class="text-left py-1.5 px-2 font-medium text-secondary dark:text-secondary-dark sticky left-0 bg-container dark:bg-container-dark z-10 min-w-[80px]">分类名称</th>
                   <th class="text-right py-1.5 px-2 font-medium text-secondary dark:text-secondary-dark">合计</th>
                   <% (1..12).each do |m| %>
                     <th class="text-right py-1.5 px-1.5 font-medium text-secondary dark:text-secondary-dark"><%= m %>月</th>
@@ -429,25 +433,26 @@
                 </tr>
               </thead>
               <tbody id="comparison-table-body">
-                <% comparison_max_val = @category_monthly_comparison.values.map { |c| c[:monthly].values.max }.compact.max || 1 %>
-                <% @category_monthly_comparison.each_with_index do |(cat_id, cat_data), idx| %>
+                <% comparison_cats.each_with_index do |(cat_id, cat_data), idx| %>
+                <% is_income = cat_data[:kind] == 'income' %>
                 <tr class="border-b border-border/50 dark:border-border-dark/50 hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer comparison-row"
                     data-category-id="<%= cat_id %>"
                     data-row-index="<%= idx %>">
                   <td class="py-1.5 px-2 font-medium text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5 whitespace-nowrap">
-                    <%= cat_data[:name] %>
+                    <span class="inline-flex items-center gap-1">
+                      <span class="text-[10px] px-1 py-px rounded leading-none <%= is_income ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense' %>"><%= is_income ? '收' : '支' %></span>
+                      <%= cat_data[:name] %>
+                    </span>
                   </td>
-                  <td class="py-1.5 px-2 text-right font-semibold text-expense whitespace-nowrap"><%= format_currency(cat_data[:total]) %></td>
+                  <td class="py-1.5 px-2 text-right font-semibold <%= is_income ? 'text-income' : 'text-expense' %> whitespace-nowrap"><%= format_currency(cat_data[:total]) %></td>
                   <% (1..12).each do |m| %>
-                    <%
-                      val = cat_data[:monthly][m]
-                      has_value = val && val > 0
-                    %>
+                    <% val = cat_data[:monthly][m] %>
+                    <% has_value = val && val > 0 %>
                     <td class="py-1.5 px-1.5 text-right whitespace-nowrap monthly-cell" data-month="<%= m %>">
                       <% if has_value %>
-                        <span class="text-expense"><%= format_currency(val) %></span>
+                        <span class="<%= is_income ? 'text-income' : 'text-expense' %>"><%= format_currency(val) %></span>
                         <div class="mt-0.5 h-0.5 bg-surface dark:bg-surface-dark rounded-full overflow-hidden" style="width: 48px" title="<%= val %>">
-                          <div class="h-full bg-expense/60 rounded-full transition-all duration-200" style="width: <%= [(val / [comparison_max_val, val].max * 100).round, 100].min %>%; opacity: 0.7"></div>
+                          <div class="h-full <%= is_income ? 'bg-income/60' : 'bg-expense/60' %> rounded-full transition-all duration-200" style="width: <%= [(val / [comparison_max_val, val].max * 100).round, 100].min %>%; opacity: 0.7"></div>
                         </div>
                       <% else %>
                         <span class="text-gray-300 dark:text-gray-600">—</span>
@@ -456,6 +461,31 @@
                   <% end %>
                 </tr>
                 <% end %>
+
+                <%# 总计行 %>
+                <tr class="border-t-2 border-border dark:border-border-dark bg-surface/50 dark:bg-surface-dark/50 font-semibold">
+                  <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5">支出总计</td>
+                  <td class="py-2 px-2 text-right text-expense"><%= format_currency(comparison_totals.values.sum { |t| t[:expense] }) %></td>
+                  <% (1..12).each do |m| %>
+                    <td class="py-2 px-1.5 text-right text-expense"><%= format_currency(comparison_totals.dig(m, :expense)) %></td>
+                  <% end %>
+                </tr>
+                <tr class="border-b border-border/50 dark:border-border-dark/50 bg-surface/50 dark:bg-surface-dark/50 font-semibold">
+                  <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5">收入总计</td>
+                  <td class="py-2 px-2 text-right text-income"><%= format_currency(comparison_totals.values.sum { |t| t[:income] }) %></td>
+                  <% (1..12).each do |m| %>
+                    <td class="py-2 px-1.5 text-right text-income"><%= format_currency(comparison_totals.dig(m, :income)) %></td>
+                  <% end %>
+                </tr>
+                <tr class="border-b-2 border-border dark:border-border-dark bg-surface dark:bg-surface-dark font-bold">
+                  <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-10">差额</td>
+                  <% total_diff = comparison_totals.values.sum { |t| t[:income] - t[:expense] } %>
+                  <td class="py-2 px-2 text-right <%= total_diff >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(total_diff) %></td>
+                  <% (1..12).each do |m| %>
+                    <% diff = comparison_totals.dig(m, :income) - comparison_totals.dig(m, :expense) %>
+                    <td class="py-2 px-1.5 text-right <%= diff >= 0 ? 'text-income' : 'text-expense' %>"><%= format_currency(diff) %></td>
+                  <% end %>
+                </tr>
               </tbody>
             </table>
 

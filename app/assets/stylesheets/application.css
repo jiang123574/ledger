@@ -484,6 +484,36 @@ samp {
   transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+/* 账户拖拽项：只对背景色过渡，opacity/border 变化即时生效 */
+.account-drag-item {
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 拖拽中的 placeholder 状态：半透明 + 保持空间 */
+.account-drag-placeholder {
+  opacity: 0.25 !important;
+  background: transparent !important;
+  pointer-events: none;
+  transition: none !important;
+}
+
+/* 拖拽中禁止文字选中（全局） */
+body.account-sorting {
+  user-select: none !important;
+  cursor: grabbing !important;
+}
+body.account-sorting * {
+  user-select: none !important;
+  cursor: grabbing !important;
+}
+
+/* 拖拽 clone 元素样式 */
+.account-drag-clone {
+  border-radius: 8px !important;
+  will-change: transform; /* 硬件加速 */
+}
+
 .transition-fast {
   transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -987,4 +1017,13 @@ a[class*="rounded-lg"][class*="bg-"]:not(.nav-link):not(.settings-nav-item) {
 
 a[class*="rounded-lg"][class*="bg-"]:hover:not(.nav-link):not(.settings-nav-item) {
   transform: scale(1.01);
+}
+
+/* ========================================
+   Accounts Page - Layout Fixes
+   ======================================== */
+
+/* 账户页面：覆盖全局 min-h-screen，避免内容少时顶部/底部大片空白 */
+main:has([data-account-page]) {
+  min-height: auto;
 }

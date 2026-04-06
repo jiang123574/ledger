@@ -16,6 +16,15 @@ export default class extends Controller {
     this._boundRowClick = this._handleRowClick.bind(this)
     this.element.addEventListener('click', this._boundRowClick)
 
+    // 监听筛选变化，联动更新趋势图
+    this._boundFilterChange = (e) => {
+      if (e.target.matches('[data-tab-filter]')) {
+        // 筛选变化时，更新趋势图为选中分类的汇总
+        setTimeout(() => this._renderSummaryChart(), 50)
+      }
+    }
+    this.element.addEventListener('change', this._boundFilterChange)
+
     // 切换图表显示
     const toggleCheckbox = document.getElementById('toggle-comparison-chart')
     if (toggleCheckbox) {
@@ -23,6 +32,13 @@ export default class extends Controller {
         const chartArea = document.getElementById('comparison-chart-area')
         if (chartArea) {
           chartArea.classList.toggle('hidden', !e.target.checked)
+          if (e.target.checked) {
+            setTimeout(() => {
+              const firstRow = this.element.querySelector('.comparison-row:not(.hidden)')
+              if (firstRow) this.selectRow(firstRow)
+              else this._renderSummaryChart()
+            }, 100)
+          }
         }
       }
       toggleCheckbox.addEventListener('change', this._boundToggleChange)
@@ -32,8 +48,9 @@ export default class extends Controller {
           const chartArea = document.getElementById('comparison-chart-area')
           if (chartArea) chartArea.classList.remove('hidden')
           // 自动选中第一行
-          const firstRow = this.element.querySelector('.comparison-row')
+          const firstRow = this.element.querySelector('.comparison-row:not(.hidden)')
           if (firstRow) this.selectRow(firstRow)
+          else this._renderSummaryChart()
         }, 100)
       }
     }
@@ -49,10 +66,145 @@ export default class extends Controller {
     if (this._chart) {
       this._chart.resize()
     } else {
-      // 如果还没初始化图表，尝试选中第一行触发渲染
-      const firstRow = this.element.querySelector('.comparison-row')
+      const firstRow = this.element.querySelector('.comparison-row:not(.hidden)')
       if (firstRow) this.selectRow(firstRow)
+      else this._renderSummaryChart()
     }
+  }
+
+  // 获取当前可见（未被筛选隐藏）的分类 ID
+  _getVisibleCategoryIds() {
+    return [...this.element.querySelectorAll('.comparison-row:not(.hidden)')]
+      .map(row => row.dataset.categoryId)
+      .filter(Boolean)
+  }
+
+  // 获取当前筛选面板中选中的分类 ID
+  _getCheckedCategoryIds() {
+    const filterPopover = this.element.closest('[data-report-tabs-target="panel"]')
+      ?.querySelector('[data-filter-group="comparison"]')
+    if (!filterPopover) return this._getVisibleCategoryIds()
+    return [...filterPopover.querySelectorAll('[data-tab-filter]:checked')]
+      .map(cb => cb.value)
+  }
+
+  // 汇总趋势图：显示当前选中分类的月度收支汇总
+  _renderSummaryChart() {
+    const checkedIds = this._getCheckedCategoryIds()
+    const nameEl = document.getElementById('selected-category-name')
+    if (nameEl) nameEl.textContent = `已选 ${checkedIds.length} 个分类`
+
+    // 分别汇总支出和收入（用 toFixed 避免 IEEE 754 浮点累积误差）
+    const expenseMonthly = Array.from({ length: 12 }, () => 0)
+    const incomeMonthly = Array.from({ length: 12 }, () => 0)
+
+    checkedIds.forEach(id => {
+      const cat = this.categoriesValue[id]
+      if (!cat) return
+      for (let m = 1; m <= 12; m++) {
+        const val = cat.monthly[m] || 0
+        if (cat.kind === 'income') {
+          incomeMonthly[m - 1] += val
+        } else {
+          expenseMonthly[m - 1] += val
+        }
+      }
+    })
+
+    // 对汇总结果做精度修正，消除 114.999999999999 这类问题
+    for (let i = 0; i < 12; i++) {
+      expenseMonthly[i] = Math.round(expenseMonthly[i] * 100) / 100
+      incomeMonthly[i] = Math.round(incomeMonthly[i] * 100) / 100
+    }
+
+    this._renderDualLineChart(expenseMonthly, incomeMonthly)
+  }
+
+  // 双线折线图：支出 + 收入
+  async _renderDualLineChart(expenseData, incomeData) {
+    const canvas = document.getElementById('comparison-line-chart')
+    if (!canvas) return
+
+    const Chart = await getChartJs()
+    if (!Chart) return
+
+    const ctx = canvas.getContext('2d')
+    if (this._chart) this._chart.destroy()
+
+    const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
+    const maxVal = Math.round(Math.max(...expenseData, ...incomeData, 100) * 1.15 * 100) / 100
+
+    const isDark = document.documentElement.classList.contains("dark")
+    const textColor = isDark ? "#f8f9fa" : "#1a1a1a"
+    const gridColor = isDark ? "#374151" : "#e9ecef"
+    const expenseColor = getCssColor('--color-expense', '#ef4444')
+    const incomeColor = getCssColor('--color-income', '#22c55e')
+
+    this._chart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: months,
+        datasets: [
+          {
+            label: '支出',
+            data: expenseData,
+            borderColor: expenseColor,
+            backgroundColor: hexToRgba(expenseColor, 0.1),
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointBackgroundColor: expenseColor,
+            fill: true,
+            tension: 0.3
+          },
+          {
+            label: '收入',
+            data: incomeData,
+            borderColor: incomeColor,
+            backgroundColor: hexToRgba(incomeColor, 0.1),
+            borderWidth: 2.5,
+            pointRadius: 3,
+            pointHoverRadius: 5,
+            pointBackgroundColor: incomeColor,
+            fill: true,
+            tension: 0.3
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            labels: { color: textColor, font: { size: 11 }, boxWidth: 12, padding: 16 }
+          },
+          tooltip: {
+            callbacks: {
+              label: (ctx) => `${ctx.dataset.label}: ¥${(ctx.parsed.y || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: textColor, font: { size: 11 } }
+          },
+          y: {
+            beginAtZero: true,
+            max: maxVal,
+            grid: { color: gridColor },
+            ticks: {
+              color: textColor,
+              font: { size: 11 },
+              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : (Math.round(v * 100) / 100).toString()
+            }
+          }
+        }
+      }
+    })
   }
 
   selectRow(row) {
@@ -72,9 +224,12 @@ export default class extends Controller {
     const catData = this.categoriesValue[categoryId]
     if (!catData) return
 
-    // 更新标题名称
+    // 更新标题名称（带收支标签）
     const nameEl = document.getElementById('selected-category-name')
-    if (nameEl) { nameEl.textContent = catData.name }
+    if (nameEl) {
+      const kindLabel = catData.kind === 'income' ? '【收入】' : '【支出】'
+      nameEl.textContent = kindLabel + catData.name
+    }
 
     // 更新/创建折线图
     this.renderLineChart(catData)
@@ -101,15 +256,16 @@ export default class extends Controller {
     const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
     const data = Array.from({ length: 12 }, (_, i) => catData.monthly[i + 1] || 0)
 
-    // 找到最大值用于缩放
-    const maxVal = Math.max(...data, 100)
+    // 找到最大值用于缩放（round 避免浮点误差传到 y 轴刻度）
+    const maxVal = Math.round(Math.max(...data, 100) * 1.15 * 100) / 100
 
     const isDark = document.documentElement.classList.contains("dark")
     const textColor = isDark ? "#f8f9fa" : "#1a1a1a"
     const gridColor = isDark ? "#374151" : "#e9ecef"
 
-    // 从 CSS 变量读取颜色（暗色模式自动适配）
-    const expenseColor = getCssColor('--color-expense', '#ef4444')
+    // 从 CSS 变量读取颜色（根据收支类型选择颜色）
+    const isIncome = catData.kind === 'income'
+    const color = getCssColor(isIncome ? '--color-income' : '--color-expense', isIncome ? '#22c55e' : '#ef4444')
 
     this._chart = new Chart(ctx, {
       type: 'line',
@@ -118,12 +274,12 @@ export default class extends Controller {
         datasets: [{
           label: catData.name,
           data: data,
-          borderColor: expenseColor,
-          backgroundColor: hexToRgba(expenseColor, 0.15),
+          borderColor: color,
+          backgroundColor: hexToRgba(color, 0.15),
           borderWidth: 2.5,
           pointRadius: 4,
           pointHoverRadius: 6,
-          pointBackgroundColor: expenseColor,
+          pointBackgroundColor: color,
           fill: true,
           tension: 0.3
         }]
@@ -136,7 +292,7 @@ export default class extends Controller {
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => `¥${ctx.parsed.y.toLocaleString('zh-CN', { minimumFractionDigits: 2 })}`
+              label: (ctx) => `${ctx.dataset.label}: ¥${(ctx.parsed.y || 0).toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`
             }
           }
         },
@@ -147,12 +303,12 @@ export default class extends Controller {
           },
           y: {
             beginAtZero: true,
-            max: maxVal * 1.15,
+            max: maxVal,
             grid: { color: gridColor },
             ticks: {
               color: textColor,
               font: { size: 11 },
-              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : v.toString()
+              callback: (v) => v >= 1000 ? (v / 1000).toFixed(1) + 'k' : (Math.round(v * 100) / 100).toString()
             }
           }
         }
@@ -161,10 +317,13 @@ export default class extends Controller {
   }
 
   disconnect() {
-    // 清理事件委托
     if (this._boundRowClick) {
       this.element.removeEventListener('click', this._boundRowClick)
       this._boundRowClick = null
+    }
+    if (this._boundFilterChange) {
+      this.element.removeEventListener('change', this._boundFilterChange)
+      this._boundFilterChange = null
     }
     if (this._boundToggleChange) {
       const toggleCheckbox = document.getElementById('toggle-comparison-chart')

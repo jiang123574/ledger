@@ -88,7 +88,7 @@ class Account < ApplicationRecord
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
 
-    month_entries = transaction_entries.where(date: start_date..end_date).where("transfer_id IS NULL")
+    month_entries = transaction_entries.where(date: start_date..end_date)
 
     {
       income: month_entries.where('amount > 0').sum(:amount),
@@ -105,7 +105,7 @@ class Account < ApplicationRecord
   end
 
   def cash_flow(from_date, to_date)
-    period_entries = transaction_entries.where(date: from_date..to_date).where("transfer_id IS NULL")
+    period_entries = transaction_entries.where(date: from_date..to_date)
     income = period_entries.where('amount > 0').sum(:amount)
     expense = period_entries.where('amount < 0').sum('ABS(amount)')
     { income: income, expense: expense, net: income - expense }
