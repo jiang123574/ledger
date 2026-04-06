@@ -3,7 +3,10 @@
 require "rails_helper"
 
 RSpec.describe CacheBuster, type: :model do
-  before { Rails.cache.clear }
+  before do
+    Rails.cache.clear
+    CacheBuster.clear!
+  end
 
   describe ".version" do
     it "returns 0 when no version has been set" do

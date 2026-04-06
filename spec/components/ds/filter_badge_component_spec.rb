@@ -22,7 +22,8 @@ RSpec.describe Ds::FilterBadgeComponent, type: :component do
     rendered = render_inline(component).to_html
 
     expect(rendered).to include('/transactions?type=')
-    expect(rendered).to include('M6 18L18 6') # x icon path
+    expect(rendered).to include('hover:text-income')
+    expect(rendered).to include('<svg')
   end
 
   it 'does not render remove link when remove_url is nil' do

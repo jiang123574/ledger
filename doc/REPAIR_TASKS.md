@@ -1,13 +1,14 @@
-# 修复任务清单（待下一轮处理）
+# 修复任务清单（已完成）
 
 更新时间：2026-04-06
-分支：`fix/transfer-edit-save`
+分支：`main`
+状态：`已完成（199 examples, 0 failures）`
 
 ## 目标
 
 基于完整 `rspec` 结果（`198 examples, 25 failures`），整理下一轮修复任务，优先恢复测试基线稳定性。
 
-## P0（先修）
+## P0（已完成）
 
 1. 修复 request spec 的鉴权 helper
 - 症状：`NoMethodError: undefined method 'env' for nil`
@@ -19,7 +20,7 @@
 - 现象：`version` 未按预期递增，`bump_all` 也不生效
 - 建议：检查 `CacheBuster.bump/version/bump_all` 的存储介质、scope key 拼接和测试隔离。
 
-## P1（随后修）
+## P1（已完成）
 
 3. 修复 Counterparty 与 Receivable 关联测试
 - 影响：`spec/models/counterparty_spec.rb` 共 7 个失败
@@ -36,7 +37,7 @@
 - 现象：SVG path 字符串断言与实际渲染格式不一致
 - 建议：改用更稳健断言（元素存在/类名/aria），避免 path 文本硬编码。
 
-## 已完成（本轮）
+## 本轮完成项
 
 1. 转账编辑保存链路加固（金额符号）
 - 转账转出强制负数、转入强制正数（abs）。
@@ -52,8 +53,12 @@
 4. 新增账户排序 request spec
 - 覆盖普通排序与隐藏账户场景。
 
-## 建议执行顺序
+## 实际修复结果
 
-1. 先修鉴权 helper（可一次消除 10 个 request failures）。
-2. 再修 CacheBuster（6 个 failures）。
-3. 然后处理 Counterparty / Category / FilterBadge。
+1. request spec 鉴权 helper 已改为默认注入 Authorization headers，修复 `request.env` 为 nil。
+2. CacheBuster 新增 null_store 回退 + `clear!`，测试不再跨用例累积。
+3. Counterparty/Receivable 测试迁移为关联对象赋值。
+4. Category 关联改为 `entryable_transactions` + `entries through`，测试同步更新。
+5. FilterBadge 组件测试改为稳定断言（不依赖 SVG path 文本）。
+6. Transactions 删除用例改为断言目标记录确实被删除（避免全局计数脆弱断言）。
+7. Accounts reorder 测试改为相对顺序断言，避免受其他测试数据影响。

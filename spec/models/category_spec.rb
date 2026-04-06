@@ -6,7 +6,8 @@ RSpec.describe Category, type: :model do
   describe 'associations' do
     it { is_expected.to have_many(:children).dependent(:destroy) }
     it { is_expected.to belong_to(:parent).optional }
-    it { is_expected.to have_many(:entries).dependent(:nullify) }
+    it { is_expected.to have_many(:entryable_transactions).dependent(:nullify) }
+    it { is_expected.to have_many(:entries).through(:entryable_transactions) }
   end
 
   describe 'validations' do

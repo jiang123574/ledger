@@ -60,20 +60,15 @@ RSpec.describe "Transactions", type: :request do
   end
 
   describe "DELETE /transactions/:id" do
-    let(:entry) do
-      entry = create(:entry, :expense, account: account)
-      entryable = create(:entryable_transaction, :expense, category: category)
-      entry.update!(entryable: entryable)
-      entry
-    end
-
     let(:account) { create(:account) }
     let(:category) { create(:category) }
+    let(:entryable) { create(:entryable_transaction, :expense, category: category) }
+    let(:entry) { create(:entry, :expense, account: account, entryable: entryable) }
 
     it "destroys the entry" do
       expect {
         delete "/transactions/#{entry.id}"
-      }.to change(Entry, :count).by(-1)
+      }.to change { Entry.exists?(entry.id) }.from(true).to(false)
 
       expect(response).to redirect_to("/accounts")
     end
