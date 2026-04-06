@@ -333,17 +333,10 @@
                   <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5"><%= e.display_note || (@accounts_map && @accounts_map[e.account_id]&.name) || "未知账户" %></p>
                 </div>
                 <div class="text-right shrink-0">
-                  <% if is_transfer && current_account_filter.blank? %>
-                    <p class="text-sm">
-                      <span class="text-expense">-<%= format_currency(e.display_amount, unit: "") %></span>
-                      <span class="mx-1 text-secondary dark:text-secondary-dark">/</span>
-                      <span class="text-income">+<%= format_currency(e.display_amount, unit: "") %></span>
-                    </p>
-                  <% else %>
-                    <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
-                      <%= format_currency(e.display_amount, unit: "") %>
-                    </p>
-                  <% end %>
+                  <%# 转账交易：根据方向只显示一个金额（流入/流出），不显示双行 %>
+                  <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
+                    <%= format_currency(e.display_amount, unit: "") %>
+                  </p>
                   <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= format_currency(balance) %></p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
