@@ -335,9 +335,9 @@
                 <div class="text-right shrink-0">
                   <% if is_transfer && current_account_filter.blank? %>
                     <p class="text-sm">
-                      <span class="text-expense">-<%= format_currency(e.display_amount) %></span>
+                      <span class="text-expense">-<%= format_currency(e.display_amount, unit: "") %></span>
                       <span class="mx-1 text-secondary dark:text-secondary-dark">/</span>
-                      <span class="text-income">+<%= format_currency(e.display_amount) %></span>
+                      <span class="text-income">+<%= format_currency(e.display_amount, unit: "") %></span>
                     </p>
                   <% else %>
                     <p class="text-sm font-medium <%= display_amount_type == 'INCOME' ? 'text-income' : 'text-expense' %>">
