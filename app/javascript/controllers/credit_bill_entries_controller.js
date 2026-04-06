@@ -3,6 +3,24 @@ import { Controller } from "@hotwired/stimulus"
 export default class extends Controller {
   static targets = ["container", "template"]
 
+  connect() {
+    this.onRender = this.onRender.bind(this)
+    this.onLoading = this.onLoading.bind(this)
+    this.onError = this.onError.bind(this)
+
+    this.element.addEventListener("credit-bill-entries:render", this.onRender)
+    this.element.addEventListener("credit-bill-entries:loading", this.onLoading)
+    this.element.addEventListener("credit-bill-entries:error", this.onError)
+    this.element.dataset.creditBillEntriesReady = "true"
+  }
+
+  disconnect() {
+    this.element.removeEventListener("credit-bill-entries:render", this.onRender)
+    this.element.removeEventListener("credit-bill-entries:loading", this.onLoading)
+    this.element.removeEventListener("credit-bill-entries:error", this.onError)
+    delete this.element.dataset.creditBillEntriesReady
+  }
+
   render(entries) {
     if (!entries || entries.length === 0) {
       this.showEmpty("该期暂无交易记录")
@@ -84,5 +102,17 @@ export default class extends Controller {
     node.className = className
     node.textContent = message || ""
     this.containerTarget.appendChild(node)
+  }
+
+  onRender(event) {
+    this.render(event.detail?.entries || [])
+  }
+
+  onLoading() {
+    this.showLoading()
+  }
+
+  onError(event) {
+    this.showError(event.detail?.message || "加载失败")
   }
 }

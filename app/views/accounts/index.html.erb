@@ -2063,16 +2063,21 @@ document.addEventListener('turbo:render', fixModalPositions);
     }
   }
 
-  function getBillEntriesController() {
-    var section = document.getElementById('bill-detail-section');
-    if (!section || !window.Stimulus) return null;
-    return window.Stimulus.getControllerForElementAndIdentifier(section, 'credit-bill-entries');
+  function getBillDetailSection() {
+    return document.getElementById('bill-detail-section');
+  }
+
+  function dispatchBillEntriesEvent(eventName, detail) {
+    var section = getBillDetailSection();
+    if (!section) return false;
+    if (section.dataset.creditBillEntriesReady !== 'true') return false;
+
+    section.dispatchEvent(new CustomEvent(eventName, { detail: detail || {} }));
+    return true;
   }
 
   function renderBillEntryList(entries) {
-    var controller = getBillEntriesController();
-    if (controller) {
-      controller.render(entries || []);
+    if (dispatchBillEntriesEvent('credit-bill-entries:render', { entries: entries || [] })) {
       return;
     }
     var container = document.getElementById('bill-entries-container');
@@ -2080,9 +2085,7 @@ document.addEventListener('turbo:render', fixModalPositions);
   }
 
   function showBillEntriesLoading() {
-    var controller = getBillEntriesController();
-    if (controller) {
-      controller.showLoading();
+    if (dispatchBillEntriesEvent('credit-bill-entries:loading')) {
       return;
     }
     var container = document.getElementById('bill-entries-container');
@@ -2090,9 +2093,7 @@ document.addEventListener('turbo:render', fixModalPositions);
   }
 
   function showBillEntriesError() {
-    var controller = getBillEntriesController();
-    if (controller) {
-      controller.showError('加载失败');
+    if (dispatchBillEntriesEvent('credit-bill-entries:error', { message: '加载失败' })) {
       return;
     }
     var container = document.getElementById('bill-entries-container');

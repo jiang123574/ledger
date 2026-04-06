@@ -15,9 +15,6 @@
 - `initSelectorWithData` 与 `initGenericSelector` 仍有重复逻辑，后续收敛为单一实现。
 - `receivables/payables` 页面内数据变量命名（如 `receivableAllAccounts` / `payableAllAccounts`）可统一，降低维护成本。
 
-3. 信用卡账单控制器桥接稳定性
-- `accounts/index` 里通过 `window.Stimulus.getControllerForElementAndIdentifier` 获取 controller，后续评估替换为更稳定的桥接方案（避免依赖全局实现细节）。
-
 ### 长期迁移（Transaction -> Entry）
 5. Attachment / Receivable 关联迁移到 Entry 体系。
 6. 编写旧 `transactions` 存量数据迁移脚本到 Entry。
@@ -53,6 +50,9 @@
 
 8. Payables 联系人筛选分支清理  
 - 已完成：移除 `PayablesController#filter_by_counterparty` 中不再使用的 `name:` 前缀兼容分支，保留 `id:` 与 `none` 两种有效路径。
+
+9. 信用卡账单控制器桥接稳定性  
+- 已完成：`accounts/index` 改为通过自定义事件与 `credit_bill_entries_controller` 通信（`credit-bill-entries:*`），不再依赖 `window.Stimulus.getControllerForElementAndIdentifier`。
 
 ## 文档分工
 
