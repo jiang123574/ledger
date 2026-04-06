@@ -7,6 +7,7 @@ import AutoSubmitFormController from "controllers/auto_submit_form_controller"
 import BulkSelectController from "controllers/bulk_select_controller"
 import ColorThemeController from "controllers/color_theme_controller"
 import CreditCardFormController from "controllers/credit_card_form_controller"
+import CreditBillEntriesController from "controllers/credit_bill_entries_controller"
 import DashboardSectionController from "controllers/dashboard_section_controller"
 import DashboardSortableController from "controllers/dashboard_sortable_controller"
 import DonutChartController from "controllers/donut_chart_controller"
@@ -41,6 +42,7 @@ application.register("auto-submit-form", AutoSubmitFormController)
 application.register("bulk-select", BulkSelectController)
 application.register("color-theme", ColorThemeController)
 application.register("credit-card-form", CreditCardFormController)
+application.register("credit-bill-entries", CreditBillEntriesController)
 application.register("dashboard-section", DashboardSectionController)
 application.register("dashboard-sortable", DashboardSortableController)
 application.register("donut-chart", DonutChartController)

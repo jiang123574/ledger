@@ -7,7 +7,6 @@
 
 ### P1
 1. 信用卡账单模块前端重构（PR #50 暂缓项）
-- 账单交易明细 `renderBillEntries` 从内联 HTML 拼接迁移到 Stimulus + template。
 - 账单相关函数（`renderBillEntries` / `formatMoney` / `formatCurrencyRaw`）收敛到模块内部，避免全局函数。
 - 账单模式与日期模式卡片渲染逻辑抽象复用，减少双实现偏差。
 
@@ -38,6 +37,9 @@
 
 5. Payable 交易对方字段收敛  
 - 已完成：新增迁移将 `payables.counterparty` 历史数据回填到 `counterparty_id`（缺失联系人自动补建），并删除 `payables.counterparty` 字段，控制器筛选/统计改为仅基于外键。
+
+6. 信用卡账单明细渲染改造  
+- 已完成：账单交易明细 `renderBillEntries` 从页面内联 HTML 拼接迁移到 Stimulus 控制器 + `<template>` 渲染，筛选与加载流程改为调用控制器渲染接口。
 
 ## 文档分工
 
