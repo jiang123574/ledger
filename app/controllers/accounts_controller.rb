@@ -178,8 +178,16 @@ class AccountsController < ApplicationController
       return
     end
 
-    start_date = Date.parse(start_s) rescue Date::Error, nil
-    end_date = Date.parse(end_s) rescue Date::Error, nil
+    start_date = begin
+      Date.parse(start_s)
+    rescue Date::Error
+      nil
+    end
+    end_date = begin
+      Date.parse(end_s)
+    rescue Date::Error
+      nil
+    end
 
     unless start_date && end_date
       render json: { entries: [], error: "日期格式错误" }, status: :bad_request
