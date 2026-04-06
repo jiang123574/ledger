@@ -31,7 +31,7 @@ class ReceivablesController < ApplicationController
         amount: -@receivable.original_amount.to_d,
         date: @receivable.date,
         name: "[待报销] #{@receivable.description}",
-        kind: 'expense',
+        kind: "expense",
         category_id: category_id,
         notes: source_entry_note_for(@receivable.id)
       )
@@ -60,8 +60,15 @@ class ReceivablesController < ApplicationController
   end
 
   def destroy
-    @receivable.destroy
+    ActiveRecord::Base.transaction do
+      source_entry = find_source_entry
+      source_entry&.destroy!
+      @receivable.destroy!
+    end
+
     redirect_to receivables_url, notice: "应收款已删除"
+  rescue ActiveRecord::RecordInvalid
+    redirect_to receivables_path, alert: "应收款删除失败"
   end
 
   def settle
@@ -80,7 +87,7 @@ class ReceivablesController < ApplicationController
         amount: @settle_amount,
         date: Date.current,
         name: "[报销] #{@receivable.description}",
-        kind: 'income'
+        kind: "income"
       )
 
       # 更新应收款余额
@@ -141,7 +148,7 @@ class ReceivablesController < ApplicationController
       date: date,
       name: name,
       amount: amount,
-      currency: 'CNY',
+      currency: "CNY",
       notes: notes,
       entryable: entryable
     )

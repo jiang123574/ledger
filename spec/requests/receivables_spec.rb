@@ -22,11 +22,11 @@ RSpec.describe "Receivables", type: :request do
       }
 
       expect(response).to redirect_to(receivables_path)
-      
+
       receivable = Receivable.last
       expect(receivable.description).to eq("咨询费")
       expect(receivable.original_amount).to eq(5000)
-      
+
       # 验证自动创建了 Entry
       source_entry = Entry.where("notes LIKE ?", "%receivable:#{receivable.id}:source%").first
       expect(source_entry).to be_present
@@ -35,7 +35,7 @@ RSpec.describe "Receivables", type: :request do
     end
 
     it "updates source_entry when receivable is updated" do
-      receivable = create(:receivable, 
+      receivable = create(:receivable,
         account: account,
         counterparty: counterparty,
         description: "原描述",
@@ -112,14 +112,16 @@ RSpec.describe "Receivables", type: :request do
     end
   end
 
-  describe "DELETE /receivables" do
+describe "DELETE /receivables" do
     it "deletes receivable with associated entries" do
       receivable = create(:receivable, account: account, counterparty: counterparty)
-      
+
+      entryable = create(:entryable_transaction, :expense)
       source_entry = create(:entry,
         account: account,
         amount: -receivable.original_amount,
-        notes: "receivable:#{receivable.id}:source"
+        notes: "receivable:#{receivable.id}:source",
+        entryable: entryable
       )
 
       expect {
@@ -127,6 +129,24 @@ RSpec.describe "Receivables", type: :request do
       }.to change(Receivable, :count).by(-1)
 
       expect(response).to redirect_to(receivables_path)
+    end
+
+    it "deletes associated source_entry when receivable is destroyed" do
+      receivable = create(:receivable, account: account, counterparty: counterparty, original_amount: 1500)
+
+      entryable = create(:entryable_transaction, :expense)
+      source_entry = create(:entry,
+        account: account,
+        amount: -1500,
+        notes: "receivable:#{receivable.id}:source",
+        entryable: entryable
+      )
+
+      expect {
+        delete "/receivables/#{receivable.id}"
+      }.to change(Entry, :count).by(-1)
+
+      expect(Entry.find_by(id: source_entry.id)).to be_nil
     end
   end
 

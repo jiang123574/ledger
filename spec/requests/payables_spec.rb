@@ -77,11 +77,11 @@ RSpec.describe "Payables", type: :request do
       }
 
       expect(response).to redirect_to(payables_path)
-      
+
       payable = Payable.last
       expect(payable.description).to eq("办公用品采购")
       expect(payable.original_amount).to eq(3000)
-      
+
       # 验证自动创建了 Entry
       source_entry = Entry.where("notes LIKE ?", "%payable:#{payable.id}:source%").first
       expect(source_entry).to be_present
@@ -89,8 +89,8 @@ RSpec.describe "Payables", type: :request do
       expect(source_entry.name).to include("[待付款]")
     end
 
-    it "updates source_entry when payable is updated" do
-      payable = create(:payable, 
+it "updates source_entry when payable is updated" do
+      payable = create(:payable,
         account: account,
         counterparty: counterparty,
         description: "原描述",
@@ -98,16 +98,16 @@ RSpec.describe "Payables", type: :request do
         date: Date.current
       )
 
-      # 创建源 Entry
+      entryable = create(:entryable_transaction, :income)
       source_entry = create(:entry,
         account: account,
         amount: 500,
         date: Date.current,
         name: "[待付款] 原描述",
-        notes: "payable:#{payable.id}:source"
+        notes: "payable:#{payable.id}:source",
+        entryable: entryable
       )
 
-      # 更新应付款
       patch "/payables/#{payable.id}", params: {
         payable: {
           description: "新描述",
@@ -124,14 +124,16 @@ RSpec.describe "Payables", type: :request do
     end
   end
 
-  describe "DELETE /payables" do
+describe "DELETE /payables" do
     it "deletes payable with associated entry" do
       payable = create(:payable, account: account, counterparty: counterparty)
-      
+
+      entryable = create(:entryable_transaction, :income)
       source_entry = create(:entry,
         account: account,
         amount: payable.original_amount,
-        notes: "payable:#{payable.id}:source"
+        notes: "payable:#{payable.id}:source",
+        entryable: entryable
       )
 
       expect {
@@ -139,6 +141,24 @@ RSpec.describe "Payables", type: :request do
       }.to change(Payable, :count).by(-1)
 
       expect(response).to redirect_to(payables_path)
+    end
+
+    it "deletes associated source_entry when payable is destroyed" do
+      payable = create(:payable, account: account, counterparty: counterparty, original_amount: 2000)
+
+      entryable = create(:entryable_transaction, :income)
+      source_entry = create(:entry,
+        account: account,
+        amount: 2000,
+        notes: "payable:#{payable.id}:source",
+        entryable: entryable
+      )
+
+      expect {
+        delete "/payables/#{payable.id}"
+      }.to change(Entry, :count).by(-1)
+
+      expect(Entry.find_by(id: source_entry.id)).to be_nil
     end
   end
 
