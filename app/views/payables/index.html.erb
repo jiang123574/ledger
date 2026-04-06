@@ -1,87 +1,87 @@
-<% content_for :page_title, "应收款" %>
+<% content_for :page_title, "应付款" %>
 
 <div class="space-y-4 sm:space-y-6">
   <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
     <div>
-      <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark">应收款</h1>
-      <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark mt-0.5 sm:mt-1">追踪待报销与已报销款项</p>
+      <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark">应付款</h1>
+      <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark mt-0.5 sm:mt-1">追踪待付款与已付款款项</p>
     </div>
-    <button type="button" onclick="openNewReceivableModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover">
+    <button type="button" onclick="openNewPayableModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover">
       <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
-      新建应收款
+      新建应付款
     </button>
   </div>
 
-  <% total_amount = @receivables.sum { |r| r.original_amount.to_d } %>
+  <% total_amount = @payables.sum { |r| r.original_amount.to_d } %>
   <% pending_amount = @unsettled.sum { |r| r.remaining_amount.to_d } %>
-  <% reimbursed_amount = @receivables.sum { |r| (r.original_amount.to_d - r.remaining_amount.to_d) } %>
+  <% reimbursed_amount = @payables.sum { |r| (r.original_amount.to_d - r.remaining_amount.to_d) } %>
   <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
     <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
-      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">应收总额</p>
+      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">应付总额</p>
       <p class="text-lg sm:text-2xl font-semibold text-primary dark:text-primary-dark mt-0.5 sm:mt-1"><%= format_currency(total_amount) %></p>
     <% end %>
     <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
-      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">待报销金额</p>
+      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">待付款金额</p>
       <p class="text-lg sm:text-2xl font-semibold text-expense mt-0.5 sm:mt-1"><%= format_currency(pending_amount) %></p>
     <% end %>
     <%= render(Ds::CardComponent.new(padding: false, rounded: :xl, class: "p-3")) do %>
-      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">已报销金额</p>
+      <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">已付款金额</p>
       <p class="text-lg sm:text-2xl font-semibold text-income mt-0.5 sm:mt-1"><%= format_currency(reimbursed_amount) %></p>
     <% end %>
   </div>
 
   <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
-      <h2 class="text-base font-semibold text-primary dark:text-primary-dark">待报销</h2>
+      <h2 class="text-base font-semibold text-primary dark:text-primary-dark">待付款</h2>
       <span class="text-xs text-secondary dark:text-secondary-dark"><%= @unsettled.size %> 条</span>
     </div>
     <div class="divide-y divide-border">
       <% if @unsettled.any? %>
-        <% @unsettled.each do |receivable| %>
-          <% reimbursed = receivable.original_amount.to_d - receivable.remaining_amount.to_d %>
-          <% progress = [[receivable.progress_percentage, 0].max, 100].min %>
+        <% @unsettled.each do |payable| %>
+          <% reimbursed = payable.original_amount.to_d - payable.remaining_amount.to_d %>
+          <% progress = [[payable.progress_percentage, 0].max, 100].min %>
           <div class="p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
-                  <span class="px-2 py-0.5 text-xs rounded-full bg-expense-soft text-expense whitespace-nowrap"><%= receivable.status %></span>
+                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= payable.description %></h3>
+                  <span class="px-2 py-0.5 text-xs rounded-full bg-expense-soft text-expense whitespace-nowrap"><%= payable.status %></span>
                 </div>
                 <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
-                  <span><%= receivable.date&.strftime("%Y-%m-%d") %></span>
-                  <% if receivable.category.present? %>
-                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= receivable.category %></span>
+                  <span><%= payable.date&.strftime("%Y-%m-%d") %></span>
+                  <% if payable.category.present? %>
+                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= payable.category %></span>
                   <% end %>
-                  <% if receivable.counterparty.present? %>
-                    <span>联系人：<%= receivable.counterparty.name %></span>
+                  <% if payable.counterparty.present? %>
+                    <span>联系人：<%= payable.counterparty.name %></span>
                   <% end %>
-                  <% if receivable.account.present? %>
-                    <span>账户：<%= receivable.account.name %></span>
+                  <% if payable.account.present? %>
+                    <span>账户：<%= payable.account.name %></span>
                   <% end %>
                 </div>
                 <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
-                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
-                  <span class="text-income">已报销 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
-                  <span class="text-expense">未报销 <span class="font-medium"><%= format_currency(receivable.remaining_amount) %></span></span>
+                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(payable.original_amount) %></span></span>
+                  <span class="text-income">已付款 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
+                  <span class="text-expense">未付款 <span class="font-medium"><%= format_currency(payable.remaining_amount) %></span></span>
                 </div>
                 <div class="mt-2">
                   <div class="flex justify-between text-xs text-secondary dark:text-secondary-dark mb-0.5">
-                    <span>报销进度</span>
+                    <span>付款进度</span>
                     <span><%= progress %>%</span>
                   </div>
                   <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
                     <div class="bg-inverse h-2 rounded-full transition-all" style="width: <%= progress %>"></div>
                   </div>
                 </div>
-                <% if receivable.note.present? %>
-                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= receivable.note %></p>
+                <% if payable.note.present? %>
+                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= payable.note %></p>
                 <% end %>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">报销</button>
-                <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">编辑</button>
-                <button type="button" onclick="if(confirm('确定删除此报销记录？')) { document.getElementById('delete-receivable-form-<%= receivable.id %>').submit(); }" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">删除</button>
-                <form id="delete-receivable-form-<%= receivable.id %>" method="post" action="/receivables/<%= receivable.id %>" style="display:none">
+                <button type="button" onclick="openSettleModal('<%= payable.id %>', '<%= j payable.description %>', '<%= payable.remaining_amount %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">付款</button>
+                <button type="button" onclick="openEditPayableModal('<%= payable.id %>', '<%= j payable.description %>', '<%= payable.date %>', '<%= payable.original_amount %>', '<%= j(payable.category || '') %>', '<%= payable.counterparty_id %>', '<%= payable.account_id %>', '<%= j(payable.note || '') %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">编辑</button>
+                <button type="button" onclick="if(confirm('确定删除此付款记录？')) { document.getElementById('delete-payable-form-<%= payable.id %>').submit(); }" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">删除</button>
+                <form id="delete-payable-form-<%= payable.id %>" method="post" action="/payables/<%= payable.id %>" style="display:none">
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                   <input type="hidden" name="_method" value="delete">
                 </form>
@@ -94,7 +94,7 @@
           <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
             <%= render(Ds::IconComponent.new(name: "receipt", size: :lg, color: :secondary)) %>
           </div>
-          <p class="text-secondary dark:text-secondary-dark">暂无待报销记录</p>
+          <p class="text-secondary dark:text-secondary-dark">暂无待付款记录</p>
         </div>
       <% end %>
     </div>
@@ -107,37 +107,37 @@
     </div>
     <div class="divide-y divide-border">
       <% if @settled.any? %>
-        <% @settled.each do |receivable| %>
-          <% reimbursed = receivable.original_amount.to_d - receivable.remaining_amount.to_d %>
+        <% @settled.each do |payable| %>
+          <% reimbursed = payable.original_amount.to_d - payable.remaining_amount.to_d %>
           <div class="p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
             <div class="flex items-start justify-between gap-3">
               <div class="flex-1 min-w-0">
                 <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
+                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= payable.description %></h3>
                   <span class="px-2 py-0.5 text-xs rounded-full bg-income-soft text-income whitespace-nowrap">已完成</span>
                 </div>
                 <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
-                  <span>完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></span>
-                  <% if receivable.category.present? %>
-                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= receivable.category %></span>
+                  <span>完成于 <%= payable.settled_at&.strftime("%Y-%m-%d") %></span>
+                  <% if payable.category.present? %>
+                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= payable.category %></span>
                   <% end %>
-                  <% if receivable.counterparty.present? %>
-                    <span>联系人：<%= receivable.counterparty.name %></span>
+                  <% if payable.counterparty.present? %>
+                    <span>联系人：<%= payable.counterparty.name %></span>
                   <% end %>
-                  <% if receivable.account.present? %>
-                    <span>账户：<%= receivable.account.name %></span>
+                  <% if payable.account.present? %>
+                    <span>账户：<%= payable.account.name %></span>
                   <% end %>
                 </div>
                 <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
-                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
-                  <span class="text-income">已报销 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
+                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(payable.original_amount) %></span></span>
+                  <span class="text-income">已付款 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
                 </div>
-                <% if receivable.note.present? %>
-                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= receivable.note %></p>
+                <% if payable.note.present? %>
+                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= payable.note %></p>
                 <% end %>
               </div>
               <div class="flex items-center gap-1.5 shrink-0">
-                <%= button_to "撤销", revert_receivable_path(receivable), method: :post, onclick: "if(!confirm('确定撤销此报销？撤销后可重新报销')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
+                <%= button_to "撤销", revert_payable_path(payable), method: :post, onclick: "if(!confirm('确定撤销此付款？撤销后可重新付款')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
               </div>
             </div>
           </div>
@@ -154,43 +154,43 @@
   </section>
 </div>
 
-<!-- 新建应收款弹窗 -->
-<div id="add-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+<!-- 新建应付款弹窗 -->
+<div id="add-payable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')"></div>
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-payable-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建应收款</h3>
-        <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建应付款</h3>
+        <button type="button" onclick="document.getElementById('add-payable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
       
-      <form id="new-receivable-form" method="post" action="<%= receivables_path %>">
+      <form id="new-payable-form" method="post" action="<%= payables_path %>">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述 *</label>
-            <input type="text" name="receivable[description]" required placeholder="如：出差北京交通费" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="payable[description]" required placeholder="如：出差北京交通费" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
-              <input type="date" name="receivable[date]" required value="<%= Date.today %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="date" name="payable[date]" required value="<%= Date.today %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                <input type="number" name="receivable[original_amount]" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <input type="number" name="payable[original_amount]" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               </div>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select name="receivable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="payable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择类别</option>
               <option value="差旅">差旅</option>
               <option value="餐饮">餐饮</option>
@@ -202,7 +202,7 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系人</label>
-            <select name="receivable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select name="payable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择联系人</option>
               <% @counterparties.each do |c| %>
                 <option value="<%= c.id %>"><%= c.name %></option>
@@ -212,9 +212,9 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">支出账户</label>
-            <input type="hidden" name="receivable[account_id]" id="new-receivable-account-id" value="">
+            <input type="hidden" name="payable[account_id]" id="new-payable-account-id" value="">
             <div class="relative">
-              <input type="text" id="new-receivable-account-search"
+              <input type="text" id="new-payable-account-search"
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      placeholder="选择账户"
                      autocomplete="off"
@@ -222,26 +222,26 @@
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
-              <div id="new-receivable-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+              <div id="new-payable-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
                 <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="new-receivable-account-filter"
+                  <input type="text" id="new-payable-account-filter"
                          class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
                          placeholder="搜索账户..."
                          autocomplete="off">
                 </div>
-                <div id="new-receivable-account-options" class="py-1"></div>
+                <div id="new-payable-account-options" class="py-1"></div>
               </div>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <input type="text" name="receivable[note]" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="payable[note]" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-5">
-          <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="button" onclick="document.getElementById('add-payable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
           <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       </form>
@@ -249,44 +249,44 @@
   </div>
 </div>
 
-<!-- 编辑应收款弹窗 -->
-<div id="edit-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+<!-- 编辑应付款弹窗 -->
+<div id="edit-payable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')"></div>
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-payable-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">编辑应收款</h3>
-        <button type="button" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">编辑应付款</h3>
+        <button type="button" onclick="document.getElementById('edit-payable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
       
-      <form id="edit-receivable-form" method="post">
+      <form id="edit-payable-form" method="post">
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <input type="hidden" name="_method" value="patch">
         <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述 *</label>
-            <input type="text" id="edit-receivable-description" name="receivable[description]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="edit-payable-description" name="payable[description]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
 
           <div class="grid grid-cols-2 gap-4">
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
-              <input type="date" id="edit-receivable-date" name="receivable[date]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <input type="date" id="edit-payable-date" name="payable[date]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
               <div class="relative">
                 <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                <input type="number" id="edit-receivable-amount" name="receivable[original_amount]" step="0.01" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                <input type="number" id="edit-payable-amount" name="payable[original_amount]" step="0.01" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               </div>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select id="edit-receivable-category" name="receivable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select id="edit-payable-category" name="payable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择类别</option>
               <option value="差旅">差旅</option>
               <option value="餐饮">餐饮</option>
@@ -298,7 +298,7 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系人</label>
-            <select id="edit-receivable-counterparty" name="receivable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <select id="edit-payable-counterparty" name="payable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               <option value="">选择联系人</option>
               <% @counterparties.each do |c| %>
                 <option value="<%= c.id %>"><%= c.name %></option>
@@ -308,9 +308,9 @@
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">支出账户</label>
-            <input type="hidden" name="receivable[account_id]" id="edit-receivable-account-id" value="">
+            <input type="hidden" name="payable[account_id]" id="edit-payable-account-id" value="">
             <div class="relative">
-              <input type="text" id="edit-receivable-account-search"
+              <input type="text" id="edit-payable-account-search"
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      placeholder="选择账户"
                      autocomplete="off"
@@ -318,26 +318,26 @@
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
-              <div id="edit-receivable-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+              <div id="edit-payable-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
                 <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="edit-receivable-account-filter"
+                  <input type="text" id="edit-payable-account-filter"
                          class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
                          placeholder="搜索账户..."
                          autocomplete="off">
                 </div>
-                <div id="edit-receivable-account-options" class="py-1"></div>
+                <div id="edit-payable-account-options" class="py-1"></div>
               </div>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <input type="text" id="edit-receivable-note" name="receivable[note]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" id="edit-payable-note" name="payable[note]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-5">
-          <button type="button" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="button" onclick="document.getElementById('edit-payable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
           <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       </form>
@@ -345,14 +345,14 @@
   </div>
 </div>
 
-<!-- 报销应收款弹窗 -->
-<div id="settle-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+<!-- 付款应付款弹窗 -->
+<div id="settle-payable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')"></div>
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('settle-payable-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">报销应收款</h3>
-        <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">付款应付款</h3>
+        <button type="button" onclick="document.getElementById('settle-payable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -363,7 +363,7 @@
         <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
         <div class="space-y-3">
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">报销金额 *</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">付款金额 *</label>
             <div class="relative">
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
               <input type="number" name="amount" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
@@ -387,71 +387,71 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-5">
-          <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确认报销</button>
+          <button type="button" onclick="document.getElementById('settle-payable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确认付款</button>
         </div>
       </form>
     </div>
   </div>
 </div>
 
-<script id="receivable-accounts-data" type="application/json">
+<script id="payable-accounts-data" type="application/json">
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 <script>
-function openNewReceivableModal() {
-  document.getElementById('new-receivable-form').reset();
-  document.getElementById('new-receivable-form').querySelector('input[name="receivable[date]"]').value = '<%= Date.today %>';
-  document.getElementById('add-receivable-modal').classList.remove('hidden');
+function openNewPayableModal() {
+  document.getElementById('new-payable-form').reset();
+  document.getElementById('new-payable-form').querySelector('input[name="payable[date]"]').value = '<%= Date.today %>';
+  document.getElementById('add-payable-modal').classList.remove('hidden');
 }
 
-function openEditReceivableModal(id, description, date, amount, category, counterpartyId, accountId, note) {
-  const form = document.getElementById('edit-receivable-form');
-  form.action = '/receivables/' + id;
-  document.getElementById('edit-receivable-description').value = description;
-  document.getElementById('edit-receivable-date').value = date;
-  document.getElementById('edit-receivable-amount').value = amount;
-  document.getElementById('edit-receivable-category').value = category;
-  document.getElementById('edit-receivable-counterparty').value = counterpartyId || '';
-  var accountIdInput = document.getElementById('edit-receivable-account-id');
-  var accountSearchInput = document.getElementById('edit-receivable-account-search');
+function openEditPayableModal(id, description, date, amount, category, counterpartyId, accountId, note) {
+  const form = document.getElementById('edit-payable-form');
+  form.action = '/payables/' + id;
+  document.getElementById('edit-payable-description').value = description;
+  document.getElementById('edit-payable-date').value = date;
+  document.getElementById('edit-payable-amount').value = amount;
+  document.getElementById('edit-payable-category').value = category;
+  document.getElementById('edit-payable-counterparty').value = counterpartyId || '';
+  var accountIdInput = document.getElementById('edit-payable-account-id');
+  var accountSearchInput = document.getElementById('edit-payable-account-search');
   if (accountIdInput) accountIdInput.value = accountId || '';
-  if (accountSearchInput) accountSearchInput.value = findAccountName(accountId) || '';
-  document.getElementById('edit-receivable-note').value = note;
-  document.getElementById('edit-receivable-modal').classList.remove('hidden');
+  if (accountSearchInput) accountSearchInput.value = findPayableAccountName(accountId) || '';
+  document.getElementById('edit-payable-note').value = note;
+  document.getElementById('edit-payable-modal').classList.remove('hidden');
 }
 
 function openSettleModal(id, description, remainingAmount) {
   document.getElementById('settle-description').textContent = description + ' (剩余: ¥' + remainingAmount + ')';
-  document.getElementById('settle-form').action = '/receivables/' + id + '/settle';
-  document.getElementById('settle-receivable-modal').classList.remove('hidden');
+  document.getElementById('settle-form').action = '/payables/' + id + '/settle';
+  document.getElementById('settle-payable-modal').classList.remove('hidden');
 }
 
 <% if params[:open_modal] == "true" %>
 document.addEventListener('DOMContentLoaded', function() {
-  document.getElementById('add-receivable-modal').classList.remove('hidden');
+  document.getElementById('add-payable-modal').classList.remove('hidden');
   <% if params[:counterparty].present? %>
     <% cp = @counterparties.find { |c| c.name == params[:counterparty] } %>
     <% if cp %>
-      document.querySelector('select[name="receivable[counterparty_id]"]').value = '<%= cp.id %>';
+      document.querySelector('select[name="payable[counterparty_id]"]').value = '<%= cp.id %>';
     <% end %>
   <% end %>
 });
 <% end %>
 
-var receivableAllAccounts = [];
-var receivableAccountsDataEl = document.getElementById('receivable-accounts-data');
-if (receivableAccountsDataEl) {
-  receivableAllAccounts = JSON.parse(receivableAccountsDataEl.textContent);
+var payableAllAccounts = [];
+var payableAccountsDataEl = document.getElementById('payable-accounts-data');
+if (payableAccountsDataEl) {
+  payableAllAccounts = JSON.parse(payableAccountsDataEl.textContent);
 }
 
-function findAccountName(accountId) {
+function findPayableAccountName(accountId) {
   if (!accountId) return '';
-  var matched = receivableAllAccounts.find(function(acc) { return String(acc.id) === String(accountId); });
+  var matched = payableAllAccounts.find(function(acc) { return String(acc.id) === String(accountId); });
   return matched ? matched.name : '';
 }
 
-function initReceivableAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
+function initPayableAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
   var searchInput = document.getElementById(searchInputId);
   var dropdown = document.getElementById(dropdownId);
   var filterInput = document.getElementById(filterInputId);
@@ -461,7 +461,7 @@ function initReceivableAccountSelector(searchInputId, dropdownId, filterInputId,
   if (!searchInput || !dropdown || !optionsContainer || !hiddenInput) return;
 
   function renderOptions(filterText) {
-    var filtered = receivableAllAccounts.filter(function(acc) {
+    var filtered = payableAllAccounts.filter(function(acc) {
       if (!filterText) return true;
       var query = filterText.toLowerCase();
       return (acc.name && acc.name.toLowerCase().includes(query)) || (acc.pinyin && acc.pinyin.includes(query));
@@ -474,14 +474,14 @@ function initReceivableAccountSelector(searchInputId, dropdownId, filterInputId,
     return filtered.map(function(acc) {
       var selected = String(hiddenInput.value) === String(acc.id) ? 'bg-blue-50 dark:bg-blue-900/20' : '';
       var name = String(acc.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-      return '<div class="receivable-account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + name + '">' + name + '</div>';
+      return '<div class="payable-account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + name + '">' + name + '</div>';
     }).join('');
   }
 
   function updateOptions() {
     var filterText = filterInput ? filterInput.value : '';
     optionsContainer.innerHTML = renderOptions(filterText);
-    optionsContainer.querySelectorAll('.receivable-account-option').forEach(function(option) {
+    optionsContainer.querySelectorAll('.payable-account-option').forEach(function(option) {
       option.addEventListener('click', function() {
         hiddenInput.value = this.dataset.id;
         searchInput.value = this.dataset.name;
@@ -510,6 +510,6 @@ function initReceivableAccountSelector(searchInputId, dropdownId, filterInputId,
   });
 }
 
-initReceivableAccountSelector('new-receivable-account-search', 'new-receivable-account-dropdown', 'new-receivable-account-filter', 'new-receivable-account-options', 'new-receivable-account-id');
-initReceivableAccountSelector('edit-receivable-account-search', 'edit-receivable-account-dropdown', 'edit-receivable-account-filter', 'edit-receivable-account-options', 'edit-receivable-account-id');
+initPayableAccountSelector('new-payable-account-search', 'new-payable-account-dropdown', 'new-payable-account-filter', 'new-payable-account-options', 'new-payable-account-id');
+initPayableAccountSelector('edit-payable-account-search', 'edit-payable-account-dropdown', 'edit-payable-account-filter', 'edit-payable-account-options', 'edit-payable-account-id');
 </script>
