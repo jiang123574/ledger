@@ -7,6 +7,7 @@ class Transaction < ApplicationRecord
   belongs_to :target_account, class_name: "Account", foreign_key: "target_account_id", optional: true
   belongs_to :category, class_name: "Category", optional: true
   belongs_to :receivable, optional: true
+  belongs_to :payable, optional: true
   belongs_to :link, class_name: "Transaction", optional: true
   has_many :attachments, dependent: :destroy
   has_many :transaction_tags, dependent: :destroy

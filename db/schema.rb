@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_02_105724) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_06_153000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -280,6 +280,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_105724) do
     t.index ["category_id"], name: "index_one_time_budgets_on_category_id"
   end
 
+  create_table "payables", force: :cascade do |t|
+    t.bigint "account_id"
+    t.string "category"
+    t.string "counterparty"
+    t.bigint "counterparty_id"
+    t.datetime "created_at", null: false
+    t.string "currency", limit: 3, default: "CNY"
+    t.date "date", default: -> { "CURRENT_DATE" }
+    t.string "description"
+    t.text "note"
+    t.decimal "original_amount", precision: 10, scale: 2
+    t.decimal "remaining_amount", precision: 10, scale: 2
+    t.datetime "settled_at"
+    t.integer "source_transaction_id"
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_payables_on_account_id"
+    t.index ["counterparty_id"], name: "index_payables_on_counterparty_id"
+  end
+
   create_table "plans", force: :cascade do |t|
     t.integer "account_id"
     t.integer "active", default: 1
@@ -394,6 +413,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_105724) do
     t.jsonb "locked_attributes", default: {}
     t.string "note"
     t.decimal "original_amount", precision: 12, scale: 6
+    t.bigint "payable_id"
     t.integer "receivable_id"
     t.integer "sort_order", default: 0
     t.string "tag"
@@ -417,6 +437,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_105724) do
     t.index ["extra"], name: "idx_trans_extra_gin", using: :gin
     t.index ["link_id"], name: "index_transactions_on_link_id"
     t.index ["locked_attributes"], name: "idx_trans_locked_gin", using: :gin
+    t.index ["payable_id"], name: "index_transactions_on_payable_id"
     t.index ["receivable_id"], name: "index_transactions_on_receivable_id"
     t.index ["target_account_id", "date"], name: "idx_trans_target_date"
     t.index ["target_account_id", "date"], name: "index_transactions_on_target_account_id_and_date"
@@ -449,6 +470,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_105724) do
   add_foreign_key "entries", "entries", column: "parent_entry_id", on_delete: :nullify
   add_foreign_key "entryable_transactions", "categories", on_delete: :nullify
   add_foreign_key "one_time_budgets", "categories"
+  add_foreign_key "payables", "accounts"
+  add_foreign_key "payables", "counterparties"
   add_foreign_key "plans", "accounts"
   add_foreign_key "receivables", "accounts"
   add_foreign_key "receivables", "counterparties"
@@ -462,6 +485,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_02_105724) do
   add_foreign_key "transactions", "accounts"
   add_foreign_key "transactions", "accounts", column: "target_account_id"
   add_foreign_key "transactions", "categories"
+  add_foreign_key "transactions", "payables"
   add_foreign_key "transactions", "receivables"
   add_foreign_key "transactions", "transactions", column: "link_id"
 end

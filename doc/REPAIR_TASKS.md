@@ -1,4 +1,7 @@
-# 修复任务清单（已完成）
+# 修复任务清单（已归档）
+
+> 说明：本文件记录 2026-04-06 的一次性修复批次结果，当前不再作为活跃待办来源。  
+> 当前唯一活跃待办统一维护在 `doc/UNIFIED_TODO.md`。
 
 更新时间：2026-04-06
 分支：`main`
@@ -62,3 +65,20 @@
 5. FilterBadge 组件测试改为稳定断言（不依赖 SVG path 文本）。
 6. Transactions 删除用例改为断言目标记录确实被删除（避免全局计数脆弱断言）。
 7. Accounts reorder 测试改为相对顺序断言，避免受其他测试数据影响。
+
+## 后续优化（P2，非阻塞）
+
+1. Payable 数据模型字段收敛
+- 背景：`payables` 目前同时保留 `counterparty`（string）和 `counterparty_id`（foreign key）以兼容历史数据。
+- 建议：后续通过迁移统一到 `counterparty_id`，并移除 string 字段。
+- 计划：分阶段执行（回填 -> 双写兼容期 -> 清理旧字段）。
+
+2. `accounts#index` 的系统账户同步调用优化
+- 背景：当前每次访问账户页都会调用 `SystemAccountSyncService.sync_all!`。
+- 建议：评估移除或降频调用（模型已有 `after_commit` 同步），仅保留兜底策略。
+- 验收：在不影响应收/应付余额一致性的前提下减少不必要同步。
+
+3. 应收/应付页面选择器脚本去重
+- 背景：`receivables/index` 与 `payables/index` 中 account/category selector 逻辑高度重复。
+- 建议：提取公共 JS 模块（可复用 `app/javascript/selectors.js` 能力）。
+- 验收：行为一致、测试通过、减少重复维护成本。

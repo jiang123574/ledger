@@ -2,8 +2,12 @@ require 'ostruct'
 
 class AccountsController < ApplicationController
   before_action :set_account, only: [:show, :edit, :update, :destroy, :bills, :bills_entries, :reorder]
+  before_action :prevent_locked_system_account!, only: [:edit, :update, :destroy]
 
   def index
+    # 确保应收/应付系统账户金额与未结清余额保持联动
+    SystemAccountSyncService.sync_all!
+
     av = CacheBuster.version(:accounts)
     ev = CacheBuster.version(:entries)
 
@@ -289,9 +293,17 @@ class AccountsController < ApplicationController
   end
 
   def destroy
-    @account.destroy
+    blocking_refs = blocking_references_for(@account)
+    if blocking_refs.any?
+      redirect_to accounts_path, alert: "账户仍有关联数据（#{blocking_refs.join("、")}），请先处理后再删除"
+      return
+    end
+
+    @account.destroy!
     expire_accounts_cache
     redirect_to accounts_path, notice: "账户已删除"
+  rescue ActiveRecord::InvalidForeignKey
+    redirect_to accounts_path, alert: "账户仍有关联数据，无法删除"
   end
 
   def reorder
@@ -332,6 +344,34 @@ class AccountsController < ApplicationController
   end
 
   private
+
+  def locked_system_account?(account)
+    return false unless account
+
+    locked_names = [
+      SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME,
+      SystemAccountSyncService::PAYABLE_ACCOUNT_NAME
+    ]
+    locked_names.include?(account.name)
+  end
+
+  def blocking_references_for(account)
+    refs = []
+
+    if Transaction.where(account_id: account.id).or(Transaction.where(target_account_id: account.id)).exists?
+      refs << "交易记录"
+    end
+    refs << "应收款" if Receivable.where(account_id: account.id).exists?
+    refs << "应付款" if Payable.where(account_id: account.id).exists?
+
+    refs
+  end
+
+  def prevent_locked_system_account!
+    return unless locked_system_account?(@account)
+
+    redirect_to accounts_path, alert: "系统账户（应收款/应付款）已锁定，无法编辑或删除"
+  end
 
   def expire_accounts_cache
     CacheBuster.bump(:accounts)

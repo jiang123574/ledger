@@ -43,7 +43,7 @@ Rails.application.routes.draw do
   end
   resources :categories, only: [ :create, :update, :destroy ]
   resources :tags, only: [ :index, :create, :update, :destroy ]
-  resources :counterparties
+  resources :counterparties, only: [ :create, :update, :destroy ]
   resources :budgets, only: [ :index, :create, :update, :destroy ] do
     member do
       get :data
@@ -63,6 +63,13 @@ Rails.application.routes.draw do
     end
   end
   resources :receivables, only: [:index, :show, :create, :update, :destroy] do
+    member do
+      get :settle
+      post :settle
+      post :revert
+    end
+  end
+  resources :payables, only: [:index, :show, :create, :update, :destroy] do
     member do
       get :settle
       post :settle
