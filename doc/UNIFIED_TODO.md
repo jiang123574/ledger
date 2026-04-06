@@ -1,24 +1,27 @@
 # 统一待办清单（唯一来源）
 
-更新时间：2026-04-06  
+更新时间：2026-04-06 23:00  
 维护规则：所有新的待办、修复计划、后续优化只更新本文件。其他文档仅保留历史记录。
 
 ## 当前待办（Open）
 
-### P1 - ✅ 已完成
-1. 信用卡账单模块前端重构
-- [✅ 已完成] 账单明细渲染已统一到 `entry_card_renderer.js`，移除内联 template。
-- [✅ 已完成] 日期模式交易列表加载更多功能改用 `entry_list_controller.js` + 统一渲染器。
-- [✅ 已完成] `/accounts/entries` JSON API 分页加载 + 完整spec覆盖（25个测试用例）。
+### P1 - ✅ 完成
+1. 信用卡账单模块前端重构 ✅
+   - [✅] 账单明细渲染统一到 `entry_card_renderer.js`，移除内联 template
+   - [✅] 日期模式交易列表加载更多功能改用 `entry_list_controller.js` + 统一渲染器
+   - [✅] `/accounts/entries` JSON API 分页加载 + 完整spec覆盖（25个测试）
 
-### P2
-### 长期迁移（Transaction -> Entry）
-5. Attachment / Receivable 关联迁移到 Entry 体系。
-6. 编写旧 `transactions` 存量数据迁移脚本到 Entry。
-7. 完成迁移后移除 Transaction 模型/表残留引用。
+### P2 - 工程质量测试覆盖提升（进行中）
+- [✅] AccountStatsService 服务测试（22个测试）
+- [ ] CacheBuster service 测试
+- [ ] BackupService 和 ExportService 测试
+- [ ] ImportService 及各类 Importer 测试
+- [ ] 关键 Controller 集成测试补充
 
-### 工程质量
-8. 测试覆盖率继续提升（Controller + 更多 Service + 关键流程）。
+### P3 - 长期迁移（Transaction -> Entry）
+- [ ] Attachment / Receivable 关联迁移到 Entry 体系
+- [ ] 编写旧 `transactions` 存量数据迁移脚本
+- [ ] 完成迁移后移除 Transaction 模型/表残留引用
 
 ## 本次对齐已补记为完成（Done）
 
