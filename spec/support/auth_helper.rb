@@ -39,6 +39,9 @@ end
 
 RSpec.configure do |config|
   config.include AuthHelper, type: :request
+  config.before(:each, type: :request) do
+    @default_auth_headers = nil
+  end
 
   # 全局：测试环境默认设置 AUTH 环境变量（让 ApplicationController 的 auth_required? 返回 true）
   config.before(:suite) do

@@ -35,6 +35,7 @@ class CacheBuster
   # Clear internal cache versions (useful for tests)
   def self.clear!
     cache_store.clear if cache_store.respond_to?(:clear)
+    @cache_store = nil
   end
 
   private_class_method :new
