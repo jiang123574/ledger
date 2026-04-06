@@ -1,4 +1,4 @@
-class MigratePayablesCounterpartyToForeignKey < ActiveRecord::Migration[8.0]
+class MigratePayablesCounterpartyToForeignKey < ActiveRecord::Migration[7.0]
   def up
     execute <<~SQL.squish
       INSERT INTO counterparties (name)
