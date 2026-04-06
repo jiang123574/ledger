@@ -344,7 +344,7 @@
                       <%= format_currency_with_sign(e.display_amount, type: display_amount_type) %>
                     </p>
                   <% end %>
-                  <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= @page == 1 ? format_currency(balance) : '--' %></p>
+                  <p class="text-xs text-secondary dark:text-secondary-dark">余额: <%= format_currency(balance) %></p>
                 </div>
                 <div class="flex items-center gap-1 shrink-0">
                   <button onclick="openEditTransactionModal(<%= e.id %>)" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">

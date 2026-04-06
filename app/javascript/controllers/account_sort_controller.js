@@ -190,7 +190,55 @@ export default class extends Controller {
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content || ''
       },
       body: JSON.stringify({ target_id: targetId })
-    }).catch(err => console.error('Failed to update order:', err))
+    })
+    .then(res => {
+      if (res.ok) {
+        // 拖拽排序后刷新交易列表（entries 缓存已在后端清除）
+        this._refreshTransactionList()
+      }
+    })
+    .catch(err => console.error('Failed to update order:', err))
+  }
+
+  // 通过 Turbo 访问刷新右侧交易列表，重新获取最新余额
+  _refreshTransactionList() {
+    const txList = document.getElementById('transaction-list')
+    if (!txList) return
+
+    const params = new URLSearchParams(window.location.search)
+    params.set('format', 'turbo')
+
+    fetch('/accounts?' + params.toString(), {
+      headers: { 'Accept': 'text/html' }
+    })
+    .then(response => response.text())
+    .then(html => {
+      const parser = new DOMParser()
+      const doc = parser.parseFromString(html, 'text/html')
+      const newTxList = doc.getElementById('transaction-list')
+      if (newTxList && newTxList.innerHTML) {
+        txList.innerHTML = newTxList.innerHTML
+        // 重新绑定 IntersectionObserver（用于滚动加载更多）
+        this._rebindLoadMoreObserver()
+      }
+    })
+    .catch(err => console.error('Failed to refresh transactions:', err))
+  }
+
+  _rebindLoadMoreObserver() {
+    const sentinel = document.getElementById('load-more-sentinel')
+    if (!sentinel) return
+
+    // 用 MutationObserver 等待 sentinel 被添加到 DOM 后再观察
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          if (typeof loadMoreTransactions === 'function') loadMoreTransactions()
+        }
+      })
+    }, { rootMargin: '100px' })
+
+    observer.observe(sentinel)
   }
 
   disconnect() {

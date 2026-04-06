@@ -169,6 +169,7 @@ class AccountsController < ApplicationController
     end
 
     expire_accounts_cache
+    CacheBuster.bump(:entries)
 
     head :ok
   rescue ActiveRecord::ActiveRecordError => e
