@@ -283,7 +283,7 @@
 <% 
   entry_type = e.display_entry_type
   is_transfer = entry_type == 'TRANSFER'
-  current_account_filter = @current_account_id.to_s
+  current_account_filter = params[:account_id].to_s
   is_outflow = is_transfer && (current_account_filter.blank? || e.source_account_id_for_transfer.to_s == current_account_filter)
   is_inflow = is_transfer && e.target_account_id_for_display.to_s == current_account_filter && current_account_filter.present?
   display_type = if is_transfer
