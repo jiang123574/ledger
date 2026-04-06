@@ -310,8 +310,9 @@ class ReportsController < ApplicationController
       }
     end
 
+    # 排序规则：支出分类优先（expense=0, income=1），同类型按总额降序
     {
-      categories: categories.sort_by { |_, v| [-v[:kind] == 'expense' ? 0 : 1, -v[:total]] }.to_h,
+      categories: categories.sort_by { |_, v| [-(v[:kind] == 'expense' ? 0 : 1), -v[:total]] }.to_h,
       monthly_totals: monthly_totals
     }
   end

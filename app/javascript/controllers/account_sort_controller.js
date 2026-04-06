@@ -75,9 +75,21 @@ export default class extends Controller {
     this.cloneElement.style.left = (event.clientX - this._cloneOffsetX) + "px"
     this.cloneElement.style.top = (event.clientY - this._cloneOffsetY) + "px"
 
-    // 确定当前位置下方的目标元素
-    const clientX = event.clientX
-    const clientY = event.clientY
+    // 用 rAF 节流：目标检测每帧最多执行一次，避免频繁 display 切换触发 reflow
+    this._pendingClientX = event.clientX
+    this._pendingClientY = event.clientY
+    if (!this._rafId) {
+      this._rafId = requestAnimationFrame(() => this._detectDropTarget())
+    }
+  }
+
+  // 检测指针下方的目标元素（通过 rAF 节流，~60fps 最大执行频率）
+  _detectDropTarget() {
+    this._rafId = null
+    const clientX = this._pendingClientX
+    const clientY = this._pendingClientY
+
+    // 隐藏 clone 才能用 elementFromPoint 检测下方元素（触发 1 次 reflow）
     this.cloneElement.style.display = "none"
     const elemBelow = document.elementFromPoint(clientX, clientY)
     this.cloneElement.style.display = ""
