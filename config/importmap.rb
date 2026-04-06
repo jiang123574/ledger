@@ -2,6 +2,7 @@
 
 pin "application"
 pin "bill_formatters"
+pin "entry_card_renderer"
 pin "web_vitals"
 pin "selectors"
 
