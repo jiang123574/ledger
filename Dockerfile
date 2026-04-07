@@ -53,7 +53,7 @@ RUN bundle install && \
 COPY . .
 
 # Install JavaScript dependencies
-RUN npm install --omit=dev && \
+RUN npm install && \
     npm cache clean --force
 
 # Precompile bootsnap code for faster boot times.
