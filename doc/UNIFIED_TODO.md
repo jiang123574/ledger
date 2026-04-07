@@ -1,6 +1,6 @@
 # 统一待办清单（唯一来源）
 
-更新时间：2026-04-06 23:00  
+更新时间：2026-04-07 完毕
 维护规则：所有新的待办、修复计划、后续优化只更新本文件。其他文档仅保留历史记录。
 
 ## 当前待办（Open）
@@ -19,13 +19,20 @@
 - [✅] ImportService 测试（12个测试）
 - **P2总计：57个新的测试用例**
 
-### P3 - 长期迁移（Transaction -> Entry）✅ Phase 1-2 完成
+### P3 - 长期迁移（Transaction -> Entry）✅ Phase 1-2 完成 | 优化计划已规划
 - [✅] Attachment / Receivable 关联迁移到 Entry 体系 (P3-1, P3-2 完成)
 - [✅] Receivable/Payable 完整迁移和兼容性方法 (P3-2 完成)
 - [✅] 数据库迁移脚本和验证任务 (所有脚本已就绪)
 - [✅] 控制器更新和源 Entry 自动关联 (P3-2 完成)
 - [✅] 完整的集成测试覆盖 (31+ 新测试用例)
-- [ ] 移除 Transaction 模型/表残留引用 (Phase 3, 待3个月后进行)
+- [✅] 数据库迁移应用 (2026-04-07 完成)
+
+**后续优化计划（可选）**：
+- [ ] P3-Optional-1: Receivables 字段清理 (Priority: Medium，预计 2-3 小时)
+- [ ] P3-Optional-2: Transaction 模型完全移除 (Priority: Low，预计 4-6 小时，建议 2-4 周后)
+- [ ] P3-Optional-3: 性能优化 (Priority: Low，预计 6-8 小时，持续进行)
+
+详见 [doc/P3_OPTIMIZATION_PLAN.md](./P3_OPTIMIZATION_PLAN.md)
 
 ## 本次对齐已补记为完成（Done）
 
