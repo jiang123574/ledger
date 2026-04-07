@@ -3,8 +3,8 @@
 class TransactionsController < ApplicationController
   include EntryableActions
 
-  before_action :set_entry, only: [:edit, :update, :destroy]
-  before_action :load_lookups, only: [:edit, :create, :update]
+  before_action :set_entry, only: [ :edit, :update, :destroy ]
+  before_action :load_lookups, only: [ :edit, :create, :update ]
 
   # GET /transactions — 301 重定向到 accounts
   def index
@@ -116,7 +116,7 @@ class TransactionsController < ApplicationController
     @entry = Entry.includes(:entryable, :account, entryable: { category: :parent }).find_by(id: params[:id])
     raise ActiveRecord::RecordNotFound unless @entry
     # 预加载转账配对账户信息
-    Entry.preload_transfer_accounts([@entry]) if @entry.transfer_id.present?
+    Entry.preload_transfer_accounts([ @entry ]) if @entry.transfer_id.present?
   end
 
   def set_new_transaction
@@ -125,7 +125,7 @@ class TransactionsController < ApplicationController
     @categories = Category.active.by_sort_order
     @new_transaction = OpenStruct.new(
       type: "EXPENSE", persisted?: false,
-      model_name: ActiveModel::Name.new(Entry, nil, 'transaction')
+      model_name: ActiveModel::Name.new(Entry, nil, "transaction")
     )
   end
 
@@ -140,9 +140,9 @@ class TransactionsController < ApplicationController
     if attrs[:type].present?
       kind = attrs[:type].downcase
       amount = attrs[:amount].to_d
-      if kind == 'transfer'
+      if kind == "transfer"
         @entry.amount = -amount.abs
-      elsif kind == 'income'
+      elsif kind == "income"
         @entry.amount = amount
       else
         @entry.amount = -amount
@@ -164,7 +164,7 @@ class TransactionsController < ApplicationController
           if paired_entry
             # 配对条目始终是转入方：正数金额 + income kind
             if paired_entry.entryable.is_a?(Entryable::Transaction)
-              paired_entry.entryable.update!(kind: 'income')
+              paired_entry.entryable.update!(kind: "income")
             end
             transfer_amount = attrs[:amount].to_d.abs
             paired_entry.update!(
@@ -184,7 +184,7 @@ class TransactionsController < ApplicationController
               amount: transfer_amount,
               currency: @entry.currency,
               notes: transfer_note,
-              entryable: Entryable::Transaction.create!(kind: 'income'),
+              entryable: Entryable::Transaction.create!(kind: "income"),
               transfer_id: @entry.transfer_id
             )
           end
@@ -199,7 +199,7 @@ class TransactionsController < ApplicationController
     @accounts = Account.visible.order(:name)
     @categories = Category.active.by_sort_order.includes(:parent)
     @tags = Tag.alphabetically
-    @transaction_types = TransactionTypeDisplay::TYPE_LABELS.map { |t, label| [label, t] }
+    @transaction_types = TransactionTypeDisplay::TYPE_LABELS.map { |t, label| [ label, t ] }
   end
 
   def t_display(type)

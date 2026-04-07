@@ -3,8 +3,8 @@
 class EntriesController < ApplicationController
   include EntryableActions
 
-  before_action :set_entry, only: [:update, :destroy]
-  before_action :load_lookups, only: [:create, :update]
+  before_action :set_entry, only: [ :update, :destroy ]
+  before_action :load_lookups, only: [ :create, :update ]
 
   # GET /entries — 301 重定向到 accounts
   def index
@@ -62,7 +62,7 @@ class EntriesController < ApplicationController
     attrs = entry_params
 
     entryable_attrs = {
-      kind: attrs[:kind] || 'expense',
+      kind: attrs[:kind] || "expense",
       category_id: attrs[:category_id]
     }
 
@@ -74,8 +74,8 @@ class EntriesController < ApplicationController
       account_id: attrs[:account_id],
       date: attrs[:date],
       name: attrs[:name] || "#{attrs[:kind] == 'income' ? '收入' : '支出'} #{attrs[:amount]}",
-      amount: attrs[:kind] == 'income' ? attrs[:amount].to_d : -attrs[:amount].to_d,
-      currency: attrs[:currency] || 'CNY',
+      amount: attrs[:kind] == "income" ? attrs[:amount].to_d : -attrs[:amount].to_d,
+      currency: attrs[:currency] || "CNY",
       notes: attrs[:notes]
     )
 

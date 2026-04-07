@@ -3,18 +3,18 @@ class SettingsController < ApplicationController
     @currencies = Currency.order(:code)
     @backups = BackupService.list_backups.take(10)
     @shortcuts = default_shortcuts
-    @section = params[:section] || 'general'
+    @section = params[:section] || "general"
 
     # 按需加载数据，避免不必要的查询
-    if @section == 'categories'
-      @categories = Category.includes(:children).order(:sort_order, :name)
+    if @section == "categories"
+      @categories = Category.includes(:children, :parent).order(:sort_order, :name)
       @expense_roots = @categories.select(&:expense?).select(&:root?)
       @income_roots = @categories.select(&:income?).select(&:root?)
-      @expense_parent_options = @expense_roots.map { |c| [c.name, c.id] }
-      @income_parent_options = @income_roots.map { |c| [c.name, c.id] }
+      @expense_parent_options = @expense_roots.map { |c| [ c.name, c.id ] }
+      @income_parent_options = @income_roots.map { |c| [ c.name, c.id ] }
     end
 
-    if @section == 'contacts'
+    if @section == "contacts"
       @counterparties = Counterparty.all.order(:name)
       ids = @counterparties.map(&:id)
       names = @counterparties.map(&:name)
@@ -103,10 +103,10 @@ class SettingsController < ApplicationController
 
   def download_backup
     backup_name = params[:name]
-    
+
     # 确保 .sql 后缀存在（Rails 路由可能把 .sql 当作 format 解析）
     backup_name = "#{backup_name}.sql" unless backup_name.end_with?(".sql")
-    
+
     backup_path = Rails.root.join("tmp", "backups", backup_name)
 
     unless File.exist?(backup_path)
@@ -134,10 +134,10 @@ class SettingsController < ApplicationController
     # 保存上传的文件到临时位置
     uploaded_file = params[:backup_file]
     temp_path = Rails.root.join("tmp", "backups", "restore_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql")
-    
+
     # 确保目录存在
     FileUtils.mkdir_p(File.dirname(temp_path))
-    
+
     # 复制上传的文件
     FileUtils.cp(uploaded_file.path, temp_path)
 
@@ -170,15 +170,15 @@ class SettingsController < ApplicationController
       RecurringTransaction.destroy_all
       Plan.destroy_all
       Budget.destroy_all
-      
+
       # 清理新的 Entry 数据
       Entryable::Transaction.destroy_all
       Entry.destroy_all
-      
+
       # 清理旧的 Transaction 数据
       Transaction.where.not(link_id: nil).update_all(link_id: nil)
       Transaction.destroy_all
-      
+
       Category.destroy_all
       Account.destroy_all
     end

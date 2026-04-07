@@ -33,6 +33,7 @@ Rails.application.routes.draw do
       get :versions
       get :bills
       get :bills_entries
+      patch :reorder_entries
     end
     collection do
       get :stats

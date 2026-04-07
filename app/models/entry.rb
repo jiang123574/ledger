@@ -43,6 +43,7 @@ class Entry < ApplicationRecord
     order(
       date: :asc,
       Arel.sql("CASE WHEN entries.entryable_type = 'Entryable::Valuation' THEN 1 ELSE 0 END") => :asc,
+      sort_order: :asc,
       created_at: :asc
     )
   }
@@ -51,6 +52,7 @@ class Entry < ApplicationRecord
     order(
       date: :desc,
       Arel.sql("CASE WHEN entries.entryable_type = 'Entryable::Valuation' THEN 1 ELSE 0 END") => :desc,
+      sort_order: :desc,
       created_at: :desc
     )
   }
@@ -72,7 +74,7 @@ class Entry < ApplicationRecord
   }
 
   scope :transactions_only, -> {
-    where(entryable_type: 'Entryable::Transaction')
+    where(entryable_type: ['Entryable::Transaction'])
   }
 
   scope :non_transfers, -> {

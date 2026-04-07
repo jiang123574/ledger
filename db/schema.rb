@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_06_210000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -192,6 +192,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
     t.string "name", null: false
     t.text "notes"
     t.integer "parent_entry_id"
+    t.integer "sort_order", default: 0, null: false
     t.string "source"
     t.integer "transfer_id"
     t.datetime "updated_at", null: false
@@ -209,6 +210,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_06_200000) do
     t.index ["import_locked"], name: "idx_entries_import_locked", where: "(import_locked = true)"
     t.index ["locked_attributes"], name: "idx_entries_locked_gin", using: :gin
     t.index ["parent_entry_id"], name: "idx_entries_parent"
+    t.index ["sort_order"], name: "index_entries_on_sort_order"
     t.index ["transfer_id"], name: "idx_entries_transfer"
     t.index ["user_modified"], name: "idx_entries_user_modified", where: "(user_modified = true)"
   end
