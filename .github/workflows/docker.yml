@@ -22,10 +22,10 @@ jobs:
         uses: actions/checkout@v6
 
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@v5
 
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
@@ -59,13 +59,7 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             RUBY_VERSION=3.3.10
-          # Optimize build performance
           provenance: false
-          # Reduce layer count and improve caching
-          no-cache-filters: |
-            app/src
-          # Use buildkit features for better performance
-          buildkit: true
 
       - name: Show image size
         if: github.event_name != 'pull_request'

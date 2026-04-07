@@ -58,6 +58,10 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
+# Install JavaScript dependencies
+RUN npm install --omit=dev && \
+    npm cache clean --force
+
 # Precompile bootsnap code for faster boot times.
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
@@ -72,6 +76,7 @@ RUN rm -rf .git .github .vscode .idea && \
     rm -rf .dockerignore docker-compose.yml && \
     rm -rf bin/dev bin/setup && \
     rm -rf script/ && \
+    rm -rf node_modules && \
     find lib/tasks -name "*.rake" ! -name "import_pixiu.rake" -delete && \
     find . -name "*.swp" -delete && \
     find . -name "*.swo" -delete && \
