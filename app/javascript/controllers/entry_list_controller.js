@@ -12,7 +12,8 @@ export default class extends Controller {
     periodValue: String,
     filterType: String,
     search: String,
-    categoryIds: String
+    categoryIds: String,
+    dragEnabled: { type: Boolean, default: true }
   }
 
   connect() {
@@ -148,6 +149,11 @@ export default class extends Controller {
   }
 
   setupDragAndDrop() {
+    // 只有在拖动启用且有accountId时才设置拖拽
+    if (!this.dragEnabledValue || !this.accountIdValue) {
+      return
+    }
+
     // 先移除所有现有的拖拽监听器
     const items = this.containerTarget.querySelectorAll('[data-entry-id]')
     items.forEach((item) => this.removeDragHandlers(item))

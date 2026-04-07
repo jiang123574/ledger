@@ -78,13 +78,15 @@
             <div class="flex items-center gap-2">
               <div class="w-44 shrink-0">
                 <h3 class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
+                <% if receivable.source_entry.present? %>
+                  <p class="text-[10px] text-secondary dark:text-secondary-dark mt-0.5">
+                    源交易: <%= receivable.source_entry.account&.name %> @ <%= receivable.source_entry.date&.strftime("%m/%d") %>
+                  </p>
+                <% end %>
               </div>
               <div class="text-[11px] text-secondary dark:text-secondary-dark shrink-0"><%= receivable.date&.strftime("%Y-%m-%d") %></div>
               <% if receivable.category.present? %>
                 <div class="px-1 py-0.5 rounded bg-surface dark:bg-surface-dark text-[11px] text-primary dark:text-primary-dark shrink-0"><%= receivable.category %></div>
-              <% end %>
-              <% if receivable.account.present? %>
-                <div class="text-[11px] text-secondary dark:text-secondary-dark truncate max-w-28"><%= receivable.account.name %></div>
               <% end %>
               <div class="ml-auto flex items-center gap-2 text-[11px] shrink-0">
                 <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
@@ -123,35 +125,25 @@
       <% if @settled.any? %>
         <% @settled.each do |receivable| %>
           <% reimbursed = receivable.original_amount.to_d - receivable.remaining_amount.to_d %>
-          <div class="p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
-                  <span class="px-2 py-0.5 text-xs rounded-full bg-income-soft text-income whitespace-nowrap">已完成</span>
-                </div>
-                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
-                  <span>完成于 <%= receivable.settled_at&.strftime("%Y-%m-%d") %></span>
-                  <% if receivable.category.present? %>
-                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= receivable.category %></span>
-                  <% end %>
-                  <% if receivable.counterparty.present? %>
-                    <span>联系人：<%= receivable.counterparty.name %></span>
-                  <% end %>
-                  <% if receivable.account.present? %>
-                    <span>账户：<%= receivable.account.name %></span>
-                  <% end %>
-                </div>
-                <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
-                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(receivable.original_amount) %></span></span>
-                  <span class="text-income">已报销 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
-                </div>
-                <% if receivable.note.present? %>
-                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= receivable.note %></p>
+          <div class="px-3 py-2 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+            <div class="flex items-center justify-between gap-2 text-sm">
+              <div class="flex-1 min-w-0 flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-income-soft text-income whitespace-nowrap shrink-0">已完成</span>
+                <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
+                <span class="text-[11px] text-secondary dark:text-secondary-dark shrink-0"><%= receivable.settled_at&.strftime("%Y-%m-%d") %></span>
+                <% if receivable.category.present? %>
+                  <span class="px-1 py-0.5 rounded text-[11px] bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark shrink-0"><%= receivable.category %></span>
+                <% end %>
+                <% if receivable.counterparty.present? %>
+                  <span class="text-[11px] text-secondary dark:text-secondary-dark shrink-0">(<%= receivable.counterparty.name %>)</span>
                 <% end %>
               </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                <%= button_to "撤销", revert_receivable_path(receivable), method: :post, onclick: "if(!confirm('确定撤销此报销？撤销后可重新报销')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
+              <div class="flex items-center gap-1 shrink-0 text-[11px]">
+                <span class="text-secondary dark:text-secondary-dark">¥<%= format_currency(receivable.original_amount, unit: "") %></span>
+                <span class="text-income">已报¥<%= format_currency(reimbursed, unit: "") %></span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <%= button_to "撤销", revert_receivable_path(receivable), method: :post, onclick: "if(!confirm('确定撤销此报销？撤销后可重新报销')) return false", class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
               </div>
             </div>
           </div>
@@ -462,9 +454,14 @@
 </script>
 <script>
 function openNewReceivableModal() {
-  document.getElementById('new-receivable-form').reset();
-  document.getElementById('new-receivable-form').querySelector('input[name="receivable[date]"]').value = '<%= Date.today %>';
-  document.getElementById('add-receivable-modal').classList.remove('hidden');
+  var form = document.getElementById('new-receivable-form');
+  if (form) {
+    form.reset();
+    var dateInput = form.querySelector('input[name="receivable[date]"]');
+    if (dateInput) dateInput.value = '<%= Date.today %>';
+  }
+  var modal = document.getElementById('add-receivable-modal');
+  if (modal) modal.classList.remove('hidden');
 }
 
 function openEditReceivableModal(id, description, date, amount, category, counterpartyId, accountId, note) {
@@ -492,19 +489,13 @@ function openSettleModal(id, description, remainingAmount) {
   document.getElementById('settle-amount').value = remainingAmount;
   document.getElementById('settle-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('settle-form').action = '/receivables/' + id + '/settle';
+  
+  var accountIdInput = document.getElementById('settle-account-id');
+  var accountSearchInput = document.getElementById('settle-account-search');
+  if (accountIdInput) accountIdInput.value = '';
+  if (accountSearchInput) accountSearchInput.value = '';
+  
   document.getElementById('settle-receivable-modal').classList.remove('hidden');
-  // Re-initialize account selector
-  setTimeout(function() {
-    window.initSelectorWithData({
-      searchInputId: 'settle-account-search',
-      dropdownId: 'settle-account-dropdown',
-      filterInputId: 'settle-account-filter',
-      optionsId: 'settle-account-options',
-      hiddenInputId: 'settle-account-id',
-      dataSource: allAccountsForSelector,
-      noMatchText: '无匹配账户'
-    });
-  }, 0);
 }
 
 function setFullAmount() {

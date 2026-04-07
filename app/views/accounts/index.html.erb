@@ -301,7 +301,8 @@
          data-entry-list-period-value-value="<%= params[:period_value] %>"
          data-entry-list-filter-type-value="<%= params[:type] %>"
          data-entry-list-search-value="<%= params[:search] %>"
-         data-entry-list-category-ids-value="<%= Array(params[:category_ids]).reject(&:blank?).join(',') %>">
+         data-entry-list-category-ids-value="<%= Array(params[:category_ids]).reject(&:blank?).join(',') %>"
+         data-entry-list-drag-enabled-value="<%= params[:account_id].present? %>">
       <% if @entries_with_balance.any? %>
         <%= render 'skeleton' unless @page > 1 %>
         <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container" data-entry-list-target="container">
@@ -2081,15 +2082,25 @@ document.addEventListener('turbo:render', fixModalPositions);
 
 <script>
 function openNewReceivableModal() {
-  document.getElementById('new-receivable-form')?.reset();
-  document.getElementById('new-receivable-form')?.querySelector('input[name="receivable[date]"]')?.value = '<%= Date.today %>';
-  document.getElementById('add-receivable-modal')?.classList.remove('hidden');
+  var form = document.getElementById('new-receivable-form');
+  if (form) {
+    form.reset();
+    var dateInput = form.querySelector('input[name="receivable[date]"]');
+    if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+  }
+  var modal = document.getElementById('add-receivable-modal');
+  if (modal) modal.classList.remove('hidden');
 }
 
 function openNewPayableModal() {
-  document.getElementById('new-payable-form')?.reset();
-  document.getElementById('new-payable-form')?.querySelector('input[name="payable[date]"]')?.value = '<%= Date.today %>';
-  document.getElementById('add-payable-modal')?.classList.remove('hidden');
+  var form = document.getElementById('new-payable-form');
+  if (form) {
+    form.reset();
+    var dateInput = form.querySelector('input[name="payable[date]"]');
+    if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+  }
+  var modal = document.getElementById('add-payable-modal');
+  if (modal) modal.classList.remove('hidden');
 }
 </script>
 

@@ -55,11 +55,11 @@ pin "@hotwired/turbo-rails", to: "https://esm.sh/@hotwired/turbo-rails@8.0.4"
 # Stimulus loading helper - inline helper
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 
-# Floating UI for positioning
-pin "@floating-ui/utils", to: "https://unpkg.com/@floating-ui/utils@0.2.8/dist/floating-ui.utils.mjs"
-pin "@floating-ui/utils/dom", to: "https://unpkg.com/@floating-ui/utils@0.2.8/dist/floating-ui.utils.dom.mjs"
-pin "@floating-ui/core", to: "https://unpkg.com/@floating-ui/core@1.6.0/dist/floating-ui.core.mjs"
-pin "@floating-ui/dom", to: "https://unpkg.com/@floating-ui/dom@1.6.5/dist/floating-ui.dom.mjs"
+# Floating UI for positioning - use esm.sh for better reliability
+pin "@floating-ui/utils", to: "https://esm.sh/@floating-ui/utils@0.2.8"
+pin "@floating-ui/utils/dom", to: "https://esm.sh/@floating-ui/utils@0.2.8/dom"
+pin "@floating-ui/core", to: "https://esm.sh/@floating-ui/core@1.6.0"
+pin "@floating-ui/dom", to: "https://esm.sh/@floating-ui/dom@1.6.5"
 
-# Chart.js for charts
-pin "chart.js", to: "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
+# Chart.js for charts - use esm.sh for better reliability
+pin "chart.js", to: "https://esm.sh/chart.js@4.4.0"

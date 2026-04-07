@@ -3,11 +3,11 @@ class ReceivablesController < ApplicationController
   before_action :check_not_settled, only: %i[update destroy]
 
   def index
-    @receivables = Receivable.order(date: :desc)
-    @unsettled = @receivables.where(settled_at: nil).includes(:counterparty)
-    @settled = @receivables.where.not(settled_at: nil).includes(:counterparty, :account)
+    @unsettled = Receivable.where(settled_at: nil).order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
+    @settled = Receivable.where.not(settled_at: nil).order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
+    @receivables = Receivable.order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
     @selected_counterparty_id = params[:counterparty_id].presence
-    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id).includes(:account)
+    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id).includes(:source_entry, source_entry: :account)
     @unsettled_counterparty_stats = build_counterparty_stats(@unsettled)
     @receivable = Receivable.new(date: Date.today)
     @accounts = Account.visible.order(:name)
@@ -26,15 +26,27 @@ class ReceivablesController < ApplicationController
       category_id = resolve_category_id(@receivable.category, kind: "expense")
 
       # 自动创建支出 Entry
-      create_entry(
+      source_entry = create_entry(
         account_id: @receivable.account_id,
         amount: -@receivable.original_amount.to_d,
         date: @receivable.date,
         name: "[待报销] #{@receivable.description}",
         kind: "expense",
         category_id: category_id,
-        notes: source_entry_note_for(@receivable.id)
+        notes: nil
       )
+
+      # 建立 source_entry_id 关联
+      @receivable.update!(source_entry_id: source_entry.id) if source_entry
+
+      # 锁定源交易的关键字段，防止随意编辑
+      if source_entry
+        source_entry.lock_attribute!(:amount)
+        source_entry.lock_attribute!(:date)
+        source_entry.lock_attribute!(:account_id)
+        source_entry.entryable&.lock_attr!(:category_id) if source_entry.entryable.respond_to?(:lock_attr!)
+      end
+
       redirect_to receivables_path, notice: "应收款已创建"
     else
       redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
@@ -81,18 +93,28 @@ class ReceivablesController < ApplicationController
       return
     end
 
+    reimburse_category_id = Category.where(type: "INCOME", name: "报销").first&.id
+
     ActiveRecord::Base.transaction do
-      # 创建收入 Entry（报销款到账）
-      create_entry(
+      reimbursement_entry = create_entry(
         account_id: @account_id,
         amount: @settle_amount,
         date: @settlement_date,
         name: "[报销] #{@receivable.description}",
-        kind: "income"
+        kind: "income",
+        category_id: reimburse_category_id
       )
 
+      # 锁定报销条目的关键字段
+      if reimbursement_entry
+        reimbursement_entry.lock_attribute!(:amount)
+        reimbursement_entry.lock_attribute!(:date)
+        reimbursement_entry.lock_attribute!(:account_id)
+        reimbursement_entry.entryable&.lock_attr!(:category_id) if reimbursement_entry.entryable.respond_to?(:lock_attr!)
+      end
+
       # 更新应收款余额
-      new_remaining = @receivable.remaining_amount - @settle_amount
+      new_remaining = [ @receivable.remaining_amount - @settle_amount, 0 ].max
       @receivable.update!(
         remaining_amount: new_remaining,
         settled_at: new_remaining <= 0 ? @settlement_date : nil
@@ -104,10 +126,12 @@ class ReceivablesController < ApplicationController
 
   def revert
     ActiveRecord::Base.transaction do
-      # 删除相关的报销收入交易
-      @receivable.reimbursement_transactions.destroy_all
+      # 删除相关的报销收入交易（匹配名称）
+      reimbursement_entries = find_reimbursement_entries
+      reimbursement_entries.each(&:destroy!)
 
-      # 恢复应收款状态
+      # 保留源交易（待报销记录）。撤销报销应只移除报销相关的收入条目，保留原始支出记录。
+      # 恢复应收款状态为初始状态（未报销）
       @receivable.update!(
         remaining_amount: @receivable.original_amount,
         settled_at: nil
@@ -115,6 +139,8 @@ class ReceivablesController < ApplicationController
     end
 
     redirect_to receivables_path, notice: "报销已撤销"
+  rescue ActiveRecord::RecordInvalid
+    redirect_to receivables_path, alert: "撤销报销失败"
   end
 
   private
@@ -138,6 +164,10 @@ class ReceivablesController < ApplicationController
   end
 
   def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil, notes: nil)
+    # 获取该账户该日期的下一个 sort_order
+    max_order = Entry.where(account_id: account_id, date: date).maximum(:sort_order) || 0
+    sort_order = max_order + 1
+
     entryable = Entryable::Transaction.new(
       kind: kind,
       category_id: category_id
@@ -151,7 +181,8 @@ class ReceivablesController < ApplicationController
       amount: amount,
       currency: "CNY",
       notes: notes,
-      entryable: entryable
+      entryable: entryable,
+      sort_order: sort_order
     )
   end
 
@@ -163,20 +194,14 @@ class ReceivablesController < ApplicationController
       Category.find_by(name: category_name)&.id
   end
 
-  def source_entry_note_for(receivable_id)
-    "receivable:#{receivable_id}:source"
-  end
-
   def find_source_entry(previous_attrs = nil)
+    # 首先尝试通过 source_entry_id FK 查找
+    return @receivable.source_entry if @receivable.source_entry_id.present?
+
+    # 回退：通过属性匹配查找
     scope = Entry.transactions_only
       .with_entryable_transaction
       .where(entryable_transactions: { kind: "expense" })
-
-    token = source_entry_note_for(@receivable.id)
-    by_token = scope.where("entries.notes = ? OR entries.notes LIKE ?", token, "%#{token}%")
-      .order(created_at: :desc)
-      .first
-    return by_token if by_token
 
     attrs = previous_attrs || {}
     description = attrs[:description].presence || @receivable.description
@@ -202,7 +227,7 @@ class ReceivablesController < ApplicationController
       date: @receivable.date,
       name: "[待报销] #{@receivable.description}",
       amount: -@receivable.original_amount.to_d,
-      notes: source_entry_note_for(@receivable.id)
+      notes: nil
     )
     return unless source_entry.entryable.is_a?(Entryable::Transaction)
 
@@ -210,12 +235,21 @@ class ReceivablesController < ApplicationController
       kind: "expense",
       category_id: category_id
     )
+
+    # 更新 source_entry_id
+    @receivable.update!(source_entry_id: source_entry.id) unless @receivable.source_entry_id == source_entry.id
+
+    # 再次锁定关键字段
+    source_entry.lock_attribute!(:amount)
+    source_entry.lock_attribute!(:date)
+    source_entry.lock_attribute!(:account_id)
+    source_entry.entryable&.lock_attr!(:category_id) if source_entry.entryable.respond_to?(:lock_attr!)
   end
 
   def build_counterparty_stats(records)
     records.group_by { |r| counterparty_filter_token_for(r) }
       .map do |filter_value, rows|
-        first = rows.first
+         first = rows.first
         name = first.counterparty&.name.presence || first.counterparty.presence || "未设置联系人"
         {
           name: name,
@@ -226,6 +260,13 @@ class ReceivablesController < ApplicationController
       end
       .sort_by { |s| [ -s[:amount], -s[:count], s[:name] ] }
       .first(8)
+  end
+
+  def find_reimbursement_entries
+    Entry.transactions_only
+      .with_entryable_transaction
+      .where(entryable_transactions: { kind: "income" })
+      .where("entries.name LIKE ?", "%[报销] #{@receivable.description}%")
   end
 
   def filter_by_counterparty(scope, counterparty_id)

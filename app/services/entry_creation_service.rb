@@ -5,9 +5,16 @@
 class EntryCreationService
   class CreationError < StandardError; end
 
+  # 获取指定日期的最大 sort_order
+  def self.next_sort_order(account_id, date)
+    max_order = Entry.where(account_id: account_id, date: date).maximum(:sort_order) || 0
+    max_order + 1
+  end
+
   # 创建普通收支 Entry
   def self.create_regular(type:, account_id:, amount:, date:, currency: "CNY", note: nil, category_id: nil)
     kind = type.downcase
+    sort_order = next_sort_order(account_id, date)
 
     Entry.transaction do
       entryable = Entryable::Transaction.create!(
@@ -22,7 +29,8 @@ class EntryCreationService
         amount: kind == "income" ? amount : -amount,
         currency: currency,
         notes: note,
-        entryable: entryable
+        entryable: entryable,
+        sort_order: sort_order
       )
     end
   end
@@ -35,6 +43,10 @@ class EntryCreationService
     transfer_id = SecureRandom.random_number(2**31)
     transfer_note = note.presence || "转账: #{from_account.name} → #{to_account.name}"
 
+    # 获取两个账户的下一个 sort_order
+    sort_order_out = next_sort_order(from_account_id, date)
+    sort_order_in = next_sort_order(to_account_id, date)
+
     Entry.transaction do
       entry_out = Entry.create!(
         account_id: from_account_id,
@@ -42,9 +54,10 @@ class EntryCreationService
         name: transfer_note,
         amount: -amount,
         currency: currency,
-        notes: transfer_note,
+        notes: note.presence,
         entryable: Entryable::Transaction.create!(kind: "expense"),
-        transfer_id: transfer_id
+        transfer_id: transfer_id,
+        sort_order: sort_order_out
       )
 
       entry_in = Entry.create!(
@@ -53,9 +66,10 @@ class EntryCreationService
         name: transfer_note,
         amount: amount,
         currency: currency,
-        notes: transfer_note,
+        notes: note.presence,
         entryable: Entryable::Transaction.create!(kind: "income"),
-        transfer_id: transfer_id
+        transfer_id: transfer_id,
+        sort_order: sort_order_in
       )
     end
   end
@@ -76,6 +90,10 @@ class EntryCreationService
         (note.present? ? "（#{note}）" : nil)
       ].compact.join(" ")
 
+      # 获取 sort_order
+      sort_order_out = next_sort_order(source_account.id, date)
+      sort_order_in = next_sort_order(destination_account.id, date)
+
       # 资金来源转账：转出
       Entry.create!(
         account_id: source_account.id,
@@ -83,9 +101,10 @@ class EntryCreationService
         name: transfer_note,
         amount: -amount,
         currency: currency,
-        notes: transfer_note,
+        notes: note.presence,
         entryable: Entryable::Transaction.create!(kind: "expense"),
-        transfer_id: transfer_id
+        transfer_id: transfer_id,
+        sort_order: sort_order_out
       )
 
       # 资金来源转账：转入
@@ -95,12 +114,14 @@ class EntryCreationService
         name: transfer_note,
         amount: amount,
         currency: currency,
-        notes: transfer_note,
+        notes: note.presence,
         entryable: Entryable::Transaction.create!(kind: "income"),
-        transfer_id: transfer_id
+        transfer_id: transfer_id,
+        sort_order: sort_order_in
       )
 
       # 实际支出
+      sort_order_expense = next_sort_order(destination_account.id, date)
       expense_entryable = Entryable::Transaction.create!(
         kind: "expense",
         category_id: category_id
@@ -113,7 +134,8 @@ class EntryCreationService
         amount: -amount,
         currency: currency,
         notes: note,
-        entryable: expense_entryable
+        entryable: expense_entryable,
+        sort_order: sort_order_expense
       )
     end
   end

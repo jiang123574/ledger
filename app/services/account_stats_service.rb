@@ -39,8 +39,9 @@ class AccountStatsService
       return paginated_entries.map { |e| [ e, nil ] }
     end
 
-    # 找到最早的一条记录
-    earliest = paginated_entries.min_by { |e| [ e.date || Date.new(1970), e.id ] }
+    # 找到最早的一条记录（使用与排序相同的比较键，包含 sort_order）
+    # 对于倒序分页，earliest 是这一页中日期最小、sort_order 最小、id 最小的记录
+    earliest = paginated_entries.min_by { |e| [ e.date || Date.new(1970), e.sort_order || 0, e.id ] }
 
     # 计算该记录之前的所有 Entry 总和
     initial_balance = if account_id.present?
@@ -56,31 +57,29 @@ class AccountStatsService
       all_prior_entries = all_prior_entries.where(account_id: account_id)
     else
       all_prior_entries = all_prior_entries.where(accounts: { include_in_total: true })
-      all_prior_entries = all_prior_entries.where("transfer_id IS NULL")
     end
 
     all_prior_entries = all_prior_entries
-      .where("entries.date < ? OR (entries.date = ? AND entries.id < ?)",
-             earliest.date, earliest.date, earliest.id)
+      .where("entries.date < ? OR (entries.date = ? AND (entries.sort_order < ? OR (entries.sort_order = ? AND entries.id < ?)))",
+             earliest.date, earliest.date, earliest.sort_order || 0, earliest.sort_order || 0, earliest.id)
       .select("SUM(entries.amount) as total_amount")
       .to_a.first
 
     prior_total = all_prior_entries&.total_amount || 0
     running_balance = initial_balance.to_d + prior_total.to_d
 
-    # 按日期排序并计算每条记录的余额
-    sorted = paginated_entries.sort_by { |e| [ e.date || Date.new(1970), e.id ] }
+    # 余额计算：按正序（日期从小到大）计算，与 chronological 排序一致
+    # sorted_asc 按日期正序、sort_order 正序、id 正序排列
+    sorted_asc = paginated_entries.sort_by { |e| [ e.date || Date.new(1970), e.sort_order || 0, e.id ] }
     balance_map = {}
 
-    sorted.each do |e|
-      if e.transfer_id.present? && account_id.blank?
-        balance_map[e.id] = running_balance
-      else
-        running_balance += e.amount.to_d
-        balance_map[e.id] = running_balance
-      end
+    sorted_asc.each do |e|
+      running_balance += e.amount.to_d
+      balance_map[e.id] = running_balance
     end
 
+    # 返回原始分页顺序（保持 reverse_chronological 顺序：日期倒序、sort_order 正序、id 倒序）
+    # 每条记录的余额是"截止到该记录的累计余额"（从最早到该记录）
     paginated_entries.map { |e| [ e, balance_map[e.id] || running_balance ] }
   end
 
