@@ -46,6 +46,10 @@ function createEntryCard(entry, options = {}) {
   const template = document.createElement("template")
   template.innerHTML = ENTRY_CARD_TEMPLATE.trim()
   const row = template.content.firstElementChild.cloneNode(true)
+  row.dataset.entryId = entry.id
+  row.dataset.date = entry.date || ''
+  row.draggable = true
+  row.classList.add('cursor-move')
 
   const typeBadgeCls = typeBadgeClass(entry.display_type)
   const amountCls = amountClass(entry.display_amount_type)

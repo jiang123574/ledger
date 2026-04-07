@@ -490,11 +490,57 @@
             e.preventDefault();
             e.stopPropagation();
             // 打开新建交易弹窗（优先）或跳转到新建页面
-            var newBtn = document.querySelector('#e9, button[onclick*="openNewTransactionModal"]');
-            if (newBtn) {
-              newBtn.click();
+            if (typeof openNewTransactionModal === 'function') {
+              openNewTransactionModal();
+            } else {
+              var newBtn = document.querySelector('#e9, button[onclick*="openNewTransactionModal"]');
+              if (newBtn) {
+                newBtn.click();
+              } else {
+                window.location.href = '/accounts?open_new_transaction=1';
+              }
+            }
+            break;
+          case 'a':
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof openNewTransactionModal === 'function') {
+              if (typeof transactionMode !== 'undefined' && transactionMode === 'transfer') {
+                toggleTransferMode();
+              }
+              openNewTransactionModal();
             } else {
               window.location.href = '/accounts?open_new_transaction=1';
+            }
+            break;
+          case 'z':
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof openNewTransactionModal === 'function' && typeof toggleTransferMode === 'function') {
+              openNewTransactionModal();
+              if (typeof transactionMode !== 'undefined' && transactionMode === 'category') {
+                toggleTransferMode();
+              }
+            } else {
+              window.location.href = '/accounts?open_new_transaction=1&transfer=1';
+            }
+            break;
+          case 'd':
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof openNewReceivableModal === 'function') {
+              openNewReceivableModal();
+            } else {
+              window.location.href = '/receivables?open_modal=true';
+            }
+            break;
+          case 'b':
+            e.preventDefault();
+            e.stopPropagation();
+            if (typeof openNewPayableModal === 'function') {
+              openNewPayableModal();
+            } else {
+              window.location.href = '/payables?open_modal=true';
             }
             break;
           case 's':
@@ -528,6 +574,10 @@
       function showShortcutsHelp() {
         var shortcuts = [
           { key: 'n', description: '新建交易' },
+          { key: 'a', description: '新增收支' },
+          { key: 'z', description: '新增转账' },
+          { key: 'd', description: '新增应收款' },
+          { key: 'b', description: '新增报销' },
           { key: 's', description: '搜索' },
           { key: '/', description: '快速搜索' },
           { key: 'g a', description: '账户' },
