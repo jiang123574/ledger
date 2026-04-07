@@ -46,12 +46,6 @@ COPY Gemfile Gemfile.lock ./
 
 RUN bundle install && \
     rm -rf ~/.bundle/ "${BUNDLE_PATH}"/ruby/*/cache "${BUNDLE_PATH}"/ruby/*/bundler/gems/*/.git && \
-    # Remove gem documentation and test files to reduce size
-    find "${BUNDLE_PATH}"/ruby/*/gems -name "*.md" -delete && \
-    find "${BUNDLE_PATH}"/ruby/*/gems -name "*.txt" -delete && \
-    find "${BUNDLE_PATH}"/ruby/*/gems -name "test" -type d -exec rm -rf {} + 2>/dev/null || true && \
-    find "${BUNDLE_PATH}"/ruby/*/gems -name "tests" -type d -exec rm -rf {} + 2>/dev/null || true && \
-    find "${BUNDLE_PATH}"/ruby/*/gems -name "spec" -type d -exec rm -rf {} + 2>/dev/null || true && \
     # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
     bundle exec bootsnap precompile -j 1 --gemfile
 
