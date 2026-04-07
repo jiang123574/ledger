@@ -22,7 +22,7 @@ class DashboardController < ApplicationController
     # Cache recent entries
     @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{ev}", expires_in: CacheConfig::MEDIUM) do
       Entry.includes(:account)
-        .where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
+        .where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
         .where("transfer_id IS NULL")
         .reverse_chronological
         .limit(50)
@@ -30,22 +30,22 @@ class DashboardController < ApplicationController
     end
 
     # 预加载 entryable 及其 category（每次请求都做，因为缓存序列化会丢失预加载状态）
-    ActiveRecord::Associations::Preloader.new(records: @entries, associations: [:entryable]).call
+    ActiveRecord::Associations::Preloader.new(records: @entries, associations: [ :entryable ]).call
     if @entries.any?
       category_ids = @entries.map { |e| e.entryable.respond_to?(:category_id) ? e.entryable.category_id : nil }.compact.uniq
       if category_ids.any?
-        @category_map = Category.where(id: category_ids).index_by(&:id)
+        @category_map = Category.where(id: category_ids).includes(:parent).index_by(&:id)
       end
     end
 
     # Cache monthly stats
     @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
-      entries = Entry.where(date: start_date..end_date, entryable_type: 'Entryable::Transaction')
+      entries = Entry.where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
         .where("transfer_id IS NULL")
       {
-        income: entries.where('amount > 0').sum(:amount),
-        expense: entries.where('amount < 0').sum('ABS(amount)'),
-        balance: entries.where('amount > 0').sum(:amount) - entries.where('amount < 0').sum('ABS(amount)'),
+        income: entries.where("amount > 0").sum(:amount),
+        expense: entries.where("amount < 0").sum("ABS(amount)"),
+        balance: entries.where("amount > 0").sum(:amount) - entries.where("amount < 0").sum("ABS(amount)"),
         count: entries.count
       }
     end
@@ -58,14 +58,14 @@ class DashboardController < ApplicationController
         .transactions_only
         .non_transfers
         .where(date: start_date..end_date)
-        .where(entryable_transactions: { kind: 'expense' })
-        .select('categories.id AS category_id, categories.name AS category_name, SUM(ABS(entries.amount)) AS total_amount')
-        .group('categories.id, categories.name')
-        .order(Arel.sql('SUM(ABS(entries.amount)) DESC'))
+        .where(entryable_transactions: { kind: "expense" })
+        .select("categories.id AS category_id, categories.name AS category_name, SUM(ABS(entries.amount)) AS total_amount")
+        .group("categories.id, categories.name")
+        .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
         .to_a
     end
 
-    @expenses_by_category = expenses_data.map { |e| [e.category_id, e.category_name, e.total_amount] }
+    @expenses_by_category = expenses_data.map { |e| [ e.category_id, e.category_name, e.total_amount ] }
 
     @budgets = Budget.for_month(@month)
     @total_budget = @budgets.sum(:amount)
@@ -75,9 +75,9 @@ class DashboardController < ApplicationController
       Entry.with_entryable_transaction
         .transactions_only
         .non_transfers
-        .where(entryable_transactions: { kind: 'expense', category_id: @budgets.pluck(:category_id) })
+        .where(entryable_transactions: { kind: "expense", category_id: @budgets.pluck(:category_id) })
         .where(date: start_date..end_date)
-        .sum('ABS(entries.amount)')
+        .sum("ABS(entries.amount)")
     end
 
     # Trend chart data for current month (weekly)
@@ -103,7 +103,7 @@ class DashboardController < ApplicationController
       .transactions_only
       .non_transfers
       .where(date: start_date..end_date)
-      .group("date_trunc('week', entries.date)", 'entryable_transactions.kind')
+      .group("date_trunc('week', entries.date)", "entryable_transactions.kind")
       .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
       .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
@@ -113,10 +113,10 @@ class DashboardController < ApplicationController
     week_num = 1
 
     while current <= end_date
-      week_end = [current.end_of_week, end_date].min
+      week_end = [ current.end_of_week, end_date ].min
       week_data = stats_by_week[current.beginning_of_week] || []
-      income = week_data.find { |s| s[:kind] == 'income' }&.dig(:amount) || 0
-      expense = week_data.find { |s| s[:kind] == 'expense' }&.dig(:amount) || 0
+      income = week_data.find { |s| s[:kind] == "income" }&.dig(:amount) || 0
+      expense = week_data.find { |s| s[:kind] == "expense" }&.dig(:amount) || 0
 
       weeks << {
         week: week_num,

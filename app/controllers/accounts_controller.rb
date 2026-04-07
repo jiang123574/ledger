@@ -36,11 +36,11 @@ class AccountsController < ApplicationController
     end
 
     @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: CacheConfig::LONG) do
-      Category.active.by_sort_order.to_a
+      Category.active.by_sort_order.includes(:parent).to_a
     end
 
     @expense_categories = Rails.cache.fetch("expense_categories_active/#{av}", expires_in: CacheConfig::LONG) do
-      Category.expense.active.by_sort_order.to_a
+      Category.expense.active.by_sort_order.includes(:parent).to_a
     end
 
     @counterparties = Rails.cache.fetch("counterparties_list/#{av}", expires_in: CacheConfig::LONG) do
@@ -453,20 +453,20 @@ class AccountsController < ApplicationController
 
   def reorder_entries
     unless params[:entry_ids].is_a?(Array) && params[:date].present?
-      render json: { success: false, error: '缺少排序参数' }, status: :bad_request
+      render json: { success: false, error: "缺少排序参数" }, status: :bad_request
       return
     end
 
     date = Date.parse(params[:date]) rescue nil
     unless date
-      render json: { success: false, error: '日期格式不正确' }, status: :bad_request
+      render json: { success: false, error: "日期格式不正确" }, status: :bad_request
       return
     end
 
     entry_ids = params[:entry_ids].map(&:to_i)
     entries = Entry.where(account_id: @account.id, date: date, id: entry_ids)
     if entries.size != entry_ids.size
-      render json: { success: false, error: '条目列表不匹配' }, status: :unprocessable_entity
+      render json: { success: false, error: "条目列表不匹配" }, status: :unprocessable_entity
       return
     end
 
@@ -478,7 +478,7 @@ class AccountsController < ApplicationController
     end
 
     previous_balance = Entry.where(account_id: @account.id)
-                             .where('date < ?', date)
+                             .where("date < ?", date)
                              .sum(:amount) + @account.initial_balance
 
     balances = Entry.where(account_id: @account.id, date: date)
@@ -552,7 +552,7 @@ class AccountsController < ApplicationController
   end
 
   def build_entries_query(period_type, period_value)
-    entries = Entry.where(entryable_type: ['Entryable::Transaction', 'Entryable::Transfer'])
+    entries = Entry.where(entryable_type: [ "Entryable::Transaction", "Entryable::Transfer" ])
 
     if params[:account_id].present?
       entries = entries.where(account_id: params[:account_id])
