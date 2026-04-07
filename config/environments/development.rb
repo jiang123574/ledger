@@ -76,6 +76,6 @@ Rails.application.configure do
     Bullet.add_footer = true
     # AccountStatsService 内部通过 preload_transfer_accounts 批量加载 account，
     # Bullet 无法追踪跨 scope 的预加载，会产生误报
-    Bullet.add_safelist type: :n_plus_one_query, class_name: 'Entry', association: :account
+    Bullet.add_safelist type: :n_plus_one_query, class_name: "Entry", association: :account
   end
 end

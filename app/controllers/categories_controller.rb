@@ -6,9 +6,9 @@ class CategoriesController < ApplicationController
     if @category.save
       CacheBuster.bump(:accounts)
       CacheBuster.bump(:categories)
-      redirect_to settings_path(section: 'categories'), notice: "分类已创建"
+      redirect_to settings_path(section: "categories"), notice: "分类已创建"
     else
-      redirect_to settings_path(section: 'categories'), alert: @category.errors.full_messages.join(', ')
+      redirect_to settings_path(section: "categories"), alert: @category.errors.full_messages.join(", ")
     end
   end
 
@@ -16,9 +16,9 @@ class CategoriesController < ApplicationController
     if @category.update(category_params)
       CacheBuster.bump(:accounts)
       CacheBuster.bump(:categories)
-      redirect_to settings_path(section: 'categories'), notice: "分类已更新"
+      redirect_to settings_path(section: "categories"), notice: "分类已更新"
     else
-      redirect_to settings_path(section: 'categories'), alert: @category.errors.full_messages.join(', ')
+      redirect_to settings_path(section: "categories"), alert: @category.errors.full_messages.join(", ")
     end
   end
 
@@ -26,7 +26,7 @@ class CategoriesController < ApplicationController
     @category.destroy
     CacheBuster.bump(:accounts)
     CacheBuster.bump(:categories)
-    redirect_to settings_path(section: 'categories'), notice: "分类已删除"
+    redirect_to settings_path(section: "categories"), notice: "分类已删除"
   end
 
   private

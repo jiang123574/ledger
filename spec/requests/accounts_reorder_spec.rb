@@ -23,8 +23,8 @@ RSpec.describe "Accounts reorder", type: :request do
       expect(response).to have_http_status(:ok)
 
       ordered_ids = Account.visible.order(:sort_order, :name).pluck(:id)
-      reordered_subset = ordered_ids.select { |id| [a1.id, a2.id, a3.id].include?(id) }
-      expect(reordered_subset).to eq([a2.id, a3.id, a1.id])
+      reordered_subset = ordered_ids.select { |id| [ a1.id, a2.id, a3.id ].include?(id) }
+      expect(reordered_subset).to eq([ a2.id, a3.id, a1.id ])
     end
 
     it "allows reordering against hidden accounts when show_hidden is true" do
@@ -40,8 +40,8 @@ RSpec.describe "Accounts reorder", type: :request do
       expect(response).to have_http_status(:ok)
 
       ordered_ids = Account.order(:sort_order, :name).pluck(:id)
-      reordered_subset = ordered_ids.select { |id| [visible_1.id, visible_2.id, hidden.id].include?(id) }
-      expect(reordered_subset).to eq([visible_1.id, visible_2.id, hidden.id])
+      reordered_subset = ordered_ids.select { |id| [ visible_1.id, visible_2.id, hidden.id ].include?(id) }
+      expect(reordered_subset).to eq([ visible_1.id, visible_2.id, hidden.id ])
     end
   end
 
@@ -56,7 +56,7 @@ RSpec.describe "Accounts reorder", type: :request do
       e3 = create(:entry, account: account, date: date, amount: 50.0, sort_order: 1)
 
       # Reorder: e3, e1, e2
-      reordered_ids = [e3.id, e1.id, e2.id]
+      reordered_ids = [ e3.id, e1.id, e2.id ]
 
       patch "/accounts/#{account.id}/reorder_entries",
         params: { entry_ids: reordered_ids, date: date.to_s },
@@ -86,7 +86,7 @@ RSpec.describe "Accounts reorder", type: :request do
       e2 = create(:entry, account: account, date: date, amount: -20.0)
 
       patch "/accounts/#{account.id}/reorder_entries",
-        params: { entry_ids: [e1.id], date: date.to_s }, # Only one ID but two entries exist
+        params: { entry_ids: [ e1.id ], date: date.to_s }, # Only one ID but two entries exist
         headers: auth_headers,
         as: :json
 

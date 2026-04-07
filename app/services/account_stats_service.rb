@@ -11,7 +11,7 @@ class AccountStatsService
       Account.total_assets
     end
 
-    entries_query = Entry.where(entryable_type: ['Entryable::Transaction'])
+    entries_query = Entry.where(entryable_type: "Entryable::Transaction")
     entries_query = apply_period_filter(entries_query, period_type, period_value)
     entries_query = entries_query.where(account_id: account_id) if account_id.present?
     entries_query = apply_entry_filters(entries_query, filter_type, category_ids)
@@ -36,11 +36,11 @@ class AccountStatsService
       .limit(per_page).offset((page - 1) * per_page).to_a
 
     if paginated_entries.empty?
-      return paginated_entries.map { |e| [e, nil] }
+      return paginated_entries.map { |e| [ e, nil ] }
     end
 
     # 找到最早的一条记录
-    earliest = paginated_entries.min_by { |e| [e.date || Date.new(1970), e.id] }
+    earliest = paginated_entries.min_by { |e| [ e.date || Date.new(1970), e.id ] }
 
     # 计算该记录之前的所有 Entry 总和
     initial_balance = if account_id.present?
@@ -49,7 +49,7 @@ class AccountStatsService
       Account.included_in_total.sum(:initial_balance)
     end
 
-    all_prior_entries = Entry.where(entryable_type: ['Entryable::Transaction'])
+    all_prior_entries = Entry.where(entryable_type: "Entryable::Transaction")
       .joins(:account)
 
     if account_id.present?
@@ -69,7 +69,7 @@ class AccountStatsService
     running_balance = initial_balance.to_d + prior_total.to_d
 
     # 按日期排序并计算每条记录的余额
-    sorted = paginated_entries.sort_by { |e| [e.date || Date.new(1970), e.id] }
+    sorted = paginated_entries.sort_by { |e| [ e.date || Date.new(1970), e.id ] }
     balance_map = {}
 
     sorted.each do |e|
@@ -81,7 +81,7 @@ class AccountStatsService
       end
     end
 
-    paginated_entries.map { |e| [e, balance_map[e.id] || running_balance] }
+    paginated_entries.map { |e| [ e, balance_map[e.id] || running_balance ] }
   end
 
   # 预加载转账配对账户信息（消除视图中的 N+1 查询）
@@ -106,7 +106,7 @@ class AccountStatsService
     def apply_entry_filters(query, filter_type, category_ids)
       return query if filter_type.blank? && category_ids.blank?
 
-      query = query.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
+      query = query.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
       query = query.where(entryable_transactions: { kind: filter_type.downcase }) if filter_type.present?
       query = query.where(entryable_transactions: { category_id: category_ids }) if category_ids.present?
       query

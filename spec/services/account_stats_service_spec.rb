@@ -79,7 +79,7 @@ RSpec.describe AccountStatsService, type: :service do
           account_id: account.id,
           period_type: 'month',
           period_value: nil,
-          category_ids: [category.id]
+          category_ids: [ category.id ]
         )
 
         expect(stats[:total_expense]).to be > 0
@@ -172,7 +172,7 @@ RSpec.describe AccountStatsService, type: :service do
 
       expect(result).to be_an(Array)
       expect(result.length).to eq(3)
-      
+
       result.each do |entry, balance|
         expect(entry).to be_a(Entry)
         expect(balance).to be_present
@@ -181,14 +181,14 @@ RSpec.describe AccountStatsService, type: :service do
 
     it 'respects pagination' do
       entries_scope = Entry.where(account: account)
-      
+
       page1 = described_class.entries_with_balance(
         entries_scope,
         page: 1,
         per_page: 2,
         account_id: account.id
       )
-      
+
       page2 = described_class.entries_with_balance(
         entries_scope,
         page: 2,
@@ -198,7 +198,7 @@ RSpec.describe AccountStatsService, type: :service do
 
       expect(page1.length).to eq(2)
       expect(page2.length).to eq(1)
-      
+
       # 第一页和第二页的entries应该不同
       page1_ids = page1.map { |e, _| e.id }
       page2_ids = page2.map { |e, _| e.id }
@@ -226,7 +226,7 @@ RSpec.describe AccountStatsService, type: :service do
         amount: 100,
         date: Date.current
       )
-      transfer.update_column(:transfer_id, 999) #模拟转账
+      transfer.update_column(:transfer_id, 999) # 模拟转账
 
       entries_scope = Entry.where(account: account)
       result = described_class.entries_with_balance(
@@ -242,7 +242,7 @@ RSpec.describe AccountStatsService, type: :service do
     it 'handles empty results' do
       other_account = create(:account)
       entries_scope = Entry.where(account: other_account)
-      
+
       result = described_class.entries_with_balance(
         entries_scope,
         page: 1,
@@ -263,7 +263,7 @@ RSpec.describe AccountStatsService, type: :service do
       )
 
       entry, _balance = result.first
-      
+
       # "entryable" 应该已被加载
       expect(entry.association(:entryable)).to be_loaded
     end
@@ -331,7 +331,7 @@ RSpec.describe AccountStatsService, type: :service do
         amount: 100,
         date: Date.current
       )
-      
+
       # 关联转账ID
       transfer_out.update_column(:transfer_id, 1)
       transfer_in.update_column(:transfer_id, 1)
@@ -339,7 +339,7 @@ RSpec.describe AccountStatsService, type: :service do
 
     it 'preloads transfer account relationships' do
       entries_scope = Entry.where(transfer_id: 1).to_a
-      entries_with_balance = entries_scope.map { |e| [e, nil] }
+      entries_with_balance = entries_scope.map { |e| [ e, nil ] }
 
       expect {
         described_class.preload_transfer_accounts_for(entries_with_balance)
@@ -348,11 +348,11 @@ RSpec.describe AccountStatsService, type: :service do
 
     it 'eliminates N+1 queries for transfer accounts' do
       entries_scope = Entry.where(transfer_id: 1)
-      entries_with_balance = entries_scope.map { |e| [e, nil] }
+      entries_with_balance = entries_scope.map { |e| [ e, nil ] }
 
       # 预加载后，访问关联账户应该不会产生额外查询
       described_class.preload_transfer_accounts_for(entries_with_balance)
-      
+
       # 这取决于Entry模型的实现细节
     end
   end

@@ -14,7 +14,7 @@ RSpec.describe "Accounts entries API", type: :request do
         # 调用端点时需要认证
         # 如果没有异常，说明请求被 http_login helper 正确认证了
         get "/accounts/entries", params: { page: 1, per_page: 10, format: :json }
-        
+
         expect(response).to have_http_status(:ok)
       end
     end
@@ -22,7 +22,7 @@ RSpec.describe "Accounts entries API", type: :request do
     context "with basic entries" do
       before do
         # 创建几条普通交易
-        create(:entry, 
+        create(:entry,
           account: account,
           entryable: create(:entryable_transaction, kind: 'EXPENSE'),
           amount: -100,
@@ -115,7 +115,7 @@ RSpec.describe "Accounts entries API", type: :request do
 
         data = response.parsed_body
         entries = data["entries"]
-        
+
         dates = entries.map { |e| e["date"] }
         expect(dates).to eq(dates.sort.reverse)
       end
@@ -139,11 +139,11 @@ RSpec.describe "Accounts entries API", type: :request do
       end
 
       it "filters by month (default)" do
-        get "/accounts/entries", params: { 
-          page: 1, 
+        get "/accounts/entries", params: {
+          page: 1,
           per_page: 10,
           period_type: 'month',
-          format: :json 
+          format: :json
         }
 
         data = response.parsed_body

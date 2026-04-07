@@ -11,9 +11,9 @@ class Account < ApplicationRecord
   }.freeze
 
   has_many :entries, dependent: :destroy
-  has_many :transaction_entries, -> { where(entryable_type: 'Entryable::Transaction') }, class_name: 'Entry'
-  has_many :valuation_entries, -> { where(entryable_type: 'Entryable::Valuation') }, class_name: 'Entry'
-  has_many :trade_entries, -> { where(entryable_type: 'Entryable::Trade') }, class_name: 'Entry'
+  has_many :transaction_entries, -> { where(entryable_type: "Entryable::Transaction") }, class_name: "Entry"
+  has_many :valuation_entries, -> { where(entryable_type: "Entryable::Valuation") }, class_name: "Entry"
+  has_many :trade_entries, -> { where(entryable_type: "Entryable::Trade") }, class_name: "Entry"
   has_many :plans, dependent: :destroy
   has_many :recurring_transactions, dependent: :destroy
 
@@ -91,8 +91,8 @@ class Account < ApplicationRecord
     month_entries = transaction_entries.where(date: start_date..end_date)
 
     {
-      income: month_entries.where('amount > 0').sum(:amount),
-      expense: month_entries.where('amount < 0').sum('ABS(amount)')
+      income: month_entries.where("amount > 0").sum(:amount),
+      expense: month_entries.where("amount < 0").sum("ABS(amount)")
     }
   end
 
@@ -106,8 +106,8 @@ class Account < ApplicationRecord
 
   def cash_flow(from_date, to_date)
     period_entries = transaction_entries.where(date: from_date..to_date)
-    income = period_entries.where('amount > 0').sum(:amount)
-    expense = period_entries.where('amount < 0').sum('ABS(amount)')
+    income = period_entries.where("amount > 0").sum(:amount)
+    expense = period_entries.where("amount < 0").sum("ABS(amount)")
     { income: income, expense: expense, net: income - expense }
   end
 
@@ -127,7 +127,7 @@ class Account < ApplicationRecord
 
   # 是否为信用卡
   def credit_card?
-    type == 'CREDIT' && billing_day.present?
+    type == "CREDIT" && billing_day.present?
   end
 
   # 计算指定月份的账单周期
@@ -156,7 +156,7 @@ class Account < ApplicationRecord
       return nil
     end
 
-    if billing_day_mode == 'next'
+    if billing_day_mode == "next"
       # 账单日计入下期：本期不包含账单日当天
       # 本期: 上月billing_day ~ 本月billing_day-1
       # 例如 billing_day=16: 本期 02-16 ~ 03-15，下期 03-16 ~ 04-15
@@ -278,7 +278,7 @@ class Account < ApplicationRecord
   # 根据账单截止日计算还款到期日
   def calculate_due_date(bill_end_date)
     case due_day_mode
-    when 'relative'
+    when "relative"
       # 还款日 = 账单日后 N 天
       offset_days = due_day_offset || 20
       bill_end_date + offset_days.days
@@ -287,7 +287,7 @@ class Account < ApplicationRecord
       due_d = (due_day || 5).to_i
       due_month = (bill_end_date + 1.month).beginning_of_month
       # 确保不超过该月最后一天
-      actual_day = [due_d, due_month.end_of_month.day].min
+      actual_day = [ due_d, due_month.end_of_month.day ].min
       Date.new(due_month.year, due_month.month, actual_day)
     end
   end

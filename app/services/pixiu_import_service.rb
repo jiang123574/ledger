@@ -17,12 +17,12 @@ class PixiuImportService
     stats = { total: 0, valid: 0, transfers: 0, invalid: 0 }
     sample_data = []
 
-    CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
+    CSV.foreach(file_path, headers: true, encoding: "UTF-8") do |row|
       stats[:total] += 1
-      next if row['日期'].blank?
+      next if row["日期"].blank?
 
-      transaction_category = row['交易分类']&.strip
-      transaction_type_detail = row['交易类型']&.strip
+      transaction_category = row["交易分类"]&.strip
+      transaction_type_detail = row["交易类型"]&.strip
 
       if transfer?(transaction_category, transaction_type_detail)
         stats[:transfers] += 1
@@ -33,8 +33,8 @@ class PixiuImportService
         next
       end
 
-      income = row['流入金额'].to_d
-      expense = row['流出金额'].to_d
+      income = row["流入金额"].to_d
+      expense = row["流出金额"].to_d
 
       if income > 0 || expense > 0
         stats[:valid] += 1
@@ -56,8 +56,8 @@ class PixiuImportService
     child_categories_map = {}
     parent_category_types = {}
 
-    CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
-      next if row['日期'].blank?
+    CSV.foreach(file_path, headers: true, encoding: "UTF-8") do |row|
+      next if row["日期"].blank?
 
       collect_accounts(row, accounts_set)
       collect_categories(row, parent_categories_set, child_categories_map, parent_category_types)
@@ -73,22 +73,22 @@ class PixiuImportService
   def self.import(file_path, accounts_map, categories_map)
     result = { imported: 0, skipped: 0, errors: 0, transfers: 0 }
 
-    CSV.foreach(file_path, headers: true, encoding: 'UTF-8') do |row|
-      next if row['日期'].blank?
+    CSV.foreach(file_path, headers: true, encoding: "UTF-8") do |row|
+      next if row["日期"].blank?
 
       begin
-        date = Date.parse(row['日期'])
+        date = Date.parse(row["日期"])
       rescue Date::Error => e
         result[:errors] += 1
         Rails.logger.error("Import error: invalid date '#{row['日期']}': #{e.message}")
         next
       end
 
-      income = row['流入金额'].to_d
-      expense = row['流出金额'].to_d
-      transaction_category = row['交易分类']&.strip
-      transaction_type_detail = row['交易类型']&.strip
-      account_str = row['资金账户']&.strip
+      income = row["流入金额"].to_d
+      expense = row["流出金额"].to_d
+      transaction_category = row["交易分类"]&.strip
+      transaction_type_detail = row["交易类型"]&.strip
+      account_str = row["资金账户"]&.strip
 
       begin
         if transfer?(transaction_category, transaction_type_detail)
@@ -136,25 +136,25 @@ class PixiuImportService
     # 判断是否为转账类型
     def transfer?(transaction_category, transaction_type_detail)
       non_transfer = NON_TRANSFER_KEYWORDS.any? { |t| transaction_type_detail&.include?(t) }
-      (TRANSFER_CATEGORIES.include?(transaction_category) || transaction_type_detail&.start_with?('转账')) && !non_transfer
+      (TRANSFER_CATEGORIES.include?(transaction_category) || transaction_type_detail&.start_with?("转账")) && !non_transfer
     end
 
     # 解析转账账户信息
     def parse_transfer_info(row, transaction_type_detail)
-      account_str = row['资金账户']&.strip
+      account_str = row["资金账户"]&.strip
 
-      if account_str&.include?('→')
-        parts = account_str.split('→').map(&:strip)
+      if account_str&.include?("→")
+        parts = account_str.split("→").map(&:strip)
         return { from_account: parts[0], to_account: parts[1], from_name: parts[0], to_name: parts[1] }
-      elsif transaction_type_detail&.include?('/')
-        parts = transaction_type_detail.split('/').map(&:strip)
+      elsif transaction_type_detail&.include?("/")
+        parts = transaction_type_detail.split("/").map(&:strip)
         if parts.length > 1
           account_info = parts[1]
-          if account_info.include?('转到') || account_info.include?('转出')
-            to_name = account_info.sub(/转到|转出/, '').strip
+          if account_info.include?("转到") || account_info.include?("转出")
+            to_name = account_info.sub(/转到|转出/, "").strip
             return { from_account: "支付宝余额", to_account: to_name, from_name: "支付宝余额", to_name: to_name }
-          elsif account_info.include?('转入')
-            from_name = account_info.sub('转入', '').strip
+          elsif account_info.include?("转入")
+            from_name = account_info.sub("转入", "").strip
             return { from_account: from_name, to_account: "支付宝余额", from_name: from_name, to_name: "支付宝余额" }
           else
             return { from_account: "支付宝余额", to_account: account_info, from_name: "支付宝余额", to_name: account_info }
@@ -167,15 +167,15 @@ class PixiuImportService
 
     # 构建转账样本数据
     def build_sample_transfer(row, transfer_info, transaction_type_detail)
-      income = row['流入金额'].to_d
-      expense = row['流出金额'].to_d
+      income = row["流入金额"].to_d
+      expense = row["流出金额"].to_d
       amount = income > 0 ? income : expense
 
       {
-        date: row['日期'],
-        category: '转账',
+        date: row["日期"],
+        category: "转账",
         account: "#{transfer_info[:from_name]} → #{transfer_info[:to_name]}",
-        type: 'TRANSFER',
+        type: "TRANSFER",
         amount: amount,
         note: transaction_type_detail || "转账"
       }
@@ -183,41 +183,41 @@ class PixiuImportService
 
     # 构建普通收支样本数据
     def build_sample_entry(row, income, expense)
-      parent = row['收支大类']&.strip.presence
-      transaction_category = row['交易分类']&.strip
+      parent = row["收支大类"]&.strip.presence
+      transaction_category = row["交易分类"]&.strip
       if parent.blank? && transaction_category.present? && !%w[日常收入 日常支出 转账].include?(transaction_category)
         parent = transaction_category
       end
-      parent ||= '-'
+      parent ||= "-"
 
       {
-        date: row['日期'],
+        date: row["日期"],
         category: "#{parent} - #{row['交易类型']}",
-        account: row['资金账户'],
-        type: income > 0 ? 'INCOME' : 'EXPENSE',
+        account: row["资金账户"],
+        type: income > 0 ? "INCOME" : "EXPENSE",
         amount: income > 0 ? income : expense,
-        note: row['备注'].present? ? row['备注'] : ''
+        note: row["备注"].present? ? row["备注"] : ""
       }
     end
 
     # 收集 CSV 中的账户名称
     def collect_accounts(row, accounts_set)
-      account_str = row['资金账户']&.strip
-      transaction_category = row['交易分类']&.strip
-      transaction_type_detail = row['交易类型']&.strip
+      account_str = row["资金账户"]&.strip
+      transaction_category = row["交易分类"]&.strip
+      transaction_type_detail = row["交易类型"]&.strip
 
-      if account_str&.include?('→')
-        parts = account_str.split('→').map(&:strip)
+      if account_str&.include?("→")
+        parts = account_str.split("→").map(&:strip)
         accounts_set << parts[0]
         accounts_set << parts[1]
-      elsif transaction_type_detail&.include?('/') && transaction_category == '转账'
-        parts = transaction_type_detail.split('/').map(&:strip)
+      elsif transaction_type_detail&.include?("/") && transaction_category == "转账"
+        parts = transaction_type_detail.split("/").map(&:strip)
         if parts.length > 1
           account_info = parts[1]
-          if account_info.include?('转到') || account_info.include?('转出')
-            accounts_set << account_info.sub(/转到|转出/, '').strip
-          elsif account_info.include?('转入')
-            accounts_set << account_info.sub('转入', '').strip
+          if account_info.include?("转到") || account_info.include?("转出")
+            accounts_set << account_info.sub(/转到|转出/, "").strip
+          elsif account_info.include?("转入")
+            accounts_set << account_info.sub("转入", "").strip
           else
             accounts_set << account_info
           end
@@ -230,11 +230,11 @@ class PixiuImportService
 
     # 收集 CSV 中的分类信息
     def collect_categories(row, parent_categories_set, child_categories_map, parent_category_types)
-      parent_name = row['收支大类']&.strip
-      transaction_category = row['交易分类']&.strip
-      child_name = row['交易类型']&.strip
+      parent_name = row["收支大类"]&.strip
+      transaction_category = row["交易分类"]&.strip
+      child_name = row["交易类型"]&.strip
 
-      return if transaction_category == '转账'
+      return if transaction_category == "转账"
 
       # 收支大类为空时的回退逻辑
       if parent_name.blank?
@@ -244,7 +244,7 @@ class PixiuImportService
           parent_name = child_name
           child_name = nil
         end
-      elsif parent_name == '无'
+      elsif parent_name == "无"
         if child_name.present?
           parent_name = child_name
           child_name = nil
@@ -257,13 +257,13 @@ class PixiuImportService
 
       # 根据交易分类判断分类类型
       if INCOME_CATEGORIES.include?(transaction_category)
-        parent_category_types[parent_name] = 'INCOME'
+        parent_category_types[parent_name] = "INCOME"
       elsif EXPENSE_CATEGORIES.include?(transaction_category)
-        parent_category_types[parent_name] = 'EXPENSE'
+        parent_category_types[parent_name] = "EXPENSE"
       end
 
       # 子分类处理
-      if parent_name != row['收支大类']&.strip || parent_name == '无'
+      if parent_name != row["收支大类"]&.strip || parent_name == "无"
         # 收支大类为空或"无"时，不创建子分类
       elsif child_name.present?
         child_categories_map[parent_name] ||= Set.new
@@ -285,7 +285,7 @@ class PixiuImportService
     def build_categories_map(parent_categories_set, child_categories_map, parent_category_types)
       categories_map = {}
       parent_categories_set.each do |parent_name|
-        category_type = parent_category_types[parent_name] || 'EXPENSE'
+        category_type = parent_category_types[parent_name] || "EXPENSE"
 
         parent_category = Category.find_or_create_by(name: parent_name, parent_id: nil) do |c|
           c.type = category_type
@@ -347,26 +347,26 @@ class PixiuImportService
                               accounts_map, categories_map, result)
       if INCOME_CATEGORIES.include?(transaction_category)
         if expense > 0
-          type = 'EXPENSE'
+          type = "EXPENSE"
           amount = expense
         else
-          type = 'INCOME'
+          type = "INCOME"
           amount = income > 0 ? income : expense
         end
       elsif EXPENSE_CATEGORIES.include?(transaction_category)
         if income > 0
-          type = 'INCOME'
+          type = "INCOME"
           amount = income
         else
-          type = 'EXPENSE'
+          type = "EXPENSE"
           amount = expense
         end
       else
         if income > 0
-          type = 'INCOME'
+          type = "INCOME"
           amount = income
         elsif expense > 0
-          type = 'EXPENSE'
+          type = "EXPENSE"
           amount = expense
         else
           result[:skipped] += 1
@@ -374,7 +374,7 @@ class PixiuImportService
         end
       end
 
-      account_name = row['资金账户'].strip
+      account_name = row["资金账户"].strip
       account = accounts_map[account_name]
 
       unless account
@@ -386,13 +386,13 @@ class PixiuImportService
       category = resolve_category(row, type, categories_map)
 
       note_parts = []
-      note_parts << row['交易类型'].strip if row['交易类型'].present?
-      note_parts << row['备注'].strip if row['备注'].present?
-      note = note_parts.join(' - ')
+      note_parts << row["交易类型"].strip if row["交易类型"].present?
+      note_parts << row["备注"].strip if row["备注"].present?
+      note = note_parts.join(" - ")
 
       create_entry(
         account: account,
-        amount: type == 'INCOME' ? amount : -amount,
+        amount: type == "INCOME" ? amount : -amount,
         date: date,
         name: note,
         kind: type.downcase,
@@ -404,19 +404,19 @@ class PixiuImportService
 
     # 解析分类
     def resolve_category(row, type, categories_map)
-      parent_name = row['收支大类']&.strip
-      transaction_category = row['交易分类']&.strip
-      child_name = row['交易类型']&.strip
+      parent_name = row["收支大类"]&.strip
+      transaction_category = row["交易分类"]&.strip
+      child_name = row["交易类型"]&.strip
 
       # 收支大类为空时的回退
       if parent_name.blank?
-        if transaction_category.present? && transaction_category != '转账'
+        if transaction_category.present? && transaction_category != "转账"
           parent_name = transaction_category
         elsif child_name.present?
           parent_name = child_name
           child_name = nil
         end
-      elsif parent_name == '无'
+      elsif parent_name == "无"
         if child_name.present?
           parent_name = child_name
           child_name = nil
@@ -430,7 +430,7 @@ class PixiuImportService
         return child_category || parent_category
       end
 
-      parent_name = parent_name.presence || '其他'
+      parent_name = parent_name.presence || "其他"
       category = categories_map[parent_name]
 
       # 如果分类不存在，尝试查找或创建
@@ -458,7 +458,7 @@ class PixiuImportService
           date: date,
           name: name,
           amount: amount,
-          currency: 'CNY',
+          currency: "CNY",
           entryable: entryable
         )
       end
@@ -466,31 +466,31 @@ class PixiuImportService
 
     # 创建转账 Entry 对（转出 + 转入）
     def create_entry_transfer(from_account:, to_account:, amount:, date:, note:)
-      transfer_id = SecureRandom.uuid.gsub('-', '').to_i(16) % 2_000_000_000
+      transfer_id = SecureRandom.uuid.gsub("-", "").to_i(16) % 2_000_000_000
 
       Entry.transaction do
         # 转出 Entry
-        entryable_out = Entryable::Transaction.create!(kind: 'expense')
+        entryable_out = Entryable::Transaction.create!(kind: "expense")
 
         Entry.create!(
           account_id: from_account.id,
           date: date,
           name: note,
           amount: -amount.to_d,
-          currency: from_account.currency || 'CNY',
+          currency: from_account.currency || "CNY",
           entryable: entryable_out,
           transfer_id: transfer_id
         )
 
         # 转入 Entry
-        entryable_in = Entryable::Transaction.create!(kind: 'income')
+        entryable_in = Entryable::Transaction.create!(kind: "income")
 
         Entry.create!(
           account_id: to_account.id,
           date: date,
           name: note,
           amount: amount.to_d,
-          currency: to_account.currency || 'CNY',
+          currency: to_account.currency || "CNY",
           entryable: entryable_in,
           transfer_id: transfer_id
         )

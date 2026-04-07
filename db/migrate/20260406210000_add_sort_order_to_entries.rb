@@ -11,7 +11,7 @@ class AddSortOrderToEntries < ActiveRecord::Migration[8.1]
           UPDATE entries
           SET sort_order = sub.row_number
           FROM (
-            SELECT id, row_number() OVER (PARTITION BY account_id, date ORDER BY created_at DESC) AS row_number
+            SELECT id, row_number() OVER (PARTITION BY account_id, date ORDER BY created_at ASC) AS row_number
             FROM entries
           ) AS sub
           WHERE entries.id = sub.id

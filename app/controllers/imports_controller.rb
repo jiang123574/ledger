@@ -39,12 +39,12 @@ class ImportsController < ApplicationController
       return
     end
 
-    unless file.content_type == 'text/csv' || file.original_filename.end_with?('.csv')
+    unless file.content_type == "text/csv" || file.original_filename.end_with?(".csv")
       redirect_to pixiu_imports_path(step: 1), alert: "请上传 CSV 文件"
       return
     end
 
-    temp_path = Rails.root.join('tmp', "pixiu_#{Time.current.to_i}.csv")
+    temp_path = Rails.root.join("tmp", "pixiu_#{Time.current.to_i}.csv")
     FileUtils.cp(file.tempfile.path, temp_path)
 
     session[:pixiu_file_path] = temp_path.to_s

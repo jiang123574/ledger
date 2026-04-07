@@ -42,7 +42,7 @@ RSpec.describe ImportService, type: :service do
   describe '.validate_file' do
     context 'with valid format' do
       it 'imports are supported for csv, xlsx, xls, ofx, qif' do
-        supported = ['csv', 'xlsx', 'xls', 'ofx', 'qif']
+        supported = [ 'csv', 'xlsx', 'xls', 'ofx', 'qif' ]
 
         supported.each do |format|
           expect(described_class::SUPPORTED_FORMATS).to include(format)
@@ -98,7 +98,7 @@ RSpec.describe ImportService, type: :service do
       it 'imports entries from CSV content' do
         account = create(:account)
         csv_content = "日期,类型,金额,账户\n2026-04-01,支出,100,#{account.id}"
-        
+
         # 验证导入前后的 Entry 数量变化
         expect {
           # 这是一个集成示例 - 实际导入逻辑由 ImportService 处理
@@ -110,7 +110,7 @@ RSpec.describe ImportService, type: :service do
     context 'with invalid data' do
       it 'handles missing required fields gracefully' do
         csv_content = "日期,金额,账户\n2026-04-01,100,1"
-        
+
         # 应该不抛出异常，但可能返回错误
         expect {
           described_class::SUPPORTED_FORMATS.include?('csv')
@@ -136,4 +136,3 @@ RSpec.describe ImportService, type: :service do
     end
   end
 end
-

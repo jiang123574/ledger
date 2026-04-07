@@ -408,4 +408,3 @@ namespace :migrate_to_entry do
     puts "=" * 60
   end
 end
-

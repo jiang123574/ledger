@@ -7,13 +7,13 @@ Rails.application.routes.draw do
 
   root "accounts#index"
 
-  resources :transactions, only: [:index, :create, :edit, :update, :destroy] do
+  resources :transactions, only: [ :index, :create, :edit, :update, :destroy ] do
     collection do
       post :bulk_destroy
     end
   end
 
-  resources :entries, only: [:index, :create, :update, :destroy] do
+  resources :entries, only: [ :index, :create, :update, :destroy ] do
     collection do
       post :bulk_destroy
     end
@@ -22,7 +22,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :versions, only: [:index, :show] do
+  resources :versions, only: [ :index, :show ] do
     member do
       post :revert
     end
@@ -53,32 +53,32 @@ Rails.application.routes.draw do
   end
   # 单次预算功能已合并到预算管理 /budgets
   get "single_budgets" => redirect("/budgets", status: 301)
-  resources :single_budgets, only: [:create, :update, :destroy] do
+  resources :single_budgets, only: [ :create, :update, :destroy ] do
     patch :start
     patch :complete
     patch :cancel
-    resources :budget_items, only: [:create, :update, :destroy]
+    resources :budget_items, only: [ :create, :update, :destroy ]
   end
-  resources :plans, only: [:index, :show, :create, :update, :destroy] do
+  resources :plans, only: [ :index, :show, :create, :update, :destroy ] do
     member do
       post :execute
     end
   end
-  resources :receivables, only: [:index, :show, :create, :update, :destroy] do
+  resources :receivables, only: [ :index, :show, :create, :update, :destroy ] do
     member do
       get :settle
       post :settle
       post :revert
     end
   end
-  resources :payables, only: [:index, :show, :create, :update, :destroy] do
+  resources :payables, only: [ :index, :show, :create, :update, :destroy ] do
     member do
       get :settle
       post :settle
       post :revert
     end
   end
-  resources :recurring, controller: "recurring", only: [:index, :create, :update, :destroy] do
+  resources :recurring, controller: "recurring", only: [ :index, :create, :update, :destroy ] do
     member do
       post :execute
     end

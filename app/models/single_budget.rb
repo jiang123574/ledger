@@ -32,15 +32,15 @@ class SingleBudget < ApplicationRecord
 
     # 如果 SingleBudget 有自己的分类，则按分类统计
     if category && start_date
-      category_ids = Category.descendant_ids_for([category.id])
+      category_ids = Category.descendant_ids_for([ category.id ])
       end_date_val = end_date || Date.current
 
       # 使用 Entry 查询
-      spent = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-        .where(entryable_type: 'Entryable::Transaction')
+      spent = Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
+        .where(entryable_type: "Entryable::Transaction")
         .where(entryable_transactions: { category_id: category_ids })
         .where(date: start_date..end_date_val)
-        .sum('ABS(entries.amount)')
+        .sum("ABS(entries.amount)")
 
       update(spent_amount: spent)
     else

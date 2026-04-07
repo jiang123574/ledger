@@ -18,6 +18,10 @@ export default class extends Controller {
   connect() {
     this.isLoading = false
     this.currentPage = this.pageValue
+    this.dragStartHandler = this.handleDragStart.bind(this)
+    this.dragOverHandler = this.handleDragOver.bind(this)
+    this.dropHandler = this.handleDrop.bind(this)
+    this.dragEndHandler = this.handleDragEnd.bind(this)
     this.setupIntersectionObserver()
     this.setupDragAndDrop()
     window.loadMoreEntries = () => {
@@ -34,6 +38,10 @@ export default class extends Controller {
   disconnect() {
     if (this.observer) {
       this.observer.disconnect()
+    }
+    if (this.containerTarget) {
+      const items = this.containerTarget.querySelectorAll('[data-entry-id]')
+      items.forEach((item) => this.removeDragHandlers(item))
     }
   }
 
@@ -150,18 +158,18 @@ export default class extends Controller {
 
   removeDragHandlers(item) {
     item.draggable = false
-    item.removeEventListener('dragstart', this.handleDragStart.bind(this))
-    item.removeEventListener('dragover', this.handleDragOver.bind(this))
-    item.removeEventListener('drop', this.handleDrop.bind(this))
-    item.removeEventListener('dragend', this.handleDragEnd.bind(this))
+    item.removeEventListener('dragstart', this.dragStartHandler)
+    item.removeEventListener('dragover', this.dragOverHandler)
+    item.removeEventListener('drop', this.dropHandler)
+    item.removeEventListener('dragend', this.dragEndHandler)
   }
 
   addDragHandlers(item) {
     item.draggable = true
-    item.addEventListener('dragstart', this.handleDragStart.bind(this))
-    item.addEventListener('dragover', this.handleDragOver.bind(this))
-    item.addEventListener('drop', this.handleDrop.bind(this))
-    item.addEventListener('dragend', this.handleDragEnd.bind(this))
+    item.addEventListener('dragstart', this.dragStartHandler)
+    item.addEventListener('dragover', this.dragOverHandler)
+    item.addEventListener('drop', this.dropHandler)
+    item.addEventListener('dragend', this.dragEndHandler)
   }
 
   handleDragStart(event) {

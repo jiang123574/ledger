@@ -37,24 +37,24 @@ class RecurringTransaction < ApplicationRecord
   end
 
   def create_transaction
-    kind = self.type.to_s.downcase == 'income' ? 'income' : 'expense'
-    entry_amount = kind == 'income' ? amount.to_d : -amount.to_d
-    
+    kind = self.type.to_s.downcase == "income" ? "income" : "expense"
+    entry_amount = kind == "income" ? amount.to_d : -amount.to_d
+
     entryable = Entryable::Transaction.new(
       kind: kind,
       category_id: category_id
     )
     entryable.save(validate: false)
-    
+
     entry = Entry.create!(
       account_id: account_id,
       date: next_date,
       name: note || "周期交易",
       amount: entry_amount,
-      currency: currency || 'CNY',
+      currency: currency || "CNY",
       entryable: entryable
     )
-    
+
     update(next_date: next_execution_date)
     entry
   end

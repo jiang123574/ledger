@@ -23,7 +23,7 @@ class Transaction < ApplicationRecord
   validates :currency, presence: true, length: { is: 3 }
   validates :target_account, presence: true, if: :transfer?
   validates :account, presence: true, unless: :transfer?
-  
+
   store_accessor :extra, :provider_data, :sync_status, :enrichment_data
   store_accessor :locked_attributes, :amount_locked, :category_locked, :date_locked
 
@@ -40,38 +40,38 @@ class Transaction < ApplicationRecord
   scope :transfers, -> { where(type: "TRANSFER") }
   scope :advances, -> { where(type: "ADVANCE") }
   scope :reimburses, -> { where(type: "REIMBURSE") }
-  
+
   scope :for_month, ->(month) {
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
     where(date: start_date..end_date)
   }
-  
+
   scope :for_year, ->(year) {
     start_date = Date.new(year, 1, 1)
     end_date = start_date.end_of_year
     where(date: start_date..end_date)
   }
-  
+
   scope :recent, ->(limit = 10) { order(date: :desc).limit(limit) }
   scope :chronological, -> { order(date: :asc, sort_order: :asc, id: :asc) }
   scope :reverse_chronological, -> { order(date: :desc, sort_order: :desc, id: :desc) }
-  
+
   scope :visible, -> { joins(:account).where(accounts: { hidden: false }) }
   scope :included_in_total, -> { joins(:account).where(accounts: { include_in_total: true }) }
-  
+
   scope :with_amount, -> { where.not(amount: nil) }
   scope :with_category, -> { where.not(category_id: nil) }
   scope :without_category, -> { where(category_id: nil) }
-  
-  scope :inflow, -> { where(type: ['INCOME', 'REIMBURSE']) }
-  scope :outflow, -> { where(type: ['EXPENSE', 'ADVANCE']) }
-  
+
+  scope :inflow, -> { where(type: [ "INCOME", "REIMBURSE" ]) }
+  scope :outflow, -> { where(type: [ "EXPENSE", "ADVANCE" ]) }
+
   scope :by_period, ->(period_type, period_value) {
     case period_type
-    when 'all' then all
-    when 'year' then for_year(period_value.to_i)
-    when 'week'
+    when "all" then all
+    when "year" then for_year(period_value.to_i)
+    when "week"
       if (m = period_value.match(/\A(\d{4})-W(\d{2})\z/))
         year = m[1].to_i
         week = m[2].to_i
@@ -169,14 +169,14 @@ class Transaction < ApplicationRecord
   # ============ 类方法 ============
   class << self
     # 统计方法 - 单次查询获取所有统计数据
-    def stats_for_account(account_id, period_type: 'month', period_value: nil)
+    def stats_for_account(account_id, period_type: "month", period_value: nil)
       period_value ||= default_period_value(period_type)
-      
+
       query = where(
         "account_id = ? OR (type = 'TRANSFER' AND target_account_id = ?)",
         account_id, account_id
       ).by_period(period_type, period_value)
-      
+
       result = query.select(
         "SUM(CASE WHEN type = 'INCOME' THEN amount ELSE 0 END) as total_income",
         "SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as total_expense",
@@ -185,7 +185,7 @@ class Transaction < ApplicationRecord
         "COUNT(CASE WHEN type IN ('INCOME', 'EXPENSE', 'ADVANCE', 'REIMBURSE') THEN 1 END) as count",
         "COUNT(DISTINCT date) as days"
       ).to_a.first
-      
+
       {
         income: result&.total_income || 0,
         expense: result&.total_expense || 0,
@@ -195,11 +195,11 @@ class Transaction < ApplicationRecord
         days: result&.days || 0
       }
     end
-    
+
     # 批量查询优化 - 一次性获取多个账户的统计
-    def batch_stats_for_accounts(account_ids, period_type: 'month', period_value: nil)
+    def batch_stats_for_accounts(account_ids, period_type: "month", period_value: nil)
       period_value ||= default_period_value(period_type)
-      
+
       where(account_id: account_ids)
         .by_period(period_type, period_value)
         .group(:account_id)
@@ -215,14 +215,14 @@ class Transaction < ApplicationRecord
           }
         end
     end
-    
+
     # 按分类统计
-    def by_category_stats(account_id: nil, period_type: 'month', period_value: nil)
+    def by_category_stats(account_id: nil, period_type: "month", period_value: nil)
       period_value ||= default_period_value(period_type)
-      
+
       query = where.not(category_id: nil).by_period(period_type, period_value)
       query = query.where(account_id: account_id) if account_id.present?
-      
+
       query.joins(:category)
            .group("categories.name", "categories.id")
            .order("SUM(amount) DESC")
@@ -233,14 +233,14 @@ class Transaction < ApplicationRecord
              "COUNT(*) as count"
            )
     end
-    
+
     # 按日期统计
-    def by_date_stats(account_id: nil, period_type: 'month', period_value: nil)
+    def by_date_stats(account_id: nil, period_type: "month", period_value: nil)
       period_value ||= default_period_value(period_type)
-      
+
       query = by_period(period_type, period_value)
       query = query.where(account_id: account_id) if account_id.present?
-      
+
       query.group(:date)
            .order(:date)
            .select(
@@ -249,28 +249,28 @@ class Transaction < ApplicationRecord
              "SUM(CASE WHEN type = 'EXPENSE' THEN amount ELSE 0 END) as expense"
            )
     end
-    
+
     # 查找重复交易
     def find_duplicates(account_id: nil, days: 30)
       query = where("date >= ?", days.days.ago)
       query = query.where(account_id: account_id) if account_id.present?
-      
+
       query.group(:account_id, :date, :amount, :type)
            .having("COUNT(*) > 1")
            .select("account_id, date, amount, type, COUNT(*) as duplicate_count")
     end
-    
+
     private
-    
+
       def default_period_value(period_type)
         case period_type
-        when 'year' then Date.current.year.to_s
-        when 'week' then Date.current.strftime("%G-W%V")
+        when "year" then Date.current.year.to_s
+        when "week" then Date.current.strftime("%G-W%V")
         else Date.current.strftime("%Y-%m")
         end
       end
   end
-  
+
   def self.monthly_stats(month)
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
@@ -305,21 +305,21 @@ class Transaction < ApplicationRecord
       note: note
     )
   end
-  
+
   def lock_attribute!(attr_name)
     self.locked_attributes ||= {}
     self.locked_attributes[attr_name] = Time.current.iso8601
     save!
   end
-  
+
   def locked?(attr_name)
     locked_attributes&.dig(attr_name).present?
   end
-  
+
   def mark_user_modified!
     update!(user_modified: true)
   end
-  
+
   def protected_from_sync?
     user_modified? || locked_attributes&.any?
   end

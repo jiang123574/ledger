@@ -3,56 +3,56 @@
 
 class Entryable::Transaction < ApplicationRecord
   include Entryable
-  
-  self.table_name = 'entryable_transactions'
-  
-  belongs_to :category, class_name: '::Category', optional: true
-  belongs_to :merchant, class_name: '::Merchant', optional: true
-  belongs_to :source_transaction, class_name: '::Transaction', foreign_key: :source_transaction_id, optional: true
-  
-  has_many :taggings, as: :taggable, class_name: '::Tagging', dependent: :destroy
+
+  self.table_name = "entryable_transactions"
+
+  belongs_to :category, class_name: "::Category", optional: true
+  belongs_to :merchant, class_name: "::Merchant", optional: true
+  belongs_to :source_transaction, class_name: "::Transaction", foreign_key: :source_transaction_id, optional: true
+
+  has_many :taggings, as: :taggable, class_name: "::Tagging", dependent: :destroy
   has_many :tags, through: :taggings
-  
+
   store_accessor :extra, :provider_data, :sync_status, :enrichment_data
-  
+
   after_initialize :set_defaults, if: :new_record?
-  
+
   def kind
-    super || 'expense'
+    super || "expense"
   end
-  
+
   def set_defaults
     self.locked_attributes ||= {}
     self.extra ||= {}
   end
-  
+
   def income?
-    kind == 'income'
+    kind == "income"
   end
-  
+
   def expense?
-    kind == 'expense'
+    kind == "expense"
   end
-  
+
   def tag_list=(tag_names)
     self.tags = tag_names.map do |name|
       Tag.find_or_create_by(name: name.strip)
     end
   end
-  
+
   def tag_list
     tags.pluck(:name)
   end
-  
+
   def lock_saved_attributes!
     lock_attr!(:category_id) if category_id.present?
     lock_attr!(:tag_ids) if tags.any?
   end
-  
-  def self.by_category_stats(account_id: nil, period_type: 'month')
+
+  def self.by_category_stats(account_id: nil, period_type: "month")
     query = joins(:entry).where.not(category_id: nil)
     query = query.where(entries: { account_id: account_id }) if account_id.present?
-    
+
     query.joins(:category)
          .group("categories.name", "categories.id")
          .order("SUM(entries.amount) DESC")

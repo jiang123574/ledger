@@ -12,7 +12,7 @@ class Importers::ExcelImporter < Importers::BaseImporter
     rows = []
 
     (2..sheet.last_row).each do |row_num|
-      rows << Hash[[headers, sheet.row(row_num)].transpose]
+      rows << Hash[[ headers, sheet.row(row_num) ].transpose]
     end
 
     rows

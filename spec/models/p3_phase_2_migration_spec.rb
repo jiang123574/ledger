@@ -47,7 +47,7 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
 
         it "auto-sync source_entry_id from transaction" do
           receivable.ensure_entry_reference
-          
+
           # 由于我们没有真实的 Entry-Transaction 映射，这会是 nil
           # 但方法不会抛出异常
           expect(receivable.source_entry_id).to eq(nil)
@@ -56,9 +56,9 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
         it "does nothing if source_entry_id already present" do
           receivable.update_columns(source_entry_id: entry.id)
           original_id = receivable.source_entry_id
-          
+
           receivable.ensure_entry_reference
-          
+
           expect(receivable.source_entry_id).to eq(original_id)
         end
       end
@@ -67,7 +67,7 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
     context "model validations" do
       it "validates that either source_entry or source_transaction is present" do
         receivable.update_columns(source_entry_id: nil, source_transaction_id: nil)
-        
+
         # Receivable 应该在保存时检查这一点
         # 这是模型级的一致性检查
         expect(receivable.source_transaction_or_entry).to be_nil
@@ -102,7 +102,7 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
 
         it "auto-sync source_entry_id from transaction" do
           payable.ensure_entry_reference
-          
+
           # 方法应该尝试但不会失败
           expect(payable.source_entry_id).to eq(nil)
         end
@@ -115,14 +115,14 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
       it "allows Receivable to reference Entry" do
         receivable.update(source_entry: entry)
         receivable.reload
-        
+
         expect(receivable.source_entry).to eq(entry)
       end
 
       it "allows Payable to reference Entry" do
         payable.update(source_entry: entry)
         payable.reload
-        
+
         expect(payable.source_entry).to eq(entry)
       end
 
@@ -130,7 +130,7 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
         transaction = create(:transaction)
         receivable.update(source_transaction: transaction)
         receivable.reload
-        
+
         expect(receivable.source_transaction).to eq(transaction)
       end
     end
@@ -139,14 +139,14 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
       it "Entry has reverse relationship for receivables" do
         receivable.update(source_entry: entry)
         entry.reload
-        
+
         expect(entry.receivables_as_source).to include(receivable)
       end
 
       it "Entry has reverse relationship for payables" do
         payable.update(source_entry: entry)
         entry.reload
-        
+
         expect(entry.payables_as_source).to include(payable)
       end
     end
@@ -157,17 +157,17 @@ RSpec.describe "P3 Phase 2: Receivable/Payable Entry Migration", type: :model do
       # 模拟旧代码：使用 source_transaction_id
       transaction = create(:transaction, account: account)
       receivable.update(source_transaction: transaction)
-      
+
       # 新代码：优先使用 Entry，但能处理旧数据
       source = receivable.source_transaction_or_entry
-      
+
       expect(source).to be_present
-      expect([entry.class, transaction.class]).to include(source.class)
+      expect([ entry.class, transaction.class ]).to include(source.class)
     end
 
     it "supports new code using source_entry" do
       receivable.update(source_entry: entry)
-      
+
       # 新代码可以直接使用 source_entry
       expect(receivable.source_entry).to eq(entry)
     end

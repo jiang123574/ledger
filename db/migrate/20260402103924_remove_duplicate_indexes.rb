@@ -5,7 +5,7 @@ class RemoveDuplicateIndexes < ActiveRecord::Migration[8.1]
   end
 
   def down
-    add_index :budgets, [:month, :category_id], name: 'idx_budgets_month_category'
-    add_index :transactions, [:account_id, :date], name: 'idx_trans_account_date'
+    add_index :budgets, [ :month, :category_id ], name: 'idx_budgets_month_category'
+    add_index :transactions, [ :account_id, :date ], name: 'idx_trans_account_date'
   end
 end

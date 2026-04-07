@@ -6,7 +6,7 @@ class EntryCreationService
   class CreationError < StandardError; end
 
   # 创建普通收支 Entry
-  def self.create_regular(type:, account_id:, amount:, date:, currency: 'CNY', note: nil, category_id: nil)
+  def self.create_regular(type:, account_id:, amount:, date:, currency: "CNY", note: nil, category_id: nil)
     kind = type.downcase
 
     Entry.transaction do
@@ -19,7 +19,7 @@ class EntryCreationService
         account_id: account_id,
         date: date,
         name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
-        amount: kind == 'income' ? amount : -amount,
+        amount: kind == "income" ? amount : -amount,
         currency: currency,
         notes: note,
         entryable: entryable
@@ -28,7 +28,7 @@ class EntryCreationService
   end
 
   # 创建转账 Entry 对（转出 + 转入）
-  def self.create_transfer(from_account_id:, to_account_id:, amount:, date:, currency: 'CNY', note: nil)
+  def self.create_transfer(from_account_id:, to_account_id:, amount:, date:, currency: "CNY", note: nil)
     from_account = Account.find(from_account_id)
     to_account = Account.find(to_account_id)
 
@@ -43,7 +43,7 @@ class EntryCreationService
         amount: -amount,
         currency: currency,
         notes: transfer_note,
-        entryable: Entryable::Transaction.create!(kind: 'expense'),
+        entryable: Entryable::Transaction.create!(kind: "expense"),
         transfer_id: transfer_id
       )
 
@@ -54,7 +54,7 @@ class EntryCreationService
         amount: amount,
         currency: currency,
         notes: transfer_note,
-        entryable: Entryable::Transaction.create!(kind: 'income'),
+        entryable: Entryable::Transaction.create!(kind: "income"),
         transfer_id: transfer_id
       )
     end
@@ -62,7 +62,7 @@ class EntryCreationService
 
   # 创建带资金来源转账的支出（先从资金来源账户转账到消费账户，再创建支出）
   def self.create_with_funding_transfer(funding_account_id:, destination_account_id:,
-                                         amount:, date:, currency: 'CNY', note: nil, category_id: nil)
+                                         amount:, date:, currency: "CNY", note: nil, category_id: nil)
     source_account = Account.find(funding_account_id)
     destination_account = Account.find(destination_account_id)
 
@@ -84,7 +84,7 @@ class EntryCreationService
         amount: -amount,
         currency: currency,
         notes: transfer_note,
-        entryable: Entryable::Transaction.create!(kind: 'expense'),
+        entryable: Entryable::Transaction.create!(kind: "expense"),
         transfer_id: transfer_id
       )
 
@@ -96,13 +96,13 @@ class EntryCreationService
         amount: amount,
         currency: currency,
         notes: transfer_note,
-        entryable: Entryable::Transaction.create!(kind: 'income'),
+        entryable: Entryable::Transaction.create!(kind: "income"),
         transfer_id: transfer_id
       )
 
       # 实际支出
       expense_entryable = Entryable::Transaction.create!(
-        kind: 'expense',
+        kind: "expense",
         category_id: category_id
       )
 
