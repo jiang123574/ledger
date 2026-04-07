@@ -63,7 +63,6 @@
 # Ignore development tools and scripts
 /bin/dev
 /bin/setup
-/bin/docker-entrypoint
 /script/
 /lib/tasks/*.rake
 !/lib/tasks/import_pixiu.rake
