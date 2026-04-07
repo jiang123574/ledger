@@ -57,8 +57,8 @@ class BackupService
       return { success: false, error: "备份文件不存在" }
     end
 
-    db_config = Rails.configuration.database_configuration[Rails.env]
-    result = execute_psql_restore(db_config, backup_file)
+    db_config = get_primary_db_config
+    result = execute_psql_restore(db_config, backup_file.to_s)
 
     if result[:success]
       { success: true }
@@ -168,8 +168,8 @@ class BackupService
   private_class_method
 
   def self.create_database_backup(backup_file)
-    db_config = Rails.configuration.database_configuration[Rails.env]
-    result = execute_pg_dump(db_config, backup_file)
+    db_config = get_primary_db_config
+    result = execute_pg_dump(db_config, backup_file.to_s)
 
     if result[:success] && File.exist?(backup_file)
       {
@@ -181,6 +181,11 @@ class BackupService
     else
       { success: false, error: result[:error] || "备份创建失败" }
     end
+  end
+
+  def self.get_primary_db_config
+    config = Rails.configuration.database_configuration[Rails.env]
+    config.is_a?(Hash) && config.key?("primary") ? config["primary"] : config
   end
 
   def self.execute_pg_dump(db_config, backup_file)
