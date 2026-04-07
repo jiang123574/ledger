@@ -58,7 +58,7 @@ RUN rm -rf .git .github .vscode .idea && \
     rm -rf test spec coverage doc docs && \
     rm -rf *.md LICENSE && \
     rm -rf .dockerignore Dockerfile docker-compose.yml && \
-    rm -rf bin/dev bin/setup bin/docker-entrypoint && \
+    rm -rf bin/dev bin/setup && \
     rm -rf script/ && \
     find lib/tasks -name "*.rake" ! -name "import_pixiu.rake" -delete && \
     find . -name "*.swp" -delete && \
