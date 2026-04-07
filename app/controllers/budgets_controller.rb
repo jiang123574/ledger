@@ -16,11 +16,11 @@ class BudgetsController < ApplicationController
     budget_category_ids = @budgets.map(&:category_id).compact
     @total_spent = Rails.cache.fetch("budgets/total_spent/#{@month}/#{ev}", expires_in: CacheConfig::MEDIUM) do
       if budget_category_ids.any?
-        Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-          .where(entryable_type: 'Entryable::Transaction', date: start_date..end_date)
-          .where(entryable_transactions: { kind: 'expense', category_id: budget_category_ids })
+        Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
+          .where(entryable_type: "Entryable::Transaction", date: start_date..end_date)
+          .where(entryable_transactions: { kind: "expense", category_id: budget_category_ids })
           .where(transfer_id: nil)
-          .sum('ABS(entries.amount)')
+          .sum("ABS(entries.amount)")
       else
         0
       end
@@ -30,10 +30,11 @@ class BudgetsController < ApplicationController
     @category_ids = Rails.cache.fetch("budgets/category_ids/#{sv}", expires_in: CacheConfig::LONG) do
       Category.expense.pluck(:id)
     end
-    @categories = Category.where(id: @category_ids).includes(:parent)
     cv = CacheBuster.version(:categories)
+    categories = Category.where(id: @category_ids).includes(:parent).to_a
+    @categories = categories
     @categories_json = Rails.cache.fetch("budgets/categories_json/#{cv}", expires_in: CacheConfig::LONG) do
-      @categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json
+      categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json
     end
 
     status = params[:status]
@@ -59,7 +60,7 @@ class BudgetsController < ApplicationController
 
   def data
     budget = SingleBudget.find(params[:id])
-    items = budget.budget_items.includes(:category).map do |item|
+    items = budget.budget_items.includes(category: :parent).map do |item|
       {
         id: item.id,
         name: item.display_name,
