@@ -44,7 +44,7 @@ class Entry < ApplicationRecord
       date: :asc,
       Arel.sql("CASE WHEN entries.entryable_type = 'Entryable::Valuation' THEN 1 ELSE 0 END") => :asc,
       sort_order: :asc,
-      created_at: :asc
+      id: :asc
     )
   }
 
@@ -53,7 +53,7 @@ class Entry < ApplicationRecord
       date: :desc,
       Arel.sql("CASE WHEN entries.entryable_type = 'Entryable::Valuation' THEN 1 ELSE 0 END") => :desc,
       sort_order: :desc,
-      created_at: :desc
+      id: :desc
     )
   }
 

@@ -82,8 +82,9 @@ class AccountsController < ApplicationController
     else
       entries = Entry.where(id: entry_ids)
         .includes(:entryable, entryable: :category)
-        .reverse_chronological
         .to_a
+      # 按照缓存的entry_ids顺序重新排序，保持倒序顺序
+      entries.sort_by! { |e| entry_ids.index(e.id) }
       AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
       entries.map { |e| [ e, balance_map[e.id] ] }
     end
@@ -168,8 +169,10 @@ class AccountsController < ApplicationController
 
     entries = Entry.where(id: entry_ids)
       .includes(:account, :entryable, entryable: :category)
-      .reverse_chronological
       .to_a
+
+    # 按照 entry_ids 的原始顺序（reverse_chronological）排序，确保余额匹配
+    entries.sort_by! { |e| entry_ids.index(e.id) }
 
     AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
 
@@ -472,9 +475,12 @@ entry_ids = params[:entry_ids].map(&:to_i)
     end
 
     balances = ActiveRecord::Base.transaction do
+      # 拖动后的顺序是倒序显示（最新的在前），所以sort_order要倒序设置
+      # 第一个条目（页面最上方）应该有最大的sort_order
+      total_entries = entry_ids.size
       entry_ids.each_with_index do |entry_id, index|
         Entry.where(id: entry_id, account_id: @account.id, date: date)
-             .update_all(sort_order: index + 1)
+             .update_all(sort_order: total_entries - index)
       end
 
       # 重新计算从指定日期开始的所有余额
@@ -501,9 +507,11 @@ entry_ids = params[:entry_ids].map(&:to_i)
         running_balance += amount
         balances << { entry_id: entry_id, balance_after: running_balance }
       end
-      
+
       balances
     end
+
+    CacheBuster.bump(:entries)
 
     render json: { success: true, balances: balances }
   end
@@ -564,7 +572,9 @@ entry_ids = params[:entry_ids].map(&:to_i)
   end
 
   def build_filter_cache_key
-    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}"
+    sort_direction = params[:sort_direction]&.downcase || "desc"
+    sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
+    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}_#{sort_direction}"
   end
 
   def build_entries_query(period_type, period_value)
@@ -599,6 +609,14 @@ entry_ids = params[:entry_ids].map(&:to_i)
       entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
     end
 
-    entries.reverse_chronological
+    # 支持排序方向参数 (asc 或 desc)，默认 desc (倒序)
+    sort_direction = params[:sort_direction]&.downcase || "desc"
+    sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
+
+    if sort_direction == "asc"
+      entries.chronological
+    else
+      entries.reverse_chronological
+    end
   end
 end

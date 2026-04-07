@@ -78,6 +78,11 @@
             <div class="flex items-center gap-2">
               <div class="w-44 shrink-0">
                 <h3 class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= payable.description %></h3>
+                <% if payable.source_entry.present? %>
+                  <p class="text-[10px] text-secondary dark:text-secondary-dark mt-0.5">
+                    源交易: <%= payable.source_entry.account&.name %> @ <%= payable.source_entry.date&.strftime("%m/%d") %>
+                  </p>
+                <% end %>
               </div>
               <div class="text-[11px] text-secondary dark:text-secondary-dark shrink-0"><%= payable.date&.strftime("%Y-%m-%d") %></div>
               <% if payable.category.present? %>
@@ -123,35 +128,25 @@
       <% if @settled.any? %>
         <% @settled.each do |payable| %>
           <% reimbursed = payable.original_amount.to_d - payable.remaining_amount.to_d %>
-          <div class="p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-            <div class="flex items-start justify-between gap-3">
-              <div class="flex-1 min-w-0">
-                <div class="flex flex-wrap items-center gap-2">
-                  <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= payable.description %></h3>
-                  <span class="px-2 py-0.5 text-xs rounded-full bg-income-soft text-income whitespace-nowrap">已完成</span>
-                </div>
-                <div class="mt-1 flex flex-wrap items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
-                  <span>完成于 <%= payable.settled_at&.strftime("%Y-%m-%d") %></span>
-                  <% if payable.category.present? %>
-                    <span class="px-1.5 py-0.5 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark"><%= payable.category %></span>
-                  <% end %>
-                  <% if payable.counterparty.present? %>
-                    <span>联系人：<%= payable.counterparty.name %></span>
-                  <% end %>
-                  <% if payable.account.present? %>
-                    <span>账户：<%= payable.account.name %></span>
-                  <% end %>
-                </div>
-                <div class="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
-                  <span class="text-secondary dark:text-secondary-dark">总额 <span class="font-medium text-primary dark:text-primary-dark"><%= format_currency(payable.original_amount) %></span></span>
-                  <span class="text-income">已付款 <span class="font-medium"><%= format_currency(reimbursed) %></span></span>
-                </div>
-                <% if payable.note.present? %>
-                  <p class="mt-1.5 text-xs text-secondary dark:text-secondary-dark truncate">备注：<%= payable.note %></p>
+          <div class="px-3 py-2 hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+            <div class="flex items-center justify-between gap-2 text-sm">
+              <div class="flex-1 min-w-0 flex items-center gap-2">
+                <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-medium bg-income-soft text-income whitespace-nowrap shrink-0">已完成</span>
+                <h3 class="font-medium text-primary dark:text-primary-dark truncate"><%= payable.description %></h3>
+                <span class="text-[11px] text-secondary dark:text-secondary-dark shrink-0"><%= payable.settled_at&.strftime("%Y-%m-%d") %></span>
+                <% if payable.category.present? %>
+                  <span class="px-1 py-0.5 rounded text-[11px] bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark shrink-0"><%= payable.category %></span>
+                <% end %>
+                <% if payable.counterparty.present? %>
+                  <span class="text-[11px] text-secondary dark:text-secondary-dark shrink-0">(<%= payable.counterparty.name %>)</span>
                 <% end %>
               </div>
-              <div class="flex items-center gap-1.5 shrink-0">
-                <%= button_to "撤销", revert_payable_path(payable), method: :post, onclick: "if(!confirm('确定撤销此付款？撤销后可重新付款')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
+              <div class="flex items-center gap-1 shrink-0 text-[11px]">
+                <span class="text-secondary dark:text-secondary-dark">¥<%= format_currency(payable.original_amount, unit: "") %></span>
+                <span class="text-income">已付¥<%= format_currency(reimbursed, unit: "") %></span>
+              </div>
+              <div class="flex items-center gap-1 shrink-0">
+                <%= button_to "撤销", revert_payable_path(payable), method: :post, onclick: "if(!confirm('确定撤销此付款？撤销后可重新付款')) return false", class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
               </div>
             </div>
           </div>
@@ -462,9 +457,14 @@
 </script>
 <script>
 function openNewPayableModal() {
-  document.getElementById('new-payable-form').reset();
-  document.getElementById('new-payable-form').querySelector('input[name="payable[date]"]').value = '<%= Date.today %>';
-  document.getElementById('add-payable-modal').classList.remove('hidden');
+  var form = document.getElementById('new-payable-form');
+  if (form) {
+    form.reset();
+    var dateInput = form.querySelector('input[name="payable[date]"]');
+    if (dateInput) dateInput.value = '<%= Date.today %>';
+  }
+  var modal = document.getElementById('add-payable-modal');
+  if (modal) modal.classList.remove('hidden');
 }
 
 function openEditPayableModal(id, description, date, amount, category, counterpartyId, accountId, note) {

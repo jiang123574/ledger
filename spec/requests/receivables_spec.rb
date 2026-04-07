@@ -27,11 +27,13 @@ RSpec.describe "Receivables", type: :request do
       expect(receivable.description).to eq("咨询费")
       expect(receivable.original_amount).to eq(5000)
 
-      # 验证自动创建了 Entry
-      source_entry = Entry.where("notes LIKE ?", "%receivable:#{receivable.id}:source%").first
+      # 验证自动创建了 Entry 并通过 source_entry_id 关联
+      expect(receivable.source_entry_id).to be_present
+      source_entry = receivable.source_entry
       expect(source_entry).to be_present
       expect(source_entry.amount).to eq(-5000)
       expect(source_entry.name).to include("[待报销]")
+      expect(source_entry.notes).to be_blank # 备注应该为空
     end
 
     it "updates source_entry when receivable is updated" do
@@ -43,14 +45,15 @@ RSpec.describe "Receivables", type: :request do
         date: Date.current
       )
 
-      # 创建源 Entry
+      # 创建源 Entry 并关联
       source_entry = create(:entry,
         account: account,
         amount: -1000,
         date: Date.current,
         name: "[待报销] 原描述",
-        notes: "receivable:#{receivable.id}:source"
+        entryable: create(:entryable_transaction, :expense)
       )
+      receivable.update!(source_entry_id: source_entry.id)
 
       # 更新应收款
       patch "/receivables/#{receivable.id}", params: {
@@ -66,6 +69,7 @@ RSpec.describe "Receivables", type: :request do
       source_entry.reload
       expect(source_entry.name).to include("新描述")
       expect(source_entry.amount).to eq(-2000.0)
+      expect(source_entry.notes).to be_blank # 备注应该为空
     end
   end
 
@@ -120,9 +124,9 @@ describe "DELETE /receivables" do
       source_entry = create(:entry,
         account: account,
         amount: -receivable.original_amount,
-        notes: "receivable:#{receivable.id}:source",
         entryable: entryable
       )
+      receivable.update!(source_entry_id: source_entry.id)
 
       expect {
         delete "/receivables/#{receivable.id}"
@@ -138,9 +142,9 @@ describe "DELETE /receivables" do
       source_entry = create(:entry,
         account: account,
         amount: -1500,
-        notes: "receivable:#{receivable.id}:source",
         entryable: entryable
       )
+      receivable.update!(source_entry_id: source_entry.id)
 
       expect {
         delete "/receivables/#{receivable.id}"
@@ -154,7 +158,6 @@ describe "DELETE /receivables" do
     it "provides source_transaction_or_entry compatibility method" do
       receivable = create(:receivable, account: account)
 
-      # 创建 Entry 关联
       entry = create(:entry, account: account)
       receivable.update(source_entry_id: entry.id)
 
@@ -167,6 +170,179 @@ describe "DELETE /receivables" do
       receivable.update(source_entry_id: entry.id)
 
       expect(receivable.source_amount).to eq(500)
+    end
+  end
+
+  describe "POST /receivables/:id/settle" do
+    let(:receivable) { create(:receivable, account: account, counterparty: counterparty, original_amount: 5000, remaining_amount: 5000) }
+    let(:reimburse_category) { create(:category, name: "报销", category_type: "INCOME", active: true) }
+
+    before do
+      reimburse_category
+    end
+
+    it "creates reimbursement entry with reimburse category" do
+      settle_account = create(:account, name: "报销账户")
+
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 5000,
+        account_id: settle_account.id,
+        settlement_date: Date.current
+      }
+
+      expect(response).to redirect_to(receivables_path)
+
+      receivable.reload
+      expect(receivable.remaining_amount).to eq(0)
+      expect(receivable.settled_at).to be_present
+
+      reimburse_entry = Entry.where(account_id: settle_account.id)
+                              .where("name LIKE ?", "%\[报销\]%")
+                              .where("amount > 0")
+                              .order(created_at: :desc)
+                              .first
+
+      expect(reimburse_entry).to be_present
+      expect(reimburse_entry.amount).to eq(5000)
+      expect(reimburse_entry.entryable).to be_a(Entryable::Transaction)
+      expect(reimburse_entry.entryable.kind).to eq("income")
+      expect(reimburse_entry.entryable.category_id).to eq(reimburse_category.id)
+    end
+
+    it "creates reimbursement entry without category if reimburse category does not exist" do
+      Category.where(name: "报销", category_type: "INCOME").destroy_all
+      settle_account = create(:account, name: "报销账户")
+
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 5000,
+        account_id: settle_account.id,
+        settlement_date: Date.current
+      }
+
+      expect(response).to redirect_to(receivables_path)
+
+      reimburse_entry = Entry.where(account_id: settle_account.id)
+                              .where("name LIKE ?", "%\[报销\]%")
+                              .where("amount > 0")
+                              .order(created_at: :desc)
+                              .first
+
+      expect(reimburse_entry).to be_present
+      expect(reimburse_entry.entryable.category_id).to be_nil
+    end
+
+    it "creates partial reimbursement entry" do
+      settle_account = create(:account, name: "报销账户")
+
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 2000,
+        account_id: settle_account.id,
+        settlement_date: Date.current
+      }
+
+      expect(response).to redirect_to(receivables_path)
+
+      receivable.reload
+      expect(receivable.remaining_amount).to eq(3000)
+      expect(receivable.settled_at).to be_nil
+
+      reimburse_entry = Entry.where(account_id: settle_account.id)
+                              .where("name LIKE ?", "%\[报销\]%")
+                              .where("amount > 0")
+                              .order(created_at: :desc)
+                              .first
+
+      expect(reimburse_entry).to be_present
+      expect(reimburse_entry.amount).to eq(2000)
+    end
+
+    it "rejects invalid amount or account" do
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 0,
+        account_id: account.id,
+        settlement_date: Date.current
+      }
+
+      expect(response).to redirect_to(receivable)
+
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 5000,
+        account_id: nil,
+        settlement_date: Date.current
+      }
+
+      expect(response).to redirect_to(receivable)
+    end
+  end
+
+  describe "POST /receivables/:id/revert" do
+    let(:receivable) { create(:receivable, account: account, counterparty: counterparty, original_amount: 5000, remaining_amount: 2500) }
+    let(:revert_account) { create(:account, name: "报销账户") }
+    let(:reimburse_category) { create(:category, name: "报销", category_type: "INCOME", active: true) }
+
+    before do
+      reimburse_category
+      # 创建源支出Entry
+      source_entry = create(:entry,
+        account: account,
+        amount: -5000,
+        name: "[待报销] #{receivable.description}",
+        entryable: create(:entryable_transaction, :expense)
+      )
+      receivable.update!(source_entry_id: source_entry.id)
+    end
+
+    it "reverts reimbursement and deletes related entries" do
+      # 首先进行部分报销
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 2500,
+        account_id: revert_account.id,
+        settlement_date: Date.current
+      }
+
+      receivable.reload
+      expect(receivable.remaining_amount).to eq(2500)
+
+      reimburse_entry = Entry.where(account_id: revert_account.id)
+                              .where("name LIKE ?", "%\[报销\]%")
+                              .first
+      expect(reimburse_entry).to be_present
+      initial_entry_count = Entry.count
+
+      # 撤销报销
+      post "/receivables/#{receivable.id}/revert"
+
+      expect(response).to redirect_to(receivables_path)
+
+      receivable.reload
+      expect(receivable.remaining_amount).to eq(5000)
+      expect(receivable.settled_at).to be_nil
+
+      # 验证报销Entry被删除
+      expect(Entry.find_by(id: reimburse_entry.id)).to be_nil
+
+      # 验证源Entry仍然存在（因为是待报销状态）
+      source_entry = receivable.source_entry
+      expect(source_entry).to be_present
+    end
+
+    it "deletes source entry when receivable is destroyed after revert" do
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 2500,
+        account_id: revert_account.id,
+        settlement_date: Date.current
+      }
+
+      post "/receivables/#{receivable.id}/revert"
+
+      receivable.reload
+      source_entry_id = receivable.source_entry_id
+
+      # 删除应收款
+      delete "/receivables/#{receivable.id}"
+
+      # 验证源Entry也被删除
+      expect(Entry.find_by(id: source_entry_id)).to be_nil
     end
   end
 end

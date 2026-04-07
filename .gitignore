@@ -51,4 +51,9 @@
 /.playwright-cli
 /tooltip-check.yaml
 
+# Node modules
+/node_modules
 
+
+app/assets/stylesheets/tailwind_output.css
+app/assets/stylesheets/application.css

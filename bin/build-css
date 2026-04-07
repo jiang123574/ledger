@@ -1,0 +1,44 @@
+#!/bin/bash
+
+# 编译 Tailwind CSS for production Docker builds
+# Development uses CDN, production compiles locally
+
+set -e
+
+echo "🎨 编译 Tailwind CSS (Production)..."
+
+# Check Node.js
+if ! command -v node &> /dev/null; then
+    echo "❌ Error: Node.js not installed"
+    exit 1
+fi
+
+# Install npm packages if needed
+if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/tailwindcss" ]; then
+    echo "📦 Installing npm dependencies..."
+    npm install --omit=dev
+fi
+
+# Compile Tailwind CSS
+echo "⚙️  Compiling Tailwind..."
+./node_modules/.bin/tailwindcss \
+    -i ./app/assets/stylesheets/tailwind.css \
+    -o ./app/assets/stylesheets/tailwind_output.css \
+    --minify
+
+# Merge with custom styles
+echo "🔗 Merging styles..."
+if [ -f "app/assets/stylesheets/custom.css" ]; then
+    cat app/assets/stylesheets/tailwind_output.css \
+        app/assets/stylesheets/custom.css \
+        > app/assets/stylesheets/application.css
+else
+    cp app/assets/stylesheets/tailwind_output.css \
+       app/assets/stylesheets/application.css
+fi
+
+# Clean up temporary file
+rm -f app/assets/stylesheets/tailwind_output.css
+
+echo "✅ Tailwind CSS compiled successfully!"
+echo "   Output: app/assets/stylesheets/application.css"

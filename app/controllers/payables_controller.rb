@@ -3,11 +3,11 @@ class PayablesController < ApplicationController
   before_action :check_not_settled, only: %i[update destroy]
 
   def index
-    @payables = Payable.includes(:counterparty, :account).order(date: :desc)
-    @unsettled = @payables.where(settled_at: nil)
-    @settled = @payables.where.not(settled_at: nil)
+    @unsettled = Payable.where(settled_at: nil).includes(:counterparty, :account, :source_entry, source_entry: :account).order(date: :desc)
+    @settled = Payable.where.not(settled_at: nil).includes(:counterparty, :account, :source_entry, source_entry: :account).order(date: :desc)
+    @payables = Payable.includes(:counterparty, :account, :source_entry, source_entry: :account).order(date: :desc)
     @selected_counterparty_id = params[:counterparty_id].presence
-    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id)
+    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id).includes(:source_entry, source_entry: :account)
     @unsettled_counterparty_stats = build_counterparty_stats(@unsettled)
     @payable = Payable.new(date: Date.today)
     @accounts = Account.visible.order(:name)
@@ -25,15 +25,25 @@ class PayablesController < ApplicationController
       category_id = resolve_category_id(@payable.category, kind: "income")
 
       # 自动创建收入 Entry（待付款负债登记）
-      create_entry(
+      source_entry = create_entry(
         account_id: @payable.account_id,
         amount: @payable.original_amount.to_d,
         date: @payable.date,
         name: "[待付款] #{@payable.description}",
         kind: "income",
         category_id: category_id,
-        notes: source_entry_note_for(@payable.id)
+        notes: nil
       )
+
+      # 建立 source_entry_id 关联并锁定源交易
+      if source_entry
+        @payable.update!(source_entry_id: source_entry.id)
+        source_entry.lock_attribute!(:amount)
+        source_entry.lock_attribute!(:date)
+        source_entry.lock_attribute!(:account_id)
+        source_entry.entryable&.lock_attr!(:category_id) if source_entry.entryable.respond_to?(:lock_attr!)
+      end
+
       redirect_to payables_path, notice: "应付款已创建"
     else
       redirect_to payables_path, alert: @payable.errors.full_messages.join(", ")
@@ -84,7 +94,7 @@ class PayablesController < ApplicationController
       category_id = resolve_category_id(@payable.category, kind: "expense")
 
       # 创建支出 Entry（付款）
-      create_entry(
+      payment_entry = create_entry(
         account_id: @account_id,
         amount: -@settle_amount,
         date: @settlement_date,
@@ -92,6 +102,14 @@ class PayablesController < ApplicationController
         kind: "expense",
         category_id: category_id
       )
+
+      # 锁定付款条目的关键字段
+      if payment_entry
+        payment_entry.lock_attribute!(:amount)
+        payment_entry.lock_attribute!(:date)
+        payment_entry.lock_attribute!(:account_id)
+        payment_entry.entryable&.lock_attr!(:category_id) if payment_entry.entryable.respond_to?(:lock_attr!)
+      end
 
       new_remaining = @payable.remaining_amount - @settle_amount
       @payable.update!(
@@ -105,7 +123,15 @@ class PayablesController < ApplicationController
 
   def revert
     ActiveRecord::Base.transaction do
-      @payable.payment_transactions.destroy_all
+      # 删除相关的付款支出交易
+      payment_entries = find_payment_entries
+      payment_entries.each(&:destroy!)
+
+      # 删除源交易（待付款记录）
+      source_entry = find_source_entry
+      source_entry&.destroy!
+
+      # 恢复应付款状态
       @payable.update!(
         remaining_amount: @payable.original_amount,
         settled_at: nil
@@ -113,6 +139,8 @@ class PayablesController < ApplicationController
     end
 
     redirect_to payables_path, notice: "付款已撤销"
+  rescue ActiveRecord::RecordInvalid
+    redirect_to payables_path, alert: "撤销付款失败"
   end
 
   private
@@ -136,6 +164,10 @@ class PayablesController < ApplicationController
   end
 
   def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil, notes: nil)
+    # 获取该账户该日期的下一个 sort_order
+    max_order = Entry.where(account_id: account_id, date: date).maximum(:sort_order) || 0
+    sort_order = max_order + 1
+
     entryable = Entryable::Transaction.new(
       kind: kind,
       category_id: category_id
@@ -149,7 +181,8 @@ class PayablesController < ApplicationController
       amount: amount,
       currency: "CNY",
       notes: notes,
-      entryable: entryable
+      entryable: entryable,
+      sort_order: sort_order
     )
   end
 
@@ -161,20 +194,22 @@ class PayablesController < ApplicationController
       Category.find_by(name: category_name)&.id
   end
 
-  def source_entry_note_for(payable_id)
-    "payable:#{payable_id}:source"
+  def find_payment_entries
+    Entry.transactions_only
+      .with_entryable_transaction
+      .where(entryable_transactions: { kind: "expense" })
+      .where("entries.name LIKE ?", "%[付款] #{@payable.description}%")
+      .where(account_id: @payable.account_id)
   end
 
   def find_source_entry(previous_attrs = nil)
+    # 首先尝试通过 source_entry_id FK 查找
+    return @payable.source_entry if @payable.source_entry_id.present?
+
+    # 回退：通过属性匹配查找
     scope = Entry.transactions_only
       .with_entryable_transaction
       .where(entryable_transactions: { kind: "income" })
-
-    token = source_entry_note_for(@payable.id)
-    by_token = scope.where("entries.notes = ? OR entries.notes LIKE ?", token, "%#{token}%")
-      .order(created_at: :desc)
-      .first
-    return by_token if by_token
 
     attrs = previous_attrs || {}
     description = attrs[:description].presence || @payable.description
@@ -200,7 +235,7 @@ class PayablesController < ApplicationController
       date: @payable.date,
       name: "[待付款] #{@payable.description}",
       amount: @payable.original_amount.to_d,
-      notes: source_entry_note_for(@payable.id)
+      notes: nil
     )
     return unless source_entry.entryable.is_a?(Entryable::Transaction)
 
@@ -208,6 +243,9 @@ class PayablesController < ApplicationController
       kind: "income",
       category_id: category_id
     )
+
+    # 更新 source_entry_id
+    @payable.update!(source_entry_id: source_entry.id) unless @payable.source_entry_id == source_entry.id
   end
 
   def build_counterparty_stats(records)
