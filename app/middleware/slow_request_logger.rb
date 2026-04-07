@@ -17,7 +17,7 @@ class SlowRequestLogger
       Rails.logger.warn "[PERF] Slow request: #{method} #{path} — #{elapsed}ms (#{status})"
     end
 
-    [status, headers, response]
+    [ status, headers, response ]
   end
 
   private

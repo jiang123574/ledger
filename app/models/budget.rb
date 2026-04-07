@@ -19,15 +19,15 @@ class Budget < ApplicationRecord
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
 
-    query = Entry.joins('INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id')
-      .where(entryable_type: 'Entryable::Transaction', date: start_date..end_date)
-      .where(entryable_transactions: { kind: 'expense' })
-    
+    query = Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
+      .where(entryable_type: "Entryable::Transaction", date: start_date..end_date)
+      .where(entryable_transactions: { kind: "expense" })
+
     if category_id.present?
       query = query.where(entryable_transactions: { category_id: category_id })
     end
 
-    query.sum('ABS(entries.amount)')
+    query.sum("ABS(entries.amount)")
   end
 
   # 已废弃：使用 spent_amount（基于 Entry 模型）

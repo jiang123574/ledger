@@ -26,19 +26,19 @@ class ReportsController < ApplicationController
 
   def load_report_data
     # 收支统计 - 使用 Entry
-    entries = Entry.where(date: @start_date..@end_date, entryable_type: 'Entryable::Transaction')
+    entries = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
       .where("transfer_id IS NULL")
 
-    @total_income = entries.where('amount > 0').sum(:amount)
-    @total_expense = entries.where('amount < 0').sum('ABS(amount)')
+    @total_income = entries.where("amount > 0").sum(:amount)
+    @total_expense = entries.where("amount < 0").sum("ABS(amount)")
     @net_balance = @total_income - @total_expense
 
     # 月度趋势
     @monthly_trend = load_monthly_trend
 
     # 分类统计
-    @expense_by_category = load_category_stats('expense')
-    @income_by_category = load_category_stats('income')
+    @expense_by_category = load_category_stats("expense")
+    @income_by_category = load_category_stats("income")
 
     # 资产走势（年度视图时加载）
     if @report_type == :yearly
@@ -82,15 +82,15 @@ class ReportsController < ApplicationController
         .transactions_only
         .non_transfers
         .where(date: @start_date..@end_date)
-        .group("date_trunc('month', entries.date)", 'entryable_transactions.kind')
+        .group("date_trunc('month', entries.date)", "entryable_transactions.kind")
         .select("date_trunc('month', entries.date) as month_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
         .map { |r| { month: r.month_date.month, kind: r.kind, amount: r.total.to_f } }
 
       stats_by_month = stats.group_by { |s| s[:month] }
       (1..12).map do |month|
         month_data = stats_by_month[month] || []
-        income = month_data.find { |s| s[:kind] == 'income' }&.dig(:amount) || 0
-        expense = month_data.find { |s| s[:kind] == 'expense' }&.dig(:amount) || 0
+        income = month_data.find { |s| s[:kind] == "income" }&.dig(:amount) || 0
+        expense = month_data.find { |s| s[:kind] == "expense" }&.dig(:amount) || 0
         {
           month: month,
           label: "#{month}月",
@@ -103,7 +103,7 @@ class ReportsController < ApplicationController
         .transactions_only
         .non_transfers
         .where(date: @start_date..@end_date)
-        .group("date_trunc('week', entries.date)", 'entryable_transactions.kind')
+        .group("date_trunc('week', entries.date)", "entryable_transactions.kind")
         .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
         .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
@@ -113,10 +113,10 @@ class ReportsController < ApplicationController
       week_num = 1
 
       while current <= @end_date
-        week_end = [current.end_of_week, @end_date].min
+        week_end = [ current.end_of_week, @end_date ].min
         week_data = stats_by_week[current] || []
-        income = week_data.find { |s| s[:kind] == 'income' }&.dig(:amount) || 0
-        expense = week_data.find { |s| s[:kind] == 'expense' }&.dig(:amount) || 0
+        income = week_data.find { |s| s[:kind] == "income" }&.dig(:amount) || 0
+        expense = week_data.find { |s| s[:kind] == "expense" }&.dig(:amount) || 0
 
         weeks << {
           week: week_num,
@@ -141,7 +141,7 @@ class ReportsController < ApplicationController
       .where(date: @start_date..@end_date)
       .group("categories.name")
       .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
-      .sum('ABS(entries.amount)')
+      .sum("ABS(entries.amount)")
   end
 
   def load_budget_data
@@ -152,10 +152,10 @@ class ReportsController < ApplicationController
     spent_by_category = Entry.with_entryable_transaction
       .transactions_only
       .non_transfers
-      .where(entryable_transactions: { kind: 'expense', category_id: category_ids })
+      .where(entryable_transactions: { kind: "expense", category_id: category_ids })
       .where(date: @start_date..@end_date)
-      .group('entryable_transactions.category_id')
-      .sum('ABS(entries.amount)')
+      .group("entryable_transactions.category_id")
+      .sum("ABS(entries.amount)")
 
     @budget_progress = @budgets.map do |budget|
       spent = spent_by_category[budget.category_id] || 0
@@ -179,7 +179,7 @@ class ReportsController < ApplicationController
       .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
       .group("accounts.id")
       .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
-      .to_h { |id, type, bal| [id, { type: type, balance: bal.to_d }] }
+      .to_h { |id, type, bal| [ id, { type: type, balance: bal.to_d } ] }
 
     # 没有任何 entry 的账户用 initial_balance
     Account.visible.included_in_total.where.not(id: current_balances.keys)
@@ -195,7 +195,7 @@ class ReportsController < ApplicationController
     liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
 
     # 按月计算交易变动
-    monthly_changes = Entry.where(date: @start_date..@end_date, entryable_type: 'Entryable::Transaction')
+    monthly_changes = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
       .group("date_trunc('month', date)")
       .group(:account_id)
       .sum(:amount)
@@ -252,8 +252,8 @@ class ReportsController < ApplicationController
     active_categories = Entry.with_entryable_transaction
       .transactions_only
       .where(date: @start_date..@end_date)
-      .select('DISTINCT categories.id, categories.name, entryable_transactions.kind')
-      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
+      .select("DISTINCT categories.id, categories.name, entryable_transactions.kind")
+      .joins("INNER JOIN categories ON entryable_transactions.category_id = categories.id")
       .map { |r| { id: r.id, name: r.name, kind: r.kind } }
 
     return {} if active_categories.empty?
@@ -265,7 +265,7 @@ class ReportsController < ApplicationController
       .where(entryable_transactions: { category_id: category_ids })
       .where(date: @start_date..@end_date)
       .group("entryable_transactions.category_id", "date_trunc('month', entries.date)")
-      .sum('ABS(entries.amount)')
+      .sum("ABS(entries.amount)")
 
     # 按 category_id 预索引
     all_monthly_by_cat = all_monthly.group_by { |(cat_id, _), _| cat_id }
@@ -312,7 +312,7 @@ class ReportsController < ApplicationController
 
     # 排序规则：支出分类优先（expense=0, income=1），同类型按总额降序
     {
-      categories: categories.sort_by { |_, v| [-(v[:kind] == 'expense' ? 0 : 1), -v[:total]] }.to_h,
+      categories: categories.sort_by { |_, v| [ -(v[:kind] == "expense" ? 0 : 1), -v[:total] ] }.to_h,
       monthly_totals: monthly_totals
     }
   end
@@ -323,13 +323,13 @@ class ReportsController < ApplicationController
       .transactions_only
       .non_transfers
       .where(date: @start_date..@end_date)
-      .select('DISTINCT categories.id, categories.name, entryable_transactions.kind')
-      .joins('INNER JOIN categories ON entryable_transactions.category_id = categories.id')
+      .select("DISTINCT categories.id, categories.name, entryable_transactions.kind")
+      .joins("INNER JOIN categories ON entryable_transactions.category_id = categories.id")
       .map { |r| { id: r.id, name: r.name, kind: r.kind } }
 
     {
-      expense: cats.select { |c| c[:kind] == 'expense' },
-      income: cats.select { |c| c[:kind] == 'income' }
+      expense: cats.select { |c| c[:kind] == "expense" },
+      income: cats.select { |c| c[:kind] == "income" }
     }
   end
 end

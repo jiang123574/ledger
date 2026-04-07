@@ -12,16 +12,16 @@ class EntrySearch
   attribute :tag_id, :integer
   attribute :search, :string
   attribute :kind, :string
-  
+
   attribute :min_amount, :decimal
   attribute :max_amount, :decimal
-  
+
   attribute :month, :string
   attribute :period_type, :string
   attribute :period_value, :string
-  
+
   attribute :sort, :string, default: "date_desc"
-  
+
   attr_reader :params
 
   def initialize(params = {})
@@ -149,7 +149,7 @@ class EntrySearch
 
   def apply_tag_filter(scope)
     return scope unless tag_id
-    scope.joins('INNER JOIN taggings ON taggings.taggable_id = entries.entryable_id AND taggings.taggable_type = \'Entryable::Transaction\'')
+    scope.joins("INNER JOIN taggings ON taggings.taggable_id = entries.entryable_id AND taggings.taggable_type = 'Entryable::Transaction'")
          .where(taggings: { tag_id: tag_id })
   end
 

@@ -20,22 +20,22 @@ module Api
 
     def transactions
       # 支持新的 Entry 创建
-      kind = params[:type].to_s.downcase == 'income' ? 'income' : 'expense'
+      kind = params[:type].to_s.downcase == "income" ? "income" : "expense"
       amount = params[:amount].to_d
-      entry_amount = kind == 'income' ? amount : -amount
-      
+      entry_amount = kind == "income" ? amount : -amount
+
       entryable = Entryable::Transaction.new(
         kind: kind,
         category_id: params[:category_id]
       )
       entryable.save(validate: false)
-      
+
       entry = Entry.new(
         account_id: params[:account_id],
         date: params[:date] || Time.current,
         name: params[:note] || "API导入",
         amount: entry_amount,
-        currency: 'CNY',
+        currency: "CNY",
         entryable: entryable
       )
 

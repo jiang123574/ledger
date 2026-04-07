@@ -1,1 +1,1 @@
-require 'ruby-pinyin'
+require "ruby-pinyin"

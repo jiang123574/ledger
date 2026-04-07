@@ -73,7 +73,7 @@ class Plan < ApplicationRecord
         currency: currency || default_currency,
         date: Date.current,
         name: transaction_note,
-        kind: 'expense',
+        kind: "expense",
         category: find_or_create_default_category
       )
 

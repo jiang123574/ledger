@@ -37,7 +37,7 @@ RSpec.describe "Accounts system sync fallback", type: :request do
 
     expect {
       get "/accounts"
-    }.not_to change { Account.where(name: [receivable_name, payable_name]).count }
+    }.not_to change { Account.where(name: [ receivable_name, payable_name ]).count }
 
     expect(response).to have_http_status(:ok)
   end

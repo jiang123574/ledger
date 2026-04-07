@@ -7,7 +7,7 @@ class EntrySearchTest < ActiveSupport::TestCase
     @account = FactoryBot.create(:account)
     @category = FactoryBot.create(:category)
     @tag = FactoryBot.create(:tag)
-    
+
     @entry_income = Entry.create!(
       account: @account,
       name: "Salary",
@@ -18,7 +18,7 @@ class EntrySearchTest < ActiveSupport::TestCase
         kind: "income"
       )
     )
-    
+
     @entry_expense = Entry.create!(
       account: @account,
       name: "Lunch",

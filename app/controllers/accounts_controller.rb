@@ -220,7 +220,7 @@ class AccountsController < ApplicationController
         account_id: e.account_id,
         name: e.name,
         date: e.date&.strftime("%Y-%m-%d"),
-        amount: e.amount,
+        amount: e.amount.to_f,
         display_amount: e.display_amount,
         type: entry_type,
         display_type: display_type,
@@ -463,18 +463,18 @@ class AccountsController < ApplicationController
       return
     end
 
-    entry_ids = params[:entry_ids].map(&:to_i).uniq
-    existing_entry_ids = Entry.where(account_id: @account.id, date: date, id: entry_ids).pluck(:id)
-    
-    if existing_entry_ids.size != entry_ids.size
-      render json: { success: false, error: "条目列表不匹配：期望 #{entry_ids.size} 个条目，实际找到 #{existing_entry_ids.size} 个" }, status: :unprocessable_entity
+entry_ids = params[:entry_ids].map(&:to_i)
+    expected_entry_ids = Entry.where(account_id: @account.id, date: date).pluck(:id)
+
+    if expected_entry_ids.sort != entry_ids.uniq.sort
+      render json: { success: false, error: "条目列表不匹配：期望 #{expected_entry_ids.size} 个条目，实际提供 #{entry_ids.uniq.size} 个" }, status: :unprocessable_entity
       return
     end
 
     balances = ActiveRecord::Base.transaction do
       entry_ids.each_with_index do |entry_id, index|
         Entry.where(id: entry_id, account_id: @account.id, date: date)
-             .update_all(sort_order: entry_ids.length - index)
+             .update_all(sort_order: index + 1)
       end
 
       # 重新计算从指定日期开始的所有余额
@@ -482,10 +482,10 @@ class AccountsController < ApplicationController
                               .where("date < ?", date)
                               .sum(:amount) + @account.initial_balance
 
-      # 获取从指定日期开始的所有条目，按日期和sort_order排序
+      # 获取从指定日期开始的所有条目，按日期和 sort_order 正序排序
       all_entries_from_date = Entry.where(account_id: @account.id)
                                     .where("date >= ?", date)
-                                    .order(date: :asc, sort_order: :desc)
+                                    .order(date: :asc, sort_order: :asc)
                                     .pluck(:id, :amount, :date)
 
       balances = []
@@ -497,7 +497,7 @@ class AccountsController < ApplicationController
           # 如果是新的一天，重置running_balance为前一天的结束余额
           # 但由于我们是顺序处理的，这个逻辑已经包含在累加中
         end
-        
+
         running_balance += amount
         balances << { entry_id: entry_id, balance_after: running_balance }
       end

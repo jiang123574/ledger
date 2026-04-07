@@ -16,57 +16,57 @@ class ActivityLog < ApplicationRecord
 
   def changes_summary
     return nil unless changeset.present?
-    
+
     parsed = changeset.is_a?(String) ? JSON.parse(changeset) : changeset
-    
+
     parsed.map do |field, values|
       next if field.in?(%w[updated_at created_at])
-      
+
       old_val, new_val = values
       "#{field}: #{old_val} → #{new_val}"
     end.compact.join(", ")
   end
 
   def revert!
-    return false if action == 'create'
-    
+    return false if action == "create"
+
     item_class = item_type.constantize
     record = item_class.find_by(id: item_id)
-    
+
     case action
-    when 'update'
+    when "update"
       return false unless changeset.present?
-      
+
       parsed = changeset.is_a?(String) ? JSON.parse(changeset) : changeset
-      
+
       parsed.each do |field, (old_val, _new_val)|
         next if field.in?(%w[updated_at created_at])
-        
+
         record&.update(field => old_val)
       end
-      
-    when 'destroy'
+
+    when "destroy"
       return false unless changeset.present?
-      
+
       parsed = changeset.is_a?(String) ? JSON.parse(changeset) : changeset
-      
-      record = item_class.new(parsed.except('created_at', 'updated_at'))
-      record.id = parsed['id']
+
+      record = item_class.new(parsed.except("created_at", "updated_at"))
+      record.id = parsed["id"]
       record.save(validate: false)
-      
+
       update!(item_id: record.id) if record.persisted?
     end
-    
+
     record
   end
 
   class << self
     def log_create(item, whodunnit: nil, ip_address: nil, description: nil)
       attrs = filter_sensitive_fields(item.attributes)
-      
+
       create!(
         item: item,
-        action: 'create',
+        action: "create",
         changeset: attrs.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,
@@ -76,14 +76,14 @@ class ActivityLog < ApplicationRecord
 
     def log_update(item, whodunnit: nil, ip_address: nil, description: nil)
       return unless item.saved_changes.present?
-      
-      filtered_changes = item.saved_changes.except('updated_at', 'created_at')
+
+      filtered_changes = item.saved_changes.except("updated_at", "created_at")
       filtered_changes = filter_sensitive_fields_from_changes(filtered_changes)
       return if filtered_changes.empty?
-      
+
       create!(
         item: item,
-        action: 'update',
+        action: "update",
         changeset: filtered_changes.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,
@@ -93,10 +93,10 @@ class ActivityLog < ApplicationRecord
 
     def log_destroy(item, whodunnit: nil, ip_address: nil, description: nil)
       attrs = filter_sensitive_fields(item.attributes)
-      
+
       create!(
         item: item,
-        action: 'destroy',
+        action: "destroy",
         changeset: attrs.to_json,
         whodunnit: whodunnit,
         ip_address: ip_address,

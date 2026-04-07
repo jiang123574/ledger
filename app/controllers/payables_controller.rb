@@ -30,7 +30,7 @@ class PayablesController < ApplicationController
         amount: @payable.original_amount.to_d,
         date: @payable.date,
         name: "[待付款] #{@payable.description}",
-        kind: 'income',
+        kind: "income",
         category_id: category_id,
         notes: source_entry_note_for(@payable.id)
       )
@@ -88,7 +88,7 @@ class PayablesController < ApplicationController
         amount: -@settle_amount,
         date: Date.current,
         name: "[付款] #{@payable.description}",
-        kind: 'expense',
+        kind: "expense",
         category_id: category_id
       )
 
@@ -146,7 +146,7 @@ class PayablesController < ApplicationController
       date: date,
       name: name,
       amount: amount,
-      currency: 'CNY',
+      currency: "CNY",
       notes: notes,
       entryable: entryable
     )

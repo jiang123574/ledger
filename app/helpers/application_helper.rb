@@ -194,23 +194,23 @@ module ApplicationHelper
 
   def render_tree_nodes(nodes, selected_ids, children_map, parent_map)
     safe_join(nodes.map do |cat|
-      indent = 'padding-left: ' + (cat.level * 16 + 12).to_s + 'px'
+      indent = "padding-left: " + (cat.level * 16 + 12).to_s + "px"
       children = children_map[cat.id] || []
       # 用 parent_map 做内存查找，避免 full_name 递归触发 SQL
       full_name = build_full_name_in_memory(cat, parent_map)
 
-      content_tag(:label, class: 'flex items-center gap-2 py-1.5 px-3 cursor-pointer category-filter-item hover:bg-surface-hover dark:hover:bg-surface-dark-hover border-b border-border dark:border-border-dark last:border-b-0',
+      content_tag(:label, class: "flex items-center gap-2 py-1.5 px-3 cursor-pointer category-filter-item hover:bg-surface-hover dark:hover:bg-surface-dark-hover border-b border-border dark:border-border-dark last:border-b-0",
                   data: { name: cat.name, full_name: full_name, pinyin: PinYin.abbr(full_name || cat.name).downcase, type: cat.category_type },
                   style: indent) do
         safe_join([
-          check_box_tag('category_ids[]', cat.id, selected_ids.include?(cat.id.to_s), class: 'category-filter-option w-4 h-4 rounded border-border dark:border-border-dark'),
-          content_tag(:span, full_name, class: 'text-sm text-primary dark:text-primary-dark')
+          check_box_tag("category_ids[]", cat.id, selected_ids.include?(cat.id.to_s), class: "category-filter-option w-4 h-4 rounded border-border dark:border-border-dark"),
+          content_tag(:span, full_name, class: "text-sm text-primary dark:text-primary-dark")
         ])
       end.html_safe +
       if children.any?
         render_tree_nodes(children, selected_ids, children_map, parent_map)
       else
-        ''.html_safe
+        "".html_safe
       end
     end)
   end

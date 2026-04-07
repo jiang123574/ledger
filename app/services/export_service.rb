@@ -8,9 +8,9 @@ class ExportService
 
   def self.entries_to_csv
     CSV.generate(encoding: "UTF-8", headers: true) do |csv|
-      csv << ["日期", "类型", "金额", "账户", "分类", "备注"]
+      csv << [ "日期", "类型", "金额", "账户", "分类", "备注" ]
 
-      Entry.includes(:account, :entryable).where(entryable_type: 'Entryable::Transaction').find_each(batch_size: 1000) do |entry|
+      Entry.includes(:account, :entryable).where(entryable_type: "Entryable::Transaction").find_each(batch_size: 1000) do |entry|
         csv << [
           entry.date&.strftime("%Y-%m-%d"),
           entry.amount >= 0 ? "收入" : "支出",

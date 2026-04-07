@@ -242,7 +242,7 @@ class ImportRecordCreator
       entryable: entryable_in, transfer_id: transfer_id
     )
 
-    [entry_out, entry_in]
+    [ entry_out, entry_in ]
   end
 
   private_class_method :new
