@@ -1772,6 +1772,18 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   }
   
   function updateOptions() {
+    // 确保 allAccounts 已加载（防止时序问题）
+    if (allAccounts.length === 0) {
+      var accountsDataEl = document.getElementById('accounts-data');
+      if (accountsDataEl && accountsDataEl.textContent) {
+        try {
+          allAccounts = JSON.parse(accountsDataEl.textContent);
+        } catch (e) {
+          console.error('Failed to parse accounts data:', e);
+        }
+      }
+    }
+    
     var filterText = filterInput ? filterInput.value : '';
     optionsContainer.innerHTML = renderOptions(filterText);
     
