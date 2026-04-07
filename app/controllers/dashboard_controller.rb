@@ -34,7 +34,7 @@ class DashboardController < ApplicationController
     if @entries.any?
       category_ids = @entries.map { |e| e.entryable.respond_to?(:category_id) ? e.entryable.category_id : nil }.compact.uniq
       if category_ids.any?
-        @category_map = Category.where(id: category_ids).includes(:parent).index_by(&:id)
+        @category_map = Category.where(id: category_ids).index_by(&:id)
       end
     end
 
