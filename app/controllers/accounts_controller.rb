@@ -38,10 +38,12 @@ class AccountsController < ApplicationController
     @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: CacheConfig::LONG) do
       Category.active.by_sort_order.includes(:parent).to_a
     end
+    ActiveRecord::Associations::Preloader.new(records: @categories, associations: [ :parent ]).call
 
     @expense_categories = Rails.cache.fetch("expense_categories_active/#{av}", expires_in: CacheConfig::LONG) do
       Category.expense.active.by_sort_order.includes(:parent).to_a
     end
+    ActiveRecord::Associations::Preloader.new(records: @expense_categories, associations: [ :parent ]).call
 
     @counterparties = Rails.cache.fetch("counterparties_list/#{av}", expires_in: CacheConfig::LONG) do
       Counterparty.order(:name).to_a
