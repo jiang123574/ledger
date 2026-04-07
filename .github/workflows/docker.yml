@@ -47,6 +47,7 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@v7
         with:
           context: .
@@ -58,3 +59,16 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             RUBY_VERSION=3.3.10
+          # Optimize build performance
+          provenance: false
+          # Reduce layer count and improve caching
+          no-cache-filters: |
+            app/src
+          # Use buildkit features for better performance
+          buildkit: true
+
+      - name: Show image size
+        if: github.event_name != 'pull_request'
+        run: |
+          echo "Image size information:"
+          docker buildx imagetools inspect ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest --format "table {{.Manifest.Digest}}\t{{.Size}}" || echo "Could not retrieve image size"

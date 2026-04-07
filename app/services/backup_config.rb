@@ -41,7 +41,7 @@ class BackupConfig
     return nil unless webdav_configured?
 
     wc = webdav_config
-    WebDAVClient.new(
+    WebdavClient.new(
       url: wc[:url],
       username: wc[:username],
       password: wc[:password],

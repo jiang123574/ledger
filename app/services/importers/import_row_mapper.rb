@@ -2,7 +2,7 @@
 
 # Maps raw row hashes to structured transaction data.
 # Handles field mapping, date/amount parsing, transfer detection.
-class ImportRowMapper
+class Importers::ImportRowMapper
   DEFAULT_MAPPING = {
     "日期" => "date", "交易时间" => "date", "date" => "date",
     "类型" => "type", "收支类型" => "type", "交易分类" => "type", "type" => "type",

@@ -48,4 +48,39 @@
 
 # Ignore Docker-related files
 /.dockerignore
+
+# Ignore test files and documentation
+/test/
+/spec/
+/coverage/
+/doc/
+/docs/
+/README.md
+/CHANGELOG.md
+/LICENSE
+/*.md
+
+# Ignore development tools and scripts
+/bin/dev
+/bin/setup
+/bin/docker-entrypoint
+/script/
+/lib/tasks/*.rake
+!/lib/tasks/import_pixiu.rake
+
+# Ignore IDE and editor files
+/.vscode/
+/.idea/
+/*.swp
+/*.swo
+/*~
+
+# Ignore OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 /Dockerfile*

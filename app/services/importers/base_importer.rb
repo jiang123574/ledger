@@ -18,7 +18,7 @@ class Importers::BaseImporter
   end
 
   def initialize(options = {})
-    @field_mapping = options[:field_mapping] || ImportRowMapper.default_mapping
+    @field_mapping = options[:field_mapping] || Importers::ImportRowMapper.default_mapping
     @options = options
     @results = { success: 0, failed: 0, errors: [], imported_ids: [] }
   end
@@ -49,7 +49,7 @@ class Importers::BaseImporter
       headers: headers,
       rows: preview_rows,
       total_rows: rows.size,
-      suggested_mapping: ImportRowMapper.suggest_mapping(headers)
+      suggested_mapping: Importers::ImportRowMapper.suggest_mapping(headers)
     }
   end
 
@@ -71,7 +71,7 @@ class Importers::BaseImporter
   end
 
   def import_row(row, _idx)
-    data = ImportRowMapper.map_row(row, @field_mapping)
+    data = Importers::ImportRowMapper.map_row(row, @field_mapping)
 
     return if data[:date].nil?
     return if data[:amount].nil? && data[:type] != "TRANSFER"

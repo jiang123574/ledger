@@ -7,7 +7,7 @@ require "fileutils"
 
 # WebDAV client for remote backup storage.
 # Handles upload, download, list, delete, and connection testing.
-class WebDAVClient
+class WebdavClient
   class WebDAVError < StandardError; end
 
   def initialize(url:, username:, password:, directory: "/")

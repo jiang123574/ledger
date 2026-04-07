@@ -83,7 +83,7 @@ class ImportService
   end
 
   def self.default_csv_mapping
-    ImportRowMapper.default_mapping
+    Importers::ImportRowMapper.default_mapping
   end
 
   # ---- Private ----
