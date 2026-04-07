@@ -1,7 +1,7 @@
 require "ostruct"
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder ]
+  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries ]
   before_action :prevent_locked_system_account!, only: [ :edit, :update, :destroy ]
 
   def index
@@ -37,6 +37,14 @@ class AccountsController < ApplicationController
 
     @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: CacheConfig::LONG) do
       Category.active.by_sort_order.to_a
+    end
+
+    @expense_categories = Rails.cache.fetch("expense_categories_active/#{av}", expires_in: CacheConfig::LONG) do
+      Category.expense.active.by_sort_order.to_a
+    end
+
+    @counterparties = Rails.cache.fetch("counterparties_list/#{av}", expires_in: CacheConfig::LONG) do
+      Counterparty.order(:name).to_a
     end
 
     period_type = params[:period_type].presence || "month"
@@ -159,7 +167,7 @@ class AccountsController < ApplicationController
     end
 
     entries = Entry.where(id: entry_ids)
-      .includes(:entryable, entryable: :category)
+      .includes(:account, :entryable, entryable: :category)
       .reverse_chronological
       .to_a
 
@@ -209,14 +217,16 @@ class AccountsController < ApplicationController
 
       {
         id: e.id,
+        account_id: e.account_id,
+        name: e.name,
         date: e.date&.strftime("%Y-%m-%d"),
-        amount: e.amount,
-        display_amount: e.display_amount,
+        amount: e.amount.to_f,
+        display_amount: e.display_amount.to_f,
         type: entry_type,
         display_type: display_type,
         display_amount_type: display_amount_type,
         display_name: display_name,
-        note: e.display_note || @accounts_map&.dig(e.account_id)&.name || "未知账户",
+        note: e.display_note || e.account&.name || "未知账户",
         balance_after: balance_map[e.id],
         show_both_amounts: is_transfer && current_account_filter.blank?
       }
@@ -441,6 +451,47 @@ class AccountsController < ApplicationController
     head :conflict
   end
 
+  def reorder_entries
+    unless params[:entry_ids].is_a?(Array) && params[:date].present?
+      render json: { success: false, error: '缺少排序参数' }, status: :bad_request
+      return
+    end
+
+    date = Date.parse(params[:date]) rescue nil
+    unless date
+      render json: { success: false, error: '日期格式不正确' }, status: :bad_request
+      return
+    end
+
+    entry_ids = params[:entry_ids].map(&:to_i)
+    entries = Entry.where(account_id: @account.id, date: date, id: entry_ids)
+    if entries.size != entry_ids.size
+      render json: { success: false, error: '条目列表不匹配' }, status: :unprocessable_entity
+      return
+    end
+
+    ActiveRecord::Base.transaction do
+      entry_ids.each_with_index do |entry_id, index|
+        Entry.where(id: entry_id, account_id: @account.id, date: date)
+             .update_all(sort_order: entry_ids.length - index)
+      end
+    end
+
+    previous_balance = Entry.where(account_id: @account.id)
+                             .where('date < ?', date)
+                             .sum(:amount) + @account.initial_balance
+
+    balances = Entry.where(account_id: @account.id, date: date)
+                    .order(sort_order: :desc)
+                    .pluck(:id, :amount)
+                    .map do |id, amount|
+      previous_balance += amount
+      { entry_id: id, balance_after: previous_balance }
+    end
+
+    render json: { success: true, balances: balances }
+  end
+
   private
 
   def system_accounts_sync_needed?
@@ -501,7 +552,7 @@ class AccountsController < ApplicationController
   end
 
   def build_entries_query(period_type, period_value)
-    entries = Entry.where(entryable_type: "Entryable::Transaction")
+    entries = Entry.where(entryable_type: ['Entryable::Transaction', 'Entryable::Transfer'])
 
     if params[:account_id].present?
       entries = entries.where(account_id: params[:account_id])

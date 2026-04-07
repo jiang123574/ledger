@@ -11,7 +11,7 @@ class AccountStatsService
       Account.total_assets
     end
 
-    entries_query = Entry.where(entryable_type: 'Entryable::Transaction')
+    entries_query = Entry.where(entryable_type: ['Entryable::Transaction', 'Entryable::Transfer'])
     entries_query = apply_period_filter(entries_query, period_type, period_value)
     entries_query = entries_query.where(account_id: account_id) if account_id.present?
     entries_query = apply_entry_filters(entries_query, filter_type, category_ids)
@@ -49,7 +49,7 @@ class AccountStatsService
       Account.included_in_total.sum(:initial_balance)
     end
 
-    all_prior_entries = Entry.where(entryable_type: 'Entryable::Transaction')
+    all_prior_entries = Entry.where(entryable_type: ['Entryable::Transaction', 'Entryable::Transfer'])
       .joins(:account)
 
     if account_id.present?

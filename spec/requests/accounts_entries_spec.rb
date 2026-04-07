@@ -91,6 +91,25 @@ RSpec.describe "Accounts entries API", type: :request do
         )
       end
 
+      it "returns account name as note when display_note is missing" do
+        entry = create(:entry,
+          account: account,
+          entryable: create(:entryable_transaction, kind: 'EXPENSE'),
+          amount: -120,
+          date: 3.days.ago
+        )
+        entry.update_column(:name, '') if entry.respond_to?(:name)
+        entry.update_column(:notes, '') if entry.respond_to?(:notes)
+
+        get "/accounts/entries", params: { page: 1, per_page: 10, format: :json }
+
+        data = response.parsed_body
+        matched = data["entries"].find { |e| e["id"] == entry.id }
+
+        expect(matched).to be_present
+        expect(matched["note"]).to eq(account.name)
+      end
+
       it "returns entries in reverse chronological order" do
         get "/accounts/entries", params: { page: 1, per_page: 10, format: :json }
 
