@@ -2,7 +2,7 @@ class RecurringController < ApplicationController
   def index
     @recurring = RecurringTransaction.includes(:account, :category).order(:next_date)
     @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order.includes(:parent)
+    @categories = Category.active.by_sort_order
   end
 
   def create
