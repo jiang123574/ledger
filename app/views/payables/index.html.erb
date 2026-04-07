@@ -493,6 +493,18 @@ function openSettleModal(id, description, remainingAmount) {
   document.getElementById('settle-date-payable').value = new Date().toISOString().split('T')[0];
   document.getElementById('settle-form').action = '/payables/' + id + '/settle';
   document.getElementById('settle-payable-modal').classList.remove('hidden');
+  // Re-initialize account selector
+  setTimeout(function() {
+    window.initSelectorWithData({
+      searchInputId: 'settle-account-search-payable',
+      dropdownId: 'settle-account-dropdown-payable',
+      filterInputId: 'settle-account-filter-payable',
+      optionsId: 'settle-account-options-payable',
+      hiddenInputId: 'settle-account-id-payable',
+      dataSource: allAccountsForSelectorPayable,
+      noMatchText: '无匹配账户'
+    });
+  }, 0);
 }
 
 function setFullAmountPayable() {

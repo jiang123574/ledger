@@ -493,6 +493,18 @@ function openSettleModal(id, description, remainingAmount) {
   document.getElementById('settle-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('settle-form').action = '/receivables/' + id + '/settle';
   document.getElementById('settle-receivable-modal').classList.remove('hidden');
+  // Re-initialize account selector
+  setTimeout(function() {
+    window.initSelectorWithData({
+      searchInputId: 'settle-account-search',
+      dropdownId: 'settle-account-dropdown',
+      filterInputId: 'settle-account-filter',
+      optionsId: 'settle-account-options',
+      hiddenInputId: 'settle-account-id',
+      dataSource: allAccountsForSelector,
+      noMatchText: '无匹配账户'
+    });
+  }, 0);
 }
 
 function setFullAmount() {
