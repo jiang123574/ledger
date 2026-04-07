@@ -72,16 +72,24 @@
           <h3 class="font-medium text-primary dark:text-primary-dark">数据库备份</h3>
           <p class="text-sm text-secondary dark:text-secondary-dark">创建完整的数据库备份</p>
         </div>
-        <%= button_to "创建备份", create_backup_path, method: :post,
-            class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern",
-            data: { loading_button_target: "button" },
-            form: {
-              data: {
-                controller: "loading-button",
-                action: "submit->loading-button#showLoading",
-                loading_button_loading_text_value: "创建中..."
-              }
-            } %>
+        <div class="flex gap-2 items-center">
+          <%= button_to "创建备份", create_backup_path, method: :post,
+              class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern",
+              data: { loading_button_target: "button" },
+              form: {
+                data: {
+                  controller: "loading-button",
+                  action: "submit->loading-button#showLoading",
+                  loading_button_loading_text_value: "创建中..."
+                }
+              } %>
+          <%= link_to "管理备份", backups_path, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+        </div>
+      </div>
+      <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 mb-4">
+        <p class="text-sm text-secondary dark:text-secondary-dark">
+          若要配置 WebDAV 云备份、查看云端备份列表或开启自动备份，请前往备份管理页面。
+        </p>
       </div>
       
       <!-- 上传恢复 -->

@@ -7,7 +7,9 @@ class SettingsController < ApplicationController
 
     # 按需加载数据，避免不必要的查询
     if @section == "categories"
-      @categories = Category.includes(:children, :parent).order(:sort_order, :name)
+      # 这里只需要预加载 children，parent 关联并未在分类设置页面中直接使用。
+      # 这样可以避免无效的 includes(:parent) 导致 N+1 检测告警。
+      @categories = Category.includes(:children).order(:sort_order, :name)
       @expense_roots = @categories.select(&:expense?).select(&:root?)
       @income_roots = @categories.select(&:income?).select(&:root?)
       @expense_parent_options = @expense_roots.map { |c| [ c.name, c.id ] }
@@ -138,8 +140,12 @@ class SettingsController < ApplicationController
     # 确保目录存在
     FileUtils.mkdir_p(File.dirname(temp_path))
 
-    # 复制上传的文件
-    FileUtils.cp(uploaded_file.path, temp_path)
+    # 复制上传的文件到临时文件，兼容各种上传实现
+    if uploaded_file.respond_to?(:tempfile) && uploaded_file.tempfile
+      IO.copy_stream(uploaded_file.tempfile, temp_path)
+    else
+      IO.copy_stream(uploaded_file.path, temp_path)
+    end
 
     # 执行恢复
     result = BackupService.restore_backup(temp_path)

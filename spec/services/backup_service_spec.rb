@@ -69,6 +69,16 @@ RSpec.describe BackupService, type: :service do
       expect(described_class).to respond_to(:restore_backup)
     end
 
+    let(:backup_path) { Rails.root.join('tmp', 'backups', 'restore_test.sql').to_s }
+
+    before do
+      FileUtils.mkdir_p(File.dirname(backup_path))
+    end
+
+    after do
+      FileUtils.rm_f(backup_path)
+    end
+
     context 'when backup file does not exist' do
       it 'returns error' do
         result = described_class.restore_backup('/nonexistent/backup.sql')
@@ -76,6 +86,62 @@ RSpec.describe BackupService, type: :service do
         expect(result[:success]).to be false
         expect(result[:error]).to be_present
       end
+    end
+
+    context 'when restore succeeds' do
+      before do
+        File.write(backup_path, "-- dummy backup content\n")
+        allow(described_class).to receive(:execute_psql_restore).and_return(success: true)
+        allow(described_class).to receive(:update_caches_after_restore)
+      end
+
+      it 'returns success and updates caches' do
+        result = described_class.restore_backup(backup_path)
+
+        expect(result[:success]).to be true
+        expect(described_class).to have_received(:update_caches_after_restore)
+      end
+    end
+
+    context 'when restore fails due to psql error' do
+      before do
+        File.write(backup_path, "-- dummy backup content\n")
+        allow(described_class).to receive(:execute_psql_restore).and_return(success: false, error: 'psql: error')
+      end
+
+      it 'returns false and forwards the error message' do
+        result = described_class.restore_backup(backup_path)
+
+        expect(result[:success]).to be false
+        expect(result[:error]).to eq('psql: error')
+      end
+    end
+
+    it 'restores with ON_ERROR_STOP and single-transaction options' do
+      db_config = {
+        'database' => 'ledger_test',
+        'host' => 'localhost',
+        'username' => 'postgres',
+        'password' => 'secret'
+      }
+      restore_path = Rails.root.join('tmp', 'backups', 'restore_command_test.sql').to_s
+      File.write(restore_path, "-- dummy backup content\n")
+      status = instance_double(Process::Status, success?: true)
+
+      expect(Open3).to receive(:capture3).with(
+        { 'PGPASSWORD' => 'secret' },
+        'psql',
+        '-h', 'localhost',
+        '-U', 'postgres',
+        '-d', 'ledger_test',
+        '-1',
+        '-v', 'ON_ERROR_STOP=1',
+        '-f', restore_path
+      ).and_return(['', '', status])
+
+      described_class.send(:execute_psql_restore, db_config, restore_path)
+
+      FileUtils.rm_f(restore_path)
     end
   end
 end

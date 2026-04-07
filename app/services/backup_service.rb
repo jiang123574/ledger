@@ -57,12 +57,17 @@ class BackupService
       return { success: false, error: "备份文件不存在" }
     end
 
+    Rails.logger.info("Starting restore from backup file: #{backup_file}")
+
     db_config = get_primary_db_config
     result = execute_psql_restore(db_config, backup_file.to_s)
 
     if result[:success]
+      # 恢复成功后更新缓存字段
+      update_caches_after_restore
       { success: true }
     else
+      Rails.logger.error("Backup restore failed: #{result[:error]}")
       { success: false, error: result[:error] || "恢复失败" }
     end
   end
@@ -195,7 +200,16 @@ class BackupService
     db_password = db_config["password"]
 
     env_vars = { "PGPASSWORD" => db_password }
-    cmd = [ "pg_dump", "-h", db_host, "-U", db_user, "-d", db_name, "-f", backup_file ]
+    cmd = [
+      "pg_dump",
+      "-h", db_host,
+      "-U", db_user,
+      "-d", db_name,
+      "--clean",
+      "--no-owner",
+      "--no-acl",
+      "-f", backup_file
+    ]
 
     stdout, stderr, status = Open3.capture3(env_vars, *cmd)
 
@@ -213,7 +227,15 @@ class BackupService
     db_password = db_config["password"]
 
     env_vars = { "PGPASSWORD" => db_password }
-    cmd = [ "psql", "-h", db_host, "-U", db_user, "-d", db_name, "-f", backup_file ]
+    cmd = [
+      "psql",
+      "-h", db_host,
+      "-U", db_user,
+      "-d", db_name,
+      "-1",
+      "-v", "ON_ERROR_STOP=1",
+      "-f", backup_file
+    ]
 
     stdout, stderr, status = Open3.capture3(env_vars, *cmd)
 
@@ -245,5 +267,21 @@ class BackupService
     else
       Rails.logger.error("WebDAV upload failed: #{result[:error]}")
     end
+  end
+
+  def self.update_caches_after_restore
+    Rails.logger.info("Updating caches after database restore...")
+
+    # 批量更新 Account 缓存
+    Account.find_each do |account|
+      account.update_entries_cache!
+    rescue StandardError => e
+      Rails.logger.error("Failed to update cache for account #{account.id}: #{e.message}")
+    end
+
+    # 清除 Rails 缓存
+    Rails.cache.clear
+
+    Rails.logger.info("Cache update completed")
   end
 end
