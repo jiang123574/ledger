@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require "fileutils"
+require "open3"
 
 # Backup management facade. Delegates to BackupConfig, WebDAVClient.
 class BackupService
@@ -189,16 +190,15 @@ class BackupService
     db_password = db_config["password"]
 
     env_vars = { "PGPASSWORD" => db_password }
-    cmd = "pg_dump -h #{db_host} -U #{db_user} -d #{db_name} -f #{backup_file}"
+    cmd = [ "pg_dump", "-h", db_host, "-U", db_user, "-d", db_name, "-f", backup_file ]
 
-    output = ""
-    if db_password.present?
-      success = system(env_vars, cmd, out: output, err: output)
+    stdout, stderr, status = Open3.capture3(env_vars, *cmd)
+
+    if status.success?
+      { success: true, error: nil }
     else
-      success = system(cmd, out: output, err: output)
+      { success: false, error: stderr.presence || stdout.presence || "pg_dump 命令执行失败" }
     end
-
-    { success: success, error: success ? nil : output.presence || "pg_dump 命令执行失败" }
   end
 
   def self.execute_psql_restore(db_config, backup_file)
@@ -208,16 +208,15 @@ class BackupService
     db_password = db_config["password"]
 
     env_vars = { "PGPASSWORD" => db_password }
-    cmd = "psql -h #{db_host} -U #{db_user} -d #{db_name} -f #{backup_file}"
+    cmd = [ "psql", "-h", db_host, "-U", db_user, "-d", db_name, "-f", backup_file ]
 
-    output = ""
-    if db_password.present?
-      success = system(env_vars, cmd, out: output, err: output)
+    stdout, stderr, status = Open3.capture3(env_vars, *cmd)
+
+    if status.success?
+      { success: true, error: nil }
     else
-      success = system(cmd, out: output, err: output)
+      { success: false, error: stderr.presence || stdout.presence || "psql 命令执行失败" }
     end
-
-    { success: success, error: success ? nil : output.presence || "psql 命令执行失败" }
   end
 
   def self.cleanup_old_backups(keep: 10)
