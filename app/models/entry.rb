@@ -74,7 +74,7 @@ class Entry < ApplicationRecord
   }
 
   scope :transactions_only, -> {
-    where(entryable_type: ['Entryable::Transaction', 'Entryable::Transfer'])
+    where(entryable_type: ['Entryable::Transaction'])
   }
 
   scope :non_transfers, -> {
@@ -92,7 +92,7 @@ class Entry < ApplicationRecord
   }
   
   def transaction?
-    ['Entryable::Transaction', 'Entryable::Transfer'].include?(entryable_type)
+    entryable_type == 'Entryable::Transaction'
   end
   
   def valuation?

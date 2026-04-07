@@ -140,8 +140,20 @@ export default class extends Controller {
   }
 
   setupDragAndDrop() {
+    // 先移除所有现有的拖拽监听器
     const items = this.containerTarget.querySelectorAll('[data-entry-id]')
+    items.forEach((item) => this.removeDragHandlers(item))
+    
+    // 重新添加拖拽监听器
     items.forEach((item) => this.addDragHandlers(item))
+  }
+
+  removeDragHandlers(item) {
+    item.draggable = false
+    item.removeEventListener('dragstart', this.handleDragStart.bind(this))
+    item.removeEventListener('dragover', this.handleDragOver.bind(this))
+    item.removeEventListener('drop', this.handleDrop.bind(this))
+    item.removeEventListener('dragend', this.handleDragEnd.bind(this))
   }
 
   addDragHandlers(item) {

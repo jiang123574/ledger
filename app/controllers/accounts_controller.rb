@@ -220,8 +220,8 @@ class AccountsController < ApplicationController
         account_id: e.account_id,
         name: e.name,
         date: e.date&.strftime("%Y-%m-%d"),
-        amount: e.amount.to_f,
-        display_amount: e.display_amount.to_f,
+        amount: e.amount,
+        display_amount: e.display_amount,
         type: entry_type,
         display_type: display_type,
         display_amount_type: display_amount_type,
@@ -471,36 +471,38 @@ class AccountsController < ApplicationController
       return
     end
 
-    ActiveRecord::Base.transaction do
+    balances = ActiveRecord::Base.transaction do
       entry_ids.each_with_index do |entry_id, index|
         Entry.where(id: entry_id, account_id: @account.id, date: date)
              .update_all(sort_order: entry_ids.length - index)
       end
-    end
 
-    # 重新计算从指定日期开始的所有余额
-    running_balance = Entry.where(account_id: @account.id)
-                            .where("date < ?", date)
-                            .sum(:amount) + @account.initial_balance
+      # 重新计算从指定日期开始的所有余额
+      running_balance = Entry.where(account_id: @account.id)
+                              .where("date < ?", date)
+                              .sum(:amount) + @account.initial_balance
 
-    # 获取从指定日期开始的所有条目，按日期和sort_order排序
-    all_entries_from_date = Entry.where(account_id: @account.id)
-                                  .where("date >= ?", date)
-                                  .order(date: :asc, sort_order: :desc)
-                                  .pluck(:id, :amount, :date)
+      # 获取从指定日期开始的所有条目，按日期和sort_order排序
+      all_entries_from_date = Entry.where(account_id: @account.id)
+                                    .where("date >= ?", date)
+                                    .order(date: :asc, sort_order: :desc)
+                                    .pluck(:id, :amount, :date)
 
-    balances = []
-    current_date = nil
+      balances = []
+      current_date = nil
 
-    all_entries_from_date.each do |entry_id, amount, entry_date|
-      if current_date != entry_date
-        current_date = entry_date
-        # 如果是新的一天，重置running_balance为前一天的结束余额
-        # 但由于我们是顺序处理的，这个逻辑已经包含在累加中
+      all_entries_from_date.each do |entry_id, amount, entry_date|
+        if current_date != entry_date
+          current_date = entry_date
+          # 如果是新的一天，重置running_balance为前一天的结束余额
+          # 但由于我们是顺序处理的，这个逻辑已经包含在累加中
+        end
+        
+        running_balance += amount
+        balances << { entry_id: entry_id, balance_after: running_balance }
       end
       
-      running_balance += amount
-      balances << { entry_id: entry_id, balance_after: running_balance }
+      balances
     end
 
     render json: { success: true, balances: balances }
@@ -566,7 +568,7 @@ class AccountsController < ApplicationController
   end
 
   def build_entries_query(period_type, period_value)
-    entries = Entry.where(entryable_type: [ "Entryable::Transaction", "Entryable::Transfer" ])
+    entries = Entry.where(entryable_type: [ "Entryable::Transaction" ])
 
     if params[:account_id].present?
       entries = entries.where(account_id: params[:account_id])

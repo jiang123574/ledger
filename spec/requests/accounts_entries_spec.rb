@@ -206,7 +206,7 @@ RSpec.describe "Accounts entries API", type: :request do
           amount: 100,
           name: '转账'
         )
-        transfer.update_column(:entryable_type, 'Entryable::Transfer')
+        transfer.update_column(:entryable_type, 'Entryable::Transaction')
       end
 
       it "handles transfer entries correctly" do
