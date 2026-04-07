@@ -215,8 +215,8 @@ export default class extends Controller {
     })
   }
 
-  getOrderedEntryIds() {
-    return Array.from(this.containerTarget.querySelectorAll('[data-entry-id]')).map((item) => item.dataset.entryId)
+  getOrderedEntryIds(date) {
+    return Array.from(this.containerTarget.querySelectorAll(`[data-entry-id][data-date="${date}"]`)).map((item) => item.dataset.entryId)
   }
 
   submitSortOrder(date) {
@@ -229,7 +229,7 @@ export default class extends Controller {
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
       },
       body: JSON.stringify({
-        entry_ids: this.getOrderedEntryIds(),
+        entry_ids: this.getOrderedEntryIds(date),
         date: date
       })
     })

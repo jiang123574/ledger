@@ -36,14 +36,12 @@ class AccountsController < ApplicationController
     end
 
     @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: CacheConfig::LONG) do
-      Category.active.by_sort_order.includes(:parent).to_a
+      Category.active.by_sort_order.to_a
     end
-    ActiveRecord::Associations::Preloader.new(records: @categories, associations: [ :parent ]).call
 
     @expense_categories = Rails.cache.fetch("expense_categories_active/#{av}", expires_in: CacheConfig::LONG) do
-      Category.expense.active.by_sort_order.includes(:parent).to_a
+      Category.expense.active.by_sort_order.to_a
     end
-    ActiveRecord::Associations::Preloader.new(records: @expense_categories, associations: [ :parent ]).call
 
     @counterparties = Rails.cache.fetch("counterparties_list/#{av}", expires_in: CacheConfig::LONG) do
       Counterparty.order(:name).to_a
@@ -465,10 +463,11 @@ class AccountsController < ApplicationController
       return
     end
 
-    entry_ids = params[:entry_ids].map(&:to_i)
-    entries = Entry.where(account_id: @account.id, date: date, id: entry_ids)
-    if entries.size != entry_ids.size
-      render json: { success: false, error: "条目列表不匹配" }, status: :unprocessable_entity
+    entry_ids = params[:entry_ids].map(&:to_i).uniq
+    existing_entry_ids = Entry.where(account_id: @account.id, date: date, id: entry_ids).pluck(:id)
+    
+    if existing_entry_ids.size != entry_ids.size
+      render json: { success: false, error: "条目列表不匹配：期望 #{entry_ids.size} 个条目，实际找到 #{existing_entry_ids.size} 个" }, status: :unprocessable_entity
       return
     end
 
@@ -479,16 +478,29 @@ class AccountsController < ApplicationController
       end
     end
 
-    previous_balance = Entry.where(account_id: @account.id)
-                             .where("date < ?", date)
-                             .sum(:amount) + @account.initial_balance
+    # 重新计算从指定日期开始的所有余额
+    running_balance = Entry.where(account_id: @account.id)
+                            .where("date < ?", date)
+                            .sum(:amount) + @account.initial_balance
 
-    balances = Entry.where(account_id: @account.id, date: date)
-                    .order(sort_order: :desc)
-                    .pluck(:id, :amount)
-                    .map do |id, amount|
-      previous_balance += amount
-      { entry_id: id, balance_after: previous_balance }
+    # 获取从指定日期开始的所有条目，按日期和sort_order排序
+    all_entries_from_date = Entry.where(account_id: @account.id)
+                                  .where("date >= ?", date)
+                                  .order(date: :asc, sort_order: :desc)
+                                  .pluck(:id, :amount, :date)
+
+    balances = []
+    current_date = nil
+
+    all_entries_from_date.each do |entry_id, amount, entry_date|
+      if current_date != entry_date
+        current_date = entry_date
+        # 如果是新的一天，重置running_balance为前一天的结束余额
+        # 但由于我们是顺序处理的，这个逻辑已经包含在累加中
+      end
+      
+      running_balance += amount
+      balances << { entry_id: entry_id, balance_after: running_balance }
     end
 
     render json: { success: true, balances: balances }
