@@ -57,12 +57,12 @@ class BackupService
     end
 
     db_config = Rails.configuration.database_configuration[Rails.env]
-    success = execute_psql_restore(db_config, backup_file)
+    result = execute_psql_restore(db_config, backup_file)
 
-    if success
+    if result[:success]
       { success: true }
     else
-      { success: false, error: "恢复失败" }
+      { success: false, error: result[:error] || "恢复失败" }
     end
   end
 
@@ -168,9 +168,9 @@ class BackupService
 
   def self.create_database_backup(backup_file)
     db_config = Rails.configuration.database_configuration[Rails.env]
-    success = execute_pg_dump(db_config, backup_file)
+    result = execute_pg_dump(db_config, backup_file)
 
-    if success && File.exist?(backup_file)
+    if result[:success] && File.exist?(backup_file)
       {
         success: true,
         file_path: backup_file.to_s,
@@ -178,7 +178,7 @@ class BackupService
         size: File.size(backup_file)
       }
     else
-      { success: false, error: "备份创建失败" }
+      { success: false, error: result[:error] || "备份创建失败" }
     end
   end
 
@@ -191,11 +191,14 @@ class BackupService
     env_vars = { "PGPASSWORD" => db_password }
     cmd = "pg_dump -h #{db_host} -U #{db_user} -d #{db_name} -f #{backup_file}"
 
+    output = ""
     if db_password.present?
-      system(env_vars, cmd, out: File::NULL, err: File::NULL)
+      success = system(env_vars, cmd, out: output, err: output)
     else
-      system(cmd, out: File::NULL, err: File::NULL)
+      success = system(cmd, out: output, err: output)
     end
+
+    { success: success, error: success ? nil : output.presence || "pg_dump 命令执行失败" }
   end
 
   def self.execute_psql_restore(db_config, backup_file)
@@ -207,11 +210,14 @@ class BackupService
     env_vars = { "PGPASSWORD" => db_password }
     cmd = "psql -h #{db_host} -U #{db_user} -d #{db_name} -f #{backup_file}"
 
+    output = ""
     if db_password.present?
-      system(env_vars, cmd, out: File::NULL, err: File::NULL)
+      success = system(env_vars, cmd, out: output, err: output)
     else
-      system(cmd, out: File::NULL, err: File::NULL)
+      success = system(cmd, out: output, err: output)
     end
+
+    { success: success, error: success ? nil : output.presence || "psql 命令执行失败" }
   end
 
   def self.cleanup_old_backups(keep: 10)
