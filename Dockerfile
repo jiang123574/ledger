@@ -61,7 +61,7 @@ RUN npm install --omit=dev && \
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
 # Compile Tailwind CSS before precompiling assets
-RUN ./bin/build-css
+RUN chmod +x ./bin/build-css && ./bin/build-css
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
