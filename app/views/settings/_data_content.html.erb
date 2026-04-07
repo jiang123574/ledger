@@ -94,13 +94,13 @@
                 action: "submit->loading-button#showLoading",
                 loading_button_loading_text_value: "恢复中..."
               } do |f| %>
-          <div class="flex items-center gap-3">
-            <%= f.file_field :backup_file, accept: ".sql", class: "text-sm text-primary dark:text-primary-dark border border-orange-300 dark:border-orange-700 rounded-lg p-2 bg-white dark:bg-container-dark", required: true %>
-            <%= f.submit "恢复", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-smooth btn-modern", 
-                data: { 
-                  turbo_confirm: "确定要从上传的备份文件恢复吗？\n\n⚠️ 警告：当前数据将被完全覆盖！",
-                  loading_button_target: "button"
-                } %>
+          <div class="space-y-3">
+            <%= f.file_field :backup_file, accept: ".sql", class: "text-sm text-primary dark:text-primary-dark border border-orange-300 dark:border-orange-700 rounded-lg p-2 bg-white dark:bg-container-dark w-full", required: true %>
+            <div class="flex items-center gap-3">
+              <%= f.password_field :confirm_password, placeholder: "输入确认密码", class: "flex-1 text-sm text-primary dark:text-primary-dark border border-orange-300 dark:border-orange-700 rounded-lg p-2 bg-white dark:bg-container-dark", required: true %>
+              <%= f.submit "恢复", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-orange-600 text-white hover:bg-orange-700 transition-smooth btn-modern", 
+                  data: { loading_button_target: "button" } %>
+            </div>
           </div>
         <% end %>
       </div>
