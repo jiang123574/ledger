@@ -74,6 +74,7 @@ class ReceivablesController < ApplicationController
   def settle
     @settle_amount = params[:amount].to_d
     @account_id = params[:account_id]
+    @settlement_date = params[:settlement_date].present? ? Date.parse(params[:settlement_date]) : Date.current
 
     if @settle_amount <= 0 || @account_id.blank?
       redirect_to @receivable, alert: "请输入有效金额和账户"
@@ -85,7 +86,7 @@ class ReceivablesController < ApplicationController
       create_entry(
         account_id: @account_id,
         amount: @settle_amount,
-        date: Date.current,
+        date: @settlement_date,
         name: "[报销] #{@receivable.description}",
         kind: "income"
       )
@@ -94,7 +95,7 @@ class ReceivablesController < ApplicationController
       new_remaining = @receivable.remaining_amount - @settle_amount
       @receivable.update!(
         remaining_amount: new_remaining,
-        settled_at: new_remaining <= 0 ? Date.current : nil
+        settled_at: new_remaining <= 0 ? @settlement_date : nil
       )
     end
 

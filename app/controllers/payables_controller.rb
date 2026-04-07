@@ -73,6 +73,7 @@ class PayablesController < ApplicationController
   def settle
     @settle_amount = params[:amount].to_d
     @account_id = params[:account_id]
+    @settlement_date = params[:settlement_date].present? ? Date.parse(params[:settlement_date]) : Date.current
 
     if @settle_amount <= 0 || @account_id.blank?
       redirect_to payables_path, alert: "请输入有效金额和账户"
@@ -86,7 +87,7 @@ class PayablesController < ApplicationController
       create_entry(
         account_id: @account_id,
         amount: -@settle_amount,
-        date: Date.current,
+        date: @settlement_date,
         name: "[付款] #{@payable.description}",
         kind: "expense",
         category_id: category_id
@@ -95,7 +96,7 @@ class PayablesController < ApplicationController
       new_remaining = @payable.remaining_amount - @settle_amount
       @payable.update!(
         remaining_amount: new_remaining,
-        settled_at: new_remaining <= 0 ? Date.current : nil
+        settled_at: new_remaining <= 0 ? @settlement_date : nil
       )
     end
 

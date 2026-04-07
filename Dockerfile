@@ -35,6 +35,11 @@ RUN apt-get update -qq && \
     apt-get install --no-install-recommends -y build-essential git libyaml-dev pkg-config && \
     rm -rf /var/lib/apt/lists /var/cache/apt/archives
 
+# Install Node.js for asset compilation
+RUN apt-get update -qq && \
+    apt-get install --no-install-recommends -y nodejs npm && \
+    rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
 # Install application gems
 COPY vendor/* ./vendor/
 COPY Gemfile Gemfile.lock ./
@@ -53,11 +58,18 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
+# Precompile bootsnap code for faster boot times.
+# -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
+RUN bundle exec bootsnap precompile -j 1 app/ lib/
+
+# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
+RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
+
 # Remove unnecessary files from the build context to reduce image size
 RUN rm -rf .git .github .vscode .idea && \
     rm -rf test spec coverage doc docs && \
     rm -rf *.md LICENSE && \
-    rm -rf .dockerignore Dockerfile docker-compose.yml && \
+    rm -rf .dockerignore docker-compose.yml && \
     rm -rf bin/dev bin/setup && \
     rm -rf script/ && \
     find lib/tasks -name "*.rake" ! -name "import_pixiu.rake" -delete && \
@@ -65,13 +77,6 @@ RUN rm -rf .git .github .vscode .idea && \
     find . -name "*.swo" -delete && \
     find . -name "*~" -delete && \
     find . -name ".DS_Store" -delete
-
-# Precompile bootsnap code for faster boot times.
-# -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
-RUN bundle exec bootsnap precompile -j 1 app/ lib/
-
-# Precompiling assets for production without requiring secret RAILS_MASTER_KEY
-RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
 
 
