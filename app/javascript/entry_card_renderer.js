@@ -1,6 +1,5 @@
 import { formatMoney, formatCurrencyRaw } from "bill_formatters"
 
-<<<<<<< HEAD
 const ENTRY_CARD_TEMPLATE_DESKTOP = `
 <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="" data-date="" draggable="false">
   <div class="text-xs text-secondary dark:text-secondary-dark truncate" data-field="date"></div>
@@ -44,59 +43,6 @@ const ENTRY_CARD_TEMPLATE_MOBILE = `
     <button type="button" data-role="delete-mobile" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
     </button>
-=======
-const ENTRY_CARD_TEMPLATE = `
-<div class="hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="" data-date="" draggable="false">
-  <!-- 统一响应式布局（弹性容器用于移动端，网格用于桌面端） -->
-  <div class="flex lg:grid lg:grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-3 lg:gap-2 items-center py-1.5 px-3 lg:py-1.5 lg:px-3">
-    <!-- 日期 -->
-    <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-16 lg:w-auto" data-field="date"></div>
-    
-    <!-- 分类/备注区域 -->
-    <div class="flex-1 lg:block min-w-0">
-      <!-- 移动端：类型 + 名称（单行） -->
-      <div class="lg:hidden flex items-center gap-2">
-        <span data-field="type" class="shrink-0"></span>
-        <p class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></p>
-      </div>
-      
-      <!-- 桌面端：类型 + 分类（单行） -->
-      <div class="hidden lg:flex lg:items-center lg:gap-2">
-        <span data-field="type"></span>
-        <span class="text-sm font-medium text-primary dark:text-primary-dark" data-field="name-desktop"></span>
-      </div>
-    </div>
-    
-    <!-- 流入 - 桌面端显示 -->
-    <div class="hidden lg:block text-right text-sm font-medium pr-2" data-field="inflow"></div>
-    
-    <!-- 流出 - 桌面端显示 -->
-    <div class="hidden lg:block text-right text-sm font-medium pr-2" data-field="outflow"></div>
-    
-    <!-- 右侧区域（移动端） / 余额列（桌面端） -->
-    <div class="text-right shrink-0 lg:block">
-      <!-- 移动端：显示金额 -->
-      <p class="lg:hidden text-sm font-medium" data-field="amount"></p>
-      <!-- 桌面端 & 移动端：余额 -->
-      <p class="text-xs text-secondary dark:text-secondary-dark">
-        <span class="lg:hidden">余额:</span>
-        <span data-field="balance"></span>
-      </p>
-    </div>
-    
-    <!-- 账户 - 桌面端显示 -->
-    <div class="hidden lg:block text-xs text-secondary dark:text-secondary-dark truncate" data-field="account"></div>
-    
-    <!-- 操作按钮 -->
-    <div class="flex items-center gap-1 shrink-0 lg:justify-center">
-      <button type="button" data-role="edit" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-      </button>
-      <button type="button" data-role="delete-mobile" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-      </button>
-    </div>
->>>>>>> origin/main
   </div>
 </div>
 `
@@ -139,36 +85,15 @@ function createEntryCard(entry, options = {}) {
   typeEl.textContent = entry.display_type || ""
   typeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   
-<<<<<<< HEAD
-  const nameEl = desktopRow.querySelector('[data-field="name"]')
+const nameEl = desktopRow.querySelector('[data-field="name"]')
   if (isTransfer && entry.transfer_from && entry.transfer_to) {
     nameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
-=======
-  // 分类名（移动端）
-  const nameEl = row.querySelector('[data-field="name"]')
-  if (isTransfer) {
-    nameEl.style.display = 'none'
->>>>>>> origin/main
   } else {
     nameEl.textContent = entry.display_name || "-"
   }
 
-<<<<<<< HEAD
   const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
   const outflowEl = desktopRow.querySelector('[data-field="outflow"]')
-=======
-  // 分类名（桌面端）
-  const nameDesktopEl = row.querySelector('[data-field="name-desktop"]')
-  if (isTransfer) {
-    nameDesktopEl.style.display = 'none'
-  } else {
-    nameDesktopEl.textContent = entry.display_name || "-"
-  }
-
-  // 流入/流出
-  const inflowEl = row.querySelector('[data-field="inflow"]')
-  const outflowEl = row.querySelector('[data-field="outflow"]')
->>>>>>> origin/main
   
   if (isTransfer && entry.show_both_amounts) {
     inflowEl.innerHTML = `<span class="text-income">+${amountText}</span>`
