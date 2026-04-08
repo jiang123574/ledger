@@ -238,7 +238,10 @@ class AccountsController < ApplicationController
         display_name: display_name,
         note: e.display_note || e.account&.name || "未知账户",
         balance_after: balance_map[e.id],
-        show_both_amounts: is_transfer && current_account_filter.blank?
+        show_both_amounts: is_transfer && current_account_filter.blank?,
+        transfer_from: is_transfer ? e.source_account_for_transfer&.name : nil,
+        transfer_to: is_transfer ? e.target_account_for_display&.name : nil,
+        account_name: e.account&.name || "未知账户"
       }
     end
 
