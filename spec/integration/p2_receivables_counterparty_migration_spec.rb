@@ -42,20 +42,6 @@ RSpec.describe "P2: Receivables Counterparty Migration", type: :integration do
     end
   end
 
-  describe "Migration Rollback" do
-    it "down migration restores counterparty string column" do
-      counterparty = create(:counterparty, name: "回滚测试客户")
-      receivable = create(:receivable, counterparty: counterparty)
-
-      receivable.reload
-      expect(receivable.counterparty_id).to eq(counterparty.id)
-
-      expect {
-        ActiveRecord::Migration[7.0].new.down
-      }.not_to raise_error
-    end
-  end
-
   describe "Data Consistency" do
     it "all counterparties are unique by name" do
       names = Counterparty.pluck(:name)

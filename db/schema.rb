@@ -10,9 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_082312) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_08_084307) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
+  enable_extension "pg_trgm"
 
   create_table "accounts", force: :cascade do |t|
     t.integer "billing_day"
@@ -211,6 +212,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_082312) do
     t.index ["import_id"], name: "idx_entries_import"
     t.index ["import_locked"], name: "idx_entries_import_locked", where: "(import_locked = true)"
     t.index ["locked_attributes"], name: "idx_entries_locked_gin", using: :gin
+    t.index ["name"], name: "idx_entries_name_trgm", opclass: :gin_trgm_ops, using: :gin
+    t.index ["notes"], name: "idx_entries_notes_trgm", opclass: :gin_trgm_ops, using: :gin
     t.index ["parent_entry_id"], name: "idx_entries_parent"
     t.index ["sort_order"], name: "index_entries_on_sort_order"
     t.index ["transfer_id"], name: "idx_entries_transfer"
