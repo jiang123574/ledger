@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_08_000000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_08_082312) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -199,6 +199,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_08_000000) do
     t.boolean "user_modified", default: false, null: false
     t.index "lower((name)::text)", name: "idx_entries_name_lower"
     t.index ["account_id", "date", "entryable_type"], name: "idx_entries_account_date_type"
+    t.index ["account_id", "date", "name"], name: "idx_entries_account_date_name"
+    t.index ["account_id", "date", "notes"], name: "idx_entries_account_date_notes"
     t.index ["account_id", "date"], name: "idx_entries_account_date"
     t.index ["account_id", "source", "external_id"], name: "idx_entries_external_unique", unique: true, where: "((external_id IS NOT NULL) AND (source IS NOT NULL))"
     t.index ["date", "entryable_type"], name: "idx_entries_date_type"

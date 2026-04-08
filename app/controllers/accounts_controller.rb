@@ -52,21 +52,22 @@ class AccountsController < ApplicationController
 
     @entries = build_entries_query(period_type, period_value)
 
-    filter_cache_key = build_filter_cache_key
+    count_cache_key = build_count_cache_key
+    entries_cache_key = build_entries_cache_key
 
-    @total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
+    @total_count = Rails.cache.fetch("entries_count/#{count_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
       @entries.count
     end
 
     @page = [ [ params[:page].to_i, 1 ].max, 1000 ].min
     @per_page = [ [ params[:per_page].to_i, 15 ].max, 200 ].min
 
-    entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
+    entries_list_cache_key = "entries_list/#{entries_cache_key}/#{@page}/#{@per_page}/#{ev}"
     # 缓存 ID+balance 而非完整 ActiveRecord 对象：
     # - 余额计算（运行余额逐行求和）是 O(n) 开销，值得缓存
     # - Marshal 序列化会丢失 includes 预加载信息，缓存对象后仍需重新查询
     # - 因此只缓存轻量的 ID 列表 + 余额映射，每次请求重新查询对象 + 预加载关联
-    cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
+    cached_data = Rails.cache.fetch(entries_list_cache_key, expires_in: CacheConfig::MEDIUM) do
       result = AccountStatsService.entries_with_balance(
         @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
       )
@@ -145,16 +146,18 @@ class AccountsController < ApplicationController
 
     entries_query = build_entries_query(period_type, period_value)
 
-    filter_cache_key = build_filter_cache_key
-    total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
+    count_cache_key = build_count_cache_key
+    entries_cache_key = build_entries_cache_key
+
+    total_count = Rails.cache.fetch("entries_count/#{count_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
       entries_query.count
     end
 
     page = [ [ params[:page].to_i, 1 ].max, 1000 ].min
     per_page = [ [ params[:per_page].to_i, 15 ].max, 200 ].min
 
-    entries_cache_key = "entries_list/#{filter_cache_key}/#{page}/#{per_page}/#{ev}"
-    cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
+    entries_list_cache_key = "entries_list/#{entries_cache_key}/#{page}/#{per_page}/#{ev}"
+    cached_data = Rails.cache.fetch(entries_list_cache_key, expires_in: CacheConfig::MEDIUM) do
       result = AccountStatsService.entries_with_balance(
         entries_query, page: page, per_page: per_page, account_id: params[:account_id].presence
       )
@@ -520,7 +523,7 @@ entry_ids = params[:entry_ids].map(&:to_i)
     render json: { success: true, balances: balances }
   end
 
-  private
+private
 
   def system_accounts_sync_needed?
     required_names = [
@@ -528,6 +531,16 @@ entry_ids = params[:entry_ids].map(&:to_i)
       SystemAccountSyncService::PAYABLE_ACCOUNT_NAME
     ]
     Account.where(name: required_names).distinct.count(:name) < required_names.size
+  end
+
+  def build_count_cache_key
+    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}"
+  end
+
+  def build_entries_cache_key
+    sort_direction = params[:sort_direction]&.downcase || "desc"
+    sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
+    "#{build_count_cache_key}_#{sort_direction}"
   end
 
   def locked_system_account?(account)
@@ -573,12 +586,6 @@ entry_ids = params[:entry_ids].map(&:to_i)
       :billing_day_mode, :due_day_mode, :due_day_offset,
       :include_in_total, :hidden, :sort_order
     )
-  end
-
-  def build_filter_cache_key
-    sort_direction = params[:sort_direction]&.downcase || "desc"
-    sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
-    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}_#{sort_direction}"
   end
 
   def build_entries_query(period_type, period_value)

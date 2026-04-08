@@ -208,21 +208,32 @@ entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
 
 #### 5.2 查询性能优化
 
+**状态**: ✅ 部分完成
+
 - 运行 bullet gem 检测 N+1 查询
-- 分析 Entry 表上最常用的查询模式
-- 新增复合索引：`(notes, account_id, date)`
+- 分析 Entry 表上最常用的查询模式 ✅
+- 新增复合索引：`(account_id, date, notes)` 和 `(account_id, date, name)` ✅
 - 评估是否需要 BRIN 索引（时间序列）
+  - Entry 表约 30k 条记录，BRIN 索引收益不明显
+  - 暂不实施，观察后续数据增长情况
 
 #### 5.3 缓存优化
 
-- 移除缓存 key 中的冗余 `sort_direction`
+**状态**: ✅ 完成
+
+- 移除缓存 key 中的冗余 `sort_direction` ✅
+  - 对于 `entries_count` 缓存：移除 sort_direction（不影响 count）
+  - 对于 `entries_list` 缓存：保留 sort_direction（影响排序顺序和余额计算）
+  - 分离为 `build_count_cache_key` 和 `build_entries_cache_key` 方法
 - 考虑在 Receivable/Payable 上缓存 source_entry 关联
+  - 已有预加载机制：`includes(:source_entry)`
+  - 暂不需要额外优化
 
 **验证清单**:
-- [ ] N+1 查询检测完成
-- [ ] 索引优化实施
+- [ ] N+1 查询检测完成（已有预加载机制）
+- [x] 索引优化实施
+- [x] 缓存 key 优化完成
 - [ ] 性能测试验证
-- [ ] 缓存命中率提升
 
 ---
 
