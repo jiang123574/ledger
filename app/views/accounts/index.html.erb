@@ -357,7 +357,6 @@
                 <%= e.date&.strftime("%Y-%m-%d") %>
               </div>
               
-<<<<<<< HEAD
               <!-- 类型 / 分类 -->
               <div class="truncate flex items-center gap-2">
                 <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
@@ -375,58 +374,16 @@
                   <% if is_transfer %>
                     <% if current_account_filter.present? %>
                       <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
-=======
-              <!-- 类型 / 分类 / 备注区域 -->
-              <div class="flex-1 lg:block min-w-0">
-                <!-- 移动端：类型 + 名称（单行） -->
-                <div class="lg:hidden flex items-center gap-2">
-                  <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
-                    case display_type
-                    when '收入' then 'bg-income-light text-income'
-                    when '支出' then 'bg-expense-light text-expense'
-                    when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                    when '转入' then 'bg-income-light text-income'
-                    when '转出' then 'bg-expense-light text-expense'
-                    else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                    end %>">
-                    <%= display_type %>
-                  </span>
-                  <p class="text-sm font-medium text-primary dark:text-primary-dark truncate">
-                    <% if is_transfer %>
-                      <% if current_account_filter.present? %>
-                        <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
-                      <% else %>
-                        <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
-                      <% end %>
->>>>>>> origin/main
                     <% else %>
                       <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
                     <% end %>
-<<<<<<< HEAD
                   <% else %>
                     <%= e.display_category&.name || '-' %>
-=======
-                  </p>
-                </div>
-                
-                <!-- 桌面端：类型 + 分类（单行） -->
-                <div class="hidden lg:flex lg:items-center lg:gap-2">
-                  <span class="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
-                    case display_type
-                    when '收入' then 'bg-income-light text-income'
-                    when '支出' then 'bg-expense-light text-expense'
-                    when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                    when '转入' then 'bg-income-light text-income'
-                    when '转出' then 'bg-expense-light text-expense'
-                    else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                    end %>">
-                    <%= display_type %>
-                  </span>
-                  <% unless is_transfer %>
-                    <span class="text-sm font-medium text-primary dark:text-primary-dark">
-                      <%= e.display_category&.name || '-' %>
-                    </span>
->>>>>>> origin/main
+                    <% else %>
+                      <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
+                    <% end %>
+                  <% else %>
+                    <%= e.display_category&.name || '-' %>
                   <% end %>
                 </span>
               </div>
