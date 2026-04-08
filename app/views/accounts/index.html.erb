@@ -379,11 +379,6 @@
                     <% end %>
                   <% else %>
                     <%= e.display_category&.name || '-' %>
-                    <% else %>
-                      <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
-                    <% end %>
-                  <% else %>
-                    <%= e.display_category&.name || '-' %>
                   <% end %>
                 </span>
               </div>
