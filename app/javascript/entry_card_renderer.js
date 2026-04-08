@@ -84,7 +84,7 @@ function createEntryCard(entry, options = {}) {
   typeEl.textContent = entry.display_type || ""
   typeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   
-const nameEl = desktopRow.querySelector('[data-field="name"]')
+  const nameEl = desktopRow.querySelector('[data-field="name"]')
   if (isTransfer && entry.transfer_from && entry.transfer_to) {
     nameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
   const nameEl = desktopRow.querySelector('[data-field="name"]')
