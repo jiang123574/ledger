@@ -310,6 +310,101 @@ RSpec.describe AccountStatsService, type: :service do
 
         expect(result).not_to be_empty
       end
+
+      it 'transfer does not affect total balance in all accounts view' do
+        from_account = create(:account, name: 'FromAccount', initial_balance: 500, include_in_total: true)
+        to_account = create(:account, name: 'ToAccount', initial_balance: 200, include_in_total: true)
+
+        transfer_id = SecureRandom.random_number(2**31)
+
+        transfer_out = create(:entry,
+          account: from_account,
+          entryable: create(:entryable_transaction),
+          amount: -100,
+          date: Date.current,
+          transfer_id: transfer_id
+        )
+
+        transfer_in = create(:entry,
+          account: to_account,
+          entryable: create(:entryable_transaction),
+          amount: 100,
+          date: Date.current,
+          transfer_id: transfer_id
+        )
+
+        entries_scope = Entry.where(entryable_type: 'Entryable::Transaction')
+                              .where('transfer_id IS NULL OR amount < 0')
+                              .reverse_chronological
+
+        result = described_class.entries_with_balance(
+          entries_scope,
+          page: 1,
+          per_page: 10,
+          account_id: nil
+        )
+
+        transfer_entry_result = result.find { |entry, _| entry.id == transfer_out.id }
+        expect(transfer_entry_result).to be_present
+
+        entry, balance = transfer_entry_result
+
+        previous_entries_balance = result.find { |entry, _| entry.date < Date.current }
+        previous_balance = previous_entries_balance ? previous_entries_balance[1] : (500 + 200)
+
+        expect(balance).to eq(previous_balance)
+      end
+
+      it 'transfer affects account balance in single account view' do
+        from_account = create(:account, name: 'FromAccount', initial_balance: 500)
+        to_account = create(:account, name: 'ToAccount', initial_balance: 200)
+
+        transfer_id = SecureRandom.random_number(2**31)
+
+        transfer_out = create(:entry,
+          account: from_account,
+          entryable: create(:entryable_transaction),
+          amount: -100,
+          date: Date.current,
+          transfer_id: transfer_id
+        )
+
+        transfer_in = create(:entry,
+          account: to_account,
+          entryable: create(:entryable_transaction),
+          amount: 100,
+          date: Date.current,
+          transfer_id: transfer_id
+        )
+
+        entries_scope = Entry.where(account: from_account)
+        result = described_class.entries_with_balance(
+          entries_scope,
+          page: 1,
+          per_page: 10,
+          account_id: from_account.id
+        )
+
+        transfer_entry_result = result.find { |entry, _| entry.id == transfer_out.id }
+        expect(transfer_entry_result).to be_present
+
+        entry, balance = transfer_entry_result
+        expect(balance).to eq(500 - 100)
+
+        entries_scope_to = Entry.where(account: to_account)
+        result_to = described_class.entries_with_balance(
+          entries_scope_to,
+          page: 1,
+          per_page: 10,
+          account_id: to_account.id
+        )
+
+        transfer_entry_result_to = result_to.find { |entry, _| entry.id == transfer_in.id }
+        expect(transfer_entry_result_to).to be_present
+
+        entry_to, balance_to = transfer_entry_result_to
+        expect(balance_to).to eq(200 + 100)
+      end
     end
   end
 

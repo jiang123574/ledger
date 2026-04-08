@@ -68,13 +68,17 @@ class AccountStatsService
     prior_total = all_prior_entries&.total_amount || 0
     running_balance = initial_balance.to_d + prior_total.to_d
 
-    # 余额计算：按正序（日期从小到大）计算，与 chronological 排序一致
-    # sorted_asc 按日期正序、sort_order 正序、id 正序排列
     sorted_asc = paginated_entries.sort_by { |e| [ e.date || Date.new(1970), e.sort_order || 0, e.id ] }
     balance_map = {}
 
     sorted_asc.each do |e|
-      running_balance += e.amount.to_d
+      amount_for_balance = if account_id.nil? && e.transfer_id.present?
+        0.to_d
+      else
+        e.amount.to_d
+      end
+
+      running_balance += amount_for_balance
       balance_map[e.id] = running_balance
     end
 

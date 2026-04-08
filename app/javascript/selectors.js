@@ -172,9 +172,19 @@ function initCategorySelector(searchInputId, dropdownId, filterInputId, optionsI
   initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, categories, placeholder || '搜索分类...');
 }
 
-// Export for use in views
+// Export for use in views (both global and ES6 module)
+// Global exports (for inline scripts that haven't been migrated yet)
 window.escapeHtml = escapeHtml;
 window.initAccountSelector = initAccountSelector;
 window.initCategorySelector = initCategorySelector;
 window.initGenericSelector = initGenericSelector;
 window.initSelectorWithData = initSelectorWithData;
+
+// ES6 exports (for module imports)
+export {
+  escapeHtml,
+  initSelectorWithData,
+  initAccountSelector,
+  initCategorySelector,
+  initGenericSelector
+};

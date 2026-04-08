@@ -455,7 +455,9 @@
 <script id="payable-categories-data" type="application/json">
   <%= raw @expense_categories.map { |c| full_name = c.full_name; { name: c.name, full_name: full_name, pinyin: PinYin.abbr(full_name).downcase } }.to_json %>
 </script>
-<script>
+<script type="module">
+import { initSelectorWithData } from 'selectors';
+
 function openNewPayableModal() {
   var form = document.getElementById('new-payable-form');
   if (form) {
@@ -495,13 +497,13 @@ function openSettleModal(id, description, remainingAmount) {
   document.getElementById('settle-payable-modal').classList.remove('hidden');
   // Re-initialize account selector
   setTimeout(function() {
-    window.initSelectorWithData({
+    initSelectorWithData({
       searchInputId: 'settle-account-search-payable',
       dropdownId: 'settle-account-dropdown-payable',
       filterInputId: 'settle-account-filter-payable',
       optionsId: 'settle-account-options-payable',
       hiddenInputId: 'settle-account-id-payable',
-      dataSource: allAccountsForSelectorPayable,
+      dataSource: allAccountsForSelector,
       noMatchText: '无匹配账户'
     });
   }, 0);
@@ -550,7 +552,8 @@ var categorySelectorData = allCategoriesForSelector.map(function(cat) {
   };
 });
 
-window.initSelectorWithData({
+// Initialize selectors
+initSelectorWithData({
   searchInputId: 'new-payable-account-search',
   dropdownId: 'new-payable-account-dropdown',
   filterInputId: 'new-payable-account-filter',
@@ -559,7 +562,7 @@ window.initSelectorWithData({
   dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'settle-account-search-payable',
   dropdownId: 'settle-account-dropdown-payable',
   filterInputId: 'settle-account-filter-payable',
@@ -568,7 +571,7 @@ window.initSelectorWithData({
   dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'edit-payable-account-search',
   dropdownId: 'edit-payable-account-dropdown',
   filterInputId: 'edit-payable-account-filter',
@@ -577,7 +580,7 @@ window.initSelectorWithData({
   dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'new-payable-category-search',
   dropdownId: 'new-payable-category-dropdown',
   filterInputId: 'new-payable-category-filter',
@@ -587,7 +590,7 @@ window.initSelectorWithData({
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'edit-payable-category-search',
   dropdownId: 'edit-payable-category-dropdown',
   filterInputId: 'edit-payable-category-filter',
@@ -597,4 +600,10 @@ window.initSelectorWithData({
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });
+
+// Expose functions to global scope for onclick handlers
+window.openNewPayableModal = openNewPayableModal;
+window.openEditPayableModal = openEditPayableModal;
+window.openSettleModal = openSettleModal;
+window.setFullAmountPayable = setFullAmountPayable;
 </script>

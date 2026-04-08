@@ -452,7 +452,9 @@
 <script id="receivable-categories-data" type="application/json">
   <%= raw @expense_categories.map { |c| full_name = c.full_name; { name: c.name, full_name: full_name, pinyin: PinYin.abbr(full_name).downcase } }.to_json %>
 </script>
-<script>
+<script type="module">
+import { initSelectorWithData } from 'selectors';
+
 function openNewReceivableModal() {
   var form = document.getElementById('new-receivable-form');
   if (form) {
@@ -541,7 +543,8 @@ var categorySelectorData = allCategoriesForSelector.map(function(cat) {
   };
 });
 
-window.initSelectorWithData({
+// Initialize selectors
+initSelectorWithData({
   searchInputId: 'new-receivable-account-search',
   dropdownId: 'new-receivable-account-dropdown',
   filterInputId: 'new-receivable-account-filter',
@@ -550,7 +553,7 @@ window.initSelectorWithData({
   dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'settle-account-search',
   dropdownId: 'settle-account-dropdown',
   filterInputId: 'settle-account-filter',
@@ -559,7 +562,7 @@ window.initSelectorWithData({
   dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'edit-receivable-account-search',
   dropdownId: 'edit-receivable-account-dropdown',
   filterInputId: 'edit-receivable-account-filter',
@@ -568,7 +571,7 @@ window.initSelectorWithData({
   dataSource: allAccountsForSelector,
   noMatchText: '无匹配账户'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'new-receivable-category-search',
   dropdownId: 'new-receivable-category-dropdown',
   filterInputId: 'new-receivable-category-filter',
@@ -578,7 +581,7 @@ window.initSelectorWithData({
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });
-window.initSelectorWithData({
+initSelectorWithData({
   searchInputId: 'edit-receivable-category-search',
   dropdownId: 'edit-receivable-category-dropdown',
   filterInputId: 'edit-receivable-category-filter',
@@ -588,4 +591,10 @@ window.initSelectorWithData({
   emptyOption: { label: '不设置分类', value: '', display: '' },
   noMatchText: '无匹配分类'
 });
+
+// Expose functions to global scope for onclick handlers
+window.openNewReceivableModal = openNewReceivableModal;
+window.openEditReceivableModal = openEditReceivableModal;
+window.openSettleModal = openSettleModal;
+window.setFullAmount = setFullAmount;
 </script>
