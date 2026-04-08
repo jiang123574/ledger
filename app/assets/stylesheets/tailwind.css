@@ -7,10 +7,12 @@
 @source '../components/**/*.{erb,html,rb}';
 
 /* Safelist classes used in dynamic templates */
-@source inline('grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr]');
-@source inline('hover:bg-surface-hover');
-@source inline('hover:bg-surface-dark-hover');
-@source inline('dark:hover:bg-surface-dark-hover');
+@safelist [
+  'grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr]',
+  'hover:bg-surface-hover',
+  'hover:bg-surface-dark-hover',
+  'dark:hover:bg-surface-dark-hover'
+];
 
 @custom-variant dark (&:is(.dark *));
 
