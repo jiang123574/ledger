@@ -9,17 +9,16 @@ const ENTRY_CARD_TEMPLATE = `
     
     <!-- 分类/备注区域 -->
     <div class="flex-1 lg:block min-w-0">
-      <!-- 移动端：类型 + 分类/名称 + 备注 -->
-      <div class="lg:hidden flex items-center gap-2 mb-0.5">
+      <!-- 移动端：类型 + 名称（单行） -->
+      <div class="lg:hidden flex items-center gap-2">
         <span data-field="type" class="shrink-0"></span>
         <p class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></p>
       </div>
-      <p class="lg:hidden text-xs text-secondary dark:text-secondary-dark truncate" data-field="note"></p>
       
       <!-- 桌面端：类型 + 分类（单行） -->
       <div class="hidden lg:flex lg:items-center lg:gap-2">
         <span data-field="type"></span>
-        <span class="text-sm font-medium text-primary dark:text-primary-dark" data-field="name"></span>
+        <span class="text-sm font-medium text-primary dark:text-primary-dark" data-field="name-desktop"></span>
       </div>
     </div>
     
@@ -93,7 +92,7 @@ function createEntryCard(entry, options = {}) {
   typeEl.textContent = entry.display_type || ""
   typeEl.className = `inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   
-  // 分类名（转账不显示）
+  // 分类名（移动端）
   const nameEl = row.querySelector('[data-field="name"]')
   if (isTransfer) {
     nameEl.style.display = 'none'
@@ -101,12 +100,12 @@ function createEntryCard(entry, options = {}) {
     nameEl.textContent = entry.display_name || "-"
   }
 
-  // 备注 - 仅在移动端显示
-  const noteEl = row.querySelector('[data-field="note"]')
-  if (isTransfer && entry.transfer_from && entry.transfer_to) {
-    noteEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
+  // 分类名（桌面端）
+  const nameDesktopEl = row.querySelector('[data-field="name-desktop"]')
+  if (isTransfer) {
+    nameDesktopEl.style.display = 'none'
   } else {
-    noteEl.textContent = entry.note || entry.account_name || ""
+    nameDesktopEl.textContent = entry.display_name || "-"
   }
 
   // 流入/流出

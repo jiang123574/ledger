@@ -359,8 +359,8 @@
               
               <!-- 类型 / 分类 / 备注区域 -->
               <div class="flex-1 lg:block min-w-0">
-                <!-- 移动端：类型 + 分类/名称 + 备注 -->
-                <div class="lg:hidden flex items-center gap-2 mb-0.5">
+                <!-- 移动端：类型 + 名称（单行） -->
+                <div class="lg:hidden flex items-center gap-2">
                   <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
                     case display_type
                     when '收入' then 'bg-income-light text-income'
@@ -384,7 +384,6 @@
                     <% end %>
                   </p>
                 </div>
-                <p class="lg:hidden text-xs text-secondary dark:text-secondary-dark truncate"><%= e.display_note || (@accounts_map && @accounts_map[e.account_id]&.name) || "未知账户" %></p>
                 
                 <!-- 桌面端：类型 + 分类（单行） -->
                 <div class="hidden lg:flex lg:items-center lg:gap-2">
