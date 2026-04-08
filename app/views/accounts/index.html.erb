@@ -357,7 +357,7 @@
                 <%= e.date&.strftime("%Y-%m-%d") %>
               </div>
               
-<!-- 类型 / 分类 -->
+              <!-- 类型 / 分类 -->
               <div class="truncate flex items-center gap-2">
                 <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
                   case display_type
@@ -374,6 +374,11 @@
                   <% if is_transfer %>
                     <% if current_account_filter.present? %>
                       <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
+                    <% else %>
+                      <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
+                    <% end %>
+                  <% else %>
+                    <%= e.display_category&.name || '-' %>
                     <% else %>
                       <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
                     <% end %>

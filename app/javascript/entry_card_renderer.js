@@ -21,7 +21,6 @@ const ENTRY_CARD_TEMPLATE_DESKTOP = `
   </div>
 </div>
 `
-
 const ENTRY_CARD_TEMPLATE_MOBILE = `
 <div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="" data-date="" draggable="false">
   <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20" data-field="date"></div>
@@ -88,10 +87,15 @@ function createEntryCard(entry, options = {}) {
 const nameEl = desktopRow.querySelector('[data-field="name"]')
   if (isTransfer && entry.transfer_from && entry.transfer_to) {
     nameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
+  const nameEl = desktopRow.querySelector('[data-field="name"]')
+  if (isTransfer && entry.transfer_from && entry.transfer_to) {
+    nameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
   } else {
     nameEl.textContent = entry.display_name || "-"
   }
 
+  const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
+  const outflowEl = desktopRow.querySelector('[data-field="outflow"]')
   const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
   const outflowEl = desktopRow.querySelector('[data-field="outflow"]')
   
