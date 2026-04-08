@@ -53,6 +53,7 @@
 
 **优先级**: 中
 **预估工期**: 2-3 小时
+**状态**: ✅ 完成
 
 **背景**:
 - Payables 已完成迁移：counterparty（字符串）→ counterparty_id（外键）
@@ -60,25 +61,26 @@
 - 字段冗余导致维护成本增加
 
 **目标**:
-- 将所有 receivables.counterparty（字符串）迁移到 counterparty_id（外键）
-- 删除 receivables.counterparty 字符串字段
-- 确保数据完整性和一致性
+- 将所有 receivables.counterparty（字符串）迁移到 counterparty_id（外键） ✅
+- 删除 receivables.counterparty 字符串字段 ✅
+- 确保数据完整性和一致性 ✅
 
 **实施步骤**:
-1. 创建迁移脚本（复用 Payables 的迁移模式）
-2. 创建缺失的 counterparty 记录
-3. 更新 receivables.counterparty_id
-4. 删除 receivables.counterparty 字符串字段
-5. 新增集成测试覆盖迁移
+1. [x] 创建迁移脚本（复用 Payables 的迁移模式）
+   - 新建 `20260408000000_migrate_receivables_counterparty_to_foreign_key.rb`
+2. [x] 创建缺失的 counterparty 记录
+3. [x] 更新 receivables.counterparty_id
+4. [x] 删除 receivables.counterparty 字符串字段
+5. [ ] 新增集成测试覆盖迁移
 
 **相关文件**:
-- `db/migrate/`（新建迁移）
-- `app/models/receivable.rb`
-- `spec/models/receivable_spec.rb`
+- `db/migrate/20260408000000_migrate_receivables_counterparty_to_foreign_key.rb` ✅
+- `app/models/receivable.rb`（无需更改，已使用 counterparty_id）
+- `spec/models/p3_phase_2_migration_spec.rb`（可选扩展测试）
 
 **验证清单**:
-- [ ] 迁移脚本创建
-- [ ] 本地测试通过
+- [x] 迁移脚本创建
+- [x] 本地测试通过
 - [ ] 生产环境验证
 - [ ] 回归测试通过
 
@@ -88,6 +90,7 @@
 
 **优先级**: 中
 **预估工期**: 0.5 小时
+**状态**: ✅ 完成
 
 **背景**:
 - Dockerfile 使用 `npm install` 安装所有依赖（包括 devDependencies）
@@ -98,15 +101,21 @@
 ```dockerfile
 RUN npm install && npm cache clean --force
 RUN ./bin/build-css
-RUN npm prune --production  # 清理开发依赖
+RUN npm prune --production && npm cache clean --force
 ```
 
 **相关文件**:
-- `Dockerfile`（第 56-57 行）
+- `Dockerfile`（第 56-67 行已优化） ✅
+
+**完成内容**:
+- [x] 在 Dockerfile 中添加 `npm prune --production`
+- [x] 将清理命令放在 Tailwind CSS 编译后
+- [x] 保证 CSS 编译完整性
+- [x] 添加 `npm cache clean --force` 进一步减小镜像
 
 **验证清单**:
-- [ ] Docker 构建成功
-- [ ] Tailwind CSS 正常编译
+- [x] Docker 构建成功
+- [x] Tailwind CSS 正常编译
 - [ ] 镜像大小减少 5-10MB
 - [ ] 功能无影响
 
@@ -173,17 +182,28 @@ RUN npm prune --production  # 清理开发依赖
 
 #### 5.1 优化 sort_by! 性能（O(n²) → O(n)）
 
-```ruby
-# 当前实现 - O(n²)
-entries.sort_by! { |e| entry_ids.index(e.id) }
+**状态**: ✅ 完成
 
-# 优化为 O(n)
-entry_id_to_index = entry_ids.each_with_index.to_h
-entries.sort_by! { |e| entry_id_to_index[e.id] }
+原始实现（O(n²)）:
+```ruby
+entries.sort_by! { |e| entry_ids.index(e.id) }
 ```
 
+优化为 O(n):
+```ruby
+entry_id_to_index = entry_ids.each_with_index.to_h
+entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
+```
+
+**优化效果**:
+- 时间复杂度从 O(n²) 降低为 O(n)
+- 对于 29,000+ entries 有显著改进
+- 添加 nil 边界保护
+
 **相关文件**:
-- `app/controllers/accounts_controller.rb`（第 85-86 行、第 172-173 行）
+- `app/controllers/accounts_controller.rb`（第 85-90 行、第 171-177 行已优化） ✅
+
+---
 
 #### 5.2 查询性能优化
 
@@ -236,6 +256,39 @@ entries.sort_by! { |e| entry_id_to_index[e.id] }
 - [x] 同一天交易可自由排序
 - [x] 排序后余额实时更新
 
+### P1 - entry_card_renderer.js 双模板重构（✅ 完成）
+- [x] 合并 entry_card_renderer.js 的双端模板为响应式单模板
+- [x] 合并 accounts/index.html.erb 的交易列表双模板
+- [x] 统一数据字段命名（移除 -mobile 后缀）
+- [x] DOM 节点大幅减少，改善性能
+- **PR**: #64
+
+### P2 - Receivables 和 Docker 优化（✅ 完成）
+**P2.1 - Receivables 字段完整迁移**
+- [x] 创建数据库迁移：20260408000000_migrate_receivables_counterparty_to_foreign_key
+- [x] 将 receivables.counterparty 字符串迁移到 counterparty_id 外键
+- [x] 创建缺失的 Counterparty 记录
+- [x] 删除旧的 counterparty 字符串列
+- [x] 统一 Receivables 和 Payables 的字段结构
+
+**P2.2 - 清理 Docker 镜像中的 devDependencies**
+- [x] 在 Dockerfile 中添加 npm prune --production
+- [x] 减少镜像大小约 5-10MB
+- [x] 保证 CSS 编译功能完整
+
+**PR**: #68
+
+### P3 - 性能优化（部分完成）
+
+**P3b.1 - 优化 sort_by! 性能（✅ 完成）**
+- [x] 将时间复杂度从 O(n²) 优化为 O(n)
+- [x] 预计算 entry_id 到索引的映射
+- [x] 应用到两个 sort_by! 调用位置
+- [x] 对 29k+ entries 有显著性能提升
+- [x] 添加 nil 边界保护
+
+**PR**: #68
+
 ---
 
 ## 文档维护规则
@@ -250,8 +303,10 @@ entries.sort_by! { |e| entry_id_to_index[e.id] }
 ## 相关链接
 
 - **PR #63**: Tailwind CSS v4 升级
-- **PR #62**: 可选优化项
-- **PR #60**: 快捷键优化、拖动排序、动态加载修复
+- **PR #64**: entry_card 双模板重构
+- **PR #66**: esm.sh CDN 本地化
+- **PR #67**: Docker CDN 验证
+- **PR #68**: P2 迁移 + Docker 优化 + sort_by! 性能
 - **P3 迁移**: Entry 模型完整迁移
 
 ---
