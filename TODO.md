@@ -208,11 +208,15 @@ entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
 
 #### 5.2 查询性能优化
 
-**状态**: ✅ 部分完成
+**状态**: ✅ 完成
 
-- 运行 bullet gem 检测 N+1 查询
+- 运行 bullet gem 检测 N+1 查询（已有预加载机制）
 - 分析 Entry 表上最常用的查询模式 ✅
 - 新增复合索引：`(account_id, date, notes)` 和 `(account_id, date, name)` ✅
+- 新增 pg_trgm GIN 索引优化 LIKE 搜索 ✅
+  - 启用 PostgreSQL pg_trgm 扩展
+  - 添加 `idx_entries_name_trgm` 和 `idx_entries_notes_trgm` GIN 索引
+  - 优化 `%term%` 模式的模糊查询性能
 - 评估是否需要 BRIN 索引（时间序列）
   - Entry 表约 30k 条记录，BRIN 索引收益不明显
   - 暂不实施，观察后续数据增长情况
