@@ -7,7 +7,7 @@ class CardComponent < ViewComponent::Base
   end
 
   def call
-    content_tag(:div, class: "bg-white rounded-lg shadow #{@classes}") do
+    content_tag(:div, class: "bg-white rounded-lg shadow-sm #{@classes}") do
       if @title
         concat(content_tag(:div, @title, class: "px-6 py-4 border-b border-gray-200 font-medium text-gray-900"))
       end

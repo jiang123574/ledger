@@ -131,11 +131,20 @@ export default class extends Controller {
           } else {
             console.warn("confirmDeleteTransaction not found")
           }
-        }
+        },
+        dragEnabled: !!this.accountIdValue
       })
-      this.addDragHandlers(card)
+      
+      // 只在特定账户页面添加拖拽监听器
+      if (this.accountIdValue && this.dragEnabledValue) {
+        this.addDragHandlers(card)
+      }
+      
       this.containerTarget.appendChild(card)
     })
+    
+    // 动态加载后重新设置拖拽
+    this.setupDragAndDrop()
   }
 
   showLoadingIndicator() {
@@ -149,16 +158,23 @@ export default class extends Controller {
   }
 
   setupDragAndDrop() {
-    // 只有在拖动启用且有accountId时才设置拖拽
-    if (!this.dragEnabledValue || !this.accountIdValue) {
+    // 只在特定账户页面启用拖拽
+    if (!this.accountIdValue) {
+      // 所有交易页面：禁用拖拽，移除cursor-move样式
+      const items = this.containerTarget.querySelectorAll('[data-entry-id]')
+      items.forEach((item) => {
+        item.draggable = false
+        item.classList.remove('cursor-move')
+        item.style.cursor = 'default'
+      })
       return
     }
-
-    // 先移除所有现有的拖拽监听器
+    
+    if (!this.dragEnabledValue) return
+    
+    // 特定账户页面：启用拖拽
     const items = this.containerTarget.querySelectorAll('[data-entry-id]')
     items.forEach((item) => this.removeDragHandlers(item))
-    
-    // 重新添加拖拽监听器
     items.forEach((item) => this.addDragHandlers(item))
   }
 

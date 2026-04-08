@@ -81,7 +81,7 @@ module Ds
         # Disabled state
         "peer-disabled:opacity-70 peer-disabled:cursor-not-allowed",
         # Hover
-        "hover:shadow-sm"
+        "hover:shadow-xs"
       )
     end
   end

@@ -8,7 +8,7 @@
   </div>
 
   <!-- 搜索筛选 -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-3">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-3">
     <div class="flex flex-wrap gap-3 items-end">
       <div class="flex-1 min-w-[140px]">
         <label class="block text-xs font-medium text-secondary dark:text-secondary-dark mb-1">开始日期</label>
@@ -37,7 +37,7 @@
   </div>
 
   <!-- 交易列表 -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">
     <% if @entries.any? %>
       <% @entries.each do |e| %>
         <div class="p-3 border-b border-border dark:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-pointer" onclick="editTransaction(<%= e.id %>)">

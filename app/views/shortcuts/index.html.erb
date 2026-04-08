@@ -16,7 +16,7 @@
 
   <%= form_with url: shortcuts_path, method: :patch, local: true, class: "space-y-6" do |f| %>
     <% @shortcuts.group_by { |s| s[:group] }.each do |group, shortcuts| %>
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-x-auto">
+      <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-x-auto">
         <div class="px-6 py-4 bg-surface dark:bg-surface-dark dark:bg-gray-900 border-b">
           <h2 class="font-semibold text-primary dark:text-primary-dark"><%= group %></h2>
         </div>

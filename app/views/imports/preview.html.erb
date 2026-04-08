@@ -6,15 +6,15 @@
 
   <!-- Summary -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">文件格式</div>
       <div class="text-lg font-medium uppercase"><%= @preview_data[:format] %></div>
     </div>
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">总行数</div>
       <div class="text-lg font-medium"><%= @preview_data[:total_rows] %></div>
     </div>
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">预览行数</div>
       <div class="text-lg font-medium"><%= @preview_data[:rows].length %></div>
     </div>
@@ -24,7 +24,7 @@
     <%= f.hidden_field :file, value: params[:file] %>
 
     <!-- Field Mapping -->
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
       <h2 class="text-lg font-semibold mb-4">字段映射</h2>
       
       <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
@@ -49,7 +49,7 @@
     </div>
 
     <!-- Preview Table -->
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">
       <div class="px-6 py-4 border-b flex justify-between items-center">
         <h2 class="text-lg font-semibold">数据预览</h2>
         <span class="text-sm text-secondary dark:text-secondary-dark">显示前 <%= @preview_data[:rows].length %> 行</span>
@@ -85,7 +85,7 @@
     </div>
 
     <!-- Account Selection -->
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
       <label class="block text-sm font-medium text-primary dark:text-primary-dark dark:text-secondary-dark mb-1">导入到账户（可选）</label>
       <%= f.collection_select :account_name, Account.order(:name), :name, :name, { include_blank: "自动创建账户" }, class: "border border-border dark:border-border-dark rounded-lg px-3 py-1.5 focus:ring-blue-500 focus:border-blue-500" %>
     </div>

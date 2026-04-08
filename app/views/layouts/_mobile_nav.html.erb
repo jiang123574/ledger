@@ -1,7 +1,7 @@
 <%# Mobile Bottom Navigation with Safe Area support and touch optimization %>
 <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-50 bg-container dark:bg-container-dark border-t border-border dark:border-border-dark safe-area-bottom">
   <%# Subtle top border glow %>
-  <div class="h-px bg-gradient-to-r from-transparent via-border dark:via-border-dark to-transparent"></div>
+  <div class="h-px bg-linear-to-r from-transparent via-border dark:via-border-dark to-transparent"></div>
   
   <div class="flex items-stretch justify-around min-h-[64px] pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
     <%= mobile_nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
