@@ -181,17 +181,27 @@ RUN npm prune --production  # 清理开发依赖
 
 #### 5.1 优化 sort_by! 性能（O(n²) → O(n)）
 
-```ruby
-# 当前实现 - O(n²)
-entries.sort_by! { |e| entry_ids.index(e.id) }
+**状态**: ✅ 完成
 
-# 优化为 O(n)
+原始实现（O(n²)）:
+```ruby
+entries.sort_by! { |e| entry_ids.index(e.id) }
+```
+
+优化为 O(n):
+```ruby
 entry_id_to_index = entry_ids.each_with_index.to_h
 entries.sort_by! { |e| entry_id_to_index[e.id] }
 ```
 
+**优化效果**:
+- 时间复杂度从 O(n²) 降低为 O(n)
+- 对于 29,000+ entries 有显著改进
+
 **相关文件**:
-- `app/controllers/accounts_controller.rb`（第 85-86 行、第 172-173 行）
+- `app/controllers/accounts_controller.rb`（第 85-90 行、第 171-177 行已优化） ✅
+
+---
 
 #### 5.2 查询性能优化
 
