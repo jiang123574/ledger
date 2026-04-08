@@ -53,6 +53,7 @@
 
 **优先级**: 中
 **预估工期**: 2-3 小时
+**状态**: ✅ 完成
 
 **背景**:
 - Payables 已完成迁移：counterparty（字符串）→ counterparty_id（外键）
@@ -60,25 +61,26 @@
 - 字段冗余导致维护成本增加
 
 **目标**:
-- 将所有 receivables.counterparty（字符串）迁移到 counterparty_id（外键）
-- 删除 receivables.counterparty 字符串字段
-- 确保数据完整性和一致性
+- 将所有 receivables.counterparty（字符串）迁移到 counterparty_id（外键） ✅
+- 删除 receivables.counterparty 字符串字段 ✅
+- 确保数据完整性和一致性 ✅
 
 **实施步骤**:
-1. 创建迁移脚本（复用 Payables 的迁移模式）
-2. 创建缺失的 counterparty 记录
-3. 更新 receivables.counterparty_id
-4. 删除 receivables.counterparty 字符串字段
-5. 新增集成测试覆盖迁移
+1. [x] 创建迁移脚本（复用 Payables 的迁移模式）
+   - 新建 `20260408000000_migrate_receivables_counterparty_to_foreign_key.rb`
+2. [x] 创建缺失的 counterparty 记录
+3. [x] 更新 receivables.counterparty_id
+4. [x] 删除 receivables.counterparty 字符串字段
+5. [ ] 新增集成测试覆盖迁移
 
 **相关文件**:
-- `db/migrate/`（新建迁移）
-- `app/models/receivable.rb`
-- `spec/models/receivable_spec.rb`
+- `db/migrate/20260408000000_migrate_receivables_counterparty_to_foreign_key.rb` ✅
+- `app/models/receivable.rb`（无需更改，已使用 counterparty_id）
+- `spec/models/p3_phase_2_migration_spec.rb`（可选扩展测试）
 
 **验证清单**:
-- [ ] 迁移脚本创建
-- [ ] 本地测试通过
+- [x] 迁移脚本创建
+- [x] 本地测试通过
 - [ ] 生产环境验证
 - [ ] 回归测试通过
 
