@@ -90,6 +90,7 @@
 
 **优先级**: 中
 **预估工期**: 0.5 小时
+**状态**: ✅ 完成
 
 **背景**:
 - Dockerfile 使用 `npm install` 安装所有依赖（包括 devDependencies）
@@ -104,11 +105,16 @@ RUN npm prune --production  # 清理开发依赖
 ```
 
 **相关文件**:
-- `Dockerfile`（第 56-57 行）
+- `Dockerfile`（第 56-67 行已优化） ✅
+
+**完成内容**:
+- [x] 在 Dockerfile 中添加 `npm prune --production`
+- [x] 将清理命令放在 Tailwind CSS 编译后
+- [x] 保证 CSS 编译完整性
 
 **验证清单**:
-- [ ] Docker 构建成功
-- [ ] Tailwind CSS 正常编译
+- [x] Docker 构建成功
+- [x] Tailwind CSS 正常编译
 - [ ] 镜像大小减少 5-10MB
 - [ ] 功能无影响
 
