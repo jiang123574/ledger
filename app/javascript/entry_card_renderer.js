@@ -87,15 +87,10 @@ function createEntryCard(entry, options = {}) {
   const nameEl = desktopRow.querySelector('[data-field="name"]')
   if (isTransfer && entry.transfer_from && entry.transfer_to) {
     nameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
-  const nameEl = desktopRow.querySelector('[data-field="name"]')
-  if (isTransfer && entry.transfer_from && entry.transfer_to) {
-    nameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
   } else {
     nameEl.textContent = entry.display_name || "-"
   }
 
-  const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
-  const outflowEl = desktopRow.querySelector('[data-field="outflow"]')
   const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
   const outflowEl = desktopRow.querySelector('[data-field="outflow"]')
   
