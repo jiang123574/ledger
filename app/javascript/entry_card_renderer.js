@@ -2,45 +2,53 @@ import { formatMoney, formatCurrencyRaw } from "bill_formatters"
 
 const ENTRY_CARD_TEMPLATE = `
 <div class="hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="" data-date="" draggable="false">
-  <!-- 桌面端表格布局 -->
-  <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3">
-    <div class="text-xs text-secondary dark:text-secondary-dark" data-field="date"></div>
-    <div class="text-left">
-      <span data-field="type"></span>
-      <span class="text-sm font-medium text-primary dark:text-primary-dark ml-1" data-field="name"></span>
+  <!-- 统一响应式布局（弹性容器用于移动端，网格用于桌面端） -->
+  <div class="flex lg:grid lg:grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-3 lg:gap-2 items-center py-1.5 px-3 lg:py-1.5 lg:px-3">
+    <!-- 日期 -->
+    <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-16 lg:w-auto" data-field="date"></div>
+    
+    <!-- 分类/备注区域 -->
+    <div class="flex-1 lg:block min-w-0">
+      <!-- 移动端：类型 + 分类/名称 + 备注 -->
+      <div class="lg:hidden flex items-center gap-2 mb-0.5">
+        <span data-field="type" class="shrink-0"></span>
+        <p class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></p>
+      </div>
+      <p class="lg:hidden text-xs text-secondary dark:text-secondary-dark truncate" data-field="note"></p>
+      
+      <!-- 桌面端：类型 + 分类（单行） -->
+      <div class="hidden lg:flex lg:items-center lg:gap-2">
+        <span data-field="type"></span>
+        <span class="text-sm font-medium text-primary dark:text-primary-dark" data-field="name"></span>
+      </div>
     </div>
-    <div class="text-right text-sm font-medium pr-2" data-field="inflow"></div>
-    <div class="text-right text-sm font-medium pr-2" data-field="outflow"></div>
-    <div class="text-right text-xs text-secondary dark:text-secondary-dark pr-2" data-field="balance"></div>
-    <div class="text-xs text-secondary dark:text-secondary-dark truncate" data-field="account"></div>
-    <div class="flex justify-center gap-1">
+    
+    <!-- 流入 - 桌面端显示 -->
+    <div class="hidden lg:block text-right text-sm font-medium pr-2" data-field="inflow"></div>
+    
+    <!-- 流出 - 桌面端显示 -->
+    <div class="hidden lg:block text-right text-sm font-medium pr-2" data-field="outflow"></div>
+    
+    <!-- 右侧区域（移动端） / 余额列（桌面端） -->
+    <div class="text-right shrink-0 lg:block">
+      <!-- 移动端：显示金额 -->
+      <p class="lg:hidden text-sm font-medium" data-field="amount"></p>
+      <!-- 桌面端 & 移动端：余额 -->
+      <p class="text-xs text-secondary dark:text-secondary-dark">
+        <span class="lg:hidden">余额:</span>
+        <span data-field="balance"></span>
+      </p>
+    </div>
+    
+    <!-- 账户 - 桌面端显示 -->
+    <div class="hidden lg:block text-xs text-secondary dark:text-secondary-dark truncate" data-field="account"></div>
+    
+    <!-- 操作按钮 -->
+    <div class="flex items-center gap-1 shrink-0 lg:justify-center">
       <button type="button" data-role="edit" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
       </button>
       <button type="button" data-role="delete" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-      </button>
-    </div>
-  </div>
-  <!-- 移动端卡片布局 -->
-  <div class="lg:hidden flex items-center gap-3 p-3">
-    <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20" data-field="date-mobile"></div>
-    <div class="flex-1 min-w-0">
-      <div class="flex items-center gap-2">
-        <span data-field="type-mobile"></span>
-        <p class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name-mobile"></p>
-      </div>
-      <p class="text-xs text-secondary dark:text-secondary-dark truncate mt-0.5" data-field="note-mobile"></p>
-    </div>
-    <div class="text-right shrink-0">
-      <p data-field="amount-mobile"></p>
-      <p class="text-xs text-secondary dark:text-secondary-dark" data-field="balance-mobile"></p>
-    </div>
-    <div class="flex items-center gap-1 shrink-0">
-      <button type="button" data-role="edit-mobile" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-      </button>
-      <button type="button" data-role="delete-mobile" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
       </button>
     </div>
@@ -77,7 +85,7 @@ function createEntryCard(entry, options = {}) {
   const isTransfer = entry.display_type === "转账" || entry.display_type === "转入" || entry.display_type === "转出"
   const isIncome = entry.display_amount_type === "INCOME"
 
-  // 桌面端字段
+  // 统一字段填充
   row.querySelector('[data-field="date"]').textContent = entry.date || ""
   
   // 类型标签
@@ -91,6 +99,14 @@ function createEntryCard(entry, options = {}) {
     nameEl.style.display = 'none'
   } else {
     nameEl.textContent = entry.display_name || "-"
+  }
+
+  // 备注 - 仅在移动端显示
+  const noteEl = row.querySelector('[data-field="note"]')
+  if (isTransfer && entry.transfer_from && entry.transfer_to) {
+    noteEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
+  } else {
+    noteEl.textContent = entry.note || entry.account_name || ""
   }
 
   // 流入/流出
@@ -111,6 +127,15 @@ function createEntryCard(entry, options = {}) {
   // 余额
   row.querySelector('[data-field="balance"]').textContent = formatCurrencyRaw(entry.balance_after || 0)
 
+  // 移动端金额展示
+  const amountEl = row.querySelector('[data-field="amount"]')
+  if (isTransfer && entry.show_both_amounts) {
+    amountEl.innerHTML = `<span class="text-expense">-${amountText}</span><span class="mx-1 text-secondary dark:text-secondary-dark">/</span><span class="text-income">+${amountText}</span>`
+  } else {
+    amountEl.textContent = amountText
+    amountEl.className = `text-sm font-medium ${amountCls}`
+  }
+
   // 账户（转账显示来源→目标）
   const accountEl = row.querySelector('[data-field="account"]')
   if (isTransfer && entry.transfer_from && entry.transfer_to) {
@@ -119,51 +144,15 @@ function createEntryCard(entry, options = {}) {
     accountEl.textContent = entry.account_name || "未知账户"
   }
 
-  // 移动端字段
-  row.querySelector('[data-field="date-mobile"]').textContent = entry.date || ""
-  
-  const typeMobileEl = row.querySelector('[data-field="type-mobile"]')
-  typeMobileEl.textContent = entry.display_type || ""
-  typeMobileEl.className = `inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
-  
-  const nameMobileEl = row.querySelector('[data-field="name-mobile"]')
-  if (isTransfer && entry.transfer_from && entry.transfer_to) {
-    nameMobileEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
-  } else {
-    nameMobileEl.textContent = entry.display_name || "-"
-  }
-  
-  row.querySelector('[data-field="note-mobile"]').textContent = entry.note || entry.account_name || ""
-
-  // 移动端金额
-  const amountMobileEl = row.querySelector('[data-field="amount-mobile"]')
-  if (isTransfer && entry.show_both_amounts) {
-    amountMobileEl.innerHTML = `<span class="text-expense">-${amountText}</span><span class="mx-1 text-secondary dark:text-secondary-dark">/</span><span class="text-income">+${amountText}</span>`
-    amountMobileEl.className = "text-sm"
-  } else {
-    amountMobileEl.textContent = amountText
-    amountMobileEl.className = `text-sm font-medium ${amountCls}`
-  }
-
-  row.querySelector('[data-field="balance-mobile"]').textContent = `余额: ${formatCurrencyRaw(entry.balance_after || 0)}`
-
   // 按钮事件
   const editButton = row.querySelector('[data-role="edit"]')
   const deleteButton = row.querySelector('[data-role="delete"]')
-  const editMobileButton = row.querySelector('[data-role="edit-mobile"]')
-  const deleteMobileButton = row.querySelector('[data-role="delete-mobile"]')
 
   if (editButton && options.onEdit) {
     editButton.addEventListener("click", () => options.onEdit(entry.id))
   }
   if (deleteButton && options.onDelete) {
     deleteButton.addEventListener("click", () => options.onDelete(entry.id, entry.display_name || ""))
-  }
-  if (editMobileButton && options.onEdit) {
-    editMobileButton.addEventListener("click", () => options.onEdit(entry.id))
-  }
-  if (deleteMobileButton && options.onDelete) {
-    deleteMobileButton.addEventListener("click", () => options.onDelete(entry.id, entry.display_name || ""))
   }
 
   return row
