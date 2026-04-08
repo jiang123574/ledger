@@ -47,19 +47,21 @@ pin "controllers/category_comparison_controller", to: "controllers/category_comp
 pin "controllers/filter_popover_controller", to: "controllers/filter_popover_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
-# Utils (better CDN with proper module resolution)
-pin "@hotwired/stimulus", to: "https://esm.sh/@hotwired/stimulus@3.2.2"
-pin "@hotwired/turbo", to: "https://esm.sh/@hotwired/turbo@8.0.4"
-pin "@hotwired/turbo-rails", to: "https://esm.sh/@hotwired/turbo-rails@8.0.4"
+# Hotwired packages - vendored for production reliability
+pin "@hotwired/stimulus", to: "@hotwired--stimulus.js" # @3.2.2
+pin "@hotwired/turbo", to: "@hotwired--turbo.js" # @8.0.23
+pin "@hotwired/turbo-rails", to: "@hotwired--turbo-rails.js" # @8.0.23
 
 # Stimulus loading helper - inline helper
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 
-# Floating UI for positioning - use esm.sh for better reliability
-pin "@floating-ui/utils", to: "https://esm.sh/@floating-ui/utils@0.2.8"
-pin "@floating-ui/utils/dom", to: "https://esm.sh/@floating-ui/utils@0.2.8/dom"
-pin "@floating-ui/core", to: "https://esm.sh/@floating-ui/core@1.6.0"
-pin "@floating-ui/dom", to: "https://esm.sh/@floating-ui/dom@1.6.5"
+# Floating UI for positioning - vendored for production reliability
+pin "@floating-ui/utils", to: "@floating-ui--utils.js" # @0.2.11
+pin "@floating-ui/utils/dom", to: "@floating-ui--utils--dom.js" # @0.2.11
+pin "@floating-ui/core", to: "@floating-ui--core.js" # @1.7.5
+pin "@floating-ui/dom", to: "@floating-ui--dom.js" # @1.7.6
 
-# Chart.js for charts - use esm.sh for better reliability
-pin "chart.js", to: "https://esm.sh/chart.js@4.4.0"
+# Chart.js for charts - vendored for production reliability
+pin "chart.js" # @4.5.1
+pin "@kurkle/color", to: "@kurkle--color.js" # @0.3.4
+pin "@rails/actioncable/src", to: "@rails--actioncable--src.js" # @8.1.300

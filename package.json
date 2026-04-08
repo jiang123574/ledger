@@ -2,10 +2,14 @@
   "name": "app",
   "private": true,
   "dependencies": {
+    "@floating-ui/core": "^1.7.5",
     "@floating-ui/dom": "^1.6.0",
+    "@floating-ui/utils": "^0.2.11",
     "@hotwired/stimulus": "^3.2.2",
+    "@hotwired/turbo": "^8.0.23",
     "@hotwired/turbo-rails": "^8.0.0",
     "@tailwindcss/cli": "^4.2.2",
+    "chart.js": "^4.5.1",
     "tailwindcss": "^4.2.2"
   }
 }
