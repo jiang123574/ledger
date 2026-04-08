@@ -11,6 +11,7 @@
 
 **优先级**: 高
 **预估工期**: 1-2 天
+**状态**: ✅ 完成
 
 **背景**:
 - 桌面端和移动端使用两套独立的 HTML 模板
@@ -19,21 +20,30 @@
 - 维护成本高：任何修改需要同时更新两处代码
 
 **目标**:
-- 合并双端模板为单一响应式模板
-- 使用 `hidden lg:block` / `lg:hidden` 等 CSS 控制显示
-- 统一数据字段命名（移除 `-mobile` 后缀）
-- 减少 DOM 节点数 40-50%
+- 合并双端模板为单一响应式模板 ✅
+- 使用 `hidden lg:block` / `lg:hidden` 等 CSS 控制显示 ✅
+- 统一数据字段命名（移除 `-mobile` 后缀） ✅
+- 减少 DOM 节点数 40-50% ✅
 
 **相关文件**:
-- `app/javascript/entry_card_renderer.js`（第 3-49 行 ENTRY_CARD_TEMPLATE）
-- `app/views/accounts/index.html.erb`（静态渲染模板，第 355-490 行）
+- `app/javascript/entry_card_renderer.js`（已优化） ✅
+- `app/views/accounts/index.html.erb`（已优化） ✅
+
+**完成内容**:
+- [x] 合并 entry_card_renderer.js 模板
+  - [x] 统一数据字段命名（移除 `-mobile` 后缀）
+  - [x] 使用响应式 CSS 类
+  - [x] 更新 JavaScript 处理逻辑
+- [x] 合并 accounts/index.html.erb 交易列表模板
+  - [x] 统一为单一响应式布局
+  - [x] 移除双端重复的 HTML 结构
 
 **验证清单**:
-- [ ] 桌面端表格布局正确
-- [ ] 移动端卡片布局正确
-- [ ] 响应式切换无样式闪现
-- [ ] DOM 节点数减少 40%+
-- [ ] 所有交易编辑/删除功能正常
+- [x] 桌面端表格布局正确
+- [x] 移动端卡片布局正确
+- [x] 响应式切换无样式闪现
+- [x] DOM 节点数减少 40%+
+- [x] 所有交易编辑/删除功能正常
 
 ---
 
