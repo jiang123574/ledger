@@ -66,7 +66,22 @@ RUN chmod +x ./bin/build-css && ./bin/build-css
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 
+# Verify no external CDN dependencies in importmap (production reliability)
+RUN if grep -E "https://|http://" config/importmap.rb | grep -v "# "; then \
+      echo "ERROR: External CDN URLs found in importmap.rb. All dependencies must be vendored."; \
+      exit 1; \
+    fi
+
+# Verify vendor/javascript files exist for all pinned packages
+RUN for pkg in "@hotwired--stimulus.js" "@hotwired--turbo.js" "@hotwired--turbo-rails.js" "chart.js.js" "@floating-ui--utils.js" "@floating-ui--core.js" "@floating-ui--dom.js"; do \
+      if [ ! -f "vendor/javascript/$pkg" ]; then \
+        echo "ERROR: Missing vendor/javascript/$pkg - required for production"; \
+        exit 1; \
+      fi; \
+    done
+
 # Remove unnecessary files from the build context to reduce image size
+# NOTE: vendor/javascript directory is preserved - contains vendored JS modules for production
 RUN rm -rf .git .github .vscode .idea && \
     rm -rf test spec coverage doc docs && \
     rm -rf *.md LICENSE && \
