@@ -1,6 +1,6 @@
 class MigrateReceivablesCounterpartyToForeignKey < ActiveRecord::Migration[7.0]
   def up
-    # 创建缺失的 Counterparty 记录
+    # 创建缺失的 Counterparty 记录（幂等：ON CONFLICT DO NOTHING）
     execute <<~SQL.squish
       INSERT INTO counterparties (name)
       SELECT DISTINCT receivables.counterparty
@@ -9,6 +9,7 @@ class MigrateReceivablesCounterpartyToForeignKey < ActiveRecord::Migration[7.0]
       WHERE receivables.counterparty IS NOT NULL
         AND receivables.counterparty <> ''
         AND counterparties.id IS NULL
+      ON CONFLICT (name) DO NOTHING
     SQL
 
     # 将 receivables.counterparty 值迁移到 receivables.counterparty_id

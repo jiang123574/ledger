@@ -86,7 +86,7 @@ class AccountsController < ApplicationController
       # 按照缓存的entry_ids顺序重新排序，保持倒序顺序
       # 优化：从 O(n²) 优化为 O(n) 通过预计算索引映射
       entry_id_to_index = entry_ids.each_with_index.to_h
-      entries.sort_by! { |e| entry_id_to_index[e.id] }
+      entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
       AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
       entries.map { |e| [ e, balance_map[e.id] ] }
     end
@@ -176,7 +176,7 @@ class AccountsController < ApplicationController
     # 按照 entry_ids 的原始顺序（reverse_chronological）排序，确保余额匹配
     # 优化：从 O(n²) 优化为 O(n) 通过预计算索引映射
     entry_id_to_index = entry_ids.each_with_index.to_h
-    entries.sort_by! { |e| entry_id_to_index[e.id] }
+    entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
 
     AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
 
