@@ -23,7 +23,7 @@ const ENTRY_CARD_TEMPLATE_DESKTOP = `
 `
 
 const ENTRY_CARD_TEMPLATE_MOBILE = `
-<div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="" data-date="" draggable="false">
+<div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="" data-date="" draggable="false">
   <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20" data-field="date"></div>
   <div class="flex-1 min-w-0 flex items-center gap-2">
     <span data-field="type" class="shrink-0"></span>
@@ -128,8 +128,9 @@ function createEntryCard(entry, options = {}) {
   const mobileTemplate = document.createElement("template")
   mobileTemplate.innerHTML = ENTRY_CARD_TEMPLATE_MOBILE.trim()
   const mobileRow = mobileTemplate.content.firstElementChild.cloneNode(true)
-  mobileRow.dataset.entryId = entry.id
+  mobileRow.dataset.mobileEntryId = entry.id
   mobileRow.dataset.date = entry.date || ''
+  mobileRow.draggable = false
 
   mobileRow.querySelector('[data-field="date"]').textContent = entry.date || ""
   

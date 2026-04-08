@@ -435,7 +435,7 @@
             </div>
             
             <!-- 移动端卡片 -->
-            <div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="<%= e.id %>" data-date="<%= e.date %>" draggable="true">
+            <div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-mobile-entry-id="<%= e.id %>" data-date="<%= e.date %>">
               <!-- 日期 -->
               <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
                 <%= e.date&.strftime("%Y-%m-%d") %>
