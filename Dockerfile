@@ -63,6 +63,9 @@ RUN bundle exec bootsnap precompile -j 1 app/ lib/
 # Compile Tailwind CSS before precompiling assets
 RUN chmod +x ./bin/build-css && ./bin/build-css
 
+# Remove devDependencies after Tailwind compilation to reduce image size
+RUN npm prune --production
+
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
 RUN SECRET_KEY_BASE_DUMMY=1 ./bin/rails assets:precompile
 

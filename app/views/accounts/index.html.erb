@@ -320,6 +320,7 @@
       <% if @entries_with_balance.any? %>
         <%= render 'skeleton' unless @page > 1 %>
         <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container" data-entry-list-target="container">
+<<<<<<< HEAD
           <% @entries_with_balance.each do |e, balance| %>
             <%
               entry_type = e.display_entry_type
@@ -350,6 +351,38 @@
                 e.target_account_for_display&.name
               end
             %>
+=======
+<% @entries_with_balance.each do |e, balance| %>
+<%
+  entry_type = e.display_entry_type
+  is_transfer = entry_type == 'TRANSFER'
+  current_account_filter = params[:account_id].to_s
+  is_inflow = is_transfer && e.amount.positive?
+  display_type = if is_transfer
+    if current_account_filter.blank?
+      "转账"
+    else
+      is_inflow ? "转入" : "转出"
+    end
+  else
+    e.display_type_label
+  end
+  display_amount_type = if is_transfer
+    if current_account_filter.blank?
+      "TRANSFER"
+    else
+      is_inflow ? "INCOME" : "EXPENSE"
+    end
+  else
+    entry_type
+  end
+  transfer_counterpart = if is_inflow
+    e.source_account_for_transfer&.name
+  else
+    e.target_account_for_display&.name
+  end
+%>
+>>>>>>> origin/feat/p2-receivables-migration
             <!-- 统一响应式交易卡片 -->
             <div class="flex lg:grid lg:grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-3 lg:gap-2 items-center py-1.5 px-3 lg:py-1.5 lg:px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="<%= e.id %>" data-date="<%= e.date %>" draggable="true">
               <!-- 日期 -->

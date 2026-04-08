@@ -9,7 +9,10 @@
     "@hotwired/turbo": "^8.0.23",
     "@hotwired/turbo-rails": "^8.0.0",
     "@tailwindcss/cli": "^4.2.2",
+<<<<<<< HEAD
     "chart.js": "^4.5.1",
+=======
+>>>>>>> origin/feat/p2-receivables-migration
     "tailwindcss": "^4.2.2"
   }
 }
