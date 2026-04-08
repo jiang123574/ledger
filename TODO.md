@@ -71,7 +71,7 @@
 2. [x] 创建缺失的 counterparty 记录
 3. [x] 更新 receivables.counterparty_id
 4. [x] 删除 receivables.counterparty 字符串字段
-5. [ ] 新增集成测试覆盖迁移
+5. [x] 新增集成测试覆盖迁移
 
 **相关文件**:
 - `db/migrate/20260408000000_migrate_receivables_counterparty_to_foreign_key.rb` ✅
@@ -81,6 +81,7 @@
 **验证清单**:
 - [x] 迁移脚本创建
 - [x] 本地测试通过
+- [x] 集成测试覆盖
 - [ ] 生产环境验证
 - [ ] 回归测试通过
 

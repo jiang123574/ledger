@@ -276,7 +276,7 @@ describe "DELETE /receivables" do
   end
 
   describe "POST /receivables/:id/revert" do
-    let(:receivable) { create(:receivable, account: account, counterparty: counterparty, original_amount: 5000, remaining_amount: 2500) }
+    let(:receivable) { create(:receivable, account: account, counterparty: counterparty, original_amount: 5000, remaining_amount: 5000) }
     let(:revert_account) { create(:account, name: "报销账户") }
     let(:reimburse_category) { create(:category, name: "报销", category_type: "INCOME", active: true) }
 
