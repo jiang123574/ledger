@@ -9,7 +9,7 @@
   </div>
 
 <div class="flex flex-col lg:flex-row gap-5">
-  <aside class="w-full lg:w-72 flex-shrink-0">
+  <aside class="w-full lg:w-72 shrink-0">
     <div class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs border border-border dark:border-border-dark overflow-hidden sticky top-20">
       <div class="p-3 border-b border-border dark:border-border-dark">
         <div class="flex justify-between items-center mb-3">
@@ -40,7 +40,7 @@
             onclick="window.selectBudget(<%= budget.id %>)">
             <div class="flex justify-between items-start mb-1">
               <span class="font-medium text-primary dark:text-primary-dark truncate"><%= budget.name %></span>
-              <span class="text-xs px-1.5 py-0.5 rounded flex-shrink-0 <%= 
+              <span class="text-xs px-1.5 py-0.5 rounded shrink-0 <%= 
                 case budget.status
                 when 'planning' then 'bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400'
                 when 'active' then 'bg-income-soft text-income'

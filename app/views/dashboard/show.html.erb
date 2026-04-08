@@ -52,7 +52,7 @@
   </div>
 
   <!-- Stats Cards (Always visible, not draggable) -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+  <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
     <%= render(Ds::CardComponent.new) do %>
       <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
         <div class="flex-1">
@@ -107,7 +107,7 @@
 
   <!-- Draggable Sections Container -->
   <div 
-    class="grid grid-cols-1 lg:grid-cols-2 gap-6" 
+    class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6" 
     data-controller="dashboard-sortable" 
     data-action="dragover->dashboard-sortable#dragOver drop->dashboard-sortable#drop" 
     role="list" 
@@ -115,7 +115,7 @@
     
     <!-- Recent Transactions Section -->
     <section
-      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-chart-visibility-target="section"
       data-section-key="recent_transactions"
@@ -192,7 +192,7 @@
 
     <!-- Trend Chart Section -->
     <section
-      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-chart-visibility-target="section"
       data-section-key="trend_chart"
@@ -251,7 +251,7 @@
 
     <!-- Expenses by Category Section -->
     <section
-      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-chart-visibility-target="section"
       data-section-key="expense_chart"
@@ -333,7 +333,7 @@
 
     <!-- Budget Status Section -->
     <section
-      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-hidden focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-chart-visibility-target="section"
       data-section-key="budget_status"

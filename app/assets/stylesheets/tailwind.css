@@ -1,3 +1,1292 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+@source '../views/**/*.erb';
+@source '../views/**/*.html';
+@source '../javascript/**/*.js';
+@source '../helpers/**/*.rb';
+@source '../components/**/*.{erb,html,rb}';
+
+/* Safelist classes used in dynamic templates */
+@source inline('grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr]');
+@source inline('hover:bg-surface-hover');
+@source inline('hover:bg-surface-dark-hover');
+@source inline('dark:hover:bg-surface-dark-hover');
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  --color-surface: #f8f9fa;
+  --color-surface-hover: #f1f3f5;
+  --color-surface-inset: #e9ecef;
+  --color-surface-dark: #1a1a1a;
+  --color-surface-dark-hover: #262626;
+  --color-surface-dark-inset: #262626;
+
+  --color-container: #ffffff;
+  --color-container-inset: #f8f9fa;
+  --color-container-dark: #262626;
+  --color-container-dark-inset: #1a1a1a;
+
+  --color-primary: #1a1a1a;
+  --color-primary-hover: #333333;
+  --color-primary-dark: #f8f9fa;
+  --color-primary-dark-hover: #e9ecef;
+
+  --color-secondary: #6c757d;
+  --color-secondary-hover: #495057;
+  --color-secondary-dark: #9ca3af;
+  --color-secondary-dark-hover: #d1d5db;
+
+  --color-border: #dee2e6;
+  --color-border-secondary: #e9ecef;
+  --color-border-dark: #404040;
+  --color-border-dark-secondary: #333333;
+
+  --color-inverse: #1a1a1a;
+  --color-inverse-hover: #333333;
+  --color-inverse-dark: #f8f9fa;
+  --color-inverse-dark-hover: #e9ecef;
+
+  --color-destructive: #ec2222;
+  --color-destructive-hover: #f13636;
+
+  --color-success: #10a861;
+  --color-success-hover: #12b76a;
+
+  --color-warning: #dc6803;
+  --color-warning-hover: #f79009;
+
+  --color-income: var(--color-income, #ef4444);
+  --color-income-soft: rgba(var(--color-income-rgb, 239, 68, 68), 0.1);
+  --color-income-light: rgba(var(--color-income-rgb, 239, 68, 68), 0.2);
+
+  --color-expense: var(--color-expense, #22c55e);
+  --color-expense-soft: rgba(var(--color-expense-rgb, 34, 197, 94), 0.1);
+  --color-expense-light: rgba(var(--color-expense-rgb, 34, 197, 94), 0.2);
+
+  --color-transfer: #3b82f6;
+
+  --color-gray-25: #fafafa;
+  --color-gray-50: #f7f7f7;
+  --color-gray-100: #f0f0f0;
+  --color-gray-200: #e7e7e7;
+  --color-gray-300: #cfcfcf;
+  --color-gray-400: #9e9e9e;
+  --color-gray-500: #737373;
+  --color-gray-600: #5c5c5c;
+  --color-gray-700: #363636;
+  --color-gray-800: #242424;
+  --color-gray-900: #171717;
+
+  --color-red-25: #fffbfb;
+  --color-red-50: #fff1f0;
+  --color-red-100: #ffdedb;
+  --color-red-200: #feb9b3;
+  --color-red-300: #f88c86;
+  --color-red-400: #ed4e4e;
+  --color-red-500: #f13636;
+  --color-red-600: #ec2222;
+  --color-red-700: #c91313;
+  --color-red-800: #a40e0e;
+  --color-red-900: #7e0707;
+
+  --color-green-25: #f6fef9;
+  --color-green-50: #ecfdf3;
+  --color-green-100: #d1fadf;
+  --color-green-200: #a6f4c5;
+  --color-green-300: #6ce9a6;
+  --color-green-400: #32d583;
+  --color-green-500: #12b76a;
+  --color-green-600: #10a861;
+  --color-green-700: #078c52;
+  --color-green-800: #05603a;
+  --color-green-900: #054f31;
+
+  --color-yellow-25: #fffcf5;
+  --color-yellow-50: #fffaeb;
+  --color-yellow-100: #fef0c7;
+  --color-yellow-200: #fedf89;
+  --color-yellow-300: #fec84b;
+  --color-yellow-400: #fdb022;
+  --color-yellow-500: #f79009;
+  --color-yellow-600: #dc6803;
+  --color-yellow-700: #b54708;
+  --color-yellow-800: #93370d;
+  --color-yellow-900: #7a2e0e;
+
+  --color-blue-25: #f5faff;
+  --color-blue-50: #eff8ff;
+  --color-blue-100: #d1e9ff;
+  --color-blue-200: #b2ddff;
+  --color-blue-300: #84caff;
+  --color-blue-400: #53b1fd;
+  --color-blue-500: #2e90fa;
+  --color-blue-600: #1570ef;
+  --color-blue-700: #175cd3;
+  --color-blue-800: #1849a9;
+  --color-blue-900: #194185;
+
+  --color-indigo-25: #f5f8ff;
+  --color-indigo-50: #eff4ff;
+  --color-indigo-100: #e0eaff;
+  --color-indigo-200: #c7d7fe;
+  --color-indigo-300: #a4bcfd;
+  --color-indigo-400: #8098f9;
+  --color-indigo-500: #6172f3;
+  --color-indigo-600: #444ce7;
+  --color-indigo-700: #3538cd;
+  --color-indigo-800: #2d31a6;
+  --color-indigo-900: #2d3282;
+
+  --color-violet-25: #fbfaff;
+  --color-violet-50: #f5f3ff;
+  --color-violet-100: #ece9fe;
+  --color-violet-200: #ddd6fe;
+  --color-violet-300: #c3b5fd;
+  --color-violet-400: #a48afb;
+  --color-violet-500: #875bf7;
+  --color-violet-600: #7839ee;
+  --color-violet-700: #6927da;
+  --color-violet-800: #5d1cc5;
+  --color-violet-900: #4a1b9a;
+
+  --color-fuchsia-25: #fefaff;
+  --color-fuchsia-50: #fdf4ff;
+  --color-fuchsia-100: #fbe8ff;
+  --color-fuchsia-200: #f6d0fe;
+  --color-fuchsia-300: #eeaafd;
+  --color-fuchsia-400: #e478fa;
+  --color-fuchsia-500: #d444f1;
+  --color-fuchsia-600: #ba24d5;
+  --color-fuchsia-700: #9f1ab1;
+  --color-fuchsia-800: #821890;
+  --color-fuchsia-900: #6f1877;
+
+  --color-pink-25: #fffafc;
+  --color-pink-50: #fef0f7;
+  --color-pink-100: #ffd1e2;
+  --color-pink-200: #ffb1ce;
+  --color-pink-300: #fd8fba;
+  --color-pink-400: #f86ba7;
+  --color-pink-500: #f23e94;
+  --color-pink-600: #d5327f;
+  --color-pink-700: #ba256b;
+  --color-pink-800: #9e1958;
+  --color-pink-900: #840b45;
+
+  --color-orange-25: #fff9f5;
+  --color-orange-50: #fff4ed;
+  --color-orange-100: #ffe6d5;
+  --color-orange-200: #ffd6ae;
+  --color-orange-300: #ff9c66;
+  --color-orange-400: #ff692e;
+  --color-orange-500: #ff4405;
+  --color-orange-600: #e62e05;
+  --color-orange-700: #bc1b06;
+  --color-orange-800: #97180c;
+  --color-orange-900: #771a0d;
+
+  --color-cyan-25: #f5feff;
+  --color-cyan-50: #ecfdff;
+  --color-cyan-100: #cff9fe;
+  --color-cyan-200: #a5f0fc;
+  --color-cyan-300: #67e3f9;
+  --color-cyan-400: #22ccee;
+  --color-cyan-500: #06aed4;
+  --color-cyan-600: #088ab2;
+  --color-cyan-700: #0e7090;
+  --color-cyan-800: #155b75;
+  --color-cyan-900: #155b75;
+
+  --color-spent: #22c55e;
+  --color-spent-dark: #22c55e;
+
+  --color-remaining: #8b5cf6;
+  --color-remaining-dark: #a78bfa;
+
+  --font-sans:
+    Geist, ui-sans-serif, system-ui, sans-serif, 'Apple Color Emoji',
+    'Segoe UI Emoji', 'Segoe UI Symbol', 'Noto Color Emoji';
+  --font-mono:
+    Geist Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    'Liberation Mono', 'Courier New', monospace;
+
+  --radius: 8px;
+  --radius-sm: 6px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-border-xs: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  --shadow-border-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-border-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  --shadow-border-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-dark-border-xs: 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-dark-border-sm: 0 1px 2px rgba(255, 255, 255, 0.05);
+  --shadow-dark-border-md: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+  --shadow-dark-border-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  --shadow-shadow-xs: 0px 1px 2px 0px rgba(11, 11, 11, 0.06);
+  --shadow-shadow-sm: 0px 1px 6px 0px rgba(11, 11, 11, 0.06);
+  --shadow-shadow-md: 0px 4px 8px -2px rgba(11, 11, 11, 0.06);
+  --shadow-shadow-lg: 0px 12px 16px -4px rgba(11, 11, 11, 0.06);
+  --shadow-shadow-xl: 0px 20px 24px -4px rgba(11, 11, 11, 0.06);
+
+  --animate-stroke-fill: stroke-fill 3s 300ms forwards;
+
+  @keyframes stroke-fill {
+    0% {
+      stroke-dashoffset: 43.9822971503;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+}
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}/*
+ * Ledger Design System - Custom Styles
+ * Mobile-first responsive design inspired by Sure project
+ */
+
+/* Geist fonts are loaded from app/assets/fonts/ via assets pipeline */
+/* Font definitions moved to inline for Propshaft compatibility */
+
+/* CSS Variables for Design System */
+:root {
+  --font-sans: 'Geist', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+
+  --color-white: #ffffff;
+  --color-black: #0b0b0b;
+  --color-shadow: rgba(11, 11, 11, 0.06);
+
+  --color-gray-25: #fafafa;
+  --color-gray-50: #f7f7f7;
+  --color-gray-100: #f0f0f0;
+  --color-gray-200: #e7e7e7;
+  --color-gray-300: #cfcfcf;
+  --color-gray-400: #9e9e9e;
+  --color-gray-500: #737373;
+  --color-gray-600: #5c5c5c;
+  --color-gray-700: #363636;
+  --color-gray-800: #242424;
+  --color-gray-900: #171717;
+
+  --color-success: #10a861;
+  --color-warning: #dc6803;
+  --color-destructive: #ec2222;
+
+  --color-surface: #f8f9fa;
+  --color-surface-hover: #f1f3f5;
+  --color-surface-inset: #e9ecef;
+  --color-container: #ffffff;
+  --color-container-inset: #f8f9fa;
+  --color-primary: #1a1a1a;
+  --color-secondary: #6c757d;
+  --color-border: #dee2e6;
+  --color-border-secondary: #e9ecef;
+  --color-income: #22c55e;
+  --color-expense: #ef4444;
+  --color-transfer: #3b82f6;
+  --color-nav-indicator: #3b82f6;
+  --color-chart-asset: #ef4444;
+  --color-chart-liability: #f59e0b;
+  --color-chart-net-worth: #3b82f6;
+
+  /* Safe area insets */
+  --safe-area-top: env(safe-area-inset-top, 0px);
+  --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-area-left: env(safe-area-inset-left, 0px);
+  --safe-area-right: env(safe-area-inset-right, 0px);
+}
+
+/* Dark mode overrides */
+.dark,
+[data-theme="dark"] {
+  --color-white: #0b0b0b;
+  --color-black: #ffffff;
+  --color-shadow: rgba(0, 0, 0, 0.35);
+
+  --color-gray-25: #0f0f0f;
+  --color-gray-50: #141414;
+  --color-gray-100: #1a1a1a;
+  --color-gray-200: #242424;
+  --color-gray-300: #2f2f2f;
+  --color-gray-400: #525252;
+  --color-gray-500: #737373;
+  --color-gray-600: #9e9e9e;
+  --color-gray-700: #cfcfcf;
+  --color-gray-800: #e7e7e7;
+  --color-gray-900: #f7f7f7;
+
+  --color-success: #22c55e;
+  --color-warning: #eab308;
+  --color-destructive: #ef4444;
+
+  --color-surface: #121212;
+  --color-surface-hover: #1c1c1c;
+  --color-surface-inset: #1a1a1a;
+  --color-container: #1a1a1a;
+  --color-container-inset: #141414;
+  --color-primary: #f8f9fa;
+  --color-secondary: #9ca3af;
+  --color-border: #2f2f2f;
+  --color-border-secondary: #262626;
+  --color-income: #22c55e;
+  --color-expense: #ef4444;
+  --color-transfer: #60a5fa;
+  --color-nav-indicator: #60a5fa;
+  --color-chart-asset: #f87171;
+  --color-chart-liability: #fbbf24;
+  --color-chart-net-worth: #60a5fa;
+}
+
+/* Dynamic income/expense colors (respects color theme selection) */
+.text-income {
+  color: var(--color-income, #22c55e) !important;
+}
+
+.text-expense {
+  color: var(--color-expense, #ef4444) !important;
+}
+
+.bg-income {
+  background-color: var(--color-income, #22c55e) !important;
+}
+
+.bg-expense {
+  background-color: var(--color-expense, #ef4444) !important;
+}
+
+.border-income {
+  border-color: var(--color-income, #22c55e) !important;
+}
+
+.border-expense {
+  border-color: var(--color-expense, #ef4444) !important;
+}
+
+/* Lighter variants for badges */
+.bg-income-light {
+  background-color: color-mix(in srgb, var(--color-income, #22c55e) 15%, transparent) !important;
+}
+
+.bg-expense-light {
+  background-color: color-mix(in srgb, var(--color-expense, #ef4444) 15%, transparent) !important;
+}
+
+.bg-income-soft {
+  background-color: color-mix(in srgb, var(--color-income, #22c55e) 10%, transparent) !important;
+}
+
+.bg-expense-soft {
+  background-color: color-mix(in srgb, var(--color-expense, #ef4444) 10%, transparent) !important;
+}
+
+.border-income-soft {
+  border-color: color-mix(in srgb, var(--color-income, #22c55e) 35%, transparent) !important;
+}
+
+.border-expense-soft {
+  border-color: color-mix(in srgb, var(--color-expense, #ef4444) 35%, transparent) !important;
+}
+
+.text-remaining {
+  color: #8b5cf6 !important;
+}
+
+.bg-remaining {
+  background-color: #8b5cf6 !important;
+}
+
+.bg-remaining-soft {
+  background-color: rgba(139, 92, 246, 0.1) !important;
+}
+
+.border-remaining-soft {
+  border-color: rgba(139, 92, 246, 0.35) !important;
+}
+
+.dark .text-remaining,
+[data-theme="dark"] .text-remaining {
+  color: #a78bfa !important;
+}
+
+.dark .bg-remaining,
+[data-theme="dark"] .bg-remaining {
+  background-color: #a78bfa !important;
+}
+
+.dark .bg-remaining-soft,
+[data-theme="dark"] .bg-remaining-soft {
+  background-color: rgba(167, 139, 250, 0.1) !important;
+}
+
+.dark .border-remaining-soft,
+[data-theme="dark"] .border-remaining-soft {
+  border-color: rgba(167, 139, 250, 0.35) !important;
+}
+
+.text-spent {
+  color: #22c55e !important;
+}
+
+.bg-spent {
+  background-color: #22c55e !important;
+}
+
+.bg-spent-soft {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+.border-spent-soft {
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+.dark .text-spent,
+[data-theme="dark"] .text-spent {
+  color: #22c55e !important;
+}
+
+.dark .bg-spent,
+[data-theme="dark"] .bg-spent {
+  background-color: #22c55e !important;
+}
+
+.dark .bg-spent-soft,
+[data-theme="dark"] .bg-spent-soft {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+.dark .border-spent-soft,
+[data-theme="dark"] .border-spent-soft {
+  border-color: rgba(34, 197, 94, 0.35) !important;
+}
+
+/* Unified income/expense icon chips */
+.ie-icon-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  flex-shrink: 0;
+}
+
+.ie-icon-chip-sm {
+  width: 2rem;
+  height: 2rem;
+}
+
+.ie-icon-chip-md {
+  width: 2.5rem;
+  height: 2.5rem;
+}
+
+.ie-icon-income {
+  background-color: transparent !important;
+  color: var(--color-income, #22c55e) !important;
+}
+
+.ie-icon-expense {
+  background-color: transparent !important;
+  color: var(--color-expense, #ef4444) !important;
+}
+
+.ie-icon-transfer {
+  background-color: transparent !important;
+  color: var(--color-blue, #3b82f6) !important;
+}
+
+/* Additional dark mode fixes for hardcoded colors */
+.dark .bg-white,
+[data-theme="dark"] .bg-white {
+  background-color: var(--color-container) !important;
+}
+
+.dark .bg-gray-50,
+[data-theme="dark"] .bg-gray-50 {
+  background-color: var(--color-surface) !important;
+}
+
+.dark .bg-gray-100,
+[data-theme="dark"] .bg-gray-100 {
+  background-color: var(--color-surface-inset) !important;
+}
+
+.dark .text-gray-900,
+[data-theme="dark"] .text-gray-900 {
+  color: var(--color-primary) !important;
+}
+
+.dark .text-gray-800,
+[data-theme="dark"] .text-gray-800 {
+  color: var(--color-primary) !important;
+}
+
+.dark .text-gray-700,
+[data-theme="dark"] .text-gray-700 {
+  color: var(--color-primary) !important;
+}
+
+.dark .text-gray-600,
+[data-theme="dark"] .text-gray-600 {
+  color: var(--color-secondary) !important;
+}
+
+.dark .border-gray-300,
+[data-theme="dark"] .border-gray-300 {
+  border-color: var(--color-border) !important;
+}
+
+.dark .divide-gray-200,
+[data-theme="dark"] .divide-gray-200 {
+  border-color: var(--color-border) !important;
+}
+
+/* Modal backgrounds in dark mode */
+.dark .modal,
+[data-theme="dark"] .modal,
+.dark [role="dialog"],
+[data-theme="dark"] [role="dialog"] {
+  background-color: var(--color-container) !important;
+}
+
+/* Alert boxes in dark mode */
+.dark .bg-green-50,
+[data-theme="dark"] .bg-green-50 {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+}
+
+.dark .bg-red-50,
+[data-theme="dark"] .bg-red-50 {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+}
+
+.dark .bg-yellow-50,
+[data-theme="dark"] .bg-yellow-50 {
+  background-color: rgba(234, 179, 8, 0.1) !important;
+}
+
+body {
+  font-family: var(--font-sans);
+  line-height: 1.5;
+}
+
+code,
+pre,
+kbd,
+samp {
+  font-family: var(--font-mono);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-secondary);
+}
+
+/* ========================================
+   Mobile Responsive Utilities
+   ======================================== */
+
+/* Touch-friendly tap targets (min 44px) */
+.tap-target {
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Safe area utilities */
+.safe-area-top {
+  padding-top: var(--safe-area-top);
+}
+
+.safe-area-bottom {
+  padding-bottom: var(--safe-area-bottom);
+}
+
+.safe-area-inset {
+  padding-top: var(--safe-area-top);
+  padding-bottom: var(--safe-area-bottom);
+  padding-left: var(--safe-area-left);
+  padding-right: var(--safe-area-right);
+}
+
+/* Header with safe area */
+.header-safe {
+  padding-top: calc(var(--safe-area-top) + 0.5rem);
+}
+
+/* Bottom nav with safe area */
+.bottom-nav-safe {
+  padding-bottom: calc(var(--safe-area-bottom) + 0.5rem);
+}
+
+/* ========================================
+   Mobile Sidebar Animations
+   ======================================== */
+
+/* Sidebar slide in/out */
+.sidebar-transform {
+  transition: transform 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.sidebar-open {
+  transform: translateX(0);
+}
+
+.sidebar-closed {
+  transform: translateX(-100%);
+}
+
+/* Overlay fade */
+.overlay-transform {
+  transition: opacity 300ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.overlay-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.overlay-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ========================================
+   Mobile Navigation Styling
+   ======================================== */
+
+/* Mobile bottom nav item */
+.mobile-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-width: 64px;
+  min-height: 44px;
+  padding: 0.5rem;
+  color: var(--color-secondary);
+  transition: color 150ms ease;
+  text-decoration: none;
+}
+
+.mobile-nav-item:hover,
+.mobile-nav-item:active {
+  color: var(--color-primary);
+}
+
+.mobile-nav-item.active {
+  color: #3b82f6;
+}
+
+.mobile-nav-item-icon {
+  width: 24px;
+  height: 24px;
+  margin-bottom: 0.25rem;
+}
+
+.mobile-nav-item-label {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+/* ========================================
+   Animation Utilities
+   ======================================== */
+
+@keyframes stroke-fill {
+  0% {
+    stroke-dashoffset: 43.9822971503;
+  }
+
+  100% {
+    stroke-dashoffset: 0;
+  }
+}
+
+.animate-stroke-fill {
+  animation: stroke-fill 3s 300ms forwards;
+}
+
+.transition-smooth {
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 账户拖拽项：只对背景色过渡，opacity/border 变化即时生效 */
+.account-drag-item {
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* 拖拽中的 placeholder 状态：半透明 + 保持空间 */
+.account-drag-placeholder {
+  opacity: 0.25 !important;
+  background: transparent !important;
+  pointer-events: none;
+  transition: none !important;
+}
+
+/* 拖拽中禁止文字选中（全局） */
+body.account-sorting {
+  user-select: none !important;
+  cursor: grabbing !important;
+}
+body.account-sorting * {
+  user-select: none !important;
+  cursor: grabbing !important;
+}
+
+/* 拖拽 clone 元素样式 */
+.account-drag-clone {
+  border-radius: 8px !important;
+  will-change: transform; /* 硬件加速 */
+}
+
+.transition-fast {
+  transition: all 100ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Button, card, and page animations */
+/* 
+ * 按钮高度规范（统一使用 Tailwind 类）：
+ * - 小按钮：text-sm + py-1.5（删除、编辑等操作按钮）
+ * - 标准按钮：text-sm + py-2（表单提交、取消等）
+ * - 大按钮：text-base + py-2.5（主要操作按钮）
+ * border-radius 统一使用 rounded-lg（8px）
+ */
+.btn-modern {
+  box-shadow: 0 1px 2px rgba(11, 11, 11, 0.08), 0 6px 12px rgba(11, 11, 11, 0.06);
+  transform: translateZ(0);
+  transition: transform 150ms ease, box-shadow 150ms ease, background-color 150ms ease;
+}
+
+.btn-modern:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(11, 11, 11, 0.12), 0 10px 20px rgba(11, 11, 11, 0.12);
+}
+
+.dark .btn-modern,
+[data-theme="dark"] .btn-modern {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35), 0 10px 18px rgba(0, 0, 0, 0.45);
+}
+
+.dark .btn-modern:hover:not(:disabled),
+[data-theme="dark"] .btn-modern:hover:not(:disabled) {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.45), 0 14px 24px rgba(0, 0, 0, 0.55);
+}
+
+.btn-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid currentColor;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.mobile-card,
+section,
+.card-hover {
+  transition: transform 180ms ease, box-shadow 180ms ease;
+}
+
+.mobile-card:hover,
+section:hover,
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 18px rgba(11, 11, 11, 0.12);
+}
+
+.dark .mobile-card:hover,
+.dark section:hover,
+.dark .card-hover:hover,
+[data-theme="dark"] .mobile-card:hover,
+[data-theme="dark"] section:hover,
+[data-theme="dark"] .card-hover:hover {
+  box-shadow: 0 14px 26px rgba(0, 0, 0, 0.45);
+}
+
+.page-fade-enter {
+  animation: page-fade-in 180ms ease-out;
+}
+
+.page-fade-leave {
+  animation: page-fade-out 150ms ease-in forwards;
+}
+
+.stagger-item {
+  animation: stagger-fade-up 220ms ease both;
+  animation-delay: calc(var(--stagger-index, 0) * 70ms);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes page-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes page-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes stagger-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Skeleton loading */
+.page-skeleton {
+  position: fixed;
+  inset: 0;
+  background: var(--color-surface);
+  z-index: 60;
+  pointer-events: none;
+  opacity: 1;
+  transition: opacity 200ms ease;
+}
+
+.page-skeleton-hidden {
+  opacity: 0;
+}
+
+.skeleton-block {
+  height: 12px;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.12) 50%, rgba(0, 0, 0, 0.06) 100%);
+  background-size: 200% 100%;
+  animation: skeleton-shimmer 1.3s ease-in-out infinite;
+}
+
+.dark .skeleton-block,
+[data-theme="dark"] .skeleton-block {
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.05) 100%);
+}
+
+@keyframes skeleton-shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Focus ring */
+.focus-ring {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
+}
+
+/* Text truncation */
+.truncate-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* ========================================
+   Mobile-specific Styles
+   ======================================== */
+
+/* Prevent body scroll when sidebar is open */
+body.sidebar-open {
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+}
+
+/* Mobile card styling */
+.mobile-card {
+  background: var(--color-container);
+  border-radius: 0.75rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  margin-bottom: 1rem;
+}
+
+/* Mobile list item */
+.mobile-list-item {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  min-height: 60px;
+  border-bottom: 1px solid var(--color-border-secondary);
+  transition: background-color 150ms ease;
+}
+
+.mobile-list-item:last-child {
+  border-bottom: none;
+}
+
+.mobile-list-item:active {
+  background-color: var(--color-surface-hover);
+}
+
+tr,
+li,
+.settings-nav-item {
+  transition: background-color 150ms ease, box-shadow 150ms ease;
+}
+
+tr:hover,
+li:hover,
+.settings-nav-item:hover {
+  background-color: var(--color-surface-hover);
+  box-shadow: 0 4px 10px rgba(11, 11, 11, 0.08);
+}
+
+.dark tr:hover,
+.dark li:hover,
+.dark .settings-nav-item:hover,
+[data-theme="dark"] tr:hover,
+[data-theme="dark"] li:hover,
+[data-theme="dark"] .settings-nav-item:hover {
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
+}
+
+/* ========================================
+   Responsive Breakpoint Helpers
+   ======================================== */
+
+/* Hide on mobile */
+@media (max-width: 1023px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* Hide on desktop */
+@media (min-width: 1024px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* ========================================
+   Table Mobile Optimization
+   ======================================== */
+
+/* Compact table padding on mobile for better space usage */
+@media (max-width: 767px) {
+  table th,
+  table td {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+    font-size: 0.8125rem;
+  }
+
+  table th {
+    font-size: 0.6875rem;
+  }
+}
+
+/* ========================================
+   Modal Mobile Optimization
+   ======================================== */
+
+/* Reduce modal padding on mobile */
+@media (max-width: 639px) {
+  .modal-overlay > .flex > .relative,
+  .modal-overlay > .fixed + .flex > .relative,
+  .modal-overlay > .fixed + .relative > .relative {
+    padding: 1rem;
+    max-height: 90vh;
+    overflow-y: auto;
+  }
+
+  /* Ensure modal scrolls to bottom on mobile (thumb-friendly actions) */
+  .modal-overlay.overflow-y-auto > .flex.items-center {
+    align-items: flex-end;
+    min-height: auto;
+    padding-top: env(safe-area-inset-top, 0px);
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+
+  /* Modal grid columns stack on mobile */
+  .modal-overlay .grid-cols-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Lock body scroll when modal is open */
+body:has(.modal-overlay:not(.hidden)) {
+  overflow: hidden;
+  touch-action: none;
+}
+
+/* ========================================
+   iOS Zoom Prevention
+   ======================================== */
+
+/* Prevent iOS auto-zoom on input focus (minimum 16px font-size) */
+@media screen and (max-width: 767px) {
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="search"],
+  input:not([type]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+
+/* ========================================
+   Touch Device Hover Optimization
+   ======================================== */
+
+/* Disable hover effects on touch devices to prevent "sticky" hover */
+@media (hover: none) and (pointer: coarse) {
+  tr:hover {
+    background-color: transparent !important;
+  }
+
+  .hover\:bg-surface:hover,
+  .hover\:bg-surface-dark:hover {
+    background-color: transparent !important;
+  }
+
+  .hover\:shadow-md:hover,
+  [class*="hover:shadow"]:hover {
+    box-shadow: none !important;
+  }
+
+  /* Use active (tap) state instead of hover on touch */
+  tr:active {
+    background-color: var(--color-surface, #f8f9fa);
+  }
+}
+
+/* ========================================
+   Mobile Action Buttons
+   ======================================== */
+
+/* Ensure action links in tables are touch-friendly */
+@media (max-width: 767px) {
+  td .text-right a,
+  td .text-right button,
+  td .text-right form {
+    display: inline-flex;
+    align-items: center;
+    min-height: 36px;
+    padding: 0.25rem 0.5rem;
+  }
+}
+
+/* ========================================
+   Form Elements for Mobile
+   ======================================== */
+
+/* Mobile-friendly input */
+.mobile-input {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  font-size: 16px; /* Prevents iOS zoom on focus */
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background-color: var(--color-container);
+  color: var(--color-primary);
+  min-height: 44px;
+}
+
+.mobile-input:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Mobile-friendly button */
+.mobile-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1.5rem;
+  font-size: 16px;
+  font-weight: 500;
+  border-radius: 0.5rem;
+  min-height: 44px;
+  transition: all 150ms ease;
+}
+
+.mobile-button:active {
+  transform: scale(0.98);
+}
+
+.mobile-button-primary {
+  background-color: #3b82f6;
+  color: white;
+}
+
+.mobile-button-primary:active {
+  background-color: #2563eb;
+}
+
+/* ========================================
+   Pull-to-refresh indicator (optional)
+   ======================================== */
+
+.pull-indicator {
+  position: fixed;
+  top: calc(var(--safe-area-top) + 0.5rem);
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 0.5rem 1rem;
+  background: var(--color-container);
+  border-radius: 9999px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  font-size: 0.875rem;
+  color: var(--color-secondary);
+  opacity: 0;
+  transition: opacity 200ms ease;
+  pointer-events: none;
+}
+
+.pull-indicator.visible {
+  opacity: 1;
+}
+
+/* ========================================
+   Global Button Styles
+   ======================================== */
+
+/* Primary buttons (blue) - border-radius 由 rounded-lg 类控制 */
+button[class*="bg-blue-600"],
+input[type="submit"][class*="bg-blue-600"],
+a[class*="bg-blue-600"]:not([class*="btn-modern"]),
+.button-primary {
+  box-shadow: 0 1px 3px rgba(59, 130, 246, 0.3), 0 4px 8px rgba(59, 130, 246, 0.2);
+  transition: all 150ms ease;
+}
+
+button[class*="bg-blue-600"]:hover:not(:disabled),
+input[type="submit"][class*="bg-blue-600"]:hover:not(:disabled),
+a[class*="bg-blue-600"]:not([class*="btn-modern"]):hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(59, 130, 246, 0.4), 0 8px 16px rgba(59, 130, 246, 0.3);
+}
+
+/* Secondary buttons (gray) - border-radius 由 rounded-lg 类控制 */
+button[class*="bg-gray-200"],
+input[type="submit"][class*="bg-gray-200"],
+button_to input[class*="bg-gray-200"] {
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: all 150ms ease;
+}
+
+button[class*="bg-gray-200"]:hover:not(:disabled),
+input[type="submit"][class*="bg-gray-200"]:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Danger buttons (red) - border-radius 由 rounded-lg 类控制 */
+button[class*="bg-red-"],
+button[class*="text-red-600"]:hover,
+input[type="submit"][class*="bg-red-"] {
+  transition: all 150ms ease;
+}
+
+button[class*="bg-red-"]:hover:not(:disabled),
+input[type="submit"][class*="bg-red-"]:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+/* Success buttons (green) - border-radius 由 rounded-lg 类控制 */
+button[class*="bg-green-"],
+input[type="submit"][class*="bg-green-"] {
+  box-shadow: 0 1px 3px rgba(34, 197, 94, 0.3);
+  transition: all 150ms ease;
+}
+
+button[class*="bg-green-"]:hover:not(:disabled),
+input[type="submit"][class*="bg-green-"]:hover:not(:disabled) {
+  transform: scale(1.02);
+  box-shadow: 0 2px 6px rgba(34, 197, 94, 0.4);
+}
+
+/* All submit buttons */
+input[type="submit"],
+button[type="submit"] {
+  cursor: pointer;
+  font-family: var(--font-sans);
+}
+
+/* Link buttons */
+a[class*="rounded-lg"][class*="bg-"]:not(.nav-link):not(.settings-nav-item) {
+  transition: all 150ms ease;
+}
+
+a[class*="rounded-lg"][class*="bg-"]:hover:not(.nav-link):not(.settings-nav-item) {
+  transform: scale(1.01);
+}
+
+/* ========================================
+   Accounts Page - Layout Fixes
+   ======================================== */
+
+/* 账户页面：覆盖全局 min-h-screen，避免内容少时顶部/底部大片空白 */
+main:has([data-account-page]) {
+  min-height: auto;
+}

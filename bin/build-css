@@ -1,11 +1,12 @@
 #!/bin/bash
 
-# 编译 Tailwind CSS for production Docker builds
-# Development uses CDN, production compiles locally
+# Compile Tailwind CSS v4 for production Docker builds
+# Source: tailwind.css (contains @import "tailwindcss" + @theme + custom styles)
+# Output: application.css (pure CSS, loaded by Propshaft)
 
 set -e
 
-echo "🎨 编译 Tailwind CSS (Production)..."
+echo "🎨 Compiling Tailwind CSS v4 (Production)..."
 
 # Check Node.js
 if ! command -v node &> /dev/null; then
@@ -14,31 +15,18 @@ if ! command -v node &> /dev/null; then
 fi
 
 # Install npm packages if needed
-if [ ! -d "node_modules" ] || [ ! -f "node_modules/.bin/tailwindcss" ]; then
+if [ ! -d "node_modules" ]; then
     echo "📦 Installing npm dependencies..."
     npm install --omit=dev
 fi
 
-# Compile Tailwind CSS
-echo "⚙️  Compiling Tailwind..."
-./node_modules/.bin/tailwindcss \
+# Compile Tailwind CSS v4
+echo "⚙️  Compiling Tailwind v4..."
+npx @tailwindcss/cli \
     -i ./app/assets/stylesheets/tailwind.css \
-    -o ./app/assets/stylesheets/tailwind_output.css \
+    -o ./app/assets/stylesheets/application.css \
     --minify
 
-# Merge with custom styles
-echo "🔗 Merging styles..."
-if [ -f "app/assets/stylesheets/custom.css" ]; then
-    cat app/assets/stylesheets/tailwind_output.css \
-        app/assets/stylesheets/custom.css \
-        > app/assets/stylesheets/application.css
-else
-    cp app/assets/stylesheets/tailwind_output.css \
-       app/assets/stylesheets/application.css
-fi
-
-# Clean up temporary file
-rm -f app/assets/stylesheets/tailwind_output.css
-
-echo "✅ Tailwind CSS compiled successfully!"
+echo "✅ Tailwind CSS v4 compiled successfully!"
+echo "   Source: app/assets/stylesheets/tailwind.css"
 echo "   Output: app/assets/stylesheets/application.css"

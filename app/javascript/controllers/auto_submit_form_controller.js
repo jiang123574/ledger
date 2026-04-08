@@ -22,7 +22,7 @@ export default class extends Controller {
       case "text":
       case "email":
       case "search":
-        return "blur"
+        return "blur-sm"
       case "number":
       case "date":
       case "datetime-local":
@@ -36,7 +36,7 @@ export default class extends Controller {
       case "select":
         return "change"
       case "textarea":
-        return "blur"
+        return "blur-sm"
       default:
         return "change"
     }

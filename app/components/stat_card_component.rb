@@ -11,7 +11,7 @@ class StatCardComponent < ViewComponent::Base
   end
 
   def call
-    content_tag(:div, class: "bg-white rounded-lg shadow p-6") do
+    content_tag(:div, class: "bg-white rounded-lg shadow-sm p-6") do
       concat(content_tag(:h3, @title, class: "text-sm font-medium text-gray-500"))
       concat(content_tag(:p, formatted_value, class: "text-2xl font-bold text-#{@color}-600 mt-1"))
       if @trend

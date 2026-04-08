@@ -80,6 +80,9 @@ group :development do
 
   # Detect N+1 queries in development
   gem "bullet"
+
+  # Process manager for development (Tailwind CSS watch + Rails server)
+  gem "foreman"
 end
 
 gem "lucide-rails", "~> 0.2.0", github: "maybe-finance/lucide-rails"

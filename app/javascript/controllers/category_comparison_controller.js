@@ -212,7 +212,7 @@ export default class extends Controller {
     if (this._selectedRow) {
       this._selectedRow.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset', 'ring-1', 'ring-blue-500/30')
       this._selectedRow.querySelectorAll('.monthly-cell .h-0\\.5, .monthly-cell .h-1').forEach(el => {
-        el.classList.remove('!opacity-100', '!h-1.5')
+        el.classList.remove('opacity-100!', 'h-1.5!')
       })
     }
 
@@ -236,7 +236,7 @@ export default class extends Controller {
 
     // 高亮对应行的所有单元格
     row.querySelectorAll('.monthly-cell').forEach(cell => {
-      cell.querySelector('.h-0\\.5, .h-1')?.classList.add('!opacity-100', '!h-1.5')
+      cell.querySelector('.h-0\\.5, .h-1')?.classList.add('opacity-100!', 'h-1.5!')
     })
   }
 

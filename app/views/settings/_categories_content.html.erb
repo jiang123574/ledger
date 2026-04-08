@@ -18,7 +18,7 @@
 
   <% if @categories.any? %>
     <div class="space-y-4">
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+      <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">
         <div class="px-4 py-2.5 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
           <h2 class="font-semibold text-sm text-primary dark:text-primary-dark">支出分类</h2>
           <span class="text-xs text-secondary dark:text-secondary-dark"><%= @expense_roots.sum { |root| 1 + root.children.size } %> 项</span>
@@ -76,7 +76,7 @@
         </table>
       </div>
 
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-hidden">
+      <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">
         <div class="px-4 py-2.5 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
           <h2 class="font-semibold text-sm text-primary dark:text-primary-dark">收入分类</h2>
           <span class="text-xs text-secondary dark:text-secondary-dark"><%= @income_roots.sum { |root| 1 + root.children.size } %> 项</span>
@@ -135,7 +135,7 @@
       </div>
     </div>
   <% else %>
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-8 text-center">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-8 text-center">
       <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
         <svg class="w-8 h-8 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
       </div>

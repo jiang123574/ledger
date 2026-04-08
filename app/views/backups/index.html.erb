@@ -8,7 +8,7 @@
 
   <!-- Status Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="flex justify-between items-start">
         <div>
           <div class="text-sm text-secondary dark:text-secondary-dark">本地备份</div>
@@ -18,7 +18,7 @@
       </div>
     </div>
 
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="flex justify-between items-start">
         <div>
           <div class="text-sm text-secondary dark:text-secondary-dark">WebDAV 状态</div>
@@ -30,7 +30,7 @@
       </div>
     </div>
 
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="flex justify-between items-start">
         <div>
           <div class="text-sm text-secondary dark:text-secondary-dark">自动备份</div>
@@ -44,7 +44,7 @@
   </div>
 
   <!-- WebDAV Configuration -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4">WebDAV 云备份</h2>
     
     <% if @webdav_configured %>
@@ -110,7 +110,7 @@
   </div>
 
   <!-- Auto Backup -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4">自动备份</h2>
     
     <% if @auto_backup_enabled %>
@@ -133,7 +133,7 @@
   </div>
 
   <!-- Backup List -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow overflow-x-auto">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-x-auto">
     <div class="px-6 py-4 border-b">
       <h2 class="text-lg font-semibold">备份历史</h2>
     </div>

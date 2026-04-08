@@ -6,7 +6,7 @@
 
   <!-- Info Cards -->
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">支持的格式</div>
       <div class="mt-1 flex flex-wrap gap-2">
         <% @supported_formats.each do |format| %>
@@ -14,18 +14,18 @@
         <% end %>
       </div>
     </div>
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">文件大小限制</div>
       <div class="text-lg font-medium">10 MB</div>
     </div>
-    <div class="bg-container dark:bg-container-dark rounded-lg shadow p-4">
+    <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-4">
       <div class="text-sm text-secondary dark:text-secondary-dark">预览限制</div>
       <div class="text-lg font-medium">前 100 行</div>
     </div>
   </div>
 
   <!-- Upload Form -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4">步骤 1: 选择文件</h2>
     
     <%= form_with url: preview_imports_path, local: true, multipart: true, id: "upload-form" do |f| %>
@@ -79,7 +79,7 @@
   </div>
 
   <!-- Templates Info -->
-  <div class="bg-container dark:bg-container-dark rounded-lg shadow p-6">
+  <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4">导入模板说明</h2>
     <div class="grid gap-4 md:grid-cols-2">
       <% @templates.each do |template| %>

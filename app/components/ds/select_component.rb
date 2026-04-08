@@ -102,7 +102,7 @@ module Ds
     def button
       tag.button(
         type: "button",
-        class: "w-full px-3 py-2 text-left text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500",
+        class: "w-full px-3 py-2 text-left text-sm bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500",
         data: {
           select_target: "button",
           action: "click->select#toggle"
@@ -136,7 +136,7 @@ module Ds
           type: "search",
           placeholder: "Search...",
           autocomplete: "off",
-          class: "w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500",
+          class: "w-full px-3 py-2 text-sm bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg focus:outline-hidden focus:ring-2 focus:ring-blue-500",
           data: {
             list_filter_target: "input",
             action: "list-filter#filter"
