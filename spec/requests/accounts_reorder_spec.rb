@@ -3,11 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Accounts reorder", type: :request do
-  let(:auth_headers) do
-    {
-      "HTTP_AUTHORIZATION" => ActionController::HttpAuthentication::Basic.encode_credentials("admin", "testpass")
-    }
-  end
+  before { login }
 
   describe "account reordering" do
     it "updates sort_order when dragging an account to a new position" do
@@ -17,7 +13,6 @@ RSpec.describe "Accounts reorder", type: :request do
 
       patch "/accounts/#{a1.id}/reorder",
         params: { target_id: a3.id },
-        headers: auth_headers,
         as: :json
 
       expect(response).to have_http_status(:ok)
@@ -34,7 +29,6 @@ RSpec.describe "Accounts reorder", type: :request do
 
       patch "/accounts/#{visible_2.id}/reorder",
         params: { target_id: hidden.id, show_hidden: true },
-        headers: auth_headers,
         as: :json
 
       expect(response).to have_http_status(:ok)
@@ -50,17 +44,14 @@ RSpec.describe "Accounts reorder", type: :request do
     let(:date) { Date.today }
 
     it "successfully reorders entries and updates balances" do
-      # Create entries for the same date
       e1 = create(:entry, account: account, date: date, amount: -10.0, sort_order: 3)
       e2 = create(:entry, account: account, date: date, amount: -20.0, sort_order: 2)
       e3 = create(:entry, account: account, date: date, amount: 50.0, sort_order: 1)
 
-      # Reorder: e3, e1, e2
       reordered_ids = [ e3.id, e1.id, e2.id ]
 
       patch "/accounts/#{account.id}/reorder_entries",
         params: { entry_ids: reordered_ids, date: date.to_s },
-        headers: auth_headers,
         as: :json
 
       expect(response).to have_http_status(:ok)
@@ -70,11 +61,9 @@ RSpec.describe "Accounts reorder", type: :request do
       expect(response_data["balances"]).to be_an(Array)
       expect(response_data["balances"].size).to eq(3)
 
-      # Check sort_order was updated correctly
       entries = Entry.where(id: reordered_ids).order(:sort_order)
       expect(entries.pluck(:id)).to eq(reordered_ids)
 
-      # Check balances are calculated correctly
       balances = response_data["balances"]
       expect(balances[0]["entry_id"]).to eq(e3.id)
       expect(balances[1]["entry_id"]).to eq(e1.id)
@@ -86,11 +75,10 @@ RSpec.describe "Accounts reorder", type: :request do
       e2 = create(:entry, account: account, date: date, amount: -20.0)
 
       patch "/accounts/#{account.id}/reorder_entries",
-        params: { entry_ids: [ e1.id ], date: date.to_s }, # Only one ID but two entries exist
-        headers: auth_headers,
+        params: { entry_ids: [ e1.id ], date: date.to_s },
         as: :json
 
-      expect(response).to have_http_status(:unprocessable_entity)
+      expect(response).to have_http_status(:unprocessable_content)
 
       response_data = JSON.parse(response.body)
       expect(response_data["success"]).to be false
@@ -100,7 +88,6 @@ RSpec.describe "Accounts reorder", type: :request do
     it "returns error for invalid date" do
       patch "/accounts/#{account.id}/reorder_entries",
         params: { entry_ids: [], date: "invalid-date" },
-        headers: auth_headers,
         as: :json
 
       expect(response).to have_http_status(:bad_request)

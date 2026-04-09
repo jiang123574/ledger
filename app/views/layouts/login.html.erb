@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html class="h-full">
+  <head>
+    <title>登录 - <%= t("app_name") %></title>
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <meta name="theme-color" content="#1a1a1a">
+    <%= csrf_meta_tags %>
+    <%= csp_meta_tag %>
+    <link rel="icon" href="/icon.png" type="image/png">
+    <link rel="icon" href="/icon.svg" type="image/svg+xml">
+    <link rel="apple-touch-icon" href="/icon.png">
+    <script>
+      if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.classList.add('dark');
+        document.documentElement.setAttribute('data-theme', 'dark');
+      } else {
+        document.documentElement.classList.remove('dark');
+        document.documentElement.setAttribute('data-theme', 'light');
+      }
+    </script>
+    <%= stylesheet_link_tag :application %>
+  </head>
+  <body class="h-full antialiased font-sans" style="background-color: var(--color-surface); color: var(--color-primary);">
+    <%= yield %>
+  </body>
+</html>

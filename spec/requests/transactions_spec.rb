@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Transactions", type: :request do
-  before { http_login }
+  before { login }
 
   describe "GET /transactions" do
     it "redirects to accounts" do
