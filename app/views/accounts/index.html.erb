@@ -739,7 +739,7 @@ function confirmDeleteAccount(id, name) {
 </script>
 
 <!-- 应收款/报销弹窗数据源 -->
-<script id="receivable-payable-modal-categories-data" type="application/json">
+<script id="modal-categories-data" type="application/json">
   <%= raw @expense_categories.map { |c| fn = build_full_name_in_memory(c, expense_parent_map); { name: c.name, full_name: fn, pinyin: PinYin.abbr(fn).downcase } }.to_json %>
 </script>
 
@@ -2244,96 +2244,85 @@ document.addEventListener('turbo:render', fixModalPositions);
 <script type="module">
 import { initSelectorWithData } from 'selectors';
 
-// 解析数据源
-var modalAccountsDataEl = document.getElementById('accounts-data');
-var modalCategoriesDataEl = document.getElementById('receivable-payable-modal-categories-data');
+// 防止 turbo:render 导致重复初始化
+if (!window.modalSelectorsInitialized) {
+  window.modalSelectorsInitialized = true;
 
-var modalAccountsData = modalAccountsDataEl ? JSON.parse(modalAccountsDataEl.textContent) : [];
-var modalCategoriesData = modalCategoriesDataEl ? JSON.parse(modalCategoriesDataEl.textContent) : [];
+  // 解析数据源
+  var modalAccountsDataEl = document.getElementById('accounts-data');
+  var modalCategoriesDataEl = document.getElementById('modal-categories-data');
 
-// 转换分类数据格式
-var modalCategoryData = modalCategoriesData.map(function(cat) {
-  return {
-    id: cat.name,
-    name: cat.name,
-    full_name: cat.full_name || cat.name,
-    pinyin: cat.pinyin || ''
-  };
-});
+  var modalAccountsData = modalAccountsDataEl ? JSON.parse(modalAccountsDataEl.textContent) : [];
+  var modalCategoriesData = modalCategoriesDataEl ? JSON.parse(modalCategoriesDataEl.textContent) : [];
 
-function openNewReceivableModal() {
-  var form = document.getElementById('new-receivable-form');
-  if (form) {
-    form.reset();
-    var dateInput = form.querySelector('input[name="receivable[date]"]');
-    if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+  // 转换分类数据格式
+  var modalCategoryData = modalCategoriesData.map(function(cat) {
+    return {
+      id: cat.name,
+      name: cat.name,
+      full_name: cat.full_name || cat.name,
+      pinyin: cat.pinyin || ''
+    };
+  });
+
+  // 抽取公共初始化函数
+  function initModalSelectors(modalType) {
+    // 初始化账户选择器
+    initSelectorWithData({
+      searchInputId: `new-${modalType}-account-search-modal`,
+      dropdownId: `new-${modalType}-account-dropdown-modal`,
+      filterInputId: `new-${modalType}-account-filter-modal`,
+      optionsId: `new-${modalType}-account-options-modal`,
+      hiddenInputId: `new-${modalType}-account-id-modal`,
+      dataSource: modalAccountsData,
+      noMatchText: '无匹配账户'
+    });
+    
+    // 初始化分类选择器
+    initSelectorWithData({
+      searchInputId: `new-${modalType}-category-search-modal`,
+      dropdownId: `new-${modalType}-category-dropdown-modal`,
+      filterInputId: `new-${modalType}-category-filter-modal`,
+      optionsId: `new-${modalType}-category-options-modal`,
+      hiddenInputId: `new-${modalType}-category-id-modal`,
+      dataSource: modalCategoryData,
+      emptyOption: { label: '不设置分类', value: '', display: '' },
+      noMatchText: '无匹配分类'
+    });
   }
-  
-  // 初始化账户选择器
-  initSelectorWithData({
-    searchInputId: 'new-receivable-account-search-modal',
-    dropdownId: 'new-receivable-account-dropdown-modal',
-    filterInputId: 'new-receivable-account-filter-modal',
-    optionsId: 'new-receivable-account-options-modal',
-    hiddenInputId: 'new-receivable-account-id-modal',
-    dataSource: modalAccountsData,
-    noMatchText: '无匹配账户'
-  });
-  
-  // 初始化分类选择器
-  initSelectorWithData({
-    searchInputId: 'new-receivable-category-search-modal',
-    dropdownId: 'new-receivable-category-dropdown-modal',
-    filterInputId: 'new-receivable-category-filter-modal',
-    optionsId: 'new-receivable-category-options-modal',
-    hiddenInputId: 'new-receivable-category-id-modal',
-    dataSource: modalCategoryData,
-    emptyOption: { label: '不设置分类', value: '', display: '' },
-    noMatchText: '无匹配分类'
-  });
-  
-  var modal = document.getElementById('add-receivable-modal');
-  if (modal) modal.classList.remove('hidden');
-}
 
-function openNewPayableModal() {
-  var form = document.getElementById('new-payable-form');
-  if (form) {
-    form.reset();
-    var dateInput = form.querySelector('input[name="payable[date]"]');
-    if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+  function openNewReceivableModal() {
+    var form = document.getElementById('new-receivable-form');
+    if (form) {
+      form.reset();
+      var dateInput = form.querySelector('input[name="receivable[date]"]');
+      if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+    }
+    
+    initModalSelectors('receivable');
+    
+    var modal = document.getElementById('add-receivable-modal');
+    if (modal) modal.classList.remove('hidden');
   }
-  
-  // 初始化账户选择器
-  initSelectorWithData({
-    searchInputId: 'new-payable-account-search-modal',
-    dropdownId: 'new-payable-account-dropdown-modal',
-    filterInputId: 'new-payable-account-filter-modal',
-    optionsId: 'new-payable-account-options-modal',
-    hiddenInputId: 'new-payable-account-id-modal',
-    dataSource: modalAccountsData,
-    noMatchText: '无匹配账户'
-  });
-  
-  // 初始化分类选择器
-  initSelectorWithData({
-    searchInputId: 'new-payable-category-search-modal',
-    dropdownId: 'new-payable-category-dropdown-modal',
-    filterInputId: 'new-payable-category-filter-modal',
-    optionsId: 'new-payable-category-options-modal',
-    hiddenInputId: 'new-payable-category-id-modal',
-    dataSource: modalCategoryData,
-    emptyOption: { label: '不设置分类', value: '', display: '' },
-    noMatchText: '无匹配分类'
-  });
-  
-  var modal = document.getElementById('add-payable-modal');
-  if (modal) modal.classList.remove('hidden');
-}
 
-// 暴露函数到全局作用域（供快捷键调用）
-window.openNewReceivableModal = openNewReceivableModal;
-window.openNewPayableModal = openNewPayableModal;
+  function openNewPayableModal() {
+    var form = document.getElementById('new-payable-form');
+    if (form) {
+      form.reset();
+      var dateInput = form.querySelector('input[name="payable[date]"]');
+      if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+    }
+    
+    initModalSelectors('payable');
+    
+    var modal = document.getElementById('add-payable-modal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  // 暴露函数到全局作用域（供快捷键调用）
+  window.openNewReceivableModal = openNewReceivableModal;
+  window.openNewPayableModal = openNewPayableModal;
+}
 </script>
 
 <!-- ========== 信用卡账单区域 ========== -->
