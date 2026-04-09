@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Accounts system sync fallback", type: :request do
-  before { http_login }
+  before { login }
 
   let(:receivable_name) { "测试应收款#{SecureRandom.hex(4)}" }
   let(:payable_name) { "测试应付款#{SecureRandom.hex(4)}" }

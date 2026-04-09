@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Dashboard", type: :request do
-  before { http_login }
+  before { login }
 
   describe "GET /dashboard" do
     it "returns HTTP success" do

@@ -2,19 +2,18 @@
 
 require "rails_helper"
 
-RSpec.describe "HTTP Basic Auth", type: :request do
+RSpec.describe "Session-based Auth", type: :request do
   before do
-    # 确保测试环境 AUTH 变量已设置
     ENV["AUTH_USER"] = "admin"
     ENV["AUTH_PASSWORD"] = "testpass"
   end
 
   context "when credentials are correct" do
-    before { http_login("admin", "testpass") }
+    before { login("admin", "testpass") }
 
     it "allows access to protected pages" do
       get "/accounts"
-      expect(response).to have_http_status(:success) # redirect to /accounts is root
+      expect(response).to have_http_status(:success)
     end
 
     it "allows access to dashboard" do
@@ -24,18 +23,18 @@ RSpec.describe "HTTP Basic Auth", type: :request do
   end
 
   context "when credentials are missing" do
-    it "returns 401 Unauthorized" do
+    it "redirects to login page" do
       get "/accounts"
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to redirect_to(login_path)
     end
   end
 
   context "when credentials are wrong" do
-    before { http_login("admin", "wrongpassword") }
+    before { login("admin", "wrongpassword") }
 
-    it "returns 401 Unauthorized" do
+    it "shows error and stays on login page" do
       get "/accounts"
-      expect(response).to have_http_status(:unauthorized)
+      expect(response).to redirect_to(login_path)
     end
   end
 
@@ -53,6 +52,13 @@ RSpec.describe "HTTP Basic Auth", type: :request do
     end
   end
 
+  context "login page" do
+    it "is accessible without auth" do
+      get login_path
+      expect(response).to have_http_status(:success)
+    end
+  end
+
   context "when AUTH env vars are not set" do
     before do
       ENV.delete("AUTH_USER")
@@ -66,8 +72,19 @@ RSpec.describe "HTTP Basic Auth", type: :request do
 
     it "allows access without auth" do
       get "/accounts"
-      # 不应该返回 401
-      expect(response).not_to have_http_status(:unauthorized)
+      expect(response).to have_http_status(:success)
+    end
+  end
+
+  context "logout" do
+    before { login("admin", "testpass") }
+
+    it "clears session and redirects to login" do
+      delete logout_path
+      expect(response).to redirect_to(login_path)
+
+      get "/accounts"
+      expect(response).to redirect_to(login_path)
     end
   end
 end

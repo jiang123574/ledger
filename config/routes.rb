@@ -1,4 +1,9 @@
 Rails.application.routes.draw do
+  # Authentication
+  get "login", to: "sessions#new", as: :login
+  post "login", to: "sessions#create"
+  delete "logout", to: "sessions#destroy", as: :logout
+
   # PWA manifest
   get "manifest" => "pwa#manifest", as: :pwa_manifest
   get "manifest.json" => "pwa#manifest"

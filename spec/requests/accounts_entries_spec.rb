@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Accounts entries API", type: :request do
-  before { http_login }
+  before { login }
 
   let(:account) { create(:account, initial_balance: 1000) }
   let(:another_account) { create(:account, initial_balance: 500) }
@@ -12,7 +12,7 @@ RSpec.describe "Accounts entries API", type: :request do
     context "authentication" do
       it "requires authentication" do
         # 调用端点时需要认证
-        # 如果没有异常，说明请求被 http_login helper 正确认证了
+        # 如果没有异常，说明请求被 login helper 正确认证了
         get "/accounts/entries", params: { page: 1, per_page: 10, format: :json }
 
         expect(response).to have_http_status(:ok)
@@ -410,7 +410,7 @@ RSpec.describe "Accounts entries API", type: :request do
 
     context "security and input validation" do
       it "requires authentication" do
-        # 这可能需要特殊处理，因为http_login已经在before中设置
+        # 这可能需要特殊处理，因为login已经在before中设置
         # 这里只是确保API响应有效
         get "/accounts/entries", params: { page: 1, per_page: 10, format: :json }
 

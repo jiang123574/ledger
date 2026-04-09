@@ -5,41 +5,46 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
-  # ============ HTTP Basic Auth 全站保护 ============
+  # ============ Session-based Auth 全站保护 ============
   # 个人记账工具部署在公网，必须有访问控制
   # 通过 AUTH_USER / AUTH_PASSWORD 环境变量配置
-  # 未配置时仅在 Rails.env.production? 启用（开发环境不拦截）
+  # 未配置时跳过认证（开发环境或无需认证场景）
   #
   # 放开的端点：
   # - /up（健康检查）
   # - /manifest / /manifest.json（PWA）
   # - /api/external/*（使用独立 API Key 认证）
-  before_action :http_basic_auth_check
+  # - /login（登录页面）
+  before_action :require_login
 
   private
 
-  def http_basic_auth_check
-    return unless auth_required?
-    authenticate_or_request_with_http_basic do |name, password|
-      ActiveSupport::SecurityUtils.secure_compare(name, ENV["AUTH_USER"]) &&
-        ActiveSupport::SecurityUtils.secure_compare(password, ENV["AUTH_PASSWORD"])
-    end
+  def require_login
+    return unless auth_configured?
+    return if skip_auth_for_path?
+    return if logged_in?
+
+    store_location
+    redirect_to login_path, alert: "请先登录"
   end
 
-  # 是否需要 Basic Auth 认证
-  def auth_required?
-    if ENV["AUTH_USER"].blank? || ENV["AUTH_PASSWORD"].blank?
-      Rails.logger.warn "[AUTH] Basic Auth disabled: AUTH_USER/AUTH_PASSWORD not set" if Rails.env.production?
-      return false
-    end
-    return false if skip_auth_for_path?
-    true
+  def auth_configured?
+    ENV["AUTH_USER"].present? && ENV["AUTH_PASSWORD"].present?
   end
 
-  # 跳过认证的路径（健康检查、PWA manifest、外部 API）
+  def logged_in?
+    session[:authenticated] == true
+  end
+  helper_method :logged_in?
+
+  def store_location
+    session[:return_to] = request.fullpath if request.get? && !request.xhr?
+  end
+
   def skip_auth_for_path?
     request.path == "/up" ||
       request.path.start_with?("/manifest") ||
-      request.path.start_with?("/api/external/")
+      request.path.start_with?("/api/external/") ||
+      request.path == login_path
   end
 end

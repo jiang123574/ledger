@@ -3,7 +3,7 @@
 require "rails_helper"
 
 RSpec.describe "Receivables", type: :request do
-  before { http_login }
+  before { login }
 
   let(:account) { create(:account) }
   let(:counterparty) { create(:counterparty, name: "客户A") }
