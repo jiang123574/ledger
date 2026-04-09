@@ -7,11 +7,12 @@ class SessionsController < ApplicationController
 
   def create
     if valid_credentials?
+      reset_session
       session[:authenticated] = true
       redirect_to session[:return_to] || root_path, notice: "登录成功"
     else
       flash.now[:alert] = "用户名或密码错误"
-      render :new, status: :unauthorized
+      render :new, status: :unprocessable_entity
     end
   end
 
