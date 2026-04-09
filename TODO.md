@@ -241,6 +241,76 @@ entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
 
 ---
 
+#### 5.4 accounts_controller 缓存键优化
+
+**优先级**: 低
+**状态**: ⏳ 待优化
+**来源**: PR #74 Code Review
+
+**问题描述**:
+- `build_filter_cache_key` 同时用于 `entries_count` 和 `entries_list` 缓存
+- `entries_count` 缓存包含了不必要的 `sort_direction` 参数
+- 切换排序方向时，count 缓存不会命中，导致轻微缓存浪费
+
+**优化方案**:
+```ruby
+def build_count_cache_key
+  "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}"
+end
+
+def build_entries_cache_key
+  sort_direction = params[:sort_direction]&.downcase || "desc"
+  sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
+  "#{build_count_cache_key}_#{sort_direction}"
+end
+```
+
+**预期收益**:
+- 减少 count 缓存的冗余存储
+- 提升缓存命中率
+- 与原有设计保持一致
+
+**相关文件**:
+- `app/controllers/accounts_controller.rb`
+
+**备注**:
+- 功能正常，非关键问题
+- 可在下次重构时一并优化
+
+---
+
+### 6. Tailwind CSS v4 迁移清理
+
+**优先级**: 低
+**预估工期**: 0.5 小时
+**状态**: ⏳ 待修复
+**来源**: PR #74 Code Review
+
+**问题描述**:
+- 部分文件仍使用 `focus:outline-hidden`（Tailwind v3 语法）
+- Tailwind v4 中应使用 `focus:outline-none`
+
+**受影响文件**:
+- `app/views/dashboard/show.html.erb` - 4 处
+- `app/views/plans/index.html.erb` - 2 处
+
+**修复方案**:
+```erb
+<!-- 修改前 -->
+focus:outline-hidden focus-visible:ring-2 ...
+
+<!-- 修改后 -->
+focus:outline-none focus-visible:ring-2 ...
+```
+
+**验证清单**:
+- [ ] 全局搜索 `outline-hidden` 并替换
+- [ ] 检查其他 Tailwind v3 语法残留
+- [ ] 测试所有页面的 focus 样式
+- [ ] 提交单独的 PR
+
+---
+
 ## 已完成任务（历史记录）
 
 ### P3 - Entry 模型迁移（✅ 完成）

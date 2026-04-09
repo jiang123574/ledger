@@ -738,6 +738,11 @@ function confirmDeleteAccount(id, name) {
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 
+<!-- 应收款/报销弹窗数据源 -->
+<script id="modal-categories-data" type="application/json">
+  <%= raw @expense_categories.map { |c| fn = build_full_name_in_memory(c, expense_parent_map); { name: c.name, full_name: fn, pinyin: PinYin.abbr(fn).downcase } }.to_json %>
+</script>
+
 <div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
@@ -2063,12 +2068,25 @@ document.addEventListener('turbo:render', fixModalPositions);
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select name="receivable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">请选择类别</option>
-              <% @expense_categories.each do |category| %>
-                <option value="<%= category.name %>"><%= build_full_name_in_memory(category, expense_parent_map) %></option>
-              <% end %>
-            </select>
+            <div class="relative">
+              <input type="text" id="new-receivable-category-search-modal"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择类别"
+                     autocomplete="off"
+                     readonly>
+              <input type="hidden" name="receivable[category]" id="new-receivable-category-id-modal">
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-receivable-category-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-receivable-category-filter-modal"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="筛选...">
+                </div>
+                <div id="new-receivable-category-options-modal" class="p-1"></div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -2083,12 +2101,25 @@ document.addEventListener('turbo:render', fixModalPositions);
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户</label>
-            <select name="receivable[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">选择账户</option>
-              <% @accounts.each do |account_item| %>
-                <option value="<%= account_item.id %>"><%= account_item.name %></option>
-              <% end %>
-            </select>
+            <div class="relative">
+              <input type="text" id="new-receivable-account-search-modal"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择账户"
+                     autocomplete="off"
+                     readonly>
+              <input type="hidden" name="receivable[account_id]" id="new-receivable-account-id-modal">
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-receivable-account-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-receivable-account-filter-modal"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="筛选...">
+                </div>
+                <div id="new-receivable-account-options-modal" class="p-1"></div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -2141,12 +2172,25 @@ document.addEventListener('turbo:render', fixModalPositions);
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <select name="payable[category]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">请选择类别</option>
-              <% @expense_categories.each do |category| %>
-                <option value="<%= category.name %>"><%= build_full_name_in_memory(category, expense_parent_map) %></option>
-              <% end %>
-            </select>
+            <div class="relative">
+              <input type="text" id="new-payable-category-search-modal"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择类别"
+                     autocomplete="off"
+                     readonly>
+              <input type="hidden" name="payable[category]" id="new-payable-category-id-modal">
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-payable-category-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-payable-category-filter-modal"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="筛选...">
+                </div>
+                <div id="new-payable-category-options-modal" class="p-1"></div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -2161,12 +2205,25 @@ document.addEventListener('turbo:render', fixModalPositions);
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户</label>
-            <select name="payable[account_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">选择账户</option>
-              <% @accounts.each do |account_item| %>
-                <option value="<%= account_item.id %>"><%= account_item.name %></option>
-              <% end %>
-            </select>
+            <div class="relative">
+              <input type="text" id="new-payable-account-search-modal"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择账户"
+                     autocomplete="off"
+                     readonly>
+              <input type="hidden" name="payable[account_id]" id="new-payable-account-id-modal">
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-payable-account-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-payable-account-filter-modal"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="筛选...">
+                </div>
+                <div id="new-payable-account-options-modal" class="p-1"></div>
+              </div>
+            </div>
           </div>
 
           <div>
@@ -2184,27 +2241,87 @@ document.addEventListener('turbo:render', fixModalPositions);
   </div>
 </div>
 
-<script>
-function openNewReceivableModal() {
-  var form = document.getElementById('new-receivable-form');
-  if (form) {
-    form.reset();
-    var dateInput = form.querySelector('input[name="receivable[date]"]');
-    if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
-  }
-  var modal = document.getElementById('add-receivable-modal');
-  if (modal) modal.classList.remove('hidden');
-}
+<script type="module">
+import { initSelectorWithData } from 'selectors';
 
-function openNewPayableModal() {
-  var form = document.getElementById('new-payable-form');
-  if (form) {
-    form.reset();
-    var dateInput = form.querySelector('input[name="payable[date]"]');
-    if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+// 防止 turbo:render 导致重复初始化
+if (!window.modalSelectorsInitialized) {
+  window.modalSelectorsInitialized = true;
+
+  // 解析数据源
+  var modalAccountsDataEl = document.getElementById('accounts-data');
+  var modalCategoriesDataEl = document.getElementById('modal-categories-data');
+
+  var modalAccountsData = modalAccountsDataEl ? JSON.parse(modalAccountsDataEl.textContent) : [];
+  var modalCategoriesData = modalCategoriesDataEl ? JSON.parse(modalCategoriesDataEl.textContent) : [];
+
+  // 转换分类数据格式
+  var modalCategoryData = modalCategoriesData.map(function(cat) {
+    return {
+      id: cat.name,
+      name: cat.name,
+      full_name: cat.full_name || cat.name,
+      pinyin: cat.pinyin || ''
+    };
+  });
+
+  // 抽取公共初始化函数
+  function initModalSelectors(modalType) {
+    // 初始化账户选择器
+    initSelectorWithData({
+      searchInputId: `new-${modalType}-account-search-modal`,
+      dropdownId: `new-${modalType}-account-dropdown-modal`,
+      filterInputId: `new-${modalType}-account-filter-modal`,
+      optionsId: `new-${modalType}-account-options-modal`,
+      hiddenInputId: `new-${modalType}-account-id-modal`,
+      dataSource: modalAccountsData,
+      noMatchText: '无匹配账户'
+    });
+    
+    // 初始化分类选择器
+    initSelectorWithData({
+      searchInputId: `new-${modalType}-category-search-modal`,
+      dropdownId: `new-${modalType}-category-dropdown-modal`,
+      filterInputId: `new-${modalType}-category-filter-modal`,
+      optionsId: `new-${modalType}-category-options-modal`,
+      hiddenInputId: `new-${modalType}-category-id-modal`,
+      dataSource: modalCategoryData,
+      emptyOption: { label: '不设置分类', value: '', display: '' },
+      noMatchText: '无匹配分类'
+    });
   }
-  var modal = document.getElementById('add-payable-modal');
-  if (modal) modal.classList.remove('hidden');
+
+  function openNewReceivableModal() {
+    var form = document.getElementById('new-receivable-form');
+    if (form) {
+      form.reset();
+      var dateInput = form.querySelector('input[name="receivable[date]"]');
+      if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+    }
+    
+    initModalSelectors('receivable');
+    
+    var modal = document.getElementById('add-receivable-modal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  function openNewPayableModal() {
+    var form = document.getElementById('new-payable-form');
+    if (form) {
+      form.reset();
+      var dateInput = form.querySelector('input[name="payable[date]"]');
+      if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
+    }
+    
+    initModalSelectors('payable');
+    
+    var modal = document.getElementById('add-payable-modal');
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  // 暴露函数到全局作用域（供快捷键调用）
+  window.openNewReceivableModal = openNewReceivableModal;
+  window.openNewPayableModal = openNewPayableModal;
 }
 </script>
 
