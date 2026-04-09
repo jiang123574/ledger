@@ -72,7 +72,18 @@ app/
 | DB_HOST | 数据库主机 |
 | DB_USERNAME | 数据库用户名 |
 | DB_PASSWORD | 数据库密码 |
+| AUTH_USER | 登录用户名（可选，未设置时跳过认证） |
+| AUTH_PASSWORD | 登录密码（可选，未设置时跳过认证） |
 | EXTERNAL_API_KEY | 外部 API 密钥 |
+
+## 认证
+
+生产环境支持 Session 登录认证：
+
+- 设置 `AUTH_USER` 和 `AUTH_PASSWORD` 后，访问需要登录
+- 未设置时，跳过认证（适用于内网或本地开发）
+- 登录页面：`/login`
+- 登出：`/logout`
 
 ## API 端点
 
