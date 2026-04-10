@@ -5,11 +5,11 @@ class ReceivablesController < ApplicationController
   before_action :check_not_settled, only: %i[update destroy]
 
   def index
-    @unsettled = Receivable.where(settled_at: nil).order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
-    @settled = Receivable.where.not(settled_at: nil).order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
-    @receivables = Receivable.order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
+    @unsettled = Receivable.where(settled_at: nil).order(date: :desc).includes(:counterparty)
+    @settled = Receivable.where.not(settled_at: nil).order(date: :desc).includes(:counterparty)
+    @receivables = Receivable.order(date: :desc).includes(:counterparty)
     @selected_counterparty_id = params[:counterparty_id].presence
-    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id).includes(:source_entry, source_entry: :account)
+    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id)
     @unsettled_counterparty_stats = build_counterparty_stats(@unsettled)
     @receivable = Receivable.new(date: Date.today)
     @accounts = Account.visible.order(:name)
@@ -38,20 +38,16 @@ class ReceivablesController < ApplicationController
   end
 
   def update
-    previous_attrs = {
-      description: @receivable.description,
-      date: @receivable.date,
-      original_amount: @receivable.original_amount,
-      account_id: @receivable.account_id
-    }
-
     ActiveRecord::Base.transaction do
       @receivable.update!(receivable_params)
 
-      # 处理旧数据（有 source_entry_id）
-      sync_source_entry!(previous_attrs) if @receivable.source_entry_id.present?
-
-      # TODO: 处理新数据（有 transfer_id）- 更新转账金额
+      # 更新创建应收款时的转账金额
+      # 注意：使用 update_all 跳过 callbacks，因为 transfer 条目不需要业务校验
+      if @receivable.transfer_id.present?
+        Entry.where(transfer_id: @receivable.transfer_id).update_all(
+          amount: Arel.sql("CASE WHEN amount < 0 THEN -#{@receivable.original_amount.to_s} ELSE #{@receivable.original_amount.to_s} END")
+        )
+      end
     end
 
     redirect_to receivables_path, notice: "应收款已更新"
@@ -95,11 +91,7 @@ class ReceivablesController < ApplicationController
 
 def revert
     ActiveRecord::Base.transaction do
-      # 删除所有报销转账（新逻辑）
       cleanup_reimbursement_transfers
-
-      # 删除报销时的收入 Entry（旧逻辑）
-      cleanup_old_reimbursement_entries
 
       @receivable.update!(
         remaining_amount: @receivable.original_amount,
@@ -184,154 +176,21 @@ def revert
   end
 
   def cleanup_transfer_entries
-    # 删除创建应收款时的转账（新逻辑）
+    # 删除创建应收款时的转账
     if @receivable.transfer_id.present?
       Entry.where(transfer_id: @receivable.transfer_id).destroy_all
     end
 
-    # 删除所有报销转账（新逻辑）
+    # 删除所有报销转账
     cleanup_reimbursement_transfers
-
-    # 删除创建应收款时的支出 Entry（旧逻辑）
-    if @receivable.source_entry_id.present?
-      Entry.find_by(id: @receivable.source_entry_id)&.destroy
-    end
   end
 
   def cleanup_reimbursement_transfers
-    # 处理多个 reimbursement_transfer_ids
     ids = @receivable.reimbursement_transfer_ids
     ids.each do |transfer_id|
       Entry.where(transfer_id: transfer_id).destroy_all
     end
     @receivable.update!(reimbursement_transfer_ids: [])
-  end
-
-  def cleanup_old_reimbursement_entries
-    # 只处理旧数据（没有 reimbursement_transfer_ids 的，但有报销记录的）
-    return if @receivable.reimbursement_transfer_ids.any?
-
-    # 查找并删除匹配名称的报销 Entry（旧逻辑创建的收入 Entry）
-    reimbursement_entries = find_reimbursement_entries
-    reimbursement_entries.destroy_all
-  end
-
-  def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil, notes: nil)
-    # 获取该账户该日期的下一个 sort_order
-    max_order = Entry.where(account_id: account_id, date: date).maximum(:sort_order) || 0
-    sort_order = max_order + 1
-
-    entryable = Entryable::Transaction.new(
-      kind: kind,
-      category_id: category_id
-    )
-    entryable.save(validate: false)
-
-    Entry.create!(
-      account_id: account_id,
-      date: date,
-      name: name,
-      amount: amount,
-      currency: "CNY",
-      notes: notes,
-      entryable: entryable,
-      sort_order: sort_order
-    )
-  end
-
-  def create_receivable_with_funding_transfer(receivable:, funding_account_id:, category_id:)
-    Entry.transaction do
-      EntryCreationService.create_transfer(
-        from_account_id: funding_account_id,
-        to_account_id: receivable.account_id,
-        amount: receivable.original_amount.to_d,
-        date: receivable.date,
-        currency: "CNY",
-        note: "自动补记资金来源 #{receivable.description}"
-      )
-
-      source_entry = create_entry(
-        account_id: receivable.account_id,
-        amount: -receivable.original_amount.to_d,
-        date: receivable.date,
-        name: "[待报销] #{receivable.description}",
-        kind: "expense",
-        category_id: category_id,
-        notes: nil
-      )
-
-      receivable.update!(source_entry_id: source_entry.id) if source_entry
-      lock_source_entry(source_entry)
-    end
-  end
-
-  def lock_source_entry(source_entry)
-    return unless source_entry
-
-    source_entry.lock_attribute!(:amount)
-    source_entry.lock_attribute!(:date)
-    source_entry.lock_attribute!(:account_id)
-    source_entry.entryable&.lock_attr!(:category_id) if source_entry.entryable.respond_to?(:lock_attr!)
-  end
-
-  def resolve_category_id(category_name, kind:)
-    return nil if category_name.blank?
-
-    category_type = kind == "income" ? "INCOME" : "EXPENSE"
-    Category.where(type: category_type).find_by(name: category_name)&.id ||
-      Category.find_by(name: category_name)&.id
-  end
-
-  def find_source_entry(previous_attrs = nil)
-    # 首先尝试通过 source_entry_id FK 查找
-    return @receivable.source_entry if @receivable.source_entry_id.present?
-
-    # 回退：通过属性匹配查找
-    scope = Entry.transactions_only
-      .with_entryable_transaction
-      .where(entryable_transactions: { kind: "expense" })
-
-    attrs = previous_attrs || {}
-    description = attrs[:description].presence || @receivable.description
-    amount = attrs[:original_amount].presence || @receivable.original_amount
-    date = attrs[:date].presence || @receivable.date
-    account_id = attrs[:account_id].presence || @receivable.account_id
-
-    scope.where(
-      name: "[待报销] #{description}",
-      amount: -amount.to_d,
-      date: date,
-      account_id: account_id
-    ).order(created_at: :desc).first
-  end
-
-  def sync_source_entry!(previous_attrs)
-    source_entry = find_source_entry(previous_attrs) || find_source_entry
-    return unless source_entry
-
-    category_id = resolve_category_id(@receivable.category, kind: "expense")
-    source_entry.update!(
-      account_id: @receivable.account_id,
-      date: @receivable.date,
-      name: "[待报销] #{@receivable.description}",
-      amount: -@receivable.original_amount.to_d,
-      notes: nil
-    )
-    return unless source_entry.entryable.is_a?(Entryable::Transaction)
-
-    source_entry.entryable.update!(
-      kind: "expense",
-      category_id: category_id
-    )
-
-    # 更新 source_entry_id
-    @receivable.update!(source_entry_id: source_entry.id) unless @receivable.source_entry_id == source_entry.id
-
-    # 再次锁定关键字段
-    source_entry.lock_attribute!(:amount)
-    source_entry.lock_attribute!(:date)
-    source_entry.lock_attribute!(:account_id)
-    source_entry.entryable&.lock_attr!(:category_id) if source_entry.entryable.respond_to?(:lock_attr!)
   end
 
   def build_counterparty_stats(records)
@@ -348,13 +207,6 @@ def revert
       end
       .sort_by { |s| [ -s[:amount], -s[:count], s[:name] ] }
       .first(8)
-  end
-
-  def find_reimbursement_entries
-    Entry.transactions_only
-      .with_entryable_transaction
-      .where(entryable_transactions: { kind: "income" })
-      .where("entries.name LIKE ? OR entries.name LIKE ?", "%[报销] #{@receivable.description}%", "%报销 #{@receivable.description}%")
   end
 
   def filter_by_counterparty(scope, counterparty_id)
