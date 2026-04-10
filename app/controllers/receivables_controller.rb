@@ -42,9 +42,10 @@ class ReceivablesController < ApplicationController
       @receivable.update!(receivable_params)
 
       # 更新创建应收款时的转账金额
+      # 注意：使用 update_all 跳过 callbacks，因为 transfer 条目不需要业务校验
       if @receivable.transfer_id.present?
         Entry.where(transfer_id: @receivable.transfer_id).update_all(
-          amount: Arel.sql("CASE WHEN amount < 0 THEN -#{@receivable.original_amount} ELSE #{@receivable.original_amount} END")
+          amount: Arel.sql("CASE WHEN amount < 0 THEN -#{@receivable.original_amount.to_s} ELSE #{@receivable.original_amount.to_s} END")
         )
       end
     end
