@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_10_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_10_081303) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -338,7 +338,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_000001) do
     t.string "description"
     t.string "note"
     t.decimal "original_amount", precision: 10, scale: 2
-    t.integer "reimbursement_transfer_id"
+    t.text "reimbursement_transfer_ids"
     t.decimal "remaining_amount", precision: 10, scale: 2
     t.datetime "settled_at"
     t.bigint "source_entry_id"
@@ -347,7 +347,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_000001) do
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_receivables_on_account_id"
     t.index ["counterparty_id"], name: "index_receivables_on_counterparty_id"
-    t.index ["reimbursement_transfer_id"], name: "index_receivables_on_reimbursement_transfer_id"
+    t.index ["reimbursement_transfer_ids"], name: "index_receivables_on_reimbursement_transfer_ids"
     t.index ["source_entry_id"], name: "index_receivables_on_source_entry_id"
     t.index ["source_transaction_id"], name: "index_receivables_on_source_transaction_id"
     t.index ["transfer_id"], name: "index_receivables_on_transfer_id"

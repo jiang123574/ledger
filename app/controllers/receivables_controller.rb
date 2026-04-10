@@ -1,3 +1,5 @@
+class ReceivableCreationError < StandardError; end
+
 class ReceivablesController < ApplicationController
   before_action :set_receivable, only: %i[show update destroy settle revert]
   before_action :check_not_settled, only: %i[update destroy]
@@ -22,13 +24,17 @@ class ReceivablesController < ApplicationController
     @receivable = Receivable.new(receivable_params)
     @receivable.remaining_amount = @receivable.original_amount
 
-    if @receivable.save
+    ActiveRecord::Base.transaction do
+      @receivable.save!
       funding_account_id = params[:funding_account_id].presence
       create_transfer_to_receivable_account(funding_account_id: funding_account_id)
-      redirect_to receivables_path, notice: "应收款已创建"
-    else
-      redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
     end
+
+    redirect_to receivables_path, notice: "应收款已创建"
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to receivables_path, alert: e.record.errors.full_messages.join(", ")
+  rescue ReceivableCreationError => e
+    redirect_to receivables_path, alert: e.message
   end
 
   def update
@@ -87,29 +93,17 @@ class ReceivablesController < ApplicationController
     redirect_to receivables_path, notice: "报销成功"
   end
 
-  def revert
+def revert
     ActiveRecord::Base.transaction do
-      # 删除创建应收款时的转账（新逻辑）
-      if @receivable.transfer_id.present?
-        Entry.where(transfer_id: @receivable.transfer_id).destroy_all
-      end
-
-      # 删除报销转账（新逻辑）
+      # 删除所有报销转账（新逻辑）
       cleanup_reimbursement_transfers
-
-      # 删除创建应收款时的支出 Entry（旧逻辑）
-      if @receivable.source_entry_id.present?
-        Entry.find_by(id: @receivable.source_entry_id)&.destroy
-      end
 
       # 删除报销时的收入 Entry（旧逻辑）
       cleanup_old_reimbursement_entries
 
       @receivable.update!(
         remaining_amount: @receivable.original_amount,
-        settled_at: nil,
-        transfer_id: nil,
-        source_entry_id: nil
+        settled_at: nil
       )
     end
 
@@ -140,7 +134,10 @@ class ReceivablesController < ApplicationController
 
   def create_transfer_to_receivable_account(funding_account_id: nil)
     receivable_account = Account.find_by(name: SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME)
-    return unless receivable_account
+    unless receivable_account
+      Rails.logger.warn "应收款系统账户不存在，无法创建转账"
+      raise ReceivableCreationError, "系统账户'应收款'不存在，请先创建该账户"
+    end
 
     from_account_id = if funding_account_id.present? && funding_account_id != @receivable.account_id.to_s
                         funding_account_id
@@ -164,7 +161,10 @@ class ReceivablesController < ApplicationController
 
   def create_transfer_from_receivable_account
     receivable_account = Account.find_by(name: SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME)
-    return unless receivable_account
+    unless receivable_account
+      Rails.logger.warn "应收款系统账户不存在，无法创建报销转账"
+      raise ReceivableCreationError, "系统账户'应收款'不存在，无法报销"
+    end
 
     transfer = EntryCreationService.create_transfer(
       from_account_id: receivable_account.id,
@@ -175,7 +175,12 @@ class ReceivablesController < ApplicationController
       note: "报销 #{@receivable.description}"
     )
 
-    @receivable.update!(reimbursement_transfer_id: transfer) if transfer
+    if transfer
+      # 支持多次部分报销：用逗号分隔存储多个 transfer_id
+      existing_ids = @receivable.reimbursement_transfer_ids
+      new_ids = existing_ids + [ transfer ]
+      @receivable.update!(reimbursement_transfer_ids: new_ids)
+    end
   end
 
   def cleanup_transfer_entries
@@ -184,10 +189,8 @@ class ReceivablesController < ApplicationController
       Entry.where(transfer_id: @receivable.transfer_id).destroy_all
     end
 
-    # 删除报销转账（新逻辑）
-    if @receivable.reimbursement_transfer_id.present?
-      Entry.where(transfer_id: @receivable.reimbursement_transfer_id).destroy_all
-    end
+    # 删除所有报销转账（新逻辑）
+    cleanup_reimbursement_transfers
 
     # 删除创建应收款时的支出 Entry（旧逻辑）
     if @receivable.source_entry_id.present?
@@ -196,15 +199,17 @@ class ReceivablesController < ApplicationController
   end
 
   def cleanup_reimbursement_transfers
-    if @receivable.reimbursement_transfer_id.present?
-      Entry.where(transfer_id: @receivable.reimbursement_transfer_id).destroy_all
-      @receivable.update!(reimbursement_transfer_id: nil)
+    # 处理多个 reimbursement_transfer_ids
+    ids = @receivable.reimbursement_transfer_ids
+    ids.each do |transfer_id|
+      Entry.where(transfer_id: transfer_id).destroy_all
     end
+    @receivable.update!(reimbursement_transfer_ids: [])
   end
 
   def cleanup_old_reimbursement_entries
-    # 只处理旧数据（没有 reimbursement_transfer_id 的）
-    return if @receivable.reimbursement_transfer_id.present?
+    # 只处理旧数据（没有 reimbursement_transfer_ids 的）
+    return if @receivable.reimbursement_transfer_ids.present?
 
     # 查找并删除匹配名称的报销 Entry（旧逻辑创建的收入 Entry）
     reimbursement_entries = find_reimbursement_entries
