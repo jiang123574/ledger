@@ -48,7 +48,6 @@ class AccountsController < ApplicationController
     end
 
     @unsettled_receivables = Receivable.unsettled
-      .includes(:counterparty, :account)
       .order(date: :desc)
       .limit(50)
 
