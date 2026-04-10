@@ -457,17 +457,6 @@
 </script>
 <script type="module">
 import { initSelectorWithData } from 'selectors';
-function openNewPayableModal() {
-  var form = document.getElementById('new-payable-form');
-  if (form) {
-    form.reset();
-    var dateInput = form.querySelector('input[name="payable[date]"]');
-    if (dateInput) dateInput.value = '<%= Date.today %>';
-  }
-  var modal = document.getElementById('add-payable-modal');
-  if (modal) modal.classList.remove('hidden');
-}
-
 function openEditPayableModal(id, description, date, amount, category, counterpartyId, accountId, note) {
   const form = document.getElementById('edit-payable-form');
   form.action = '/payables/' + id;
@@ -600,7 +589,6 @@ initSelectorWithData({
 });
 
 // Expose functions to global scope for onclick handlers
-window.openNewPayableModal = openNewPayableModal;
 window.openEditPayableModal = openEditPayableModal;
 window.openSettleModal = openSettleModal;
 window.setFullAmountPayable = setFullAmountPayable;
