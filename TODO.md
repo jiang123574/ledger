@@ -1,6 +1,6 @@
 # TODO
 
-更新时间：2026-04-08
+更新时间：2026-04-10
 维护规则：本文件为项目唯一的待办清单，所有新的待办、优化任务只更新本文件。
 
 ---
@@ -279,6 +279,88 @@ end
 
 ---
 
+### 8. Receivable 转账逻辑优化（PR #79 Review 建议）
+
+**优先级**: 低
+**状态**: ⏳ 待优化
+**来源**: PR #79 Code Review
+
+#### 8.1 update action TODO 未实现
+
+**问题描述**:
+- `ReceivablesController#update` 中有 `TODO: 处理新数据（有 transfer_id）- 更新转账金额`
+- 若用户修改了 receivable 金额，对应的转账分录不会更新，导致会计数据与 receivable 不一致
+
+**修复方案**:
+- 在 update action 中添加处理 transfer_id 的逻辑
+- 更新对应 Entry 的 amount、date 等字段
+
+**相关文件**:
+- `app/controllers/receivables_controller.rb`
+
+#### 8.2 迁移缺少外键约束
+
+**问题描述**:
+- `transfer_id` 和 `reimbursement_transfer_ids` 是普通 integer/text 列，无 FK 约束
+- 虽非传统 FK（值对应 entries.transfer_id 而非 entries.id），但建议添加数据库级校验或 model 层 validation
+
+**修复方案**:
+- 在 Receivable model 中添加 validation
+- 或添加数据库级 check 约束
+
+**相关文件**:
+- `app/models/receivable.rb`
+- `db/migrate/*.rb`
+
+#### 8.3 无数据迁移脚本
+
+**问题描述**:
+- 旧 receivables 仍用 `source_entry_id`，新逻辑用 `transfer_id`
+- 双路径兼容处理正确，但建议添加数据迁移脚本将旧数据统一为新格式
+
+**修复方案**:
+- 创建数据迁移脚本
+- 将旧数据的 source_entry_id 转换为 transfer_id 格式
+
+**相关文件**:
+- `db/migrate/*.rb`
+
+#### 8.4 destroy vs destroy! 不一致
+
+**问题描述**:
+- 部分清理方法用 `destroy`（静默忽略失败）
+- 部分用 `destroy!`（抛异常）
+- 在事务中影响不大，但风格应统一
+
+**修复方案**:
+- 统一使用 `destroy!` 或统一使用 `destroy`
+- 保持代码风格一致
+
+**相关文件**:
+- `app/controllers/receivables_controller.rb`
+
+#### 8.5 transfer_id 碰撞风险
+
+**问题描述**:
+- `SecureRandom.random_number(2**31)` 生成策略有极低概率碰撞
+- 建议添加唯一性检查或使用 UUID
+
+**修复方案**:
+- 使用 `SecureRandom.uuid` 替代随机数
+- 或在 EntryCreationService 中添加唯一性检查
+
+**相关文件**:
+- `app/services/entry_creation_service.rb`
+
+**验证清单**:
+- [ ] update action 实现转账更新
+- [ ] 添加外键约束或 validation
+- [ ] 创建旧数据迁移脚本
+- [ ] 统一 destroy/destroy! 风格
+- [ ] 优化 transfer_id 生成策略
+
+---
+
 ### 6. Tailwind CSS v4 迁移清理
 
 **优先级**: 低
@@ -432,5 +514,5 @@ focus:outline-none focus-visible:ring-2 ...
 
 ---
 
-**最后更新**: 2026-04-08
+**最后更新**: 2026-04-10
 **维护者**: 开发团队

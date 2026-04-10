@@ -72,6 +72,8 @@ class EntryCreationService
         sort_order: sort_order_in
       )
     end
+
+    transfer_id
   end
 
   # 创建带资金来源转账的支出（先从资金来源账户转账到消费账户，再创建支出）
