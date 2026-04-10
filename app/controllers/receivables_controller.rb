@@ -23,30 +23,8 @@ class ReceivablesController < ApplicationController
     @receivable.remaining_amount = @receivable.original_amount
 
     if @receivable.save
-      category_id = resolve_category_id(@receivable.category, kind: "expense")
       funding_account_id = params[:funding_account_id].presence
-
-      if funding_account_id.present? && funding_account_id != @receivable.account_id.to_s
-        create_receivable_with_funding_transfer(
-          receivable: @receivable,
-          funding_account_id: funding_account_id,
-          category_id: category_id
-        )
-      else
-        source_entry = create_entry(
-          account_id: @receivable.account_id,
-          amount: -@receivable.original_amount.to_d,
-          date: @receivable.date,
-          name: "[待报销] #{@receivable.description}",
-          kind: "expense",
-          category_id: category_id,
-          notes: nil
-        )
-
-        @receivable.update!(source_entry_id: source_entry.id) if source_entry
-        lock_source_entry(source_entry)
-      end
-
+      create_transfer_to_receivable_account(funding_account_id: funding_account_id)
       redirect_to receivables_path, notice: "应收款已创建"
     else
       redirect_to receivables_path, alert: @receivable.errors.full_messages.join(", ")
@@ -63,7 +41,11 @@ class ReceivablesController < ApplicationController
 
     ActiveRecord::Base.transaction do
       @receivable.update!(receivable_params)
-      sync_source_entry!(previous_attrs)
+
+      # 处理旧数据（有 source_entry_id）
+      sync_source_entry!(previous_attrs) if @receivable.source_entry_id.present?
+
+      # TODO: 处理新数据（有 transfer_id）- 更新转账金额
     end
 
     redirect_to receivables_path, notice: "应收款已更新"
@@ -73,8 +55,7 @@ class ReceivablesController < ApplicationController
 
   def destroy
     ActiveRecord::Base.transaction do
-      source_entry = find_source_entry
-      source_entry&.destroy!
+      cleanup_transfer_entries
       @receivable.destroy!
     end
 
@@ -93,27 +74,9 @@ class ReceivablesController < ApplicationController
       return
     end
 
-    reimburse_category_id = Category.where(type: "INCOME", name: "报销").first&.id
-
     ActiveRecord::Base.transaction do
-      reimbursement_entry = create_entry(
-        account_id: @account_id,
-        amount: @settle_amount,
-        date: @settlement_date,
-        name: "[报销] #{@receivable.description}",
-        kind: "income",
-        category_id: reimburse_category_id
-      )
+      create_transfer_from_receivable_account
 
-      # 锁定报销条目的关键字段
-      if reimbursement_entry
-        reimbursement_entry.lock_attribute!(:amount)
-        reimbursement_entry.lock_attribute!(:date)
-        reimbursement_entry.lock_attribute!(:account_id)
-        reimbursement_entry.entryable&.lock_attr!(:category_id) if reimbursement_entry.entryable.respond_to?(:lock_attr!)
-      end
-
-      # 更新应收款余额
       new_remaining = [ @receivable.remaining_amount - @settle_amount, 0 ].max
       @receivable.update!(
         remaining_amount: new_remaining,
@@ -126,12 +89,8 @@ class ReceivablesController < ApplicationController
 
   def revert
     ActiveRecord::Base.transaction do
-      # 删除相关的报销收入交易（匹配名称）
-      reimbursement_entries = find_reimbursement_entries
-      reimbursement_entries.each(&:destroy!)
+      cleanup_reimbursement_transfers
 
-      # 保留源交易（待报销记录）。撤销报销应只移除报销相关的收入条目，保留原始支出记录。
-      # 恢复应收款状态为初始状态（未报销）
       @receivable.update!(
         remaining_amount: @receivable.original_amount,
         settled_at: nil
@@ -161,6 +120,63 @@ class ReceivablesController < ApplicationController
       :source_transaction_id, :note, :category,
       :counterparty_id, :account_id
     )
+  end
+
+  def create_transfer_to_receivable_account(funding_account_id: nil)
+    receivable_account = Account.find_by(name: SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME)
+    return unless receivable_account
+
+    from_account_id = if funding_account_id.present? && funding_account_id != @receivable.account_id.to_s
+                        funding_account_id
+    else
+                        @receivable.account_id
+    end
+
+    return if from_account_id == receivable_account.id
+
+    transfer = EntryCreationService.create_transfer(
+      from_account_id: from_account_id,
+      to_account_id: receivable_account.id,
+      amount: @receivable.original_amount.to_d,
+      date: @receivable.date,
+      currency: "CNY",
+      note: "创建应收款 #{@receivable.description}"
+    )
+
+    @receivable.update!(transfer_id: transfer) if transfer
+  end
+
+  def create_transfer_from_receivable_account
+    receivable_account = Account.find_by(name: SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME)
+    return unless receivable_account
+
+    transfer = EntryCreationService.create_transfer(
+      from_account_id: receivable_account.id,
+      to_account_id: @account_id,
+      amount: @settle_amount,
+      date: @settlement_date,
+      currency: "CNY",
+      note: "报销 #{@receivable.description}"
+    )
+
+    @receivable.update!(reimbursement_transfer_id: transfer) if transfer
+  end
+
+  def cleanup_transfer_entries
+    if @receivable.transfer_id.present?
+      Entry.where(transfer_id: @receivable.transfer_id).destroy_all
+    end
+
+    if @receivable.reimbursement_transfer_id.present?
+      Entry.where(transfer_id: @receivable.reimbursement_transfer_id).destroy_all
+    end
+  end
+
+  def cleanup_reimbursement_transfers
+    if @receivable.reimbursement_transfer_id.present?
+      Entry.where(transfer_id: @receivable.reimbursement_transfer_id).destroy_all
+      @receivable.update!(reimbursement_transfer_id: nil)
+    end
   end
 
   def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil, notes: nil)
