@@ -24,27 +24,27 @@ class ReceivablesController < ApplicationController
 
     if @receivable.save
       category_id = resolve_category_id(@receivable.category, kind: "expense")
+      funding_account_id = params[:funding_account_id].presence
 
-      # 自动创建支出 Entry
-      source_entry = create_entry(
-        account_id: @receivable.account_id,
-        amount: -@receivable.original_amount.to_d,
-        date: @receivable.date,
-        name: "[待报销] #{@receivable.description}",
-        kind: "expense",
-        category_id: category_id,
-        notes: nil
-      )
+      if funding_account_id.present? && funding_account_id != @receivable.account_id.to_s
+        create_receivable_with_funding_transfer(
+          receivable: @receivable,
+          funding_account_id: funding_account_id,
+          category_id: category_id
+        )
+      else
+        source_entry = create_entry(
+          account_id: @receivable.account_id,
+          amount: -@receivable.original_amount.to_d,
+          date: @receivable.date,
+          name: "[待报销] #{@receivable.description}",
+          kind: "expense",
+          category_id: category_id,
+          notes: nil
+        )
 
-      # 建立 source_entry_id 关联
-      @receivable.update!(source_entry_id: source_entry.id) if source_entry
-
-      # 锁定源交易的关键字段，防止随意编辑
-      if source_entry
-        source_entry.lock_attribute!(:amount)
-        source_entry.lock_attribute!(:date)
-        source_entry.lock_attribute!(:account_id)
-        source_entry.entryable&.lock_attr!(:category_id) if source_entry.entryable.respond_to?(:lock_attr!)
+        @receivable.update!(source_entry_id: source_entry.id) if source_entry
+        lock_source_entry(source_entry)
       end
 
       redirect_to receivables_path, notice: "应收款已创建"
@@ -184,6 +184,41 @@ class ReceivablesController < ApplicationController
       entryable: entryable,
       sort_order: sort_order
     )
+  end
+
+  def create_receivable_with_funding_transfer(receivable:, funding_account_id:, category_id:)
+    Entry.transaction do
+      EntryCreationService.create_transfer(
+        from_account_id: funding_account_id,
+        to_account_id: receivable.account_id,
+        amount: receivable.original_amount.to_d,
+        date: receivable.date,
+        currency: "CNY",
+        note: "自动补记资金来源 #{receivable.description}"
+      )
+
+      source_entry = create_entry(
+        account_id: receivable.account_id,
+        amount: -receivable.original_amount.to_d,
+        date: receivable.date,
+        name: "[待报销] #{receivable.description}",
+        kind: "expense",
+        category_id: category_id,
+        notes: nil
+      )
+
+      receivable.update!(source_entry_id: source_entry.id) if source_entry
+      lock_source_entry(source_entry)
+    end
+  end
+
+  def lock_source_entry(source_entry)
+    return unless source_entry
+
+    source_entry.lock_attribute!(:amount)
+    source_entry.lock_attribute!(:date)
+    source_entry.lock_attribute!(:account_id)
+    source_entry.entryable&.lock_attr!(:category_id) if source_entry.entryable.respond_to?(:lock_attr!)
   end
 
   def resolve_category_id(category_name, kind:)

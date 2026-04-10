@@ -743,6 +743,20 @@ function confirmDeleteAccount(id, name) {
   <%= raw @expense_categories.map { |c| fn = build_full_name_in_memory(c, expense_parent_map); { name: c.name, full_name: fn, pinyin: PinYin.abbr(fn).downcase } }.to_json %>
 </script>
 
+<!-- 应收款数据源（用于报销） -->
+<script id="receivables-data" type="application/json">
+  <%= raw @unsettled_receivables.map { |r| 
+    display_name = "#{r.description} (#{format_currency(r.remaining_amount)})"
+    { 
+      id: r.id, 
+      name: display_name,
+      pinyin: PinYin.abbr(display_name).downcase,
+      remaining_amount: r.remaining_amount.to_s,
+      date: r.date.to_s
+    } 
+  }.to_json %>
+</script>
+
 <div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
     <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')"></div>
@@ -2033,208 +2047,93 @@ document.addEventListener('turbo:load', fixModalPositions);
 document.addEventListener('turbo:render', fixModalPositions);
 </script>
 
-<!-- 新建应收款弹窗 -->
-<div id="add-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+<%= render 'shared/receivable_form_modal', counterparties: @counterparties %>
+
+<!-- 报销应收款弹窗 -->
+<div id="settle-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')"></div>
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建应收款</h3>
-        <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">报销应收款</h3>
+        <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <form id="new-receivable-form" method="post" action="<%= receivables_path %>">
-        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+      
+      <form id="settle-receivable-form">
         <div class="space-y-3">
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述 *</label>
-            <input type="text" name="receivable[description]" required placeholder="如：出差交通费" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
-              <input type="date" name="receivable[date]" required value="<%= Date.today %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                <input type="number" name="receivable[original_amount]" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">选择应收款 *</label>
+            <input type="hidden" name="receivable_id" id="settle-receivable-id" value="">
             <div class="relative">
-              <input type="text" id="new-receivable-category-search-modal"
+              <input type="text" id="settle-receivable-search"
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择类别"
+                     placeholder="选择应收款"
                      autocomplete="off"
                      readonly>
-              <input type="hidden" name="receivable[category]" id="new-receivable-category-id-modal">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
-              <div id="new-receivable-category-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+              <div id="settle-receivable-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
                 <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="new-receivable-category-filter-modal"
+                  <input type="text" id="settle-receivable-filter"
                          class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="筛选...">
+                         placeholder="搜索应收款..."
+                         autocomplete="off">
                 </div>
-                <div id="new-receivable-category-options-modal" class="p-1"></div>
+                <div id="settle-receivable-options" class="py-1"></div>
               </div>
             </div>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系人</label>
-            <select name="receivable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">选择联系人</option>
-              <% @counterparties.each do |counterparty| %>
-                <option value="<%= counterparty.id %>"><%= counterparty.name %></option>
-              <% end %>
-            </select>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">报销金额 *</label>
+            <div class="relative">
+              <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+              <input type="number" name="amount" id="settle-amount" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+            <button type="button" onclick="setFullAmount()" class="mt-1 text-xs px-2 py-1 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth">全额报销</button>
           </div>
 
           <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户</label>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
+            <input type="date" name="settlement_date" id="settle-date" required value="<%= Date.today %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户 *</label>
+            <input type="hidden" name="account_id" id="settle-account-id" value="">
             <div class="relative">
-              <input type="text" id="new-receivable-account-search-modal"
+              <input type="text" id="settle-account-search"
                      class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
                      placeholder="选择账户"
                      autocomplete="off"
                      readonly>
-              <input type="hidden" name="receivable[account_id]" id="new-receivable-account-id-modal">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
-              <div id="new-receivable-account-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+              <div id="settle-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
                 <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="new-receivable-account-filter-modal"
+                  <input type="text" id="settle-account-filter"
                          class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="筛选...">
+                         placeholder="搜索账户..."
+                         autocomplete="off">
                 </div>
-                <div id="new-receivable-account-options-modal" class="p-1"></div>
+                <div id="settle-account-options" class="py-1"></div>
               </div>
             </div>
           </div>
 
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <input type="text" name="receivable[note]" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            <input type="text" name="note" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
           </div>
         </div>
 
         <div class="flex justify-end gap-3 mt-5">
-          <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
-        </div>
-      </form>
-    </div>
-  </div>
-</div>
-
-<!-- 新建报销弹窗 -->
-<div id="add-payable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
-  <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-payable-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建报销</h3>
-        <button type="button" onclick="document.getElementById('add-payable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
-          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <form id="new-payable-form" method="post" action="<%= payables_path %>">
-        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
-        <div class="space-y-3">
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述 *</label>
-            <input type="text" name="payable[description]" required placeholder="如：差旅报销" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-          </div>
-
-          <div class="grid grid-cols-2 gap-4">
-            <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
-              <input type="date" name="payable[date]" required value="<%= Date.today %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-            </div>
-            <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
-              <div class="relative">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
-                <input type="number" name="payable[original_amount]" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
-            <div class="relative">
-              <input type="text" id="new-payable-category-search-modal"
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择类别"
-                     autocomplete="off"
-                     readonly>
-              <input type="hidden" name="payable[category]" id="new-payable-category-id-modal">
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-              <div id="new-payable-category-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="new-payable-category-filter-modal"
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="筛选...">
-                </div>
-                <div id="new-payable-category-options-modal" class="p-1"></div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系人</label>
-            <select name="payable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-              <option value="">选择联系人</option>
-              <% @counterparties.each do |counterparty| %>
-                <option value="<%= counterparty.id %>"><%= counterparty.name %></option>
-              <% end %>
-            </select>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">账户</label>
-            <div class="relative">
-              <input type="text" id="new-payable-account-search-modal"
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择账户"
-                     autocomplete="off"
-                     readonly>
-              <input type="hidden" name="payable[account_id]" id="new-payable-account-id-modal">
-              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-              </svg>
-              <div id="new-payable-account-dropdown-modal" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="new-payable-account-filter-modal"
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="筛选...">
-                </div>
-                <div id="new-payable-account-options-modal" class="p-1"></div>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
-            <input type="text" name="payable[note]" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-          </div>
-        </div>
-
-        <div class="flex justify-end gap-3 mt-5">
-          <button type="button" onclick="document.getElementById('add-payable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
+          <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确认报销</button>
         </div>
       </form>
     </div>
@@ -2269,26 +2168,39 @@ if (!window.modalSelectorsInitialized) {
   function initModalSelectors(modalType) {
     // 初始化账户选择器
     initSelectorWithData({
-      searchInputId: `new-${modalType}-account-search-modal`,
-      dropdownId: `new-${modalType}-account-dropdown-modal`,
-      filterInputId: `new-${modalType}-account-filter-modal`,
-      optionsId: `new-${modalType}-account-options-modal`,
-      hiddenInputId: `new-${modalType}-account-id-modal`,
+      searchInputId: `new-${modalType}-account-search`,
+      dropdownId: `new-${modalType}-account-dropdown`,
+      filterInputId: `new-${modalType}-account-filter`,
+      optionsId: `new-${modalType}-account-options`,
+      hiddenInputId: `new-${modalType}-account-id`,
       dataSource: modalAccountsData,
       noMatchText: '无匹配账户'
     });
     
     // 初始化分类选择器
     initSelectorWithData({
-      searchInputId: `new-${modalType}-category-search-modal`,
-      dropdownId: `new-${modalType}-category-dropdown-modal`,
-      filterInputId: `new-${modalType}-category-filter-modal`,
-      optionsId: `new-${modalType}-category-options-modal`,
-      hiddenInputId: `new-${modalType}-category-id-modal`,
+      searchInputId: `new-${modalType}-category-search`,
+      dropdownId: `new-${modalType}-category-dropdown`,
+      filterInputId: `new-${modalType}-category-filter`,
+      optionsId: `new-${modalType}-category-options`,
+      hiddenInputId: `new-${modalType}-category-id`,
       dataSource: modalCategoryData,
       emptyOption: { label: '不设置分类', value: '', display: '' },
       noMatchText: '无匹配分类'
     });
+    
+    // 初始化资金来源选择器（仅应收款）
+    if (modalType === 'receivable') {
+      initSelectorWithData({
+        searchInputId: 'new-receivable-funding-account-search',
+        dropdownId: 'new-receivable-funding-account-dropdown',
+        filterInputId: 'new-receivable-funding-account-filter',
+        optionsId: 'new-receivable-funding-account-options',
+        hiddenInputId: 'new-receivable-funding-account-id',
+        dataSource: modalAccountsData,
+        noMatchText: '无匹配账户'
+      });
+    }
   }
 
   function openNewReceivableModal() {
@@ -2299,29 +2211,127 @@ if (!window.modalSelectorsInitialized) {
       if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
     }
     
+    // 重置资金来源字段
+    var fundingAccountIdInput = document.getElementById('new-receivable-funding-account-id');
+    var fundingAccountSearchInput = document.getElementById('new-receivable-funding-account-search');
+    if (fundingAccountIdInput) fundingAccountIdInput.value = '';
+    if (fundingAccountSearchInput) fundingAccountSearchInput.value = '';
+    
     initModalSelectors('receivable');
     
     var modal = document.getElementById('add-receivable-modal');
     if (modal) modal.classList.remove('hidden');
   }
 
-  function openNewPayableModal() {
-    var form = document.getElementById('new-payable-form');
+  function openSettleReceivableModal() {
+    var form = document.getElementById('settle-receivable-form');
     if (form) {
       form.reset();
-      var dateInput = form.querySelector('input[name="payable[date]"]');
+      var dateInput = form.querySelector('input[name="settlement_date"]');
       if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
     }
     
-    initModalSelectors('payable');
+    initSettleReceivableSelectors();
     
-    var modal = document.getElementById('add-payable-modal');
+    var modal = document.getElementById('settle-receivable-modal');
     if (modal) modal.classList.remove('hidden');
   }
 
+  function initSettleReceivableSelectors() {
+    var receivablesDataEl = document.getElementById('receivables-data');
+    var receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
+
+    initSelectorWithData({
+      searchInputId: 'settle-receivable-search',
+      dropdownId: 'settle-receivable-dropdown',
+      filterInputId: 'settle-receivable-filter',
+      optionsId: 'settle-receivable-options',
+      hiddenInputId: 'settle-receivable-id',
+      dataSource: receivablesData,
+      noMatchText: '无匹配应收款'
+    });
+
+    initSelectorWithData({
+      searchInputId: 'settle-account-search',
+      dropdownId: 'settle-account-dropdown',
+      filterInputId: 'settle-account-filter',
+      optionsId: 'settle-account-options',
+      hiddenInputId: 'settle-account-id',
+      dataSource: modalAccountsData,
+      noMatchText: '无匹配账户'
+    });
+  }
+
+  window.setFullAmount = function() {
+    var receivableId = document.getElementById('settle-receivable-id').value;
+    if (receivableId) {
+      var receivablesDataEl = document.getElementById('receivables-data');
+      var receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
+      var receivable = receivablesData.find(function(r) { return r.id == receivableId; });
+      if (receivable) {
+        document.getElementById('settle-amount').value = receivable.remaining_amount;
+      }
+    }
+  };
+
+  document.getElementById('settle-receivable-id').addEventListener('change', function() {
+    window.setFullAmount();
+  });
+
+  document.getElementById('settle-receivable-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    var receivableId = document.getElementById('settle-receivable-id').value;
+    var amount = document.getElementById('settle-amount').value;
+    var accountId = document.getElementById('settle-account-id').value;
+    var settlementDate = document.getElementById('settle-date').value;
+    var note = document.querySelector('input[name="note"]').value;
+    
+    if (!receivableId || !amount || !accountId || !settlementDate) {
+      alert('请填写必填字段');
+      return;
+    }
+
+    var form = e.target;
+    var submitBtn = form.querySelector('button[type="submit"]');
+    var originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = '提交中...';
+    
+    fetch('/receivables/' + receivableId + '/settle', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        amount: amount,
+        account_id: accountId,
+        settlement_date: settlementDate,
+        note: note
+      })
+    })
+    .then(function(response) {
+      if (response.ok || response.redirected) {
+        window.location.reload();
+      } else {
+        return response.json().then(function(data) {
+          throw new Error(data.error || '报销失败');
+        });
+      }
+    })
+    .catch(function(error) {
+      console.error('Error:', error);
+      alert(error.message || '报销失败，请重试');
+      submitBtn.disabled = false;
+      submitBtn.textContent = originalText;
+    });
+  });
+
   // 暴露函数到全局作用域（供快捷键调用）
   window.openNewReceivableModal = openNewReceivableModal;
-  window.openNewPayableModal = openNewPayableModal;
+  window.openSettleReceivableModal = openSettleReceivableModal;
 }
 </script>
 

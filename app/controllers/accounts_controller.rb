@@ -47,6 +47,10 @@ class AccountsController < ApplicationController
       Counterparty.order(:name).to_a
     end
 
+    @unsettled_receivables = Receivable.unsettled
+      .order(date: :desc)
+      .limit(50)
+
     period_type = params[:period_type].presence || "month"
     period_value = params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
 

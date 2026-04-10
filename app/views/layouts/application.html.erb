@@ -301,10 +301,10 @@
           case 'b':
             e.preventDefault();
             e.stopPropagation();
-            if (typeof openNewPayableModal === 'function') {
-              openNewPayableModal();
+            if (typeof openSettleReceivableModal === 'function') {
+              openSettleReceivableModal();
             } else {
-              window.location.href = '/payables?open_modal=true';
+              window.location.href = '/accounts?open_settle_receivable=1';
             }
             break;
           case 's':
@@ -341,7 +341,7 @@
           { key: 'a', description: '新增收支' },
           { key: 'z', description: '新增转账' },
           { key: 'd', description: '新增应收款' },
-          { key: 'b', description: '新增报销' },
+          { key: 'b', description: '报销应收款' },
           { key: 's', description: '搜索' },
           { key: '/', description: '快速搜索' },
           { key: 'g a', description: '账户' },

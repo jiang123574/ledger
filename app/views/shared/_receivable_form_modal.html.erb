@@ -1,0 +1,131 @@
+<!-- 新建应收款弹窗（共享组件） -->
+<div id="add-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建应收款</h3>
+        <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      
+      <form id="new-receivable-form" method="post" action="<%= receivables_path %>">
+        <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
+        <div class="space-y-3">
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">描述 *</label>
+            <input type="text" name="receivable[description]" required placeholder="如：出差北京交通费" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">日期 *</label>
+              <input type="date" name="receivable[date]" required value="<%= Date.today %>" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+            </div>
+            <div>
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">金额 *</label>
+              <div class="relative">
+                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
+                <input type="number" name="receivable[original_amount]" step="0.01" placeholder="0.00" required class="w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类别</label>
+            <input type="hidden" name="receivable[category]" id="new-receivable-category-id" value="">
+            <div class="relative">
+              <input type="text" id="new-receivable-category-search"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择类别"
+                     autocomplete="off"
+                     readonly>
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-receivable-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-receivable-category-filter"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="搜索分类..."
+                         autocomplete="off">
+                </div>
+                <div id="new-receivable-category-options" class="py-1"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">联系人</label>
+            <select name="receivable[counterparty_id]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <option value="">选择联系人</option>
+              <% counterparties.each do |c| %>
+                <option value="<%= c.id %>"><%= c.name %></option>
+              <% end %>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">支出账户</label>
+            <input type="hidden" name="receivable[account_id]" id="new-receivable-account-id" value="">
+            <div class="relative">
+              <input type="text" id="new-receivable-account-search"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="选择账户"
+                     autocomplete="off"
+                     readonly>
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-receivable-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-receivable-account-filter"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="搜索账户..."
+                         autocomplete="off">
+                </div>
+                <div id="new-receivable-account-options" class="py-1"></div>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">实际资金来源（可选）</label>
+            <input type="hidden" name="funding_account_id" id="new-receivable-funding-account-id" value="">
+            <div class="relative">
+              <input type="text" id="new-receivable-funding-account-search"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                     placeholder="不补记资金来源"
+                     autocomplete="off"
+                     readonly>
+              <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+              <div id="new-receivable-funding-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                <div class="p-2 border-b border-border dark:border-border-dark">
+                  <input type="text" id="new-receivable-funding-account-filter"
+                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                         placeholder="搜索账户..."
+                         autocomplete="off">
+                </div>
+                <div id="new-receivable-funding-account-options" class="py-1"></div>
+              </div>
+            </div>
+            <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">选择后会自动创建"来源账户 → 支出账户"的转账，再记录这笔待报销支出。</p>
+          </div>
+
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">备注</label>
+            <input type="text" name="receivable[note]" placeholder="可选" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 mt-5">
+          <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

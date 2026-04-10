@@ -75,7 +75,7 @@ To update counter cache for all accounts:
 - 分类选择
 - 任何需要拼音搜索的下拉选择
 
-**详细文档**：参见 `app/views/shared/PINYIN_SELECTOR_GUIDE.md`
+**详细文档**：参见 `docs/PINYIN_SELECTOR_GUIDE.md`
 
 **快速参考**：
 ```erb

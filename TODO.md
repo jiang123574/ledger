@@ -311,6 +311,41 @@ focus:outline-none focus-visible:ring-2 ...
 
 ---
 
+### 7. JavaScript 语法统一
+
+**优先级**: 低
+**预估工期**: 2-3 小时
+**状态**: ⏳ 待优化
+**来源**: PR #78 Code Review
+
+**问题描述**:
+- JavaScript 代码中 `var` 和现代语法（`const`/`let`）混用
+- 缺乏统一的代码风格
+- 影响代码可维护性
+
+**受影响文件**:
+- `app/views/accounts/index.html.erb` - 模态框初始化相关代码
+- `app/views/receivables/index.html.erb` - 应收款相关代码
+- `app/views/payables/index.html.erb` - 应付款相关代码
+
+**优化方案**:
+1. 将所有 `var` 声明改为 `const` 或 `let`
+   - 不会被重新赋值的变量使用 `const`
+   - 会被重新赋值的变量使用 `let`
+2. 统一代码风格，提高可读性
+
+**验证清单**:
+- [ ] 全局搜索 `var ` 并评估替换
+- [ ] 测试所有页面的 JavaScript 功能
+- [ ] 检查浏览器兼容性
+- [ ] 提交单独的 PR
+
+**备注**:
+- 功能正常，非关键问题
+- 可在后续重构时逐步优化
+
+---
+
 ## 已完成任务（历史记录）
 
 ### P3 - Entry 模型迁移（✅ 完成）
