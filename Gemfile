@@ -83,6 +83,9 @@ group :development do
 
   # Process manager for development (Tailwind CSS watch + Rails server)
   gem "foreman"
+
+  # Load environment variables from .env file
+  gem "dotenv-rails"
 end
 
 gem "lucide-rails", "~> 0.2.0", github: "maybe-finance/lucide-rails"

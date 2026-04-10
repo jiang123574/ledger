@@ -14,8 +14,9 @@ class SystemAccountSyncService
     end
 
     def sync_receivable_account!
-      amount = Receivable.unsettled.sum(:remaining_amount).to_d
-      upsert_system_account!(name: RECEIVABLE_ACCOUNT_NAME, initial_balance: amount)
+      # 新逻辑：创建应收款时已通过转账 Entry 记录金额，不再设置 initial_balance
+      # 保持 initial_balance = 0，让 current_balance = 0 + entry_sum 正确反映应收款金额
+      upsert_system_account!(name: RECEIVABLE_ACCOUNT_NAME, initial_balance: 0)
     end
 
     def sync_payable_account!
