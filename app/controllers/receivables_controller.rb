@@ -89,7 +89,11 @@ class ReceivablesController < ApplicationController
 
   def revert
     ActiveRecord::Base.transaction do
+      # 处理新数据（转账逻辑）
       cleanup_reimbursement_transfers
+
+      # 处理旧数据（收入 Entry 逻辑）
+      cleanup_old_reimbursement_entries
 
       @receivable.update!(
         remaining_amount: @receivable.original_amount,
@@ -177,6 +181,19 @@ class ReceivablesController < ApplicationController
       Entry.where(transfer_id: @receivable.reimbursement_transfer_id).destroy_all
       @receivable.update!(reimbursement_transfer_id: nil)
     end
+  end
+
+  def cleanup_old_reimbursement_entries
+    # 只处理旧数据（没有 reimbursement_transfer_id 的）
+    return if @receivable.reimbursement_transfer_id.present?
+
+    # 查找并删除匹配名称的报销 Entry（旧逻辑创建的收入 Entry）
+    reimbursement_entries = Entry.joins(:entryable)
+      .where(entryable_transactions: { kind: "income" })
+      .where("entries.name LIKE ?", "%[报销]%#{@receivable.description}%")
+      .where("entries.date >= ?", @receivable.date)
+
+    reimbursement_entries.destroy_all
   end
 
   def create_entry(account_id:, amount:, date:, name:, kind:, category_id: nil, notes: nil)
