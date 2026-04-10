@@ -78,11 +78,6 @@
             <div class="flex items-center gap-2">
               <div class="w-44 shrink-0">
                 <h3 class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
-                <% if receivable.source_entry.present? %>
-                  <p class="text-[10px] text-secondary dark:text-secondary-dark mt-0.5">
-                    源交易: <%= receivable.source_entry.account&.name %> @ <%= receivable.source_entry.date&.strftime("%m/%d") %>
-                  </p>
-                <% end %>
               </div>
               <div class="text-[11px] text-secondary dark:text-secondary-dark shrink-0"><%= receivable.date&.strftime("%Y-%m-%d") %></div>
               <% if receivable.category.present? %>
