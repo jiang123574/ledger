@@ -89,15 +89,27 @@ class ReceivablesController < ApplicationController
 
   def revert
     ActiveRecord::Base.transaction do
-      # 处理新数据（转账逻辑）
+      # 删除创建应收款时的转账（新逻辑）
+      if @receivable.transfer_id.present?
+        Entry.where(transfer_id: @receivable.transfer_id).destroy_all
+      end
+
+      # 删除报销转账（新逻辑）
       cleanup_reimbursement_transfers
 
-      # 处理旧数据（收入 Entry 逻辑）
+      # 删除创建应收款时的支出 Entry（旧逻辑）
+      if @receivable.source_entry_id.present?
+        Entry.find_by(id: @receivable.source_entry_id)&.destroy
+      end
+
+      # 删除报销时的收入 Entry（旧逻辑）
       cleanup_old_reimbursement_entries
 
       @receivable.update!(
         remaining_amount: @receivable.original_amount,
-        settled_at: nil
+        settled_at: nil,
+        transfer_id: nil,
+        source_entry_id: nil
       )
     end
 
@@ -167,12 +179,19 @@ class ReceivablesController < ApplicationController
   end
 
   def cleanup_transfer_entries
+    # 删除创建应收款时的转账（新逻辑）
     if @receivable.transfer_id.present?
       Entry.where(transfer_id: @receivable.transfer_id).destroy_all
     end
 
+    # 删除报销转账（新逻辑）
     if @receivable.reimbursement_transfer_id.present?
       Entry.where(transfer_id: @receivable.reimbursement_transfer_id).destroy_all
+    end
+
+    # 删除创建应收款时的支出 Entry（旧逻辑）
+    if @receivable.source_entry_id.present?
+      Entry.find_by(id: @receivable.source_entry_id)&.destroy
     end
   end
 
