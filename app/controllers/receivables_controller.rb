@@ -188,11 +188,7 @@ class ReceivablesController < ApplicationController
     return if @receivable.reimbursement_transfer_id.present?
 
     # 查找并删除匹配名称的报销 Entry（旧逻辑创建的收入 Entry）
-    reimbursement_entries = Entry.joins(:entryable)
-      .where(entryable_transactions: { kind: "income" })
-      .where("entries.name LIKE ?", "%[报销]%#{@receivable.description}%")
-      .where("entries.date >= ?", @receivable.date)
-
+    reimbursement_entries = find_reimbursement_entries
     reimbursement_entries.destroy_all
   end
 
