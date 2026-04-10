@@ -354,7 +354,7 @@ def revert
     Entry.transactions_only
       .with_entryable_transaction
       .where(entryable_transactions: { kind: "income" })
-      .where("entries.name LIKE ?", "%[报销] #{@receivable.description}%")
+      .where("entries.name LIKE ? OR entries.name LIKE ?", "%[报销] #{@receivable.description}%", "%报销 #{@receivable.description}%")
   end
 
   def filter_by_counterparty(scope, counterparty_id)
