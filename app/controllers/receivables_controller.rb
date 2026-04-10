@@ -208,8 +208,8 @@ def revert
   end
 
   def cleanup_old_reimbursement_entries
-    # 只处理旧数据（没有 reimbursement_transfer_ids 的）
-    return if @receivable.reimbursement_transfer_ids.present?
+    # 只处理旧数据（没有 reimbursement_transfer_ids 的，但有报销记录的）
+    return if @receivable.reimbursement_transfer_ids.any?
 
     # 查找并删除匹配名称的报销 Entry（旧逻辑创建的收入 Entry）
     reimbursement_entries = find_reimbursement_entries

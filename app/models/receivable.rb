@@ -1,6 +1,10 @@
 class Receivable < ApplicationRecord
   serialize :reimbursement_transfer_ids, coder: YAML
 
+  def reimbursement_transfer_ids
+    super || []
+  end
+
   # Entry 关系（新）
   belongs_to :source_entry, class_name: "Entry", foreign_key: "source_entry_id", optional: true
 
