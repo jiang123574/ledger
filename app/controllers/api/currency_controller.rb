@@ -7,7 +7,7 @@ module Api
     def rates
       render json: {
         base: @default_currency.code,
-        rates: @currencies.pluck(:code, :exchange_rate).to_h
+        rates: @currencies.pluck(:code, :rate).to_h
       }
     end
 
