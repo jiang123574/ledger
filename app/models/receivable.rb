@@ -13,6 +13,9 @@ class Receivable < ApplicationRecord
   validates :remaining_amount, numericality: { greater_than_or_equal_to: 0 }
   validates :date, presence: true
 
+  # transfer_id 格式验证（可选字段，但如果有值必须是正整数）
+  validates :transfer_id, numericality: { only_integer: true, greater_than: 0 }, allow_nil: true
+
   scope :unsettled, -> { where(settled_at: nil).where("remaining_amount > 0") }
   scope :settled, -> { where.not(settled_at: nil) }
   scope :recent, -> { order(date: :desc) }
