@@ -85,7 +85,7 @@ class AccountsController < ApplicationController
       []
     else
       entries = Entry.where(id: entry_ids)
-        .includes(:entryable, entryable: :category)
+        .includes(:account, :entryable, entryable: :category)
         .to_a
       # 按照缓存的entry_ids顺序重新排序，保持倒序顺序
       # 优化：从 O(n²) 优化为 O(n) 通过预计算索引映射

@@ -30,6 +30,11 @@ class ReceivablesController < ApplicationController
       create_transfer_to_receivable_account(funding_account_id: funding_account_id)
     end
 
+    # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
+    CacheBuster.bump(:entries)
+    CacheBuster.bump(:accounts)
+
     redirect_to receivables_path, notice: "应收款已创建"
   rescue ActiveRecord::RecordInvalid => e
     redirect_to receivables_path, alert: e.record.errors.full_messages.join(", ")
@@ -38,17 +43,50 @@ class ReceivablesController < ApplicationController
   end
 
   def update
+    old_account_id = @receivable.account_id
+    
     ActiveRecord::Base.transaction do
       @receivable.update!(receivable_params)
 
-      # 更新创建应收款时的转账金额
-      # 注意：使用 update_all 跳过 callbacks，因为 transfer 条目不需要业务校验
+      # 更新创建应收款时的转账记录
       if @receivable.transfer_id.present?
-        Entry.where(transfer_id: @receivable.transfer_id).update_all(
-          amount: Arel.sql("CASE WHEN amount < 0 THEN -#{@receivable.original_amount.to_s} ELSE #{@receivable.original_amount.to_s} END")
-        )
+        # 检查是否选择了系统账户（应收款账户）
+        receivable_account = Account.find_by(name: SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME)
+        if receivable_account && @receivable.account_id == receivable_account.id
+          # 如果选择了系统账户，删除转账记录
+          Entry.where(transfer_id: @receivable.transfer_id).each(&:destroy!)
+          @receivable.update!(transfer_id: nil)
+        else
+          # 更新转账金额、描述和日期
+          transfer_note = "创建应收款 #{@receivable.description}"
+          
+          Entry.where(transfer_id: @receivable.transfer_id).find_each do |entry|
+            # 根据 entry 的正负号设置金额
+            new_amount = entry.amount < 0 ? -@receivable.original_amount.to_d : @receivable.original_amount.to_d
+            
+            updates = {
+              amount: new_amount,
+              name: transfer_note,
+              notes: transfer_note,
+              date: @receivable.date
+            }
+            
+            # 如果账户发生变化，更新转出账户的 entry
+            if old_account_id != @receivable.account_id && entry.amount < 0
+              updates[:account_id] = @receivable.account_id
+            end
+            
+            entry.update!(updates)
+          end
+        end
       end
     end
+
+    # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
+    # 如果事务成功后 crash 导致 cache 未 bump，下次请求会重新计算，可接受
+    CacheBuster.bump(:entries)
+    CacheBuster.bump(:accounts)
 
     redirect_to receivables_path, notice: "应收款已更新"
   rescue ActiveRecord::RecordInvalid
@@ -60,6 +98,11 @@ class ReceivablesController < ApplicationController
       cleanup_transfer_entries
       @receivable.destroy!
     end
+
+    # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
+    CacheBuster.bump(:entries)
+    CacheBuster.bump(:accounts)
 
     redirect_to receivables_url, notice: "应收款已删除"
   rescue ActiveRecord::RecordInvalid
@@ -86,10 +129,15 @@ class ReceivablesController < ApplicationController
       )
     end
 
+    # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
+    CacheBuster.bump(:entries)
+    CacheBuster.bump(:accounts)
+
     redirect_to receivables_path, notice: "报销成功"
   end
 
-def revert
+  def revert
     ActiveRecord::Base.transaction do
       cleanup_reimbursement_transfers
 
@@ -98,6 +146,11 @@ def revert
         settled_at: nil
       )
     end
+
+    # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
+    CacheBuster.bump(:entries)
+    CacheBuster.bump(:accounts)
 
     redirect_to receivables_path, notice: "报销已撤销"
   rescue ActiveRecord::RecordInvalid
@@ -178,7 +231,7 @@ def revert
   def cleanup_transfer_entries
     # 删除创建应收款时的转账
     if @receivable.transfer_id.present?
-      Entry.where(transfer_id: @receivable.transfer_id).destroy_all
+      Entry.where(transfer_id: @receivable.transfer_id).each(&:destroy!)
     end
 
     # 删除所有报销转账
@@ -188,7 +241,7 @@ def revert
   def cleanup_reimbursement_transfers
     ids = @receivable.reimbursement_transfer_ids
     ids.each do |transfer_id|
-      Entry.where(transfer_id: transfer_id).destroy_all
+      Entry.where(transfer_id: transfer_id).each(&:destroy!)
     end
     @receivable.update!(reimbursement_transfer_ids: [])
   end

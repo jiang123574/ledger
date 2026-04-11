@@ -353,10 +353,10 @@ end
 - `app/services/entry_creation_service.rb`
 
 **验证清单**:
-- [ ] update action 实现转账更新
+- [x] update action 实现转账更新 (已修复：同步更新转账记录的描述、金额、日期和备注)
 - [ ] 添加外键约束或 validation
 - [ ] 创建旧数据迁移脚本
-- [ ] 统一 destroy/destroy! 风格
+- [x] 统一 destroy/destroy! 风格 (已修复：统一使用 `each(&:destroy!)`)
 - [ ] 优化 transfer_id 生成策略
 
 ---
