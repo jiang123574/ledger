@@ -83,6 +83,21 @@ FactoryBot.define do
     day_of_month { 15 }
     active { true }
 
+    trait :active do
+      active { true }
+    end
+
+    trait :inactive do
+      active { false }
+    end
+
+    trait :completed do
+      type { Plan::INSTALLMENT }
+      total_amount { 1200 }
+      installments_total { 12 }
+      installments_completed { 12 }
+    end
+
     trait :installment do
       type { Plan::INSTALLMENT }
       total_amount { 1200 }
@@ -92,10 +107,6 @@ FactoryBot.define do
 
     trait :recurring do
       type { Plan::RECURRING }
-    end
-
-    trait :inactive do
-      active { false }
     end
   end
 

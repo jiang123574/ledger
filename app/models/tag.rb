@@ -23,6 +23,11 @@ class Tag < ApplicationRecord
     %w[taggings]
   end
 
+  # 兼容视图：如果数据库没有 description 字段，返回 nil
+  def description
+    read_attribute(:description) if has_attribute?(:description)
+  end
+
   private
 
   def set_default_color
