@@ -18,7 +18,10 @@ RSpec.describe Account, type: :model do
     subject { build(:account) }
 
     it { is_expected.to validate_presence_of(:name) }
-    it { is_expected.to validate_uniqueness_of(:name) }
+    it "validates uniqueness of name" do
+      create(:account, name: "Test")
+      expect(build(:account, name: "Test")).not_to be_valid
+    end
     it { is_expected.to validate_presence_of(:currency) }
     it { is_expected.to validate_length_of(:currency).is_equal_to(3) }
   end

@@ -102,7 +102,7 @@ RSpec.describe ImportService, type: :service do
         # 验证导入前后的 Entry 数量变化
         expect {
           # 这是一个集成示例 - 实际导入逻辑由 ImportService 处理
-          described_class.SUPPORTED_FORMATS.include?('csv')
+          described_class::SUPPORTED_FORMATS.include?('csv')
         }.not_to raise_error
       end
     end

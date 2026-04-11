@@ -93,33 +93,33 @@ RSpec.describe ApplicationHelper, type: :helper do
     end
   end
 
-  describe "#currency_unit_for" do
+  describe "#currency_unit_for (private)" do
     it "returns ¥ for CNY (default)" do
-      expect(helper.currency_unit_for("CNY")).to eq("¥")
+      expect(helper.send(:currency_unit_for, "CNY")).to eq("¥")
     end
 
     it "returns $ for USD" do
-      expect(helper.currency_unit_for("USD")).to eq("$")
+      expect(helper.send(:currency_unit_for, "USD")).to eq("$")
     end
 
     it "returns € for EUR" do
-      expect(helper.currency_unit_for("EUR")).to eq("€")
+      expect(helper.send(:currency_unit_for, "EUR")).to eq("€")
     end
 
     it "returns £ for GBP" do
-      expect(helper.currency_unit_for("GBP")).to eq("£")
+      expect(helper.send(:currency_unit_for, "GBP")).to eq("£")
     end
 
     it "returns ¥ for JPY" do
-      expect(helper.currency_unit_for("JPY")).to eq("¥")
+      expect(helper.send(:currency_unit_for, "JPY")).to eq("¥")
     end
 
     it "returns ¥ for unknown currencies" do
-      expect(helper.currency_unit_for("XXX")).to eq("¥")
+      expect(helper.send(:currency_unit_for, "XXX")).to eq("¥")
     end
 
     it "returns ¥ for nil" do
-      expect(helper.currency_unit_for(nil)).to eq("¥")
+      expect(helper.send(:currency_unit_for, nil)).to eq("¥")
     end
   end
 end

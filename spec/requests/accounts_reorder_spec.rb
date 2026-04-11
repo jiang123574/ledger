@@ -43,7 +43,7 @@ RSpec.describe "Accounts reorder", type: :request do
     let(:account) { create(:account) }
     let(:date) { Date.today }
 
-    it "successfully reorders entries and updates balances" do
+    it "successfully reorders entries and updates balances", :aggregate_failures do
       e1 = create(:entry, account: account, date: date, amount: -10.0, sort_order: 3)
       e2 = create(:entry, account: account, date: date, amount: -20.0, sort_order: 2)
       e3 = create(:entry, account: account, date: date, amount: 50.0, sort_order: 1)

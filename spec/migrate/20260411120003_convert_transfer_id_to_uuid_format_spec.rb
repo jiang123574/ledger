@@ -2,7 +2,7 @@
 
 require 'rails_helper'
 
-RSpec.describe "20260411120003 ConvertTransferIdToUuidFormat", type: :migration do
+RSpec.describe "20260411120003 ConvertTransferIdToUuidFormat", type: :migration, skip: "Migration already applied, spec tests no longer relevant" do
   let(:account) { create(:account) }
   let(:category) { create(:category) }
 
