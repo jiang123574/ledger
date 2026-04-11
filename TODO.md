@@ -128,6 +128,7 @@ RUN npm prune --production && npm cache clean --force
 
 **优先级**: 低
 **预估工期**: 4-6 小时（分三个 PR）
+**状态**: ✅ 完成
 
 **背景**:
 - 当前系统已是纯 Entry 体系
@@ -135,35 +136,35 @@ RUN npm prune --production && npm cache clean --force
 - 迁移脚本支持 Entry/Transaction 双轨制
 
 **目标**:
-- 完全移除 Transaction 模型和相关表
+- 完全移除 Transaction 模型和相关表 ✅
 
 **实施步骤**:
 
-**Phase 3b-1: 代码清理**
-- 移除 `source_transaction_id` 字段和关联
-- 删除所有 `has_many :xxx_transactions` 关联
-- 清理兼容性回退代码
+**Phase 3b-1: 代码清理** ✅
+- 移除 `source_transaction_id` 字段和关联 ✅
+- 删除所有 `has_many :xxx_transactions` 关联 ✅
+- 清理兼容性回退代码 ✅
 
-**Phase 3b-2: 表清理**
-- 创建最终迁移：删除 transactions 表
-- 删除 transaction_tags 表
-- 更新 schema.rb
+**Phase 3b-2: 表清理** ✅
+- 创建最终迁移：删除 transactions 表 ✅
+- 删除 transaction_tags 表 ✅
+- 更新 schema.rb ✅
 
-**Phase 3b-3: 验证**
-- 完整测试套件运行
+**Phase 3b-3: 验证** ✅
+- 完整测试套件运行 ✅
 - 生产环境滚动部署
 - 监控系统正常性
 
 **相关文件**:
-- `app/models/transaction.rb`（删除）
-- `app/models/entry.rb`（移除关联）
-- `db/migrate/`（新建迁移）
+- `app/models/transaction.rb`（已删除）✅
+- `app/models/entry.rb`（已移除关联）
+- `db/migrate/`（已创建迁移）✅
 - `config/routes.rb`
 
 **验证清单**:
-- [ ] 代码清理完成
-- [ ] 表迁移完成
-- [ ] 所有测试通过
+- [x] 代码清理完成
+- [x] 表迁移完成
+- [x] 所有测试通过
 - [ ] 生产环境验证
 
 ---
@@ -311,18 +312,25 @@ end
 - `app/models/receivable.rb`
 - `db/migrate/*.rb`
 
-#### 8.3 无数据迁移脚本
+#### 8.3 无数据迁移脚本 ✅
 
 **问题描述**:
 - 旧 receivables 仍用 `source_entry_id`，新逻辑用 `transfer_id`
 - 双路径兼容处理正确，但建议添加数据迁移脚本将旧数据统一为新格式
 
 **修复方案**:
-- 创建数据迁移脚本
-- 将旧数据的 source_entry_id 转换为 transfer_id 格式
+- 创建数据迁移脚本 ✅
+- 将旧数据的 source_entry_id 转换为 transfer_id 格式 ✅
+
+**完成内容**:
+- 创建数据完整性验证迁移脚本 ✅
+- 创建 transfer_id 格式转换迁移脚本（整数 → UUID）✅
+- 验证所有数据格式正确 ✅
+- 将 7 条 receivables 和 14287 条 entries 的 transfer_id 转换为 UUID 格式 ✅
 
 **相关文件**:
-- `db/migrate/*.rb`
+- `db/migrate/20260411120002_validate_transfer_id_data_integrity.rb` ✅
+- `db/migrate/20260411120003_convert_transfer_id_to_uuid_format.rb` ✅
 
 #### 8.4 destroy vs destroy! 不一致
 
@@ -354,7 +362,7 @@ end
 **验证清单**:
 - [x] update action 实现转账更新 (已修复：同步更新转账记录的描述、金额、日期和备注)
 - [ ] 添加外键约束或 validation
-- [ ] 创建旧数据迁移脚本
+- [x] 创建旧数据迁移脚本 (已完成：transfer_id 格式转换)
 - [x] 统一 destroy/destroy! 风格 (已修复：统一使用 `each(&:destroy!)`)
 - [ ] 优化 transfer_id 生成策略
 
