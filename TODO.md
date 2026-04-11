@@ -244,7 +244,7 @@ entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
 #### 5.4 accounts_controller 缓存键优化
 
 **优先级**: 低
-**状态**: ⏳ 待优化
+**状态**: ✅ 完成
 **来源**: PR #74 Code Review
 
 **问题描述**:
@@ -372,7 +372,7 @@ end
 
 **优先级**: 低
 **预估工期**: 0.5 小时
-**状态**: ⏳ 待修复
+**状态**: ✅ 完成
 **来源**: PR #74 Code Review
 
 **问题描述**:
@@ -404,7 +404,7 @@ focus:outline-none focus-visible:ring-2 ...
 
 **优先级**: 低
 **预估工期**: 2-3 小时
-**状态**: ⏳ 待优化
+**状态**: ✅ 完成
 **来源**: PR #78 Code Review
 
 **问题描述**:
