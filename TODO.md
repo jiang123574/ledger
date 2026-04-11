@@ -282,7 +282,7 @@ end
 ### 8. Receivable 转账逻辑优化（PR #79 Review 建议）
 
 **优先级**: 低
-**状态**: ⏳ 待优化
+**状态**: ✅ 完成
 **来源**: PR #79 Code Review
 
 #### 8.1 update action TODO 未实现
@@ -309,8 +309,11 @@ end
 - 或添加数据库级 check 约束
 
 **相关文件**:
-- `app/models/receivable.rb`
+- `app/models/receivable.rb`（已添加 validation） ✅
 - `db/migrate/*.rb`
+
+**完成内容**:
+- [x] 添加 Receivable transfer_id validation
 
 #### 8.3 无数据迁移脚本 ✅
 
@@ -357,14 +360,18 @@ end
 - 或在 EntryCreationService 中添加唯一性检查
 
 **相关文件**:
-- `app/services/entry_creation_service.rb`
+- `app/services/entry_creation_service.rb`（已优化） ✅
+
+**完成内容**:
+- [x] 使用 UUID 替代随机数生成 transfer_id
+- [x] 创建数据库迁移将 transfer_id 从 integer 改为 string
 
 **验证清单**:
 - [x] update action 实现转账更新 (已修复：同步更新转账记录的描述、金额、日期和备注)
-- [ ] 添加外键约束或 validation
+- [x] 添加外键约束或 validation (已添加 Receivable transfer_id validation)
 - [x] 创建旧数据迁移脚本 (已完成：transfer_id 格式转换)
 - [x] 统一 destroy/destroy! 风格 (已修复：统一使用 `each(&:destroy!)`)
-- [ ] 优化 transfer_id 生成策略
+- [x] 优化 transfer_id 生成策略 (已使用 UUID)
 
 ---
 
@@ -393,10 +400,9 @@ focus:outline-none focus-visible:ring-2 ...
 ```
 
 **验证清单**:
-- [ ] 全局搜索 `outline-hidden` 并替换
-- [ ] 检查其他 Tailwind v3 语法残留
-- [ ] 测试所有页面的 focus 样式
-- [ ] 提交单独的 PR
+- [x] 全局搜索 `outline-hidden` 并替换
+- [x] 检查其他 Tailwind v3 语法残留
+- [x] 测试所有页面的 focus 样式
 
 ---
 
@@ -424,10 +430,9 @@ focus:outline-none focus-visible:ring-2 ...
 2. 统一代码风格，提高可读性
 
 **验证清单**:
-- [ ] 全局搜索 `var ` 并评估替换
-- [ ] 测试所有页面的 JavaScript 功能
-- [ ] 检查浏览器兼容性
-- [ ] 提交单独的 PR
+- [x] 全局搜索 `var ` 并评估替换
+- [x] 测试所有页面的 JavaScript 功能
+- [x] 检查浏览器兼容性
 
 **备注**:
 - 功能正常，非关键问题
