@@ -92,7 +92,8 @@
                       <% end %>
                     </div>
                     <% if account.type == 'CREDIT' && account.credit_limit %>
-                      <p class="text-xs text-secondary dark:text-secondary-dark">额度 <%= format_currency(account.credit_limit) %></p>
+                      <% available_credit = account.credit_limit.to_d + (@account_balances[account.id] || 0).to_d %>
+                      <p class="text-xs text-secondary dark:text-secondary-dark">可用额度 <%= format_currency(available_credit) %></p>
                     <% end %>
                   </div>
                   <div class="flex items-center gap-1">
