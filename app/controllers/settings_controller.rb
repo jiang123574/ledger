@@ -177,13 +177,9 @@ class SettingsController < ApplicationController
       Plan.destroy_all
       Budget.destroy_all
 
-      # 清理新的 Entry 数据
+      # 清理 Entry 数据
       Entryable::Transaction.destroy_all
       Entry.destroy_all
-
-      # 清理旧的 Transaction 数据
-      Transaction.where.not(link_id: nil).update_all(link_id: nil)
-      Transaction.destroy_all
 
       Category.destroy_all
       Account.destroy_all

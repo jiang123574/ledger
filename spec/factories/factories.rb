@@ -36,16 +36,6 @@ FactoryBot.define do
     hidden { false }
   end
 
-  factory :transaction do
-    association :account
-    association :category
-    type { 'EXPENSE' }
-    amount { 100.50 }
-    date { Date.today }
-    currency { 'CNY' }
-    note { 'Test transaction' }
-  end
-
   factory :budget do
     sequence(:month) { |n| "2024-#{(n % 12 + 1).to_s.rjust(2, '0')}" }
     amount { 1000 }

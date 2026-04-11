@@ -1017,8 +1017,8 @@ function toggleAccountList() {
 }
 
 // 筛选功能
-const selectedCategoryIds = selectedCategoryIds || <%= raw selected_category_ids.to_json %>;
-const currentPage = currentPage || <%= @page %>;
+const selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
+const currentPage = <%= @page %>;
 
 function applyFilters() {
   const params = new URLSearchParams();
@@ -1480,7 +1480,7 @@ const categoryField = document.getElementById('transaction-category-field');
 const toggleTransferBtn = document.getElementById('toggle-transfer-btn');
 
 // 当前模式: 'category'（收支） 或 'transfer'（转账）
-const transactionMode = 'category';
+let transactionMode = 'category';
 
 // 切换转账模式
 function toggleTransferMode() {
@@ -1580,8 +1580,8 @@ function renderCategoryOptions(filterText) {
     return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
   }
   
-  const html = '';
-  const lastType = null;
+  let html = '';
+  let lastType = null;
   
   filtered.forEach(function(cat) {
     // 分组标题

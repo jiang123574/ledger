@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_045532) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_120003) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -238,12 +238,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_045532) do
     t.string "kind"
     t.jsonb "locked_attributes", default: {}
     t.integer "merchant_id"
-    t.bigint "source_transaction_id"
     t.jsonb "tags", default: []
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "idx_trans_category"
     t.index ["merchant_id"], name: "idx_trans_merchant"
-    t.index ["source_transaction_id"], name: "index_entryable_transactions_on_source_transaction_id"
     t.index ["tags"], name: "idx_trans_tags_gin", using: :gin
   end
 
@@ -304,7 +302,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_045532) do
     t.decimal "remaining_amount", precision: 10, scale: 2
     t.datetime "settled_at"
     t.bigint "source_entry_id"
-    t.integer "source_transaction_id"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_payables_on_account_id"
     t.index ["counterparty_id"], name: "index_payables_on_counterparty_id"
@@ -402,66 +399,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_045532) do
     t.index ["name"], name: "index_tags_on_name", unique: true
   end
 
-  create_table "transaction_tags", id: false, force: :cascade do |t|
-    t.integer "tag_id", null: false
-    t.integer "transaction_id", null: false
-    t.index ["tag_id", "transaction_id"], name: "idx_trans_tags_tag_trans"
-    t.index ["tag_id"], name: "index_transaction_tags_on_tag_id"
-    t.index ["transaction_id", "tag_id"], name: "index_transaction_tags_on_transaction_id_and_tag_id", unique: true
-    t.index ["transaction_id"], name: "index_transaction_tags_on_transaction_id"
-  end
-
-  create_table "transactions", force: :cascade do |t|
-    t.integer "account_id"
-    t.decimal "amount", precision: 10, scale: 2
-    t.string "category"
-    t.integer "category_id"
-    t.datetime "created_at", null: false
-    t.string "currency", limit: 3, default: "CNY"
-    t.datetime "date"
-    t.string "dedupe_key", limit: 40
-    t.decimal "exchange_rate", precision: 12, scale: 6
-    t.jsonb "extra", default: {}
-    t.integer "link_id"
-    t.jsonb "locked_attributes", default: {}
-    t.string "note"
-    t.decimal "original_amount", precision: 12, scale: 6
-    t.bigint "payable_id"
-    t.integer "receivable_id"
-    t.integer "sort_order", default: 0
-    t.string "tag"
-    t.integer "target_account_id"
-    t.string "type"
-    t.datetime "updated_at", null: false
-    t.boolean "user_modified", default: false, null: false
-    t.index ["account_id", "date", "amount", "type"], name: "idx_trans_unique_check", where: "(dedupe_key IS NULL)"
-    t.index ["account_id", "date", "type"], name: "index_transactions_on_account_id_and_date_and_type"
-    t.index ["account_id", "date"], name: "index_transactions_account_date"
-    t.index ["account_id", "type", "date"], name: "idx_trans_account_type_date"
-    t.index ["account_id"], name: "index_transactions_on_account_id"
-    t.index ["category"], name: "index_transactions_on_category"
-    t.index ["category_id", "date", "type"], name: "idx_trans_category_date_type"
-    t.index ["category_id"], name: "index_transactions_on_category_id"
-    t.index ["date", "type"], name: "idx_trans_date_type"
-    t.index ["date"], name: "idx_trans_date_expense", where: "((type)::text = 'EXPENSE'::text)"
-    t.index ["date"], name: "idx_trans_date_income", where: "((type)::text = 'INCOME'::text)"
-    t.index ["date"], name: "index_transactions_on_date"
-    t.index ["dedupe_key"], name: "index_transactions_on_dedupe_key"
-    t.index ["extra"], name: "idx_trans_extra_gin", using: :gin
-    t.index ["link_id"], name: "index_transactions_on_link_id"
-    t.index ["locked_attributes"], name: "idx_trans_locked_gin", using: :gin
-    t.index ["payable_id"], name: "index_transactions_on_payable_id"
-    t.index ["receivable_id"], name: "index_transactions_on_receivable_id"
-    t.index ["target_account_id", "date"], name: "idx_trans_target_date"
-    t.index ["target_account_id", "date"], name: "index_transactions_on_target_account_id_and_date"
-    t.index ["target_account_id", "type", "date"], name: "idx_trans_target_type_date"
-    t.index ["target_account_id"], name: "index_transactions_on_target_account_id"
-    t.index ["type", "date", "account_id"], name: "idx_trans_type_date_account"
-    t.index ["type", "date"], name: "index_transactions_type_date"
-    t.index ["type"], name: "index_transactions_on_type"
-    t.index ["user_modified"], name: "idx_trans_user_modified", where: "(user_modified = true)"
-  end
-
   create_table "versions", force: :cascade do |t|
     t.datetime "created_at"
     t.string "event", null: false
@@ -475,7 +412,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_045532) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "attachments", "entries", on_delete: :cascade
-  add_foreign_key "attachments", "transactions"
   add_foreign_key "budget_items", "categories", on_delete: :nullify
   add_foreign_key "budget_items", "single_budgets"
   add_foreign_key "budgets", "categories"
@@ -494,12 +430,4 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_045532) do
   add_foreign_key "recurring_transactions", "categories"
   add_foreign_key "single_budgets", "categories"
   add_foreign_key "taggings", "tags"
-  add_foreign_key "transaction_tags", "tags", on_delete: :cascade
-  add_foreign_key "transaction_tags", "transactions", on_delete: :cascade
-  add_foreign_key "transactions", "accounts"
-  add_foreign_key "transactions", "accounts", column: "target_account_id"
-  add_foreign_key "transactions", "categories"
-  add_foreign_key "transactions", "payables"
-  add_foreign_key "transactions", "receivables"
-  add_foreign_key "transactions", "transactions", column: "link_id"
 end
