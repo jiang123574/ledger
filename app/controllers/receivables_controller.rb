@@ -241,7 +241,7 @@ class ReceivablesController < ApplicationController
   def cleanup_reimbursement_transfers
     ids = @receivable.reimbursement_transfer_ids
     ids.each do |transfer_id|
-      Entry.where(transfer_id: transfer_id).each(&:destroy!)
+      Entry.where(transfer_id: transfer_id.to_s).each(&:destroy!)
     end
     @receivable.update!(reimbursement_transfer_ids: [])
   end
