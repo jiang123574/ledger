@@ -1580,8 +1580,8 @@ function renderCategoryOptions(filterText) {
     return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
   }
   
-  const html = '';
-  const lastType = null;
+  let html = '';
+  let lastType = null;
   
   filtered.forEach(function(cat) {
     // 分组标题
