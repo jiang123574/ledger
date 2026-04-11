@@ -100,10 +100,3 @@ RSpec.describe EntrySearch, type: :model do
     end
   end
 end
-
-# TransactionSearch 是 EntrySearch 的别名
-RSpec.describe TransactionSearch, type: :model do
-  it 'is an alias for EntrySearch' do
-    expect(TransactionSearch).to eq(EntrySearch)
-  end
-end

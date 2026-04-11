@@ -124,6 +124,14 @@ FactoryBot.define do
       amount { -100.50 }
       entryable { association(:entryable_transaction, :expense) }
     end
+
+    trait :valuation do
+      entryable { association(:entryable_valuation) }
+    end
+
+    trait :trade do
+      entryable { association(:entryable_trade) }
+    end
   end
 
   factory :entryable_transaction, class: 'Entryable::Transaction' do
@@ -137,6 +145,16 @@ FactoryBot.define do
     trait :expense do
       kind { 'expense' }
     end
+  end
+
+  factory :entryable_valuation, class: 'Entryable::Valuation' do
+    extra { { valuation_method: 'market_price', source: 'manual' } }
+  end
+
+  factory :entryable_trade, class: 'Entryable::Trade' do
+    qty { 100 }
+    price { 10.5 }
+    extra { { order_type: 'buy' } }
   end
 
   factory :single_budget do
