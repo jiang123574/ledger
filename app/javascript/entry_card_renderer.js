@@ -85,11 +85,8 @@ function createEntryCard(entry, options = {}) {
   typeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   
   const nameEl = desktopRow.querySelector('[data-field="name"]')
-  if (isTransfer && entry.transfer_from && entry.transfer_to) {
-    nameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
-  } else {
-    nameEl.textContent = entry.display_name || "-"
-  }
+  // 使用后端处理好的 display_name，它已根据当前账户过滤器格式化
+  nameEl.textContent = entry.display_name || "-"
 
   const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
   const outflowEl = desktopRow.querySelector('[data-field="outflow"]')
@@ -138,11 +135,8 @@ function createEntryCard(entry, options = {}) {
   mobileTypeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   
   const mobileNameEl = mobileRow.querySelector('[data-field="name"]')
-  if (isTransfer && entry.transfer_from && entry.transfer_to) {
-    mobileNameEl.textContent = `${entry.transfer_from} → ${entry.transfer_to}`
-  } else {
-    mobileNameEl.textContent = entry.display_name || "-"
-  }
+  // 使用后端处理好的 display_name，它已根据当前账户过滤器格式化
+  mobileNameEl.textContent = entry.display_name || "-"
 
   const amountEl = mobileRow.querySelector('[data-field="amount"]')
   if (isTransfer && entry.show_both_amounts) {
