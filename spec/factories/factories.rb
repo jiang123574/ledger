@@ -190,4 +190,16 @@ FactoryBot.define do
     backup_type { 'manual' }
     status { 'completed' }
   end
+
+  factory :recurring_transaction do
+    association :account
+    association :category
+    transaction_type { 'expense' }
+    amount { 100.00 }
+    currency { 'CNY' }
+    frequency { 'monthly' }
+    next_date { Date.tomorrow }
+    is_active { 1 }
+    note { 'Monthly payment' }
+  end
 end
