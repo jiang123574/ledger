@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_10_124404) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_045532) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -195,7 +195,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_124404) do
     t.integer "parent_entry_id"
     t.integer "sort_order", default: 0, null: false
     t.string "source"
-    t.integer "transfer_id"
+    t.string "transfer_id"
     t.datetime "updated_at", null: false
     t.boolean "user_modified", default: false, null: false
     t.index "lower((name)::text)", name: "idx_entries_name_lower"
@@ -341,7 +341,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_10_124404) do
     t.text "reimbursement_transfer_ids"
     t.decimal "remaining_amount", precision: 10, scale: 2
     t.datetime "settled_at"
-    t.integer "transfer_id"
+    t.string "transfer_id"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_receivables_on_account_id"
     t.index ["counterparty_id"], name: "index_receivables_on_counterparty_id"
