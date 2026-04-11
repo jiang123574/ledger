@@ -514,8 +514,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 <% end %>
 
-const allAccountsForSelector = [];
-const allCategoriesForSelector = [];
+var allAccountsForSelector = [];
+var allCategoriesForSelector = [];
 const payableAccountsDataEl = document.getElementById('payable-accounts-data');
 if (payableAccountsDataEl) {
   allAccountsForSelector = JSON.parse(payableAccountsDataEl.textContent);

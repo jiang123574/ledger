@@ -992,7 +992,7 @@ function confirmDeleteAccount(id, name) {
 <script>
 // 防抖函数
 function debounce(func, wait) {
-  const timeout;
+  var timeout;
   return function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout);
@@ -1554,7 +1554,7 @@ const categoryDropdown = document.getElementById('category-dropdown');
 const categoryFilterInput = document.getElementById('category-filter-input');
 const categoryOptions = document.getElementById('category-options');
 const categoryHiddenInput = document.getElementById('new_transaction_category_id');
-const allCategories = [];
+var allCategories = [];
 const currentCategoryType = 'EXPENSE';
 
 // 从合并数据加载全部分类
@@ -1857,8 +1857,8 @@ function escapeHtml(str) {
 }
 
 // 账户选择器逻辑
-const allAccounts = [];
-const accountsDataEl = document.getElementById('accounts-data');
+var allAccounts = [];
+var accountsDataEl = document.getElementById('accounts-data');
 if (accountsDataEl) {
   allAccounts = JSON.parse(accountsDataEl.textContent);
 }
@@ -1899,7 +1899,7 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   function updateOptions() {
     // 确保 allAccounts 已加载（防止时序问题）
     if (allAccounts.length === 0) {
-      const accountsDataEl = document.getElementById('accounts-data');
+      var accountsDataEl = document.getElementById('accounts-data');
       if (accountsDataEl && accountsDataEl.textContent) {
         try {
           allAccounts = JSON.parse(accountsDataEl.textContent);

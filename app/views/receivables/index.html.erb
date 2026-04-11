@@ -410,8 +410,8 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 <% end %>
 
-const allAccountsForSelector = [];
-const allCategoriesForSelector = [];
+var allAccountsForSelector = [];
+var allCategoriesForSelector = [];
 const receivableAccountsDataEl = document.getElementById('receivable-accounts-data');
 if (receivableAccountsDataEl) {
   allAccountsForSelector = JSON.parse(receivableAccountsDataEl.textContent);
