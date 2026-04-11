@@ -31,6 +31,7 @@ class ReceivablesController < ApplicationController
     end
 
     # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
     CacheBuster.bump(:entries)
     CacheBuster.bump(:accounts)
 
@@ -82,6 +83,8 @@ class ReceivablesController < ApplicationController
     end
 
     # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
+    # 如果事务成功后 crash 导致 cache 未 bump，下次请求会重新计算，可接受
     CacheBuster.bump(:entries)
     CacheBuster.bump(:accounts)
 
@@ -97,6 +100,7 @@ class ReceivablesController < ApplicationController
     end
 
     # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
     CacheBuster.bump(:entries)
     CacheBuster.bump(:accounts)
 
@@ -126,6 +130,7 @@ class ReceivablesController < ApplicationController
     end
 
     # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
     CacheBuster.bump(:entries)
     CacheBuster.bump(:accounts)
 
@@ -143,6 +148,7 @@ class ReceivablesController < ApplicationController
     end
 
     # 清除缓存，确保账户余额及时更新
+    # 注意：bump 放在 transaction 外，避免事务回滚时浪费 cache 写入
     CacheBuster.bump(:entries)
     CacheBuster.bump(:accounts)
 
