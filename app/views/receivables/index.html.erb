@@ -345,17 +345,17 @@
 <script type="module">
 import { initSelectorWithData } from 'selectors';
 function openNewReceivableModal() {
-  var form = document.getElementById('new-receivable-form');
+  const form = document.getElementById('new-receivable-form');
   if (form) {
     form.reset();
-    var dateInput = form.querySelector('input[name="receivable[date]"]');
+    const dateInput = form.querySelector('input[name="receivable[date]"]');
     if (dateInput) dateInput.value = '<%= Date.today %>';
   }
-  var fundingAccountIdInput = document.getElementById('new-receivable-funding-account-id');
-  var fundingAccountSearchInput = document.getElementById('new-receivable-funding-account-search');
+  const fundingAccountIdInput = document.getElementById('new-receivable-funding-account-id');
+  const fundingAccountSearchInput = document.getElementById('new-receivable-funding-account-search');
   if (fundingAccountIdInput) fundingAccountIdInput.value = '';
   if (fundingAccountSearchInput) fundingAccountSearchInput.value = '';
-  var modal = document.getElementById('add-receivable-modal');
+  const modal = document.getElementById('add-receivable-modal');
   if (modal) modal.classList.remove('hidden');
 }
 
@@ -365,13 +365,13 @@ function openEditReceivableModal(id, description, date, amount, category, counte
   document.getElementById('edit-receivable-description').value = description;
   document.getElementById('edit-receivable-date').value = date;
   document.getElementById('edit-receivable-amount').value = amount;
-  var categoryIdInput = document.getElementById('edit-receivable-category-id');
-  var categorySearchInput = document.getElementById('edit-receivable-category-search');
+  const categoryIdInput = document.getElementById('edit-receivable-category-id');
+  const categorySearchInput = document.getElementById('edit-receivable-category-search');
   if (categoryIdInput) categoryIdInput.value = category || '';
   if (categorySearchInput) categorySearchInput.value = category || '';
   document.getElementById('edit-receivable-counterparty').value = counterpartyId || '';
-  var accountIdInput = document.getElementById('edit-receivable-account-id');
-  var accountSearchInput = document.getElementById('edit-receivable-account-search');
+  const accountIdInput = document.getElementById('edit-receivable-account-id');
+  const accountSearchInput = document.getElementById('edit-receivable-account-search');
   if (accountIdInput) accountIdInput.value = accountId || '';
   if (accountSearchInput) accountSearchInput.value = findAccountName(accountId) || '';
   document.getElementById('edit-receivable-note').value = note;
@@ -385,8 +385,8 @@ function openSettleModal(id, description, remainingAmount) {
   document.getElementById('settle-date').value = new Date().toISOString().split('T')[0];
   document.getElementById('settle-form').action = '/receivables/' + id + '/settle';
   
-  var accountIdInput = document.getElementById('settle-account-id');
-  var accountSearchInput = document.getElementById('settle-account-search');
+  const accountIdInput = document.getElementById('settle-account-id');
+  const accountSearchInput = document.getElementById('settle-account-search');
   if (accountIdInput) accountIdInput.value = '';
   if (accountSearchInput) accountSearchInput.value = '';
   
@@ -412,22 +412,22 @@ document.addEventListener('DOMContentLoaded', function() {
 
 var allAccountsForSelector = [];
 var allCategoriesForSelector = [];
-var receivableAccountsDataEl = document.getElementById('receivable-accounts-data');
+const receivableAccountsDataEl = document.getElementById('receivable-accounts-data');
 if (receivableAccountsDataEl) {
   allAccountsForSelector = JSON.parse(receivableAccountsDataEl.textContent);
 }
-var receivableCategoriesDataEl = document.getElementById('receivable-categories-data');
+const receivableCategoriesDataEl = document.getElementById('receivable-categories-data');
 if (receivableCategoriesDataEl) {
   allCategoriesForSelector = JSON.parse(receivableCategoriesDataEl.textContent);
 }
 
 function findAccountName(accountId) {
   if (!accountId) return '';
-  var matched = allAccountsForSelector.find(function(acc) { return String(acc.id) === String(accountId); });
+  const matched = allAccountsForSelector.find(function(acc) { return String(acc.id) === String(accountId); });
   return matched ? matched.name : '';
 }
 
-var categorySelectorData = allCategoriesForSelector.map(function(cat) {
+const categorySelectorData = allCategoriesForSelector.map(function(cat) {
   return {
     id: cat.name,
     name: cat.name,

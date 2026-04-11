@@ -172,7 +172,7 @@ class Entry < ApplicationRecord
   # 批量预加载转账配对账户，消除视图循环中的 N+1 查询
   # 用法: Entry.preload_transfer_accounts(entries) 在 Controller/Service 中调用一次即可
   def self.preload_transfer_accounts(entries)
-    transfer_ids = entries.map(&:transfer_id).compact.uniq
+    transfer_ids = entries.map(&:transfer_id).compact.uniq.map(&:to_s)
     return {} if transfer_ids.empty?
 
     # 一次查询获取所有转账配对条目
