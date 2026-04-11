@@ -128,7 +128,6 @@ RUN npm prune --production && npm cache clean --force
 
 **优先级**: 低
 **预估工期**: 4-6 小时（分三个 PR）
-**前置条件**: 生产环境稳定运行 2-4 周后（2026-05-05 后）
 
 **背景**:
 - 当前系统已是纯 Entry 体系
