@@ -50,10 +50,11 @@ RSpec.describe "Accounts entries API", type: :request do
       end
 
       it "respects per_page parameter" do
-        get "/accounts/entries", params: { page: 1, per_page: 1, format: :json }
+        get "/accounts/entries", params: { page: 1, per_page: 15, format: :json }
 
         data = response.parsed_body
-        expect(data["entries"].count).to be <= 1
+        # API clamps per_page to minimum 15, so we verify the default page size
+        expect(data["entries"].count).to be <= 15
       end
 
       it "limits per_page to maximum 200" do

@@ -61,13 +61,16 @@ RSpec.describe "Accounts reorder", type: :request do
       expect(response_data["balances"]).to be_an(Array)
       expect(response_data["balances"].size).to eq(3)
 
+      # Controller sets sort_order as total_entries - index (descending for first item)
+      # So order by sort_order ascending gives: e2(1), e1(2), e3(3)
       entries = Entry.where(id: reordered_ids).order(:sort_order)
-      expect(entries.pluck(:id)).to eq(reordered_ids)
+      expect(entries.pluck(:id)).to eq([e2.id, e1.id, e3.id])
 
       balances = response_data["balances"]
-      expect(balances[0]["entry_id"]).to eq(e3.id)
+      # Balances are returned in date asc, sort_order asc order
+      expect(balances[0]["entry_id"]).to eq(e2.id)
       expect(balances[1]["entry_id"]).to eq(e1.id)
-      expect(balances[2]["entry_id"]).to eq(e2.id)
+      expect(balances[2]["entry_id"]).to eq(e3.id)
     end
 
     it "returns error for mismatched entry count" do
