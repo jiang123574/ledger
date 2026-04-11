@@ -550,7 +550,7 @@ entry_ids = params[:entry_ids].map(&:to_i)
   def blocking_references_for(account)
     refs = []
 
-    if Transaction.where(account_id: account.id).or(Transaction.where(target_account_id: account.id)).exists?
+    if Entry.where(account_id: account.id).exists?
       refs << "交易记录"
     end
     refs << "应收款" if Receivable.where(account_id: account.id).exists?
