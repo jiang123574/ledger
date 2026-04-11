@@ -38,15 +38,38 @@ class ReceivablesController < ApplicationController
   end
 
   def update
+    old_account_id = @receivable.account_id
+    
     ActiveRecord::Base.transaction do
       @receivable.update!(receivable_params)
 
-      # 更新创建应收款时的转账金额
-      # 注意：使用 update_all 跳过 callbacks，因为 transfer 条目不需要业务校验
+      # 更新创建应收款时的转账记录
       if @receivable.transfer_id.present?
-        Entry.where(transfer_id: @receivable.transfer_id).update_all(
-          amount: Arel.sql("CASE WHEN amount < 0 THEN -#{@receivable.original_amount.to_s} ELSE #{@receivable.original_amount.to_s} END")
-        )
+        # 检查是否选择了系统账户（应收款账户）
+        receivable_account = Account.find_by(name: SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME)
+        if receivable_account && @receivable.account_id == receivable_account.id
+          # 如果选择了系统账户，删除转账记录
+          Entry.where(transfer_id: @receivable.transfer_id).destroy_all
+          @receivable.update!(transfer_id: nil)
+        else
+          # 更新转账金额、描述和日期
+          transfer_note = "创建应收款 #{@receivable.description}"
+          
+          Entry.where(transfer_id: @receivable.transfer_id).find_each do |entry|
+            updates = {
+              amount: entry.amount < 0 ? -@receivable.original_amount.to_d : @receivable.original_amount.to_d,
+              name: transfer_note,
+              date: @receivable.date
+            }
+            
+            # 如果账户发生变化，更新转出账户的 entry
+            if old_account_id != @receivable.account_id && entry.amount < 0
+              updates[:account_id] = @receivable.account_id
+            end
+            
+            entry.update!(updates)
+          end
+        end
       end
     end
 
