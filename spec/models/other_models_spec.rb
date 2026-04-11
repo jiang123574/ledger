@@ -2,87 +2,148 @@
 
 require "rails_helper"
 
-RSpec.describe Attachment, type: :model do
+RSpec.describe BudgetItem, type: :model do
   describe "associations" do
-    it { is_expected.to belong_to(:entry).optional }
+    it { is_expected.to belong_to(:single_budget) }
+    it { is_expected.to belong_to(:category).optional }
   end
 
   describe "validations" do
-    it { is_expected.to validate_presence_of(:file_path) }
-    it { is_expected.to validate_presence_of(:file_name) }
-    it { is_expected.to validate_presence_of(:file_type) }
+    it { is_expected.to validate_length_of(:name).is_at_most(100).allow_nil }
+    it { is_expected.to validate_presence_of(:amount) }
+    it { is_expected.to validate_numericality_of(:amount).is_greater_than_or_equal_to(0) }
+    it { is_expected.to validate_numericality_of(:spent_amount).is_greater_than_or_equal_to(0) }
   end
 
-  describe "#image?" do
-    it "returns true for image content types" do
-      attachment = Attachment.new(file_type: "image/jpeg")
-      expect(attachment.image?).to be true
+  describe "#display_name" do
+    it "returns category full_name when category present" do
+      category = create(:category, name: "Food")
+      item = BudgetItem.new(category: category)
+      expect(item.display_name).to eq("Food")
     end
 
-    it "returns false for non-image content types" do
-      attachment = Attachment.new(file_type: "application/pdf")
-      expect(attachment.image?).to be false
+    it "returns name when category is nil" do
+      item = BudgetItem.new(name: "Custom Name")
+      expect(item.display_name).to eq("Custom Name")
     end
 
-    it "returns false when file_type is nil" do
-      attachment = Attachment.new(file_type: nil)
-      expect(attachment.image?).to be false
+    it "returns 未分类 when both are nil" do
+      item = BudgetItem.new
+      expect(item.display_name).to eq("未分类")
+    end
+  end
+
+  describe "#remaining_amount" do
+    it "calculates remaining amount" do
+      item = BudgetItem.new(amount: 1000, spent_amount: 300)
+      expect(item.remaining_amount).to eq(700)
     end
   end
 
-  describe "#human_size" do
-    it "returns bytes for small files" do
-      attachment = Attachment.new(file_size: 500)
-      expect(attachment.human_size).to eq("500 B")
+  describe "#progress_percentage" do
+    it "calculates percentage" do
+      item = BudgetItem.new(amount: 1000, spent_amount: 250)
+      expect(item.progress_percentage).to eq(25.0)
     end
 
-    it "returns KB for medium files" do
-      attachment = Attachment.new(file_size: 2048)
-      expect(attachment.human_size).to eq("2.0 KB")
-    end
-
-    it "returns MB for large files" do
-      attachment = Attachment.new(file_size: 2 * 1024 * 1024)
-      expect(attachment.human_size).to eq("2.0 MB")
-    end
-
-    it "returns 0 when file_size is nil" do
-      attachment = Attachment.new(file_size: nil)
-      expect(attachment.human_size).to eq(0)
-    end
-
-    it "returns 0 when file_size is 0" do
-      attachment = Attachment.new(file_size: 0)
-      expect(attachment.human_size).to eq(0)
+    it "returns 0 when amount is 0" do
+      item = BudgetItem.new(amount: 0, spent_amount: 0)
+      expect(item.progress_percentage).to eq(0)
     end
   end
-end
 
-RSpec.describe Tagging, type: :model do
-  describe "associations" do
-    it { is_expected.to belong_to(:tag) }
-  end
-end
+  describe "#overspent?" do
+    it "returns true when spent exceeds amount" do
+      item = BudgetItem.new(amount: 100, spent_amount: 150)
+      expect(item.overspent?).to be true
+    end
 
-RSpec.describe ImportBatch, type: :model do
-  describe "attributes" do
-    it "has source_name attribute" do
-      batch = ImportBatch.new(source_name: "pixiu")
-      expect(batch.source_name).to eq("pixiu")
+    it "returns false when spent is within amount" do
+      item = BudgetItem.new(amount: 100, spent_amount: 50)
+      expect(item.overspent?).to be false
     end
   end
 end
 
-RSpec.describe BackupRecord, type: :model do
+RSpec.describe ExchangeRate, type: :model do
   describe "validations" do
-    it { is_expected.to validate_presence_of(:filename) }
-    it { is_expected.to validate_presence_of(:file_path) }
+    it { is_expected.to validate_presence_of(:from_currency) }
+    it { is_expected.to validate_presence_of(:to_currency) }
+    it { is_expected.to validate_presence_of(:rate) }
+    it { is_expected.to validate_numericality_of(:rate).is_greater_than(0) }
   end
 
-  describe "#human_size" do
-    it "returns formatted file size" do
-      record = BackupRecord.new(file_size: 1024 * 1024)
-      expect(record.human_size).to include("MB")
+  describe ".for_pair" do
+    let!(:rate) { create(:exchange_rate, from_currency: "USD", to_currency: "CNY", rate: 7.2) }
+
+    it "finds rate for currency pair" do
+      result = ExchangeRate.find_by(from_currency: "USD", to_currency: "CNY")
+      expect(result).to eq(rate)
+    end
+  end
+end
+
+RSpec.describe Counterparty, type: :model do
+  describe "validations" do
+    it { is_expected.to validate_presence_of(:name) }
+  end
+
+  describe "scopes" do
+    let!(:counterparty_b) { create(:counterparty, name: "Bob") }
+    let!(:counterparty_a) { create(:counterparty, name: "Alice") }
+
+    describe ".ordered" do
+      it "orders by name" do
+        expect(Counterparty.ordered.first).to eq(counterparty_a)
+      end
+    end
+  end
+end
+
+RSpec.describe Plan, type: :model do
+  describe "associations" do
+    it { is_expected.to belong_to(:account).optional }
+  end
+
+  describe "validations" do
+    it { is_expected.to validate_presence_of(:name) }
+    it { is_expected.to validate_presence_of(:amount) }
+    it { is_expected.to validate_numericality_of(:amount).is_greater_than_or_equal_to(0) }
+  end
+
+  describe "scopes" do
+    let!(:active_plan) { create(:plan, :active) }
+    let!(:inactive_plan) { create(:plan, :inactive) }
+
+    describe ".active" do
+      it "returns active plans" do
+        expect(Plan.active).to include(active_plan)
+        expect(Plan.active).not_to include(inactive_plan)
+      end
+    end
+  end
+
+  describe "#active?" do
+    it "returns true for active plans" do
+      plan = create(:plan, active: true)
+      expect(plan.active?).to be true
+    end
+
+    it "returns false for inactive plans" do
+      plan = create(:plan, active: false)
+      expect(plan.active?).to be false
+    end
+  end
+
+  describe "#completed?" do
+    it "returns true for completed installment plans" do
+      plan = create(:plan, :installment, installments_completed: 12, installments_total: 12)
+      expect(plan.completed?).to be true
+    end
+
+    it "returns false for incomplete installment plans" do
+      plan = create(:plan, :installment, installments_completed: 5, installments_total: 12)
+      expect(plan.completed?).to be false
     end
   end
 end
