@@ -463,13 +463,13 @@ function openEditPayableModal(id, description, date, amount, category, counterpa
   document.getElementById('edit-payable-description').value = description;
   document.getElementById('edit-payable-date').value = date;
   document.getElementById('edit-payable-amount').value = amount;
-  var categoryIdInput = document.getElementById('edit-payable-category-id');
-  var categorySearchInput = document.getElementById('edit-payable-category-search');
+  const categoryIdInput = document.getElementById('edit-payable-category-id');
+  const categorySearchInput = document.getElementById('edit-payable-category-search');
   if (categoryIdInput) categoryIdInput.value = category || '';
   if (categorySearchInput) categorySearchInput.value = category || '';
   document.getElementById('edit-payable-counterparty').value = counterpartyId || '';
-  var accountIdInput = document.getElementById('edit-payable-account-id');
-  var accountSearchInput = document.getElementById('edit-payable-account-search');
+  const accountIdInput = document.getElementById('edit-payable-account-id');
+  const accountSearchInput = document.getElementById('edit-payable-account-search');
   if (accountIdInput) accountIdInput.value = accountId || '';
   if (accountSearchInput) accountSearchInput.value = findPayableAccountName(accountId) || '';
   document.getElementById('edit-payable-note').value = note;
@@ -514,24 +514,24 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 <% end %>
 
-var allAccountsForSelector = [];
-var allCategoriesForSelector = [];
-var payableAccountsDataEl = document.getElementById('payable-accounts-data');
+const allAccountsForSelector = [];
+const allCategoriesForSelector = [];
+const payableAccountsDataEl = document.getElementById('payable-accounts-data');
 if (payableAccountsDataEl) {
   allAccountsForSelector = JSON.parse(payableAccountsDataEl.textContent);
 }
-var payableCategoriesDataEl = document.getElementById('payable-categories-data');
+const payableCategoriesDataEl = document.getElementById('payable-categories-data');
 if (payableCategoriesDataEl) {
   allCategoriesForSelector = JSON.parse(payableCategoriesDataEl.textContent);
 }
 
 function findPayableAccountName(accountId) {
   if (!accountId) return '';
-  var matched = allAccountsForSelector.find(function(acc) { return String(acc.id) === String(accountId); });
+  const matched = allAccountsForSelector.find(function(acc) { return String(acc.id) === String(accountId); });
   return matched ? matched.name : '';
 }
 
-var categorySelectorData = allCategoriesForSelector.map(function(cat) {
+const categorySelectorData = allCategoriesForSelector.map(function(cat) {
   return {
     id: cat.name,
     name: cat.name,

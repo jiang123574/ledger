@@ -607,18 +607,18 @@
 
 <script>
 function openEditAccountModal(btn) {
-  var id = btn.dataset.id;
-  var name = btn.dataset.name;
-  var type = btn.dataset.type;
-  var initialBalance = btn.dataset.initialBalance;
-  var includeInTotal = btn.dataset.includeInTotal;
+  const id = btn.dataset.id;
+  const name = btn.dataset.name;
+  const type = btn.dataset.type;
+  const initialBalance = btn.dataset.initialBalance;
+  const includeInTotal = btn.dataset.includeInTotal;
   
   document.getElementById('account-modal-title').textContent = '编辑账户';
   document.getElementById('account-form').action = '/accounts/' + id;
   document.getElementById('account-form').method = 'post';
   
   // 添加 _method=patch
-  var methodInput = document.getElementById('account-method-input');
+  const methodInput = document.getElementById('account-method-input');
   if (!methodInput) {
     methodInput = document.createElement('input');
     methodInput.id = 'account-method-input';
@@ -644,15 +644,15 @@ function openEditAccountModal(btn) {
   toggleCreditCardFields(type);
   
   // 设置是否计入资产总额
-  var includeInTotalCheckbox = document.getElementById('account-include-in-total');
+  const includeInTotalCheckbox = document.getElementById('account-include-in-total');
   includeInTotalCheckbox.checked = includeInTotal == 1;
   
   // 设置是否隐藏账户
-  var hiddenCheckbox = document.getElementById('account-hidden');
+  const hiddenCheckbox = document.getElementById('account-hidden');
   hiddenCheckbox.checked = btn.dataset.hidden == '1';
   
   // 添加删除按钮
-  var deleteContainer = document.getElementById('delete-account-btn-container');
+  const deleteContainer = document.getElementById('delete-account-btn-container');
   deleteContainer.innerHTML = '<button type="button" onclick="confirmDeleteAccount(' + id + ', \'' + name + '\')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-smooth">删除账户</button>';
   
   document.getElementById('add-account-modal').classList.remove('hidden');
@@ -664,7 +664,7 @@ function closeAccountModal() {
   document.getElementById('account-modal-title').textContent = '新建账户';
   document.getElementById('account-form').action = '/accounts';
   document.getElementById('account-form').method = 'post';
-  var methodInput = document.getElementById('account-method-input');
+  const methodInput = document.getElementById('account-method-input');
   if (methodInput) methodInput.remove();
   document.getElementById('account-name').value = '';
   document.getElementById('account-type').value = '';
@@ -684,7 +684,7 @@ function closeAccountModal() {
 
 // 根据账户类型显示/隐藏信用卡字段
 function toggleCreditCardFields(type) {
-  var creditCardFields = document.getElementById('credit-card-fields');
+  const creditCardFields = document.getElementById('credit-card-fields');
   if (type === 'CREDIT') {
     creditCardFields.classList.remove('hidden');
   } else {
@@ -700,19 +700,19 @@ document.getElementById('account-type')?.addEventListener('change', function() {
 function confirmDeleteAccount(id, name) {
   if (!window.confirm('确定要删除账户 "' + name + '" 吗？\n\n若该账户仍有关联交易/应收/应付记录，将无法删除。')) return;
   
-  var form = document.createElement('form');
+  const form = document.createElement('form');
   form.method = 'POST';
   form.action = '/accounts/' + id;
   
-  var methodInput = document.createElement('input');
+  const methodInput = document.createElement('input');
   methodInput.type = 'hidden';
   methodInput.name = '_method';
   methodInput.value = 'delete';
   form.appendChild(methodInput);
   
-  var token = document.querySelector('meta[name="csrf-token"]')?.content;
+  const token = document.querySelector('meta[name="csrf-token"]')?.content;
   if (token) {
-    var csrfInput = document.createElement('input');
+    const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'authenticity_token';
     csrfInput.value = token;
@@ -992,9 +992,9 @@ function confirmDeleteAccount(id, name) {
 <script>
 // 防抖函数
 function debounce(func, wait) {
-  var timeout;
+  const timeout;
   return function executedFunction(...args) {
-    var later = () => {
+    const later = () => {
       clearTimeout(timeout);
       func(...args);
     };
@@ -1005,8 +1005,8 @@ function debounce(func, wait) {
 
 // 移动端账户列表折叠
 function toggleAccountList() {
-  var list = document.getElementById('account-list');
-  var icon = document.getElementById('account-toggle-icon');
+  const list = document.getElementById('account-list');
+  const icon = document.getElementById('account-toggle-icon');
   if (list.classList.contains('hidden')) {
     list.classList.remove('hidden');
     icon.style.transform = 'rotate(180deg)';
@@ -1017,16 +1017,16 @@ function toggleAccountList() {
 }
 
 // 筛选功能
-var selectedCategoryIds = selectedCategoryIds || <%= raw selected_category_ids.to_json %>;
-var currentPage = currentPage || <%= @page %>;
+const selectedCategoryIds = selectedCategoryIds || <%= raw selected_category_ids.to_json %>;
+const currentPage = currentPage || <%= @page %>;
 
 function applyFilters() {
-  var params = new URLSearchParams();
-  var search = document.getElementById('search-input').value;
-  var type = document.getElementById('type-filter').value;
-  var periodType = document.getElementById('period-type-filter').value;
-  var periodValue = document.getElementById('period-value-filter').value;
-  var accountId = '<%= params[:account_id] %>';
+  const params = new URLSearchParams();
+  const search = document.getElementById('search-input').value;
+  const type = document.getElementById('type-filter').value;
+  const periodType = document.getElementById('period-type-filter').value;
+  const periodValue = document.getElementById('period-value-filter').value;
+  const accountId = '<%= params[:account_id] %>';
   
   if (search) params.append('search', search);
   if (type) params.append('type', type);
@@ -1043,10 +1043,10 @@ function applyFilters() {
 }
 
 // 防抖筛选
-var debouncedApplyFilters = debounce(applyFilters, 500);
+const debouncedApplyFilters = debounce(applyFilters, 500);
 
 function clearFilters() {
-  var accountId = '<%= params[:account_id] %>';
+  const accountId = '<%= params[:account_id] %>';
   if (accountId) {
     window.location.href = '/accounts?account_id=' + accountId;
   } else {
@@ -1055,31 +1055,31 @@ function clearFilters() {
 }
 
 function updateCategoryFilterButtonLabel() {
-  var btn = document.getElementById('open-category-filter');
+  const btn = document.getElementById('open-category-filter');
   if (!btn) return;
   btn.textContent = selectedCategoryIds.length > 0 ? '分类筛选 (' + selectedCategoryIds.length + ')' : "分类筛选";
 }
 
 function filterByAccount(id) {
-  var params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
   window.location.href = '/accounts?' + params.toString();
 }
 
 function viewAllTransactions() {
-  var params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
   window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
 function clearAccountFilter() {
-  var params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
   window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
 function toggleShowHidden() {
-  var params = new URLSearchParams(window.location.search);
+  const params = new URLSearchParams(window.location.search);
   if (params.get('show_hidden') === 'true') {
     params.delete('show_hidden');
   } else {
@@ -1099,12 +1099,12 @@ document.getElementById('search-input')?.addEventListener('keypress', function(e
 document.getElementById('search-input')?.addEventListener('input', debouncedApplyFilters);
 
 function syncPeriodInputType() {
-  var periodTypeEl = document.getElementById('period-type-filter');
-  var periodValueEl = document.getElementById('period-value-filter');
-  var periodValueContainer = document.getElementById('period-value-container');
+  const periodTypeEl = document.getElementById('period-type-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
+  const periodValueContainer = document.getElementById('period-value-container');
   if (!periodTypeEl || !periodValueEl) return;
 
-  var periodType = periodTypeEl.value;
+  const periodType = periodTypeEl.value;
   
   if (periodType === 'all') {
     if (periodValueContainer) periodValueContainer.style.display = 'none';
@@ -1113,19 +1113,19 @@ function syncPeriodInputType() {
     if (periodValueContainer) periodValueContainer.style.display = '';
   }
 
-  var today = new Date();
+  const today = new Date();
 
   if (periodType === 'week') {
     if (!periodValueEl.value || !/^\d{4}-W\d{2}$/.test(periodValueEl.value)) {
-      var temp = new Date(today.getTime());
+      const temp = new Date(today.getTime());
       temp.setDate(temp.getDate() + 3 - ((temp.getDay() + 6) % 7));
-      var weekYear = temp.getFullYear();
-      var firstThursday = new Date(weekYear, 0, 4);
-      var weekNumber = Math.ceil((((temp - firstThursday) / 86400000) + firstThursday.getDay() + 1) / 7);
+      const weekYear = temp.getFullYear();
+      const firstThursday = new Date(weekYear, 0, 4);
+      const weekNumber = Math.ceil((((temp - firstThursday) / 86400000) + firstThursday.getDay() + 1) / 7);
       periodValueEl.value = `${weekYear}-W${String(weekNumber).padStart(2, '0')}`;
     }
   } else if (periodType === 'year') {
-    var yearValue = parseInt(periodValueEl.value, 10);
+    const yearValue = parseInt(periodValueEl.value, 10);
     if (!yearValue || yearValue < 2000 || yearValue > 2100) {
       periodValueEl.value = String(today.getFullYear());
     }
@@ -1141,13 +1141,13 @@ function formatPeriodValue(value, type) {
   if (type === 'year') {
     return value + '年';
   } else if (type === 'month') {
-    var match = value.match(/^(\d{4})-(\d{2})$/);
+    const match = value.match(/^(\d{4})-(\d{2})$/);
     if (match) {
       return match[1] + '年' + parseInt(match[2]) + '月';
     }
     return value;
   } else if (type === 'week') {
-    var match = value.match(/^(\d{4})-W(\d{2})$/);
+    const match = value.match(/^(\d{4})-W(\d{2})$/);
     if (match) {
       return match[1] + '年 第' + parseInt(match[2]) + '周';
     }
@@ -1157,19 +1157,19 @@ function formatPeriodValue(value, type) {
 }
 
 function updatePeriodValueDisplay() {
-  var periodTypeEl = document.getElementById('period-type-filter');
-  var periodValueEl = document.getElementById('period-value-filter');
-  var displayEl = document.getElementById('period-value-display');
+  const periodTypeEl = document.getElementById('period-type-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
+  const displayEl = document.getElementById('period-value-display');
   if (!periodTypeEl || !periodValueEl || !displayEl) return;
   
   displayEl.textContent = formatPeriodValue(periodValueEl.value, periodTypeEl.value);
 }
 
-var pickerCurrentYear = new Date().getFullYear();
-var pickerPanelOpen = false;
+const pickerCurrentYear = new Date().getFullYear();
+const pickerPanelOpen = false;
 
 function togglePeriodPicker() {
-  var panel = document.getElementById('period-picker-panel');
+  const panel = document.getElementById('period-picker-panel');
   if (!panel) return;
   
   if (pickerPanelOpen) {
@@ -1180,25 +1180,25 @@ function togglePeriodPicker() {
 }
 
 function openPeriodPickerPanel() {
-  var panel = document.getElementById('period-picker-panel');
-  var periodTypeEl = document.getElementById('period-type-filter');
-  var periodValueEl = document.getElementById('period-value-filter');
+  const panel = document.getElementById('period-picker-panel');
+  const periodTypeEl = document.getElementById('period-type-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
   
   if (!panel || !periodTypeEl) return;
   
-  var periodType = periodTypeEl.value;
-  var currentValue = periodValueEl.value;
+  const periodType = periodTypeEl.value;
+  const currentValue = periodValueEl.value;
   
   // 根据类型初始化
   if (periodType === 'month') {
-    var parts = currentValue.split('-');
+    const parts = currentValue.split('-');
     pickerCurrentYear = parseInt(parts[0]) || new Date().getFullYear();
     renderMonthPicker();
   } else if (periodType === 'year') {
     pickerCurrentYear = parseInt(currentValue) || new Date().getFullYear();
     renderYearPicker();
   } else if (periodType === 'week') {
-    var match = currentValue.match(/^(\d{4})-W(\d{2})$/);
+    const match = currentValue.match(/^(\d{4})-W(\d{2})$/);
     pickerCurrentYear = match ? parseInt(match[1]) : new Date().getFullYear();
     renderWeekPicker();
   }
@@ -1208,7 +1208,7 @@ function openPeriodPickerPanel() {
 }
 
 function closePeriodPicker() {
-  var panel = document.getElementById('period-picker-panel');
+  const panel = document.getElementById('period-picker-panel');
   if (panel) {
     panel.classList.add('hidden');
   }
@@ -1217,7 +1217,7 @@ function closePeriodPicker() {
 
 function shiftPickerYear(direction) {
   pickerCurrentYear += direction;
-  var periodTypeEl = document.getElementById('period-type-filter');
+  const periodTypeEl = document.getElementById('period-type-filter');
   if (periodTypeEl.value === 'month') {
     renderMonthPicker();
   } else if (periodTypeEl.value === 'year') {
@@ -1228,78 +1228,78 @@ function shiftPickerYear(direction) {
 }
 
 function renderMonthPicker() {
-  var yearDisplay = document.getElementById('picker-year-display');
-  var monthsGrid = document.getElementById('picker-months-grid');
-  var periodValueEl = document.getElementById('period-value-filter');
+  const yearDisplay = document.getElementById('picker-year-display');
+  const monthsGrid = document.getElementById('picker-months-grid');
+  const periodValueEl = document.getElementById('period-value-filter');
   
   if (!yearDisplay || !monthsGrid) return;
   
   yearDisplay.textContent = pickerCurrentYear + '年';
   
-  var currentMonth = '';
+  const currentMonth = '';
   if (periodValueEl && periodValueEl.value) {
-    var match = periodValueEl.value.match(/^(\d{4})-(\d{2})$/);
+    const match = periodValueEl.value.match(/^(\d{4})-(\d{2})$/);
     if (match && parseInt(match[1]) === pickerCurrentYear) {
       currentMonth = match[2];
     }
   }
   
-  var months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
+  const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
   monthsGrid.innerHTML = months.map(function(m, i) {
-    var monthNum = String(i + 1).padStart(2, '0');
-    var isSelected = currentMonth === monthNum;
+    const monthNum = String(i + 1).padStart(2, '0');
+    const isSelected = currentMonth === monthNum;
     return '<button type="button" onclick="selectPickerMonth(' + monthNum + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
       (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">' + m + '</button>';
   }).join('');
 }
 
 function renderYearPicker() {
-  var yearDisplay = document.getElementById('picker-year-display');
-  var monthsGrid = document.getElementById('picker-months-grid');
-  var periodValueEl = document.getElementById('period-value-filter');
+  const yearDisplay = document.getElementById('picker-year-display');
+  const monthsGrid = document.getElementById('picker-months-grid');
+  const periodValueEl = document.getElementById('period-value-filter');
   
   if (!yearDisplay || !monthsGrid) return;
   
   yearDisplay.textContent = '选择年份';
   
-  var currentYear = periodValueEl ? parseInt(periodValueEl.value) : new Date().getFullYear();
+  const currentYear = periodValueEl ? parseInt(periodValueEl.value) : new Date().getFullYear();
   
   // 显示年份范围
-  var startYear = pickerCurrentYear - 4;
-  var years = [];
-  for (var i = 0; i < 9; i++) {
+  const startYear = pickerCurrentYear - 4;
+  const years = [];
+  for (const i = 0; i < 9; i++) {
     years.push(startYear + i);
   }
   
   monthsGrid.innerHTML = years.map(function(y) {
-    var isSelected = y === currentYear;
+    const isSelected = y === currentYear;
     return '<button type="button" onclick="selectPickerYear(' + y + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
       (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">' + y + '</button>';
   }).join('');
 }
 
 function renderWeekPicker() {
-  var yearDisplay = document.getElementById('picker-year-display');
-  var monthsGrid = document.getElementById('picker-months-grid');
-  var periodValueEl = document.getElementById('period-value-filter');
+  const yearDisplay = document.getElementById('picker-year-display');
+  const monthsGrid = document.getElementById('picker-months-grid');
+  const periodValueEl = document.getElementById('period-value-filter');
   
   if (!yearDisplay || !monthsGrid) return;
   
   yearDisplay.textContent = pickerCurrentYear + '年';
   
-  var currentWeek = '';
+  const currentWeek = '';
   if (periodValueEl && periodValueEl.value) {
-    var match = periodValueEl.value.match(/^(\d{4})-W(\d{2})$/);
+    const match = periodValueEl.value.match(/^(\d{4})-W(\d{2})$/);
     if (match && parseInt(match[1]) === pickerCurrentYear) {
       currentWeek = match[2];
     }
   }
   
   // 显示周（假设一年最多53周）
-  var weeksHtml = '';
-  for (var i = 1; i <= 53; i++) {
-    var weekNum = String(i).padStart(2, '0');
-    var isSelected = currentWeek === weekNum;
+  const weeksHtml = '';
+  for (const i = 1; i <= 53; i++) {
+    const weekNum = String(i).padStart(2, '0');
+    const isSelected = currentWeek === weekNum;
     weeksHtml += '<button type="button" onclick="selectPickerWeek(' + weekNum + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
       (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">W' + i + '</button>';
   }
@@ -1307,7 +1307,7 @@ function renderWeekPicker() {
 }
 
 function selectPickerMonth(month) {
-  var periodValueEl = document.getElementById('period-value-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
   if (periodValueEl) {
     periodValueEl.value = pickerCurrentYear + '-' + String(month).padStart(2, '0');
     updatePeriodValueDisplay();
@@ -1317,7 +1317,7 @@ function selectPickerMonth(month) {
 }
 
 function selectPickerYear(year) {
-  var periodValueEl = document.getElementById('period-value-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
   if (periodValueEl) {
     periodValueEl.value = String(year);
     updatePeriodValueDisplay();
@@ -1327,7 +1327,7 @@ function selectPickerYear(year) {
 }
 
 function selectPickerWeek(week) {
-  var periodValueEl = document.getElementById('period-value-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
   if (periodValueEl) {
     periodValueEl.value = pickerCurrentYear + '-W' + String(week).padStart(2, '0');
     updatePeriodValueDisplay();
@@ -1338,25 +1338,25 @@ function selectPickerWeek(week) {
 
 // 点击外部关闭面板
 document.addEventListener('click', function(e) {
-  var panel = document.getElementById('period-picker-panel');
-  var display = document.getElementById('period-value-display');
+  const panel = document.getElementById('period-picker-panel');
+  const display = document.getElementById('period-value-display');
   if (pickerPanelOpen && panel && display && !panel.contains(e.target) && !display.contains(e.target)) {
     closePeriodPicker();
   }
 });
 
 function shiftPeriod(direction) {
-  var periodTypeEl = document.getElementById('period-type-filter');
-  var periodValueEl = document.getElementById('period-value-filter');
+  const periodTypeEl = document.getElementById('period-type-filter');
+  const periodValueEl = document.getElementById('period-value-filter');
   if (!periodTypeEl || !periodValueEl) return;
 
-  var periodType = periodTypeEl.value;
-  var currentValue = periodValueEl.value;
+  const periodType = periodTypeEl.value;
+  const currentValue = periodValueEl.value;
 
   if (periodType === 'year') {
-    var year = parseInt(currentValue, 10);
+    const year = parseInt(currentValue, 10);
     if (year && year >= 2000 && year <= 2100) {
-      var newYear = year + direction;
+      const newYear = year + direction;
       if (newYear >= 2000 && newYear <= 2100) {
         periodValueEl.value = String(newYear);
         updatePeriodValueDisplay();
@@ -1364,10 +1364,10 @@ function shiftPeriod(direction) {
       }
     }
   } else if (periodType === 'month') {
-    var match = currentValue.match(/^(\d{4})-(\d{2})$/);
+    const match = currentValue.match(/^(\d{4})-(\d{2})$/);
     if (match) {
-      var year = parseInt(match[1], 10);
-      var month = parseInt(match[2], 10) + direction;
+      const year = parseInt(match[1], 10);
+      const month = parseInt(match[2], 10) + direction;
       if (month < 1) {
         month = 12;
         year -= 1;
@@ -1380,11 +1380,11 @@ function shiftPeriod(direction) {
       applyFilters();
     }
   } else if (periodType === 'week') {
-    var match = currentValue.match(/^(\d{4})-W(\d{2})$/);
+    const match = currentValue.match(/^(\d{4})-W(\d{2})$/);
     if (match) {
-      var isoYear = parseInt(match[1], 10);
-      var isoWeek = parseInt(match[2], 10);
-      var monday = Date.fromISOWeek(isoYear, isoWeek);
+      const isoYear = parseInt(match[1], 10);
+      const isoWeek = parseInt(match[2], 10);
+      const monday = Date.fromISOWeek(isoYear, isoWeek);
       monday.setDate(monday.getDate() + (direction * 7));
       periodValueEl.value = monday.toISOWeekString();
       updatePeriodValueDisplay();
@@ -1394,20 +1394,20 @@ function shiftPeriod(direction) {
 }
 
 Date.fromISOWeek = function(year, week) {
-  var jan4 = new Date(year, 0, 4);
-  var day = jan4.getDay() || 7;
-  var monday = new Date(jan4);
+  const jan4 = new Date(year, 0, 4);
+  const day = jan4.getDay() || 7;
+  const monday = new Date(jan4);
   monday.setDate(jan4.getDate() - day + 1 + ((week - 1) * 7));
   monday.setHours(0, 0, 0, 0);
   return monday;
 };
 
 Date.prototype.toISOWeekString = function() {
-  var date = new Date(this);
-  var day = date.getDay() || 7;
+  const date = new Date(this);
+  const day = date.getDay() || 7;
   date.setDate(date.getDate() + 4 - day);
-  var yearStart = new Date(date.getFullYear(), 0, 1);
-  var week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+  const yearStart = new Date(date.getFullYear(), 0, 1);
+  const week = Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
   return `${date.getFullYear()}-W${String(week).padStart(2, '0')}`;
 };
 
@@ -1420,11 +1420,11 @@ document.getElementById('open-category-filter')?.addEventListener('click', funct
   document.getElementById('category-filter-modal').classList.remove('hidden');
   document.getElementById('category-filter-search').value = '';
   document.getElementById('category-filter-search').focus();
-  var sections = document.querySelectorAll('.category-type-section');
+  const sections = document.querySelectorAll('.category-type-section');
   sections.forEach(function(section) {
     section.style.removeProperty('display');
   });
-  var items = document.querySelectorAll('.category-filter-item');
+  const items = document.querySelectorAll('.category-filter-item');
   items.forEach(function(item) {
     item.style.removeProperty('display');
   });
@@ -1435,14 +1435,14 @@ document.getElementById('category-filter-search')?.addEventListener('input', fun
 });
 
 function filterCategoryOptions(query) {
-  var items = document.querySelectorAll('.category-filter-item');
-  var sections = document.querySelectorAll('.category-type-section');
-  var lowerQuery = query.toLowerCase();
+  const items = document.querySelectorAll('.category-filter-item');
+  const sections = document.querySelectorAll('.category-type-section');
+  const lowerQuery = query.toLowerCase();
   
   items.forEach(function(item) {
-    var name = item.dataset.name.toLowerCase();
-    var fullName = item.dataset.fullName.toLowerCase();
-    var pinyin = item.dataset.pinyin;
+    const name = item.dataset.name.toLowerCase();
+    const fullName = item.dataset.fullName.toLowerCase();
+    const pinyin = item.dataset.pinyin;
     if (!query || name.includes(lowerQuery) || fullName.includes(lowerQuery) || (pinyin && pinyin.includes(lowerQuery))) {
       item.style.removeProperty('display');
     } else {
@@ -1451,7 +1451,7 @@ function filterCategoryOptions(query) {
   });
   
   sections.forEach(function(section) {
-    var visibleItems = section.querySelectorAll('.category-filter-item:not([style*="display: none"])');
+    const visibleItems = section.querySelectorAll('.category-filter-item:not([style*="display: none"])');
     if (visibleItems.length > 0) {
       section.style.removeProperty('display');
     } else {
@@ -1469,26 +1469,26 @@ document.getElementById('confirm-category-filter')?.addEventListener('click', fu
 
 updateCategoryFilterButtonLabel();
 
-var transactionTypeInput = document.getElementById('transaction-type-input');
-var targetAccountField = document.getElementById('target-account-field');
-var targetAccountHiddenInput = document.getElementById('target_account_id');
-var targetAccountSearchInput = document.getElementById('target-account-search-input');
-var fundingAccountField = document.getElementById('funding-account-field');
-var fundingAccountHiddenInput = document.getElementById('funding_account_id');
-var fundingAccountSearchInput = document.getElementById('funding-account-search-input');
-var categoryField = document.getElementById('transaction-category-field');
-var toggleTransferBtn = document.getElementById('toggle-transfer-btn');
+const transactionTypeInput = document.getElementById('transaction-type-input');
+const targetAccountField = document.getElementById('target-account-field');
+const targetAccountHiddenInput = document.getElementById('target_account_id');
+const targetAccountSearchInput = document.getElementById('target-account-search-input');
+const fundingAccountField = document.getElementById('funding-account-field');
+const fundingAccountHiddenInput = document.getElementById('funding_account_id');
+const fundingAccountSearchInput = document.getElementById('funding-account-search-input');
+const categoryField = document.getElementById('transaction-category-field');
+const toggleTransferBtn = document.getElementById('toggle-transfer-btn');
 
 // 当前模式: 'category'（收支） 或 'transfer'（转账）
-var transactionMode = 'category';
+const transactionMode = 'category';
 
 // 切换转账模式
 function toggleTransferMode() {
-  var categoryFieldWrapper = document.getElementById('category-field-wrapper');
-  var targetAccountField = document.getElementById('target-account-field');
-  var accountFieldWrapper = document.getElementById('account-field-wrapper');
-  var toggleTransferBtn = document.getElementById('toggle-transfer-btn');
-  var toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
+  const categoryFieldWrapper = document.getElementById('category-field-wrapper');
+  const targetAccountField = document.getElementById('target-account-field');
+  const accountFieldWrapper = document.getElementById('account-field-wrapper');
+  const toggleTransferBtn = document.getElementById('toggle-transfer-btn');
+  const toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
   
   if (transactionMode === 'transfer') {
     // 切回收支模式
@@ -1497,10 +1497,10 @@ function toggleTransferMode() {
     categoryFieldWrapper.classList.remove('hidden');
     accountFieldWrapper.classList.remove('hidden');
     // 重置转账字段值
-    var targetHiddenInput = document.getElementById('target_account_id');
-    var targetSearchInput = document.getElementById('target-account-search-input');
-    var transferAccountHidden = document.getElementById('transaction_account_id');
-    var transferAccountSearch = document.getElementById('account-search-input');
+    const targetHiddenInput = document.getElementById('target_account_id');
+    const targetSearchInput = document.getElementById('target-account-search-input');
+    const transferAccountHidden = document.getElementById('transaction_account_id');
+    const transferAccountSearch = document.getElementById('account-search-input');
     if (targetHiddenInput) targetHiddenInput.value = '';
     if (targetSearchInput) targetSearchInput.value = '';
     if (transferAccountHidden) transferAccountHidden.value = '';
@@ -1514,8 +1514,8 @@ function toggleTransferMode() {
     // 清空收支字段值
     if (categoryHiddenInput) categoryHiddenInput.value = '';
     if (categorySearchInput) categorySearchInput.value = '';
-    var incomeAccountHidden = document.getElementById('transaction_account_id_income');
-    var incomeAccountSearch = document.getElementById('account-search-input-income');
+    const incomeAccountHidden = document.getElementById('transaction_account_id_income');
+    const incomeAccountSearch = document.getElementById('account-search-input-income');
     if (incomeAccountHidden) incomeAccountHidden.value = '';
     if (incomeAccountSearch) incomeAccountSearch.value = '';
   }
@@ -1527,9 +1527,9 @@ function toggleTransferMode() {
 
 // 根据当前 type 更新资金来源可见性
 function updateFundingVisibility() {
-  var type = transactionTypeInput?.value || 'EXPENSE';
+  const type = transactionTypeInput?.value || 'EXPENSE';
   if (fundingAccountField && fundingAccountHiddenInput) {
-    var showFunding = type === 'EXPENSE';
+    const showFunding = type === 'EXPENSE';
     fundingAccountField.classList.toggle('hidden', !showFunding);
     if (!showFunding) {
       fundingAccountHiddenInput.value = '';
@@ -1543,22 +1543,22 @@ if (toggleTransferBtn) {
   toggleTransferBtn.addEventListener('click', toggleTransferMode);
 }
 // 切换转账按钮（转账模式中的"收支"按钮）
-var toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
+const toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
 if (toggleTransferBtnAlt) {
   toggleTransferBtnAlt.addEventListener('click', toggleTransferMode);
 }
 
 // 分类选择器逻辑
-var categorySearchInput = document.getElementById('category-search-input');
-var categoryDropdown = document.getElementById('category-dropdown');
-var categoryFilterInput = document.getElementById('category-filter-input');
-var categoryOptions = document.getElementById('category-options');
-var categoryHiddenInput = document.getElementById('new_transaction_category_id');
-var allCategories = [];
-var currentCategoryType = 'EXPENSE';
+const categorySearchInput = document.getElementById('category-search-input');
+const categoryDropdown = document.getElementById('category-dropdown');
+const categoryFilterInput = document.getElementById('category-filter-input');
+const categoryOptions = document.getElementById('category-options');
+const categoryHiddenInput = document.getElementById('new_transaction_category_id');
+const allCategories = [];
+const currentCategoryType = 'EXPENSE';
 
 // 从合并数据加载全部分类
-var allCategoriesDataEl = document.getElementById('all-categories-data');
+const allCategoriesDataEl = document.getElementById('all-categories-data');
 if (allCategoriesDataEl) {
   allCategories = JSON.parse(allCategoriesDataEl.textContent);
 }
@@ -1567,9 +1567,9 @@ if (allCategoriesDataEl) {
 function renderCategoryOptions(filterText) {
   if (!categoryOptions) return '';
   
-  var filtered = allCategories.filter(function(cat) {
+  const filtered = allCategories.filter(function(cat) {
     if (!filterText) return true;
-    var query = filterText.toLowerCase();
+    const query = filterText.toLowerCase();
     if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
     if (cat.name && cat.name.toLowerCase().includes(query)) return true;
     if (cat.pinyin && cat.pinyin.includes(query)) return true;
@@ -1580,22 +1580,22 @@ function renderCategoryOptions(filterText) {
     return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
   }
   
-  var html = '';
-  var lastType = null;
+  const html = '';
+  const lastType = null;
   
   filtered.forEach(function(cat) {
     // 分组标题
     if (cat.type !== lastType) {
       if (lastType !== null) html += '<div class="border-t border-border dark:border-border-dark my-1"></div>';
-      var sectionLabel = cat.type === 'INCOME' ? '收入' : '支出';
-      var sectionColor = cat.type === 'INCOME' ? 'text-income' : 'text-expense';
+      const sectionLabel = cat.type === 'INCOME' ? '收入' : '支出';
+      const sectionColor = cat.type === 'INCOME' ? 'text-income' : 'text-expense';
       html += '<div class="px-3 py-1 text-xs font-medium ' + sectionColor + ' uppercase tracking-wide">' + sectionLabel + '</div>';
       lastType = cat.type;
     }
     
-    var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
-    var selected = categoryHiddenInput && categoryHiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-    var escapedName = escapeHtml(cat.full_name);
+    const indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
+    const selected = categoryHiddenInput && categoryHiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+    const escapedName = escapeHtml(cat.full_name);
     html += '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '" data-type="' + cat.type + '">' +
              escapedName +
            '</div>';
@@ -1607,14 +1607,14 @@ function renderCategoryOptions(filterText) {
 // 更新分类选项
 function updateCategoryOptions() {
   if (!categoryOptions) return;
-  var filterText = categoryFilterInput ? categoryFilterInput.value : '';
+  const filterText = categoryFilterInput ? categoryFilterInput.value : '';
   categoryOptions.innerHTML = renderCategoryOptions(filterText);
   
   categoryOptions.querySelectorAll('.category-option').forEach(function(option) {
     option.addEventListener('click', function() {
-      var id = this.dataset.id;
-      var name = this.dataset.name;
-      var type = this.dataset.type;
+      const id = this.dataset.id;
+      const name = this.dataset.name;
+      const type = this.dataset.type;
       if (categoryHiddenInput) categoryHiddenInput.value = id;
       if (categorySearchInput) categorySearchInput.value = name;
       if (categoryDropdown) categoryDropdown.classList.add('hidden');
@@ -1689,22 +1689,22 @@ function openEditTransactionModal(id) {
 }
 
 function confirmDeleteTransaction(id, name) {
-  var label = name || '这笔交易';
+  const label = name || '这笔交易';
   if (!window.confirm(`确定删除${label}吗？`)) return;
 
-  var form = document.createElement('form');
+  const form = document.createElement('form');
   form.method = 'POST';
   form.action = `/transactions/${id}`;
 
-  var methodInput = document.createElement('input');
+  const methodInput = document.createElement('input');
   methodInput.type = 'hidden';
   methodInput.name = '_method';
   methodInput.value = 'delete';
   form.appendChild(methodInput);
 
-  var token = document.querySelector('meta[name="csrf-token"]')?.content;
+  const token = document.querySelector('meta[name="csrf-token"]')?.content;
   if (token) {
-    var csrfInput = document.createElement('input');
+    const csrfInput = document.createElement('input');
     csrfInput.type = 'hidden';
     csrfInput.name = 'authenticity_token';
     csrfInput.value = token;
@@ -1712,10 +1712,10 @@ function confirmDeleteTransaction(id, name) {
   }
 
   // 保留当前筛选参数，删除后回到原筛选状态
-  var currentParams = new URLSearchParams(window.location.search);
+  const currentParams = new URLSearchParams(window.location.search);
   currentParams.forEach(function(value, key) {
     if (value == null || value === '') return;
-    var input = document.createElement('input');
+    const input = document.createElement('input');
     input.type = 'hidden';
     input.name = key;
     input.value = value;
@@ -1744,28 +1744,28 @@ function openNewTransactionModal() {
 function submitAndContinue(event) {
   event.preventDefault();
   
-  var form = document.querySelector('#add-transaction-modal form');
+  const form = document.querySelector('#add-transaction-modal form');
   if (!form) return;
   
   // 收支模式：同步 account_id
   if (transactionMode === 'category') {
-    var incomeHidden = document.getElementById('transaction_account_id_income');
-    var transferHidden = document.getElementById('transaction_account_id');
+    const incomeHidden = document.getElementById('transaction_account_id_income');
+    const transferHidden = document.getElementById('transaction_account_id');
     if (incomeHidden && transferHidden) {
       transferHidden.value = incomeHidden.value;
     }
   }
   
   // 获取 CSRF token
-  var csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+  const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
   
   // 收集表单数据
-  var formData = new FormData(form);
+  const formData = new FormData(form);
   formData.append('continue_entry', '1');
   
   // 显示加载状态
-  var continueBtn = event.target;
-  var originalText = continueBtn.textContent;
+  const continueBtn = event.target;
+  const originalText = continueBtn.textContent;
   continueBtn.textContent = '保存中...';
   continueBtn.disabled = true;
   
@@ -1793,8 +1793,8 @@ function submitAndContinue(event) {
       showSuccessToast(data.message || '交易已创建，请继续录入');
       
       // 清空部分字段，保持选项不变
-      var amountInput = form.querySelector('input[name="transaction[amount]"]');
-      var noteInput = form.querySelector('input[name="transaction[note]"]');
+      const amountInput = form.querySelector('input[name="transaction[amount]"]');
+      const noteInput = form.querySelector('input[name="transaction[note]"]');
       
       if (amountInput) amountInput.value = '';
       if (noteInput) noteInput.value = '';
@@ -1819,7 +1819,7 @@ function submitAndContinue(event) {
 
 // 成功提示
 function showSuccessToast(message) {
-  var toast = document.createElement('div');
+  const toast = document.createElement('div');
   toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50 animate-fade-in';
   toast.textContent = message;
   document.body.appendChild(toast);
@@ -1833,7 +1833,7 @@ function showSuccessToast(message) {
 
 // 错误提示
 function showErrorToast(message) {
-  var toast = document.createElement('div');
+  const toast = document.createElement('div');
   toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
   toast.textContent = message;
   document.body.appendChild(toast);
@@ -1857,26 +1857,26 @@ function escapeHtml(str) {
 }
 
 // 账户选择器逻辑
-var allAccounts = [];
-var accountsDataEl = document.getElementById('accounts-data');
+const allAccounts = [];
+const accountsDataEl = document.getElementById('accounts-data');
 if (accountsDataEl) {
   allAccounts = JSON.parse(accountsDataEl.textContent);
 }
 
 // 初始化账户选择器
 function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, placeholder) {
-  var searchInput = document.getElementById(searchInputId);
-  var dropdown = document.getElementById(dropdownId);
-  var filterInput = document.getElementById(filterInputId);
-  var optionsContainer = document.getElementById(optionsId);
-  var hiddenInput = document.getElementById(hiddenInputId);
+  const searchInput = document.getElementById(searchInputId);
+  const dropdown = document.getElementById(dropdownId);
+  const filterInput = document.getElementById(filterInputId);
+  const optionsContainer = document.getElementById(optionsId);
+  const hiddenInput = document.getElementById(hiddenInputId);
   
   if (!searchInput || !dropdown || !optionsContainer) return;
   
   function renderOptions(filterText) {
-    var filtered = allAccounts.filter(function(acc) {
+    const filtered = allAccounts.filter(function(acc) {
       if (!filterText) return true;
-      var query = filterText.toLowerCase();
+      const query = filterText.toLowerCase();
       if (acc.name && acc.name.toLowerCase().includes(query)) return true;
       if (acc.pinyin && acc.pinyin.includes(query)) return true;
       return false;
@@ -1887,9 +1887,9 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
     }
     
     return filtered.map(function(acc) {
-      var selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+      const selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
       // 使用 escapeHtml 防止 XSS
-      var escapedName = escapeHtml(acc.name);
+      const escapedName = escapeHtml(acc.name);
       return '<div class="account-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" data-id="' + acc.id + '" data-name="' + escapedName + '">' +
                escapedName +
              '</div>';
@@ -1899,7 +1899,7 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   function updateOptions() {
     // 确保 allAccounts 已加载（防止时序问题）
     if (allAccounts.length === 0) {
-      var accountsDataEl = document.getElementById('accounts-data');
+      const accountsDataEl = document.getElementById('accounts-data');
       if (accountsDataEl && accountsDataEl.textContent) {
         try {
           allAccounts = JSON.parse(accountsDataEl.textContent);
@@ -1909,13 +1909,13 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
       }
     }
     
-    var filterText = filterInput ? filterInput.value : '';
+    const filterText = filterInput ? filterInput.value : '';
     optionsContainer.innerHTML = renderOptions(filterText);
     
     optionsContainer.querySelectorAll('.account-option').forEach(function(option) {
       option.addEventListener('click', function() {
-        var id = this.dataset.id;
-        var name = this.dataset.name;
+        const id = this.dataset.id;
+        const name = this.dataset.name;
         if (hiddenInput) hiddenInput.value = id;
         if (searchInput) searchInput.value = name;
         if (dropdown) dropdown.classList.add('hidden');
@@ -1960,13 +1960,13 @@ initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
 
 // 表单提交前，根据模式将正确的 account_id 写入 transaction[account_id]
-var addTransactionForm = document.querySelector('#add-transaction-modal form');
+const addTransactionForm = document.querySelector('#add-transaction-modal form');
 if (addTransactionForm) {
   addTransactionForm.addEventListener('submit', function(e) {
     if (transactionMode === 'category') {
       // 收支模式：将 income hidden input 的值复制到 account_id
-      var incomeHidden = document.getElementById('transaction_account_id_income');
-      var transferHidden = document.getElementById('transaction_account_id');
+      const incomeHidden = document.getElementById('transaction_account_id_income');
+      const transferHidden = document.getElementById('transaction_account_id');
       if (incomeHidden && transferHidden) {
         transferHidden.value = incomeHidden.value;
       }
@@ -1977,26 +1977,26 @@ if (addTransactionForm) {
 
 // 设置默认账户（如果在某个账户的视图中）
 function setDefaultAccount() {
-  var urlParams = new URLSearchParams(window.location.search);
-  var accountId = urlParams.get('account_id');
+  const urlParams = new URLSearchParams(window.location.search);
+  const accountId = urlParams.get('account_id');
   
   if (accountId) {
     // 找到账户名称
-    var accountsData = document.getElementById('accounts-data');
+    const accountsData = document.getElementById('accounts-data');
     if (accountsData) {
-      var accounts = JSON.parse(accountsData.textContent);
-      var account = accounts.find(function(acc) { return acc.id == accountId; });
+      const accounts = JSON.parse(accountsData.textContent);
+      const account = accounts.find(function(acc) { return acc.id == accountId; });
       
       if (account) {
         // 收支模式：设置到 income 账户选择器
-        var incomeHidden = document.getElementById('transaction_account_id_income');
-        var incomeSearch = document.getElementById('account-search-input-income');
+        const incomeHidden = document.getElementById('transaction_account_id_income');
+        const incomeSearch = document.getElementById('account-search-input-income');
         if (incomeHidden) incomeHidden.value = account.id;
         if (incomeSearch) incomeSearch.value = account.name;
 
         // 转账模式：设置为默认转出账户
-        var transferHidden = document.getElementById('transaction_account_id');
-        var transferSearch = document.getElementById('account-search-input');
+        const transferHidden = document.getElementById('transaction_account_id');
+        const transferSearch = document.getElementById('account-search-input');
         if (transferHidden) transferHidden.value = account.id;
         if (transferSearch) transferSearch.value = account.name;
       }
@@ -2006,16 +2006,16 @@ function setDefaultAccount() {
 
 // 互换转账的转出和转入账户
 function swapTransferAccounts() {
-  var sourceHiddenInput = document.getElementById('transaction_account_id');
-  var sourceSearchInput = document.getElementById('account-search-input');
-  var targetHiddenInput = document.getElementById('target_account_id');
-  var targetSearchInput = document.getElementById('target-account-search-input');
+  const sourceHiddenInput = document.getElementById('transaction_account_id');
+  const sourceSearchInput = document.getElementById('account-search-input');
+  const targetHiddenInput = document.getElementById('target_account_id');
+  const targetSearchInput = document.getElementById('target-account-search-input');
   
   if (!sourceHiddenInput || !targetHiddenInput) return;
   
   // 交换值
-  var tempId = sourceHiddenInput.value;
-  var tempName = sourceSearchInput.value;
+  const tempId = sourceHiddenInput.value;
+  const tempName = sourceSearchInput.value;
   
   sourceHiddenInput.value = targetHiddenInput.value;
   sourceSearchInput.value = targetSearchInput.value;
@@ -2149,14 +2149,14 @@ if (!window.modalSelectorsInitialized) {
   window.modalSelectorsInitialized = true;
 
   // 解析数据源
-  var modalAccountsDataEl = document.getElementById('accounts-data');
-  var modalCategoriesDataEl = document.getElementById('modal-categories-data');
+  const modalAccountsDataEl = document.getElementById('accounts-data');
+  const modalCategoriesDataEl = document.getElementById('modal-categories-data');
 
-  var modalAccountsData = modalAccountsDataEl ? JSON.parse(modalAccountsDataEl.textContent) : [];
-  var modalCategoriesData = modalCategoriesDataEl ? JSON.parse(modalCategoriesDataEl.textContent) : [];
+  const modalAccountsData = modalAccountsDataEl ? JSON.parse(modalAccountsDataEl.textContent) : [];
+  const modalCategoriesData = modalCategoriesDataEl ? JSON.parse(modalCategoriesDataEl.textContent) : [];
 
   // 转换分类数据格式
-  var modalCategoryData = modalCategoriesData.map(function(cat) {
+  const modalCategoryData = modalCategoriesData.map(function(cat) {
     return {
       id: cat.name,
       name: cat.name,
@@ -2205,42 +2205,42 @@ if (!window.modalSelectorsInitialized) {
   }
 
   function openNewReceivableModal() {
-    var form = document.getElementById('new-receivable-form');
+    const form = document.getElementById('new-receivable-form');
     if (form) {
       form.reset();
-      var dateInput = form.querySelector('input[name="receivable[date]"]');
+      const dateInput = form.querySelector('input[name="receivable[date]"]');
       if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
     }
     
     // 重置资金来源字段
-    var fundingAccountIdInput = document.getElementById('new-receivable-funding-account-id');
-    var fundingAccountSearchInput = document.getElementById('new-receivable-funding-account-search');
+    const fundingAccountIdInput = document.getElementById('new-receivable-funding-account-id');
+    const fundingAccountSearchInput = document.getElementById('new-receivable-funding-account-search');
     if (fundingAccountIdInput) fundingAccountIdInput.value = '';
     if (fundingAccountSearchInput) fundingAccountSearchInput.value = '';
     
     initModalSelectors('receivable');
     
-    var modal = document.getElementById('add-receivable-modal');
+    const modal = document.getElementById('add-receivable-modal');
     if (modal) modal.classList.remove('hidden');
   }
 
   function openSettleReceivableModal() {
-    var form = document.getElementById('settle-receivable-form');
+    const form = document.getElementById('settle-receivable-form');
     if (form) {
       form.reset();
-      var dateInput = form.querySelector('input[name="settlement_date"]');
+      const dateInput = form.querySelector('input[name="settlement_date"]');
       if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
     }
     
     initSettleReceivableSelectors();
     
-    var modal = document.getElementById('settle-receivable-modal');
+    const modal = document.getElementById('settle-receivable-modal');
     if (modal) modal.classList.remove('hidden');
   }
 
   function initSettleReceivableSelectors() {
-    var receivablesDataEl = document.getElementById('receivables-data');
-    var receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
+    const receivablesDataEl = document.getElementById('receivables-data');
+    const receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
 
     initSelectorWithData({
       searchInputId: 'settle-receivable-search',
@@ -2264,11 +2264,11 @@ if (!window.modalSelectorsInitialized) {
   }
 
   window.setFullAmount = function() {
-    var receivableId = document.getElementById('settle-receivable-id').value;
+    const receivableId = document.getElementById('settle-receivable-id').value;
     if (receivableId) {
-      var receivablesDataEl = document.getElementById('receivables-data');
-      var receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
-      var receivable = receivablesData.find(function(r) { return r.id == receivableId; });
+      const receivablesDataEl = document.getElementById('receivables-data');
+      const receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
+      const receivable = receivablesData.find(function(r) { return r.id == receivableId; });
       if (receivable) {
         document.getElementById('settle-amount').value = receivable.remaining_amount;
       }
@@ -2282,20 +2282,20 @@ if (!window.modalSelectorsInitialized) {
   document.getElementById('settle-receivable-form').addEventListener('submit', function(e) {
     e.preventDefault();
     
-    var receivableId = document.getElementById('settle-receivable-id').value;
-    var amount = document.getElementById('settle-amount').value;
-    var accountId = document.getElementById('settle-account-id').value;
-    var settlementDate = document.getElementById('settle-date').value;
-    var note = document.querySelector('input[name="note"]').value;
+    const receivableId = document.getElementById('settle-receivable-id').value;
+    const amount = document.getElementById('settle-amount').value;
+    const accountId = document.getElementById('settle-account-id').value;
+    const settlementDate = document.getElementById('settle-date').value;
+    const note = document.querySelector('input[name="note"]').value;
     
     if (!receivableId || !amount || !accountId || !settlementDate) {
       alert('请填写必填字段');
       return;
     }
 
-    var form = e.target;
-    var submitBtn = form.querySelector('button[type="submit"]');
-    var originalText = submitBtn.textContent;
+    const form = e.target;
+    const submitBtn = form.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
     submitBtn.disabled = true;
     submitBtn.textContent = '提交中...';
     
@@ -2370,14 +2370,14 @@ if (!window.modalSelectorsInitialized) {
 
 <script>
 (function() {
-  var wrapper = document.getElementById('credit-bill-wrapper');
-  var accountId = wrapper?.dataset?.accountId;
-  var currentViewMode = '<%= params[:view_mode] %>' || 'date';
-  var billFormatters = window.BillFormatters || {};
+  const wrapper = document.getElementById('credit-bill-wrapper');
+  const accountId = wrapper?.dataset?.accountId;
+  const currentViewMode = '<%= params[:view_mode] %>' || 'date';
+  const billFormatters = window.BillFormatters || {};
 
   function formatBillMoney(value) {
     if (billFormatters.formatMoney) return billFormatters.formatMoney(value);
-    var num = parseFloat(value) || 0;
+    const num = parseFloat(value) || 0;
     return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   }
 
@@ -2387,7 +2387,7 @@ if (!window.modalSelectorsInitialized) {
     if (!accountId || !wrapper) return;
 
     // 插入到交易列表前面
-    var txList = document.getElementById('transaction-list');
+    const txList = document.getElementById('transaction-list');
     if (txList && !txList.parentElement.contains(wrapper)) {
       txList.parentElement.insertBefore(wrapper, txList);
     }
@@ -2404,7 +2404,7 @@ if (!window.modalSelectorsInitialized) {
   }
 
   function dispatchBillEntriesEvent(eventName, detail) {
-    var section = getBillDetailSection();
+    const section = getBillDetailSection();
     if (!section) return false;
     if (section.dataset.creditBillEntriesReady !== 'true') return false;
 
@@ -2416,7 +2416,7 @@ if (!window.modalSelectorsInitialized) {
     if (dispatchBillEntriesEvent('credit-bill-entries:render', { entries: entries || [] })) {
       return;
     }
-    var container = document.getElementById('bill-entries-container');
+    const container = document.getElementById('bill-entries-container');
     if (container) container.innerHTML = '<div class="p-8 text-center text-secondary dark:text-secondary-dark text-sm">该期暂无交易记录</div>';
   }
 
@@ -2424,7 +2424,7 @@ if (!window.modalSelectorsInitialized) {
     if (dispatchBillEntriesEvent('credit-bill-entries:loading')) {
       return;
     }
-    var container = document.getElementById('bill-entries-container');
+    const container = document.getElementById('bill-entries-container');
     if (container) container.innerHTML = '<div class="p-4 text-center text-secondary dark:text-secondary-dark text-sm">加载中...</div>';
   }
 
@@ -2432,18 +2432,18 @@ if (!window.modalSelectorsInitialized) {
     if (dispatchBillEntriesEvent('credit-bill-entries:error', { message: '加载失败' })) {
       return;
     }
-    var container = document.getElementById('bill-entries-container');
+    const container = document.getElementById('bill-entries-container');
     if (container) container.innerHTML = '<div class="p-4 text-center text-red-500 text-sm">加载失败</div>';
   }
 
   // 切换视图模式（按日期 / 按账单）
   window.switchViewMode = function(mode) {
     currentViewMode = mode;
-    var txList = document.getElementById('transaction-list');
-    var summaryBar = document.getElementById('summary-bar');
-    var filterBar = document.getElementById('filter-bar');
-    var dateBtn = document.getElementById('mode-date-btn');
-    var billBtn = document.getElementById('mode-bill-btn');
+    const txList = document.getElementById('transaction-list');
+    const summaryBar = document.getElementById('summary-bar');
+    const filterBar = document.getElementById('filter-bar');
+    const dateBtn = document.getElementById('mode-date-btn');
+    const billBtn = document.getElementById('mode-bill-btn');
 
     if (mode === 'bill') {
       // 切到账单模式
@@ -2465,13 +2465,13 @@ if (!window.modalSelectorsInitialized) {
     }
 
     // 更新 URL（不刷新页面）
-    var params = new URLSearchParams(window.location.search);
+    const params = new URLSearchParams(window.location.search);
     if (mode === 'bill') {
       params.set('view_mode', 'bill');
     } else {
       params.delete('view_mode');
     }
-    var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+    const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
     history.replaceState({ mode: mode }, '', newUrl);
   };
 
@@ -2490,21 +2490,21 @@ if (!window.modalSelectorsInitialized) {
 
   // 渲染账单卡片
   function renderBillCards(data) {
-    var container = document.getElementById('bill-cards');
+    const container = document.getElementById('bill-cards');
     if (!container || !data.bills || data.bills.length === 0) {
       container.innerHTML = '<div class="text-sm text-secondary dark:text-secondary-dark">暂无账单数据</div>';
       return;
     }
 
     // 找当前期索引（用于高亮）
-    var currentIdx = data.bills.findIndex(b => b.current);
+    const currentIdx = data.bills.findIndex(b => b.current);
 
-    var html = '';
+    const html = '';
     data.bills.forEach(function(bill, idx) {
-      var isCurrent = bill.current;
-      var isUnbilled = idx === 0 && !isCurrent; // 第一张且不是当期 = 未出账单
-      var isSelected = selectedBillLabel === bill.label;
-      var cardClass = 'shrink-0 p-3 rounded-lg cursor-pointer transition-smooth min-w-[180px] ';
+      const isCurrent = bill.current;
+      const isUnbilled = idx === 0 && !isCurrent; // 第一张且不是当期 = 未出账单
+      const isSelected = selectedBillLabel === bill.label;
+      const cardClass = 'shrink-0 p-3 rounded-lg cursor-pointer transition-smooth min-w-[180px] ';
       if (isSelected) {
         cardClass += 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
       } else if (isUnbilled) {
@@ -2557,10 +2557,10 @@ if (!window.modalSelectorsInitialized) {
     // 自动选中当前期（如果有的话），否则选未出账单或第一张
     if (!selectedBillLabel) {
       if (currentIdx >= 0) {
-        var currentBill = data.bills[currentIdx];
+        const currentBill = data.bills[currentIdx];
         selectBill(currentBill.label, currentBill.start_date, currentBill.end_date);
       } else if (data.bills.length > 0) {
-        var firstBill = data.bills[0];
+        const firstBill = data.bills[0];
         selectBill(firstBill.label, firstBill.start_date, firstBill.end_date);
       }
     } else if (selectedBillLabel) {
@@ -2569,10 +2569,10 @@ if (!window.modalSelectorsInitialized) {
   }
 
   // 当前选中的账单
-  var selectedBillLabel = null;
-  var selectedStartDate = null;
-  var selectedEndDate = null;
-  var allBillEntries = [];
+  const selectedBillLabel = null;
+  const selectedStartDate = null;
+  const selectedEndDate = null;
+  const allBillEntries = [];
 
   // 选择某期账单
   window.selectBill = function(label, startDate, endDate) {
@@ -2582,7 +2582,7 @@ if (!window.modalSelectorsInitialized) {
 
     // 更新卡片选中状态
     document.querySelectorAll('#bill-cards > div').forEach(function(card) {
-      var isSelected = card.dataset.label === label;
+      const isSelected = card.dataset.label === label;
       if (isSelected) {
         card.className = card.className.replace(/ring-\w+-\d+/g, '').trim() +
           ' bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
@@ -2593,8 +2593,8 @@ if (!window.modalSelectorsInitialized) {
     });
 
     // 更新账期信息栏
-    var periodInfo = document.getElementById('bill-period-info');
-    var dueInfo = document.getElementById('bill-due-info');
+    const periodInfo = document.getElementById('bill-period-info');
+    const dueInfo = document.getElementById('bill-due-info');
     if (periodInfo) periodInfo.textContent = '账期：' + startDate + ' ~ ' + endDate;
     if (dueInfo) dueInfo.textContent = '';
 
@@ -2627,7 +2627,7 @@ if (!window.modalSelectorsInitialized) {
   };
 
   // 筛选账单交易
-  var currentBillFilter = 'all';
+  const currentBillFilter = 'all';
   window.filterBillEntries = function(filter) {
     currentBillFilter = filter;
     // 更新按钮样式
@@ -2638,7 +2638,7 @@ if (!window.modalSelectorsInitialized) {
         btn.className = 'bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover text-primary dark:text-primary-dark';
       }
     });
-    var filtered = allBillEntries.filter(function(e) {
+    const filtered = allBillEntries.filter(function(e) {
       if (filter === 'all') return true;
       if (filter === 'repay') return e.is_repayment;
       if (filter === 'spend') return e.is_spend;
