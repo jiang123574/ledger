@@ -173,8 +173,9 @@ FactoryBot.define do
     start_date { Date.current }
     end_date { 30.days.from_now }
     total_amount { 5000 }
+    spent_amount { 0 }
     currency { 'CNY' }
-    status { 'pending' }
+    status { 'planning' }
   end
 
   factory :budget_item do
