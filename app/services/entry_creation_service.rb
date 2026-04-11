@@ -40,7 +40,7 @@ class EntryCreationService
     from_account = Account.find(from_account_id)
     to_account = Account.find(to_account_id)
 
-    transfer_id = SecureRandom.random_number(2**31)
+    transfer_id = SecureRandom.uuid
     transfer_note = note.presence || "转账: #{from_account.name} → #{to_account.name}"
 
     # 获取两个账户的下一个 sort_order
@@ -83,7 +83,7 @@ class EntryCreationService
     destination_account = Account.find(destination_account_id)
 
     Entry.transaction do
-      transfer_id = SecureRandom.random_number(2**31)
+      transfer_id = SecureRandom.uuid
       transfer_note = [
         "自动补记资金来源",
         source_account.name,
