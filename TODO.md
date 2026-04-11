@@ -450,22 +450,36 @@ focus:outline-none focus-visible:ring-2 ...
 
 **优先级**: 高
 **预估工期**: 1-2 周
-**状态**: ⏳ 待优化
+**状态**: ⏳ 进行中 (32.64%)
+**Issue**: [#90](https://github.com/jiang123574/ledger/issues/90)
 
 **问题描述**:
-- 当前行覆盖率仅 7.66%，远低于行业标准（80%+）
+- 初始覆盖率 7.66%，当前 32.64%（+24.98%）
 - 缺乏单元测试，主要依赖集成测试
 - 测试覆盖率低可能导致潜在 bug 未被发现
 
-**优化方案**:
-1. 为 Entry 模型添加全面的单元测试
-2. 为 AccountsController 添加控制器测试
-3. 为服务层添加单元测试
-4. 添加边界条件和异常处理测试
+**已完成的测试**:
+- [x] Entry 模型测试 (808 行)
+- [x] Account 模型测试 (330 行)
+- [x] Category 模型测试 (290 行)
+- [x] Payable 模型测试 (219 行)
+- [x] Receivable 模型测试 (227 行)
+- [x] EntryCreationService 测试 (310 行)
+- [x] AccountsController 请求测试 (442 行)
+- [x] TransactionsController 请求测试 (290 行)
+- [x] DashboardController 请求测试 (100 行)
+- [x] ReceivablesController 请求测试 (348 行)
+- [x] PayablesController 请求测试 (184 行)
+
+**待完成的测试**:
+- [ ] PlansController 请求测试
+- [ ] CounterpartiesController 请求测试
+- [ ] ImportController 请求测试
+- [ ] 其他 Service 层测试
 
 **验证清单**:
 - [ ] 行覆盖率提升至 80%+
-- [ ] 所有核心模型有单元测试
+- [x] 所有核心模型有单元测试
 - [ ] 所有控制器有功能测试
 - [ ] 服务层有单元测试
 
