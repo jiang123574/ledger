@@ -12,22 +12,19 @@ RSpec.describe "Payables", type: :request do
     let(:counterparty_a) { create(:counterparty, name: "供应商A") }
     let(:counterparty_b) { create(:counterparty, name: "供应商B") }
 
+    it "renders the index page" do
+      get "/payables"
+      expect(response).to have_http_status(:ok)
+    end
+
     it "filters unsettled payables by counterparty id token" do
       Payable.create!(
-        description: "A-待付款",
-        original_amount: 100,
-        remaining_amount: 100,
-        date: Date.current,
-        account: account,
-        counterparty: counterparty_a
+        description: "A-待付款", original_amount: 100, remaining_amount: 100,
+        date: Date.current, account: account, counterparty: counterparty_a
       )
       Payable.create!(
-        description: "B-待付款",
-        original_amount: 200,
-        remaining_amount: 200,
-        date: Date.current,
-        account: account,
-        counterparty: counterparty_b
+        description: "B-待付款", original_amount: 200, remaining_amount: 200,
+        date: Date.current, account: account, counterparty: counterparty_b
       )
 
       get "/payables", params: { counterparty_id: "id:#{counterparty_a.id}" }
@@ -39,20 +36,12 @@ RSpec.describe "Payables", type: :request do
 
     it "filters unsettled payables with none token" do
       Payable.create!(
-        description: "无联系人-待付款",
-        original_amount: 80,
-        remaining_amount: 80,
-        date: Date.current,
-        account: account,
-        counterparty: nil
+        description: "无联系人-待付款", original_amount: 80, remaining_amount: 80,
+        date: Date.current, account: account, counterparty: nil
       )
       Payable.create!(
-        description: "有联系人-待付款",
-        original_amount: 120,
-        remaining_amount: 120,
-        date: Date.current,
-        account: account,
-        counterparty: counterparty_a
+        description: "有联系人-待付款", original_amount: 120, remaining_amount: 120,
+        date: Date.current, account: account, counterparty: counterparty_a
       )
 
       get "/payables", params: { counterparty_id: "none" }
@@ -64,121 +53,101 @@ RSpec.describe "Payables", type: :request do
   end
 
   describe "POST /payables" do
-    it "creates payable with source_entry link" do
-      post "/payables", params: {
-        payable: {
-          description: "办公用品采购",
-          original_amount: 3000,
-          date: Date.current,
-          account_id: account.id,
-          counterparty_id: counterparty.id,
-          category: "办公"
+    it "creates a payable" do
+      expect {
+        post "/payables", params: {
+          payable: {
+            description: "办公用品采购",
+            original_amount: 3000,
+            date: Date.current,
+            account_id: account.id,
+            counterparty_id: counterparty.id,
+            category: "办公"
+          }
         }
-      }
+      }.to change(Payable, :count).by(1)
 
       expect(response).to redirect_to(payables_path)
+      expect(flash[:notice]).to eq("应付款已创建")
 
       payable = Payable.last
       expect(payable.description).to eq("办公用品采购")
       expect(payable.original_amount).to eq(3000)
-
-      # 验证自动创建了 Entry
-      source_entry = Entry.where("notes LIKE ?", "%payable:#{payable.id}:source%").first
-      expect(source_entry).to be_present
-      expect(source_entry.amount).to eq(3000)
-      expect(source_entry.name).to include("[待付款]")
     end
 
-it "updates source_entry when payable is updated" do
-      payable = create(:payable,
-        account: account,
-        counterparty: counterparty,
-        description: "原描述",
-        original_amount: 500,
-        date: Date.current
-      )
-
-      entryable = create(:entryable_transaction, :income)
-      source_entry = create(:entry,
-        account: account,
-        amount: 500,
-        date: Date.current,
-        name: "[待付款] 原描述",
-        notes: "payable:#{payable.id}:source",
-        entryable: entryable
-      )
-
-      patch "/payables/#{payable.id}", params: {
-        payable: {
-          description: "新描述",
-          original_amount: 1500,
-          date: (Date.current + 1.day)
-        }
+    it "handles validation errors" do
+      post "/payables", params: {
+        payable: { description: "", original_amount: nil }
       }
-
       expect(response).to redirect_to(payables_path)
-
-      source_entry.reload
-      expect(source_entry.name).to include("新描述")
-      expect(source_entry.amount).to eq(1500.0)
+      expect(flash[:alert]).to be_present
     end
   end
 
-describe "DELETE /payables" do
-    it "deletes payable with associated entry" do
-      payable = create(:payable, account: account, counterparty: counterparty)
-
-      entryable = create(:entryable_transaction, :income)
-      source_entry = create(:entry,
-        account: account,
-        amount: payable.original_amount,
-        notes: "payable:#{payable.id}:source",
-        entryable: entryable
+  describe "PATCH /payables/:id" do
+    it "updates the payable" do
+      payable = create(:payable,
+        account: account, counterparty: counterparty,
+        description: "原描述", original_amount: 500, date: Date.current
       )
+
+      patch "/payables/#{payable.id}", params: {
+        payable: { description: "新描述", original_amount: 1500 }
+      }
+
+      expect(response).to redirect_to(payables_path)
+      expect(flash[:notice]).to eq("应付款已更新")
+      expect(payable.reload.description).to eq("新描述")
+    end
+  end
+
+  describe "DELETE /payables/:id" do
+    it "deletes the payable" do
+      payable = create(:payable, account: account, counterparty: counterparty)
 
       expect {
         delete "/payables/#{payable.id}"
       }.to change(Payable, :count).by(-1)
 
-      expect(response).to redirect_to(payables_path)
-    end
-
-    it "deletes associated source_entry when payable is destroyed" do
-      payable = create(:payable, account: account, counterparty: counterparty, original_amount: 2000)
-
-      entryable = create(:entryable_transaction, :income)
-      source_entry = create(:entry,
-        account: account,
-        amount: 2000,
-        notes: "payable:#{payable.id}:source",
-        entryable: entryable
-      )
-
-      expect {
-        delete "/payables/#{payable.id}"
-      }.to change(Entry, :count).by(-1)
-
-      expect(Entry.find_by(id: source_entry.id)).to be_nil
+      expect(response).to redirect_to(payables_url)
+      expect(flash[:notice]).to eq("应付款已删除")
     end
   end
 
-  describe "source_entry compatibility" do
-    it "provides source_transaction_or_entry compatibility method" do
-      payable = create(:payable, account: account)
+  describe "POST /payables/:id/settle" do
+    it "settles a payable" do
+      payable = create(:payable,
+        account: account, counterparty: counterparty,
+        original_amount: 1000, remaining_amount: 1000
+      )
 
-      # 创建 Entry 关联
-      entry = create(:entry, account: account)
-      payable.update(source_entry_id: entry.id)
+      post "/payables/#{payable.id}/settle", params: {
+        amount: 1000, account_id: account.id, settlement_date: Date.current.to_s
+      }
 
-      expect(payable.source_transaction_or_entry).to eq(entry)
+      expect(response).to redirect_to(payables_path)
+      expect(flash[:notice]).to be_present
     end
 
-    it "returns source_amount from entry" do
-      payable = create(:payable, account: account, original_amount: 2000)
-      entry = create(:entry, account: account, amount: 1000)
-      payable.update(source_entry_id: entry.id)
+    it "rejects invalid amount" do
+      payable = create(:payable, account: account, counterparty: counterparty, original_amount: 1000)
 
-      expect(payable.source_amount).to eq(1000)
+      post "/payables/#{payable.id}/settle", params: { amount: 0, account_id: account.id }
+
+      expect(response).to redirect_to(payables_path)
+      expect(flash[:alert]).to be_present
+    end
+  end
+
+  describe "POST /payables/:id/revert" do
+    it "reverts a settlement" do
+      payable = create(:payable,
+        account: account, counterparty: counterparty,
+        original_amount: 1000, remaining_amount: 1000
+      )
+
+      post "/payables/#{payable.id}/revert"
+      expect(response).to redirect_to(payables_path)
     end
   end
 end

@@ -83,6 +83,21 @@ FactoryBot.define do
     day_of_month { 15 }
     active { true }
 
+    trait :active do
+      active { true }
+    end
+
+    trait :inactive do
+      active { false }
+    end
+
+    trait :completed do
+      type { Plan::INSTALLMENT }
+      total_amount { 1200 }
+      installments_total { 12 }
+      installments_completed { 12 }
+    end
+
     trait :installment do
       type { Plan::INSTALLMENT }
       total_amount { 1200 }
@@ -92,10 +107,6 @@ FactoryBot.define do
 
     trait :recurring do
       type { Plan::RECURRING }
-    end
-
-    trait :inactive do
-      active { false }
     end
   end
 
@@ -124,6 +135,14 @@ FactoryBot.define do
       amount { -100.50 }
       entryable { association(:entryable_transaction, :expense) }
     end
+
+    trait :valuation do
+      entryable { association(:entryable_valuation) }
+    end
+
+    trait :trade do
+      entryable { association(:entryable_trade) }
+    end
   end
 
   factory :entryable_transaction, class: 'Entryable::Transaction' do
@@ -139,13 +158,24 @@ FactoryBot.define do
     end
   end
 
+  factory :entryable_valuation, class: 'Entryable::Valuation' do
+    extra { { valuation_method: 'market_price', source: 'manual' } }
+  end
+
+  factory :entryable_trade, class: 'Entryable::Trade' do
+    qty { 100 }
+    price { 10.5 }
+    extra { { order_type: 'buy' } }
+  end
+
   factory :single_budget do
     sequence(:name) { |n| "Single Budget #{n}" }
     start_date { Date.current }
     end_date { 30.days.from_now }
     total_amount { 5000 }
+    spent_amount { 0 }
     currency { 'CNY' }
-    status { 'pending' }
+    status { 'planning' }
   end
 
   factory :budget_item do
@@ -160,5 +190,17 @@ FactoryBot.define do
     file_size { 1024 * 1024 }
     backup_type { 'manual' }
     status { 'completed' }
+  end
+
+  factory :recurring_transaction do
+    association :account
+    association :category
+    transaction_type { 'expense' }
+    amount { 100.00 }
+    currency { 'CNY' }
+    frequency { 'monthly' }
+    next_date { Date.tomorrow }
+    is_active { 1 }
+    note { 'Monthly payment' }
   end
 end

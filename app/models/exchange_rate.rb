@@ -2,11 +2,14 @@ class ExchangeRate < ApplicationRecord
   validates :from_currency, :to_currency, :rate, :date, presence: true
   validates :rate, numericality: { greater_than: 0 }
 
-  scope :for_pair, ->(from, to) {
+  scope :for_pair_query, ->(from, to) {
     where(from_currency: from, to_currency: to)
       .order(date: :desc)
-      .first
   }
+
+  def self.for_pair(from, to)
+    for_pair_query(from, to).first
+  end
 
   scope :latest, -> { order(date: :desc) }
   scope :for_date, ->(date) { where(date: date) }

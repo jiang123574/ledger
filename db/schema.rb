@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_120003) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_11_130000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -94,11 +94,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_120003) do
     t.integer "file_size", default: 0
     t.string "file_type", limit: 50, null: false
     t.string "thumbnail_path", limit: 500
-    t.integer "transaction_id"
     t.datetime "updated_at", null: false
     t.index ["entry_id"], name: "index_attachments_on_entry_id"
-    t.index ["transaction_id", "file_type"], name: "idx_attachments_trans_type"
-    t.index ["transaction_id"], name: "index_attachments_on_transaction_id"
   end
 
   create_table "backup_records", force: :cascade do |t|
