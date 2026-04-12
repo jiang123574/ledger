@@ -1,7 +1,7 @@
 import { formatMoney, formatCurrencyRaw } from "bill_formatters"
 
 const ENTRY_CARD_TEMPLATE_DESKTOP = `
-<div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="" data-date="" draggable="false">
+<div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="" data-date="" draggable="false">
   <div class="text-xs text-secondary dark:text-secondary-dark truncate" data-field="date"></div>
   <div class="truncate flex items-center gap-2">
     <span data-field="type" class="shrink-0"></span>
@@ -69,14 +69,14 @@ function createEntryCard(entry, options = {}) {
   const amountText = formatMoney(Math.abs(entry.display_amount || 0))
   const isTransfer = entry.display_type === "转账" || entry.display_type === "转入" || entry.display_type === "转出"
   const isIncome = entry.display_amount_type === "INCOME"
+  const dragEnabled = options.dragEnabled !== false
 
-  // 桌面端卡片
   const desktopTemplate = document.createElement("template")
   desktopTemplate.innerHTML = ENTRY_CARD_TEMPLATE_DESKTOP.trim()
   const desktopRow = desktopTemplate.content.firstElementChild.cloneNode(true)
   desktopRow.dataset.entryId = entry.id
   desktopRow.dataset.date = entry.date || ''
-  desktopRow.draggable = true
+  desktopRow.draggable = dragEnabled
 
   desktopRow.querySelector('[data-field="date"]').textContent = entry.date || ""
   
@@ -85,7 +85,6 @@ function createEntryCard(entry, options = {}) {
   typeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   
   const nameEl = desktopRow.querySelector('[data-field="name"]')
-  // 使用后端处理好的 display_name，它已根据当前账户过滤器格式化
   nameEl.textContent = entry.display_name || "-"
 
   const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
@@ -135,7 +134,6 @@ function createEntryCard(entry, options = {}) {
   mobileTypeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
   
   const mobileNameEl = mobileRow.querySelector('[data-field="name"]')
-  // 使用后端处理好的 display_name，它已根据当前账户过滤器格式化
   mobileNameEl.textContent = entry.display_name || "-"
 
   const amountEl = mobileRow.querySelector('[data-field="amount"]')
