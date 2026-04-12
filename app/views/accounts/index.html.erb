@@ -1017,7 +1017,7 @@ function toggleAccountList() {
 }
 
 // 筛选功能
-const selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
+let selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
 const currentPage = <%= @page %>;
 
 function applyFilters() {
