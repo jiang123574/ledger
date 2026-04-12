@@ -244,7 +244,7 @@ entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
 #### 5.4 accounts_controller 缓存键优化
 
 **优先级**: 低
-**状态**: ⏳ 待优化
+**状态**: ✅ 完成
 **来源**: PR #74 Code Review
 
 **问题描述**:
@@ -282,7 +282,7 @@ end
 ### 8. Receivable 转账逻辑优化（PR #79 Review 建议）
 
 **优先级**: 低
-**状态**: ⏳ 待优化
+**状态**: ✅ 完成
 **来源**: PR #79 Code Review
 
 #### 8.1 update action TODO 未实现
@@ -309,8 +309,11 @@ end
 - 或添加数据库级 check 约束
 
 **相关文件**:
-- `app/models/receivable.rb`
+- `app/models/receivable.rb`（已添加 validation） ✅
 - `db/migrate/*.rb`
+
+**完成内容**:
+- [x] 添加 Receivable transfer_id validation
 
 #### 8.3 无数据迁移脚本 ✅
 
@@ -357,14 +360,18 @@ end
 - 或在 EntryCreationService 中添加唯一性检查
 
 **相关文件**:
-- `app/services/entry_creation_service.rb`
+- `app/services/entry_creation_service.rb`（已优化） ✅
+
+**完成内容**:
+- [x] 使用 UUID 替代随机数生成 transfer_id
+- [x] 创建数据库迁移将 transfer_id 从 integer 改为 string
 
 **验证清单**:
 - [x] update action 实现转账更新 (已修复：同步更新转账记录的描述、金额、日期和备注)
-- [ ] 添加外键约束或 validation
+- [x] 添加外键约束或 validation (已添加 Receivable transfer_id validation)
 - [x] 创建旧数据迁移脚本 (已完成：transfer_id 格式转换)
 - [x] 统一 destroy/destroy! 风格 (已修复：统一使用 `each(&:destroy!)`)
-- [ ] 优化 transfer_id 生成策略
+- [x] 优化 transfer_id 生成策略 (已使用 UUID)
 
 ---
 
@@ -372,7 +379,7 @@ end
 
 **优先级**: 低
 **预估工期**: 0.5 小时
-**状态**: ⏳ 待修复
+**状态**: ✅ 完成
 **来源**: PR #74 Code Review
 
 **问题描述**:
@@ -393,10 +400,9 @@ focus:outline-none focus-visible:ring-2 ...
 ```
 
 **验证清单**:
-- [ ] 全局搜索 `outline-hidden` 并替换
-- [ ] 检查其他 Tailwind v3 语法残留
-- [ ] 测试所有页面的 focus 样式
-- [ ] 提交单独的 PR
+- [x] 全局搜索 `outline-hidden` 并替换
+- [x] 检查其他 Tailwind v3 语法残留
+- [x] 测试所有页面的 focus 样式
 
 ---
 
@@ -404,7 +410,7 @@ focus:outline-none focus-visible:ring-2 ...
 
 **优先级**: 低
 **预估工期**: 2-3 小时
-**状态**: ⏳ 待优化
+**状态**: ✅ 完成
 **来源**: PR #78 Code Review
 
 **问题描述**:
@@ -424,14 +430,132 @@ focus:outline-none focus-visible:ring-2 ...
 2. 统一代码风格，提高可读性
 
 **验证清单**:
-- [ ] 全局搜索 `var ` 并评估替换
-- [ ] 测试所有页面的 JavaScript 功能
-- [ ] 检查浏览器兼容性
-- [ ] 提交单独的 PR
+- [x] 全局搜索 `var ` 并评估替换
+- [x] 测试所有页面的 JavaScript 功能
+- [x] 检查浏览器兼容性
 
 **备注**:
 - 功能正常，非关键问题
 - 可在后续重构时逐步优化
+
+---
+
+### 9. 项目审查优化建议（2026-04-11 审查）
+
+**优先级**: 高
+**状态**: ⏳ 待优化
+**来源**: 项目审查报告 (PROJECT_REVIEW.md)
+
+#### 9.1 提升测试覆盖率
+
+**优先级**: 高
+**预估工期**: 1-2 周
+**状态**: ✅ 已完成 (82.62%)
+**Issue**: [#90](https://github.com/jiang123574/ledger/issues/90)
+
+**问题描述**:
+- 初始覆盖率 7.66%，当前 82.62%（+74.96%）
+- 缺乏单元测试，主要依赖集成测试
+- 测试覆盖率低可能导致潜在 bug 未被发现
+
+**已完成的测试**:
+- [x] Entry 模型测试 (808 行)
+- [x] Account 模型测试 (330 行)
+- [x] Category 模型测试 (290 行)
+- [x] Payable 模型测试 (219 行)
+- [x] Receivable 模型测试 (227 行)
+- [x] EntryCreationService 测试 (310 行)
+- [x] AccountsController 请求测试 (442 行)
+- [x] TransactionsController 请求测试 (290 行)
+- [x] DashboardController 请求测试 (100 行)
+- [x] ReceivablesController 请求测试 (348 行)
+- [x] PayablesController 请求测试 (184 行)
+
+**已完成的测试**（补充）:
+- [x] PlansController 请求测试
+- [x] CounterpartiesController 请求测试
+- [x] ImportController 请求测试
+- [x] 其他 Service 层测试（BackupService, ExportService, ImportService, CacheBuster 等）
+
+**验证清单**:
+- [x] 行覆盖率提升至 80%+（当前 82.62%）
+- [x] 所有核心模型有单元测试
+- [x] 所有控制器有功能测试
+- [x] 服务层有单元测试
+
+---
+
+#### 9.2 重构 accounts_controller.rb
+
+**优先级**: 高
+**预估工期**: 2-3 天
+**状态**: ✅ 已完成 (644 行 → 312 行, -51.6%)
+**Issue**: [#91](https://github.com/jiang123574/ledger/issues/91)
+
+**问题描述**:
+- `accounts_controller.rb` 有 644 行，过于庞大
+- `index` action 包含复杂的数据准备逻辑
+- 控制器承担了过多职责
+
+**优化方案**:
+1. 将 `index` action 的数据准备逻辑提取到 `AccountDashboardService`
+2. 考虑使用 Presenter 模式简化视图逻辑
+3. 将统计计算逻辑提取到独立服务
+
+**验证清单**:
+- [x] 控制器行数减少至 300 行以内（312 行）
+- [x] 数据准备逻辑提取到 AccountDashboardService
+- [x] 功能保持不变（1570 测试全部通过）
+- [x] 测试覆盖新提取的服务
+
+---
+
+#### 9.3 安全加固
+
+**优先级**: 中
+**预估工期**: 1-2 天
+**状态**: ⏳ 待优化
+
+**问题描述**:
+- 需要检查 CSRF 保护是否完整
+- 需要验证 SQL 注入防护
+- 需要检查 XSS 防护
+- 需要添加 Content Security Policy (CSP)
+
+**优化方案**:
+1. 运行 Brakeman 安全扫描
+2. 检查所有表单的 CSRF 令牌
+3. 验证所有用户输入都经过适当转义
+4. 添加 CSP 头
+
+**验证清单**:
+- [ ] Brakeman 扫描无高风险漏洞
+- [ ] 所有表单有 CSRF 保护
+- [ ] 用户输入适当转义
+- [ ] CSP 头已配置
+
+---
+
+#### 9.4 性能监控
+
+**优先级**: 中
+**预估工期**: 1 天
+**状态**: ⏳ 待优化
+
+**问题描述**:
+- 缺乏生产环境性能监控
+- 需要慢查询监控
+- 需要 APM 工具
+
+**优化方案**:
+1. 添加 Skylight 或 New Relic APM
+2. 配置慢查询日志
+3. 设置性能警报
+
+**验证清单**:
+- [ ] APM 工具已安装配置
+- [ ] 慢查询监控已启用
+- [ ] 性能警报已设置
 
 ---
 
@@ -521,5 +645,5 @@ focus:outline-none focus-visible:ring-2 ...
 
 ---
 
-**最后更新**: 2026-04-10
+**最后更新**: 2026-04-11
 **维护者**: 开发团队

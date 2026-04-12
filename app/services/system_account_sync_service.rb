@@ -7,10 +7,9 @@ class SystemAccountSyncService
 
   class << self
     def sync_all!
-      changed = false
-      changed ||= sync_receivable_account!
-      changed ||= sync_payable_account!
-      bump_cache_versions if changed
+      changed_receivable = sync_receivable_account!
+      changed_payable = sync_payable_account!
+      bump_cache_versions if changed_receivable || changed_payable
     end
 
     def sync_receivable_account!

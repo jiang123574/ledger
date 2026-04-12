@@ -63,3 +63,6 @@ app/assets/stylesheets/application.css
 *.docs
 /.doc
 /.docs
+
+# Temp planning files
+/temp/
