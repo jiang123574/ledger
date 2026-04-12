@@ -2529,6 +2529,11 @@ if (!window.modalSelectorsInitialized) {
         html += '<span class="font-semibold text-sm text-primary dark:text-primary-dark">' + bill.label + '</span>';
       }
       html += '</div>';
+      // 账单金额
+      html += '<div class="text-xs mb-2">';
+      html += '<span class="text-secondary dark:text-secondary-dark">账单金额：</span>';
+      html += '<span class="font-medium text-expense">' + formatBillMoney(bill.spend_amount) + '</span>';
+      html += '</div>';
       // 账期范围
       html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-1.5">';
       html += '账期：' + bill.start_date + ' ~ ' + bill.end_date;
@@ -2537,15 +2542,15 @@ if (!window.modalSelectorsInitialized) {
       html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-2">';
       html += '账单日 &nbsp;还款日：' + bill.due_date;
       html += '</div>';
-      // 金额汇总
+      // 还款金额
       html += '<div class="flex justify-between text-xs pt-1.5 border-t border-border/50 dark:border-border-dark/50">';
-      html += '<div><span class="text-secondary dark:text-secondary-dark">消费&取现金额：</span><br/><span class="font-medium text-expense">' + formatBillMoney(bill.spend_amount) + '</span></div>';
-      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款&退款金额：</span><br/><span class="font-medium text-income">' + formatBillMoney(bill.repay_amount) + '</span></div>';
+      html += '<div><span class="text-secondary dark:text-secondary-dark">还款金额：</span><span class="font-medium text-income">' + formatBillMoney(bill.repay_amount) + '</span></div>';
+      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">笔数：</span><span class="font-medium">' + bill.spend_count + '笔消费 / ' + bill.repay_count + '笔还款</span></div>';
       html += '</div>';
       // 待还
       if (bill.balance_due > 0) {
         html += '<div class="text-xs mt-1.5 pt-1 border-t border-border/30 dark:border-border-dark/30">';
-        html += '<span class="text-secondary dark:text-secondary-dark">待还&退款金额：</span>';
+        html += '<span class="text-secondary dark:text-secondary-dark">待还金额：</span>';
         html += '<span class="font-bold text-expense">' + formatBillMoney(bill.balance_due) + '</span>';
         html += '</div>';
       }
