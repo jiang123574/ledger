@@ -618,7 +618,7 @@ function openEditAccountModal(btn) {
   document.getElementById('account-form').method = 'post';
   
   // 添加 _method=patch
-  const methodInput = document.getElementById('account-method-input');
+  let methodInput = document.getElementById('account-method-input');
   if (!methodInput) {
     methodInput = document.createElement('input');
     methodInput.id = 'account-method-input';
@@ -1165,8 +1165,8 @@ function updatePeriodValueDisplay() {
   displayEl.textContent = formatPeriodValue(periodValueEl.value, periodTypeEl.value);
 }
 
-const pickerCurrentYear = new Date().getFullYear();
-const pickerPanelOpen = false;
+let pickerCurrentYear = new Date().getFullYear();
+let pickerPanelOpen = false;
 
 function togglePeriodPicker() {
   const panel = document.getElementById('period-picker-panel');
@@ -1236,7 +1236,7 @@ function renderMonthPicker() {
   
   yearDisplay.textContent = pickerCurrentYear + '年';
   
-  const currentMonth = '';
+  let currentMonth = '';
   if (periodValueEl && periodValueEl.value) {
     const match = periodValueEl.value.match(/^(\d{4})-(\d{2})$/);
     if (match && parseInt(match[1]) === pickerCurrentYear) {
@@ -1267,7 +1267,7 @@ function renderYearPicker() {
   // 显示年份范围
   const startYear = pickerCurrentYear - 4;
   const years = [];
-  for (const i = 0; i < 9; i++) {
+  for (let i = 0; i < 9; i++) {
     years.push(startYear + i);
   }
   
@@ -1287,7 +1287,7 @@ function renderWeekPicker() {
   
   yearDisplay.textContent = pickerCurrentYear + '年';
   
-  const currentWeek = '';
+  let currentWeek = '';
   if (periodValueEl && periodValueEl.value) {
     const match = periodValueEl.value.match(/^(\d{4})-W(\d{2})$/);
     if (match && parseInt(match[1]) === pickerCurrentYear) {
@@ -1296,8 +1296,8 @@ function renderWeekPicker() {
   }
   
   // 显示周（假设一年最多53周）
-  const weeksHtml = '';
-  for (const i = 1; i <= 53; i++) {
+  let weeksHtml = '';
+  for (let i = 1; i <= 53; i++) {
     const weekNum = String(i).padStart(2, '0');
     const isSelected = currentWeek === weekNum;
     weeksHtml += '<button type="button" onclick="selectPickerWeek(' + weekNum + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
@@ -1366,8 +1366,8 @@ function shiftPeriod(direction) {
   } else if (periodType === 'month') {
     const match = currentValue.match(/^(\d{4})-(\d{2})$/);
     if (match) {
-      const year = parseInt(match[1], 10);
-      const month = parseInt(match[2], 10) + direction;
+      let year = parseInt(match[1], 10);
+      let month = parseInt(match[2], 10) + direction;
       if (month < 1) {
         month = 12;
         year -= 1;
@@ -1555,7 +1555,7 @@ const categoryFilterInput = document.getElementById('category-filter-input');
 const categoryOptions = document.getElementById('category-options');
 const categoryHiddenInput = document.getElementById('new_transaction_category_id');
 var allCategories = [];
-const currentCategoryType = 'EXPENSE';
+let currentCategoryType = 'EXPENSE';
 
 // 从合并数据加载全部分类
 const allCategoriesDataEl = document.getElementById('all-categories-data');
@@ -2337,7 +2337,7 @@ if (!window.modalSelectorsInitialized) {
 </script>
 
 <!-- ========== 信用卡账单区域 ========== -->
-<div id="credit-bill-wrapper" class="<%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+<div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
   <!-- 账单卡片行 -->
   <div id="bill-cards-container" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset overflow-x-auto">
     <div class="flex gap-3 min-w-max" id="bill-cards">
@@ -2346,7 +2346,7 @@ if (!window.modalSelectorsInitialized) {
   </div>
 
   <!-- 账单交易明细区域 -->
-  <div id="bill-detail-section" class="hidden" data-controller="credit-bill-entries">
+  <div id="bill-detail-section" class="hidden" data-controller="credit-bill-entries" data-credit-bill-entries-account-id-value="<%= params[:account_id] %>" data-credit-bill-entries-drag-enabled-value="true">
     <!-- 账期信息 + 筛选栏 -->
     <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark flex items-center gap-3 text-xs">
       <span id="bill-period-info" class="font-medium text-primary dark:text-primary-dark"></span>
@@ -2357,6 +2357,16 @@ if (!window.modalSelectorsInitialized) {
       <button onclick="filterBillEntries('all')" class="bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-filter="all">全部</button>
       <button onclick="filterBillEntries('repay')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="repay">还款</button>
       <button onclick="filterBillEntries('spend')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
+    </div>
+    <!-- 桌面端表头（和按日期视图一致） -->
+    <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
+      <div>日期</div>
+      <div class="text-left">类型 / 分类</div>
+      <div class="text-right">流入</div>
+      <div class="text-right">流出</div>
+      <div class="text-right">余额</div>
+      <div class="truncate">账户</div>
+      <div class="text-center">操作</div>
     </div>
     <!-- 交易明细（使用统一的卡片渲染模板） -->
     <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container" data-credit-bill-entries-target="container"></div>
@@ -2370,9 +2380,9 @@ if (!window.modalSelectorsInitialized) {
 
 <script>
 (function() {
-  const wrapper = document.getElementById('credit-bill-wrapper');
-  const accountId = wrapper?.dataset?.accountId;
-  const currentViewMode = '<%= params[:view_mode] %>' || 'date';
+  let wrapper = document.getElementById('credit-bill-wrapper');
+  let accountId = wrapper?.dataset?.accountId;
+  let currentViewMode = '<%= params[:view_mode] %>' || 'date';
   const billFormatters = window.BillFormatters || {};
 
   function formatBillMoney(value) {
@@ -2499,12 +2509,12 @@ if (!window.modalSelectorsInitialized) {
     // 找当前期索引（用于高亮）
     const currentIdx = data.bills.findIndex(b => b.current);
 
-    const html = '';
+    let html = '';
     data.bills.forEach(function(bill, idx) {
       const isCurrent = bill.current;
       const isUnbilled = idx === 0 && !isCurrent; // 第一张且不是当期 = 未出账单
       const isSelected = selectedBillLabel === bill.label;
-      const cardClass = 'shrink-0 p-3 rounded-lg cursor-pointer transition-smooth min-w-[180px] ';
+      let cardClass = 'shrink-0 p-3 rounded-lg cursor-pointer transition-smooth min-w-[180px] ';
       if (isSelected) {
         cardClass += 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
       } else if (isUnbilled) {
@@ -2569,10 +2579,10 @@ if (!window.modalSelectorsInitialized) {
   }
 
   // 当前选中的账单
-  const selectedBillLabel = null;
-  const selectedStartDate = null;
-  const selectedEndDate = null;
-  const allBillEntries = [];
+  let selectedBillLabel = null;
+  let selectedStartDate = null;
+  let selectedEndDate = null;
+  let allBillEntries = [];
 
   // 选择某期账单
   window.selectBill = function(label, startDate, endDate) {
@@ -2627,7 +2637,7 @@ if (!window.modalSelectorsInitialized) {
   };
 
   // 筛选账单交易
-  const currentBillFilter = 'all';
+  let currentBillFilter = 'all';
   window.filterBillEntries = function(filter) {
     currentBillFilter = filter;
     // 更新按钮样式
