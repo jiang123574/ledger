@@ -471,11 +471,11 @@ focus:outline-none focus-visible:ring-2 ...
 - [x] ReceivablesController 请求测试 (348 行)
 - [x] PayablesController 请求测试 (184 行)
 
-**待完成的测试**:
-- [ ] PlansController 请求测试
-- [ ] CounterpartiesController 请求测试
-- [ ] ImportController 请求测试
-- [ ] 其他 Service 层测试
+**已完成的测试**（补充）:
+- [x] PlansController 请求测试
+- [x] CounterpartiesController 请求测试
+- [x] ImportController 请求测试
+- [x] 其他 Service 层测试（BackupService, ExportService, ImportService, CacheBuster 等）
 
 **验证清单**:
 - [x] 行覆盖率提升至 80%+（当前 82.62%）
