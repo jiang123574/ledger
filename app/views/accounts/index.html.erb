@@ -1,6 +1,5 @@
 <% content_for :head do %>
-  <meta name="turbo-cache-control" content="no-cache">
-  <meta name="turbo-visit-control" content="reload">
+  <meta name="turbo-cache-control" content="no-preview">
 <% end %>
 
 <div class="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-8rem)]" data-account-page>
@@ -522,6 +521,54 @@
         </div>
       <% end %>
     </div>
+  <div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+  <!-- 期数选择器 -->
+  <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
+    <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
+    <button onclick="loadBillsWithCount(3)" class="bill-count-btn px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-count="3">3期</button>
+    <button onclick="loadBillsWithCount(12)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="12">12期</button>
+    <button onclick="loadBillsWithCount(24)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="24">24期</button>
+    <button onclick="showStatementInputModal()" class="ml-auto px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">录入基准账单</button>
+  </div>
+  <!-- 账单卡片行 -->
+  <div id="bill-cards-container" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset overflow-x-auto">
+    <div class="flex gap-3 min-w-max" id="bill-cards">
+      <div class="text-sm text-secondary dark:text-secondary-dark">加载中...</div>
+    </div>
+  </div>
+
+  <!-- 账单交易明细区域 -->
+  <div id="bill-detail-section" class="hidden" data-controller="credit-bill-entries" data-credit-bill-entries-account-id-value="<%= params[:account_id] %>" data-credit-bill-entries-drag-enabled-value="true">
+    <!-- 账期信息 + 筛选栏 -->
+    <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark flex items-center gap-3 text-xs">
+      <span id="bill-period-info" class="font-medium text-primary dark:text-primary-dark"></span>
+      <span id="bill-due-info" class="text-secondary dark:text-secondary-dark"></span>
+    </div>
+    <div class="px-3 lg:px-4 py-1.5 border-b border-border/50 dark:border-border-dark/50 flex items-center gap-2 flex-wrap text-xs">
+      <span class="text-secondary dark:text-secondary-dark">筛选：</span>
+      <button onclick="filterBillEntries('all')" class="bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-filter="all">全部</button>
+      <button onclick="filterBillEntries('repay')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="repay">还款</button>
+      <button onclick="filterBillEntries('spend')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
+    </div>
+    <!-- 桌面端表头（和按日期视图一致） -->
+    <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
+      <div>日期</div>
+      <div class="text-left">类型 / 分类</div>
+      <div class="text-right">流入</div>
+      <div class="text-right">流出</div>
+      <div class="text-right">余额</div>
+      <div class="truncate">账户</div>
+      <div class="text-center">操作</div>
+    </div>
+    <!-- 交易明细（使用统一的卡片渲染模板） -->
+    <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container" data-credit-bill-entries-target="container"></div>
+  </div>
+
+  <!-- 默认显示普通交易列表的提示（当未选中任何账单时） -->
+  <div id="bill-default-hint" class="p-3 text-center text-xs text-secondary dark:text-secondary-dark hidden">
+    点击上方账单卡片查看该期交易明细
+  </div>
+  </div>
   </div>
 </div>
 
@@ -1017,6 +1064,100 @@ function toggleAccountList() {
   }
 }
 
+// 局部刷新右侧内容区域
+async function refreshMainContent(url) {
+  try {
+    // 先移除所有 skeleton-loader（避免局部刷新时累积）
+    document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
+
+    // 显示加载状态
+    const mainContent = document.querySelector('[data-account-page] > div:nth-child(2)');
+    if (mainContent) {
+      mainContent.style.opacity = '0.5';
+    }
+
+    const response = await fetch(url);
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // 更新右侧栏内容
+    const newMainContent = doc.querySelector('[data-account-page] > div:nth-child(2)');
+    if (mainContent && newMainContent) {
+      mainContent.innerHTML = newMainContent.innerHTML;
+    }
+
+    // 更新信用卡账单区域（第三个子元素）
+    const creditBillWrapper = document.querySelector('[data-account-page] > div:nth-child(3)');
+    const newCreditBillWrapper = doc.querySelector('[data-account-page] > div:nth-child(3)');
+    if (creditBillWrapper && newCreditBillWrapper) {
+      creditBillWrapper.outerHTML = newCreditBillWrapper.outerHTML;
+    }
+
+    // 移除所有 skeleton loader
+    document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
+
+    // 恢复透明度
+    if (mainContent) {
+      mainContent.style.opacity = '1';
+    }
+
+    // 重新初始化页面脚本
+    reinitializePageScripts();
+  } catch (error) {
+    console.error('刷新内容失败:', error);
+    // 失败时回退到页面刷新
+    window.location.href = url;
+  }
+}
+
+// 更新左侧账户列表高亮
+function updateAccountHighlight(accountId) {
+  // 移除所有高亮
+  document.querySelectorAll('.account-drag-item').forEach(item => {
+    item.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset');
+  });
+
+  // 添加新的高亮
+  if (accountId) {
+    const accountItem = document.querySelector(`.account-drag-item[data-account-id="${accountId}"]`);
+    if (accountItem) {
+      accountItem.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset');
+    }
+  }
+
+  // 更新"所有交易"按钮样式
+  const allTransactionsBtn = document.querySelector('[onclick="viewAllTransactions()"]');
+  if (allTransactionsBtn) {
+    if (!accountId) {
+      allTransactionsBtn.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'text-blue-600', 'dark:text-blue-300');
+      allTransactionsBtn.classList.remove('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover', 'text-primary', 'dark:text-primary-dark');
+    } else {
+      allTransactionsBtn.classList.remove('bg-blue-50', 'dark:bg-blue-900/20', 'text-blue-600', 'dark:text-blue-300');
+      allTransactionsBtn.classList.add('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover', 'text-primary', 'dark:text-primary-dark');
+    }
+  }
+}
+
+// 重新初始化页面脚本
+function reinitializePageScripts() {
+  // 重新初始化 entry-list controller
+  const entryListEl = document.getElementById('transaction-list');
+  if (entryListEl && window.Stimulus) {
+    const controller = window.Stimulus.getControllerForElementAndIdentifier(entryListEl, 'entry-list');
+    if (controller) {
+      controller.disconnect();
+      controller.connect();
+    }
+  }
+
+  // 重新初始化信用卡账单区域
+  if (typeof window.initCreditBills === 'function') window.initCreditBills();
+
+  // 重新初始化日期筛选显示
+  if (typeof syncPeriodInputType === 'function') syncPeriodInputType();
+}
+
 // 筛选功能
 let selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
 const currentPage = <%= @page %>;
@@ -1040,7 +1181,9 @@ function applyFilters() {
   selectedCategoryIds.forEach(function(id) { params.append('category_ids[]', id); });
   if (accountId) params.append('account_id', accountId);
   
-  window.location.href = '/accounts?' + params.toString();
+  const url = '/accounts?' + params.toString();
+  history.pushState({}, '', url);
+  refreshMainContent(url);
 }
 
 // 防抖筛选
@@ -1048,11 +1191,9 @@ const debouncedApplyFilters = debounce(applyFilters, 500);
 
 function clearFilters() {
   const accountId = '<%= params[:account_id] %>';
-  if (accountId) {
-    window.location.href = '/accounts?account_id=' + accountId;
-  } else {
-    window.location.href = '/accounts';
-  }
+  const url = accountId ? '/accounts?account_id=' + accountId : '/accounts';
+  history.pushState({}, '', url);
+  refreshMainContent(url);
 }
 
 function updateCategoryFilterButtonLabel() {
@@ -1061,22 +1202,53 @@ function updateCategoryFilterButtonLabel() {
   btn.textContent = selectedCategoryIds.length > 0 ? '分类筛选 (' + selectedCategoryIds.length + ')' : "分类筛选";
 }
 
+// 更新左侧账户列表高亮
+function updateAccountHighlight(accountId) {
+  document.querySelectorAll('.account-drag-item').forEach(item => {
+    item.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset');
+  });
+
+  if (accountId) {
+    const item = document.querySelector(`.account-drag-item[data-account-id="${accountId}"]`);
+    if (item) item.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset');
+  }
+}
+
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
-  window.location.href = '/accounts?' + params.toString();
+  // 保留 view_mode 参数（如果当前是账单模式）
+  if (window.currentViewMode === 'bill') {
+    params.set('view_mode', 'bill');
+  }
+  // 更新 URL 不刷新页面
+  history.pushState({}, '', '/accounts?' + params.toString());
+  // 局部刷新右侧内容
+  refreshMainContent('/accounts?' + params.toString());
+  // 更新左侧栏高亮
+  updateAccountHighlight(id);
 }
 
 function viewAllTransactions() {
   const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
-  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  // 保留 view_mode 参数
+  if (window.currentViewMode === 'bill') {
+    params.set('view_mode', 'bill');
+  }
+  const url = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  history.pushState({}, '', url);
+  refreshMainContent(url);
+  updateAccountHighlight(null);
 }
 
 function clearAccountFilter() {
   const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
-  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  const url = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  history.pushState({}, '', url);
+  refreshMainContent(url);
+  updateAccountHighlight(null);
 }
 
 function toggleShowHidden() {
@@ -1086,6 +1258,7 @@ function toggleShowHidden() {
   } else {
     params.set('show_hidden', 'true');
   }
+  // 显示/隐藏账户需要刷新整个页面
   window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
@@ -2047,6 +2220,14 @@ document.addEventListener('DOMContentLoaded', fixModalPositions);
 // Turbo 页面加载后修复
 document.addEventListener('turbo:load', fixModalPositions);
 document.addEventListener('turbo:render', fixModalPositions);
+
+// 全局刷新时移除 skeleton-loader
+document.addEventListener('turbo:load', function() {
+  document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
+});
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
+});
 </script>
 
 <%= render 'shared/receivable_form_modal', counterparties: @counterparties %>
@@ -2338,60 +2519,16 @@ if (!window.modalSelectorsInitialized) {
 </script>
 
 <!-- ========== 信用卡账单区域 ========== -->
-<div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
-  <!-- 期数选择器 -->
-  <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
-    <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
-    <button onclick="loadBillsWithCount(3)" class="bill-count-btn px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-count="3">3期</button>
-    <button onclick="loadBillsWithCount(12)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="12">12期</button>
-    <button onclick="loadBillsWithCount(24)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="24">24期</button>
-    <button onclick="showStatementInputModal()" class="ml-auto px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">录入基准账单</button>
-  </div>
-  <!-- 账单卡片行 -->
-  <div id="bill-cards-container" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset overflow-x-auto">
-    <div class="flex gap-3 min-w-max" id="bill-cards">
-      <div class="text-sm text-secondary dark:text-secondary-dark">加载中...</div>
-    </div>
-  </div>
-
-  <!-- 账单交易明细区域 -->
-  <div id="bill-detail-section" class="hidden" data-controller="credit-bill-entries" data-credit-bill-entries-account-id-value="<%= params[:account_id] %>" data-credit-bill-entries-drag-enabled-value="true">
-    <!-- 账期信息 + 筛选栏 -->
-    <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark flex items-center gap-3 text-xs">
-      <span id="bill-period-info" class="font-medium text-primary dark:text-primary-dark"></span>
-      <span id="bill-due-info" class="text-secondary dark:text-secondary-dark"></span>
-    </div>
-    <div class="px-3 lg:px-4 py-1.5 border-b border-border/50 dark:border-border-dark/50 flex items-center gap-2 flex-wrap text-xs">
-      <span class="text-secondary dark:text-secondary-dark">筛选：</span>
-      <button onclick="filterBillEntries('all')" class="bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-filter="all">全部</button>
-      <button onclick="filterBillEntries('repay')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="repay">还款</button>
-      <button onclick="filterBillEntries('spend')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
-    </div>
-    <!-- 桌面端表头（和按日期视图一致） -->
-    <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
-      <div>日期</div>
-      <div class="text-left">类型 / 分类</div>
-      <div class="text-right">流入</div>
-      <div class="text-right">流出</div>
-      <div class="text-right">余额</div>
-      <div class="truncate">账户</div>
-      <div class="text-center">操作</div>
-    </div>
-    <!-- 交易明细（使用统一的卡片渲染模板） -->
-    <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container" data-credit-bill-entries-target="container"></div>
-  </div>
-
-  <!-- 默认显示普通交易列表的提示（当未选中任何账单时） -->
-  <div id="bill-default-hint" class="p-3 text-center text-xs text-secondary dark:text-secondary-dark hidden">
-    点击上方账单卡片查看该期交易明细
-  </div>
-</div>
 
 <script>
 (function() {
   let wrapper = document.getElementById('credit-bill-wrapper');
   let accountId = wrapper?.dataset?.accountId;
   let currentViewMode = '<%= params[:view_mode] %>' || 'date';
+  
+  // 立即设置全局变量，确保其他函数可以访问
+  window.currentViewMode = currentViewMode;
+  
   const billFormatters = window.BillFormatters || {};
 
   function formatBillMoney(value) {
@@ -2405,11 +2542,12 @@ if (!window.modalSelectorsInitialized) {
     accountId = wrapper?.dataset?.accountId;
     if (!accountId || !wrapper) return;
 
-    // 插入到交易列表前面
-    const txList = document.getElementById('transaction-list');
-    if (txList && !txList.parentElement.contains(wrapper)) {
-      txList.parentElement.insertBefore(wrapper, txList);
-    }
+    // 从 URL 参数读取 view_mode，兜底使用全局变量
+    const urlParams = new URLSearchParams(window.location.search);
+    currentViewMode = urlParams.get('view_mode') || window.currentViewMode || 'date';
+    
+    // 更新全局变量
+    window.currentViewMode = currentViewMode;
 
     // 如果当前模式是账单模式，初始化
     if (currentViewMode === 'bill') {
@@ -2458,6 +2596,11 @@ if (!window.modalSelectorsInitialized) {
   // 切换视图模式（按日期 / 按账单）
   window.switchViewMode = function(mode) {
     currentViewMode = mode;
+    window.currentViewMode = mode;  // 更新全局变量
+    
+    // 每次都重新获取 wrapper，避免局部刷新后引用失效
+    wrapper = document.getElementById('credit-bill-wrapper');
+    
     const txList = document.getElementById('transaction-list');
     const summaryBar = document.getElementById('summary-bar');
     const filterBar = document.getElementById('filter-bar');
@@ -2496,8 +2639,12 @@ if (!window.modalSelectorsInitialized) {
 
   // 加载账单卡片
   window.loadBillCards = function() {
-    if (!accountId) return;
-    fetch('/accounts/' + accountId + '/bills.json?count=4', {
+    // 每次都重新获取 accountId，避免局部刷新后引用失效
+    const billWrapper = document.getElementById('credit-bill-wrapper');
+    const currentAccountId = billWrapper?.dataset?.accountId || accountId;
+    
+    if (!currentAccountId) return;
+    fetch('/accounts/' + currentAccountId + '/bills.json?count=4', {
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(r => r.json())
@@ -2510,7 +2657,8 @@ if (!window.modalSelectorsInitialized) {
   // 渲染账单卡片
   function renderBillCards(data) {
     const container = document.getElementById('bill-cards');
-    if (!container || !data.bills || data.bills.length === 0) {
+    if (!container) return;  // 容器不存在时直接返回
+    if (!data.bills || data.bills.length === 0) {
       container.innerHTML = '<div class="text-sm text-secondary dark:text-secondary-dark">暂无账单数据</div>';
       return;
     }
@@ -2563,14 +2711,14 @@ if (!window.modalSelectorsInitialized) {
 
     container.innerHTML = html;
 
-    // 自动选中第一张账单
-    if (!selectedBillLabel) {
-      if (data.bills.length > 0) {
-        const firstBill = data.bills[0];
-        selectBill(firstBill.label, firstBill.start_date, firstBill.end_date);
-      }
-    } else if (selectedBillLabel) {
-      loadBillEntries();
+    // 渲染完成后确保详情区状态与选中卡片一致
+    // 优先恢复之前选中的账单，不存在则默认选择第一张
+    const targetBill = data.bills.find(function(bill) {
+      return bill.label === selectedBillLabel;
+    }) || data.bills[0];
+
+    if (targetBill) {
+      selectBill(targetBill.label, targetBill.start_date, targetBill.end_date);
     }
   }
 
@@ -2713,6 +2861,9 @@ if (!window.modalSelectorsInitialized) {
   if (accountId) {
     initCreditBills();
   }
+
+  // 暴露到全局，供局部刷新后调用
+  window.initCreditBills = initCreditBills;
 })();
 </script>
 

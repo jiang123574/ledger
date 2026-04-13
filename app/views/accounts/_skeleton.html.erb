@@ -32,19 +32,3 @@
     </div>
   </div>
 </div>
-
-<script>
-  // 骨架屏自动隐藏 - 在页面加载完成后隐藏
-  window.addEventListener('load', function() {
-    setTimeout(function() {
-      document.getElementById('skeleton-loader')?.remove();
-    }, 500);
-  });
-  
-  // 如果是 Turbo，监听页面加载
-  document.addEventListener('turbo:load', function() {
-    setTimeout(function() {
-      document.getElementById('skeleton-loader')?.remove();
-    }, 500);
-  });
-</script>
