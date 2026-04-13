@@ -522,6 +522,54 @@
       <% end %>
     </div>
   </div>
+<div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+  <!-- 期数选择器 -->
+  <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
+    <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
+    <button onclick="loadBillsWithCount(3)" class="bill-count-btn px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-count="3">3期</button>
+    <button onclick="loadBillsWithCount(12)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="12">12期</button>
+    <button onclick="loadBillsWithCount(24)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="24">24期</button>
+    <button onclick="showStatementInputModal()" class="ml-auto px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">录入基准账单</button>
+  </div>
+  <!-- 账单卡片行 -->
+  <div id="bill-cards-container" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset overflow-x-auto">
+    <div class="flex gap-3 min-w-max" id="bill-cards">
+      <div class="text-sm text-secondary dark:text-secondary-dark">加载中...</div>
+    </div>
+  </div>
+
+  <!-- 账单交易明细区域 -->
+  <div id="bill-detail-section" class="hidden" data-controller="credit-bill-entries" data-credit-bill-entries-account-id-value="<%= params[:account_id] %>" data-credit-bill-entries-drag-enabled-value="true">
+    <!-- 账期信息 + 筛选栏 -->
+    <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark flex items-center gap-3 text-xs">
+      <span id="bill-period-info" class="font-medium text-primary dark:text-primary-dark"></span>
+      <span id="bill-due-info" class="text-secondary dark:text-secondary-dark"></span>
+    </div>
+    <div class="px-3 lg:px-4 py-1.5 border-b border-border/50 dark:border-border-dark/50 flex items-center gap-2 flex-wrap text-xs">
+      <span class="text-secondary dark:text-secondary-dark">筛选：</span>
+      <button onclick="filterBillEntries('all')" class="bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-filter="all">全部</button>
+      <button onclick="filterBillEntries('repay')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="repay">还款</button>
+      <button onclick="filterBillEntries('spend')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
+    </div>
+    <!-- 桌面端表头（和按日期视图一致） -->
+    <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
+      <div>日期</div>
+      <div class="text-left">类型 / 分类</div>
+      <div class="text-right">流入</div>
+      <div class="text-right">流出</div>
+      <div class="text-right">余额</div>
+      <div class="truncate">账户</div>
+      <div class="text-center">操作</div>
+    </div>
+    <!-- 交易明细（使用统一的卡片渲染模板） -->
+    <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container" data-credit-bill-entries-target="container"></div>
+  </div>
+
+  <!-- 默认显示普通交易列表的提示（当未选中任何账单时） -->
+  <div id="bill-default-hint" class="p-3 text-center text-xs text-secondary dark:text-secondary-dark hidden">
+    点击上方账单卡片查看该期交易明细
+  </div>
+</div>
 </div>
 
 <!-- 新建账户弹窗 -->
@@ -1039,12 +1087,11 @@ async function refreshMainContent(url) {
       mainContent.innerHTML = newMainContent.innerHTML;
     }
 
-    // 更新信用卡账单区域
-    const creditBillWrapper = document.getElementById('credit-bill-wrapper');
-    const newCreditBillWrapper = doc.getElementById('credit-bill-wrapper');
+    // 更新信用卡账单区域（第三个子元素）
+    const creditBillWrapper = document.querySelector('[data-account-page] > div:nth-child(3)');
+    const newCreditBillWrapper = doc.querySelector('[data-account-page] > div:nth-child(3)');
     if (creditBillWrapper && newCreditBillWrapper) {
-      creditBillWrapper.innerHTML = newCreditBillWrapper.innerHTML;
-      creditBillWrapper.className = newCreditBillWrapper.className;
+      creditBillWrapper.outerHTML = newCreditBillWrapper.outerHTML;
     }
 
     // 移除所有 skeleton loader
@@ -2472,60 +2519,16 @@ if (!window.modalSelectorsInitialized) {
 </script>
 
 <!-- ========== 信用卡账单区域 ========== -->
-<div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
-  <!-- 期数选择器 -->
-  <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
-    <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
-    <button onclick="loadBillsWithCount(3)" class="bill-count-btn px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-count="3">3期</button>
-    <button onclick="loadBillsWithCount(12)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="12">12期</button>
-    <button onclick="loadBillsWithCount(24)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="24">24期</button>
-    <button onclick="showStatementInputModal()" class="ml-auto px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">录入基准账单</button>
-  </div>
-  <!-- 账单卡片行 -->
-  <div id="bill-cards-container" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset overflow-x-auto">
-    <div class="flex gap-3 min-w-max" id="bill-cards">
-      <div class="text-sm text-secondary dark:text-secondary-dark">加载中...</div>
-    </div>
-  </div>
-
-  <!-- 账单交易明细区域 -->
-  <div id="bill-detail-section" class="hidden" data-controller="credit-bill-entries" data-credit-bill-entries-account-id-value="<%= params[:account_id] %>" data-credit-bill-entries-drag-enabled-value="true">
-    <!-- 账期信息 + 筛选栏 -->
-    <div class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark flex items-center gap-3 text-xs">
-      <span id="bill-period-info" class="font-medium text-primary dark:text-primary-dark"></span>
-      <span id="bill-due-info" class="text-secondary dark:text-secondary-dark"></span>
-    </div>
-    <div class="px-3 lg:px-4 py-1.5 border-b border-border/50 dark:border-border-dark/50 flex items-center gap-2 flex-wrap text-xs">
-      <span class="text-secondary dark:text-secondary-dark">筛选：</span>
-      <button onclick="filterBillEntries('all')" class="bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-filter="all">全部</button>
-      <button onclick="filterBillEntries('repay')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="repay">还款</button>
-      <button onclick="filterBillEntries('spend')" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
-    </div>
-    <!-- 桌面端表头（和按日期视图一致） -->
-    <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
-      <div>日期</div>
-      <div class="text-left">类型 / 分类</div>
-      <div class="text-right">流入</div>
-      <div class="text-right">流出</div>
-      <div class="text-right">余额</div>
-      <div class="truncate">账户</div>
-      <div class="text-center">操作</div>
-    </div>
-    <!-- 交易明细（使用统一的卡片渲染模板） -->
-    <div class="divide-y divide-border dark:divide-border-dark" id="bill-entries-container" data-credit-bill-entries-target="container"></div>
-  </div>
-
-  <!-- 默认显示普通交易列表的提示（当未选中任何账单时） -->
-  <div id="bill-default-hint" class="p-3 text-center text-xs text-secondary dark:text-secondary-dark hidden">
-    点击上方账单卡片查看该期交易明细
-  </div>
-</div>
 
 <script>
 (function() {
   let wrapper = document.getElementById('credit-bill-wrapper');
   let accountId = wrapper?.dataset?.accountId;
   let currentViewMode = '<%= params[:view_mode] %>' || 'date';
+  
+  // 立即设置全局变量，确保其他函数可以访问
+  window.currentViewMode = currentViewMode;
+  
   const billFormatters = window.BillFormatters || {};
 
   function formatBillMoney(value) {
@@ -2545,12 +2548,6 @@ if (!window.modalSelectorsInitialized) {
     
     // 更新全局变量
     window.currentViewMode = currentViewMode;
-
-    // 插入到交易列表前面
-    const txList = document.getElementById('transaction-list');
-    if (txList && !txList.parentElement.contains(wrapper)) {
-      txList.parentElement.insertBefore(wrapper, txList);
-    }
 
     // 如果当前模式是账单模式，初始化
     if (currentViewMode === 'bill') {
