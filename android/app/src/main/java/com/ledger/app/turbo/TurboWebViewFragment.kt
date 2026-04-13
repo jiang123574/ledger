@@ -2,11 +2,10 @@ package com.ledger.app.turbo
 
 import android.os.Bundle
 import android.view.View
-import android.webkit.WebView
 import dev.hotwire.turbo.fragments.TurboWebFragment
 import dev.hotwire.turbo.nav.TurboNavGraphDestination
-import dev.hotwire.turbo.views.TurboView
 import com.ledger.app.BuildConfig
+import com.ledger.app.MainActivity
 
 /**
  * TurboWebViewFragment - Turbo Native WebView 容器
@@ -16,6 +15,7 @@ import com.ledger.app.BuildConfig
  *
  * 特性：
  * - 自动注入 Turbo Native User-Agent（Rails 端据此隐藏 Web 专属元素）
+ * - 注入 JS Bridge（NativeBridge）用于原生功能调用
  * - 支持下拉刷新
  * - 支持 WebView 内前进后退
  * - Loading 状态指示
@@ -29,24 +29,25 @@ open class TurboWebViewFragment : TurboWebFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        // 配置 WebView
         configureWebView()
+    }
+
+    override fun onColdBootPageCompleted(location: String) {
+        super.onColdBootPageCompleted(location)
+        // Cold boot 完成后注入 Bridge
+        attachBridge()
     }
 
     override fun onVisitStarted(location: String) {
         super.onVisitStarted(location)
-        // 可以在这里设置页面标题、Toolbar 按钮等
     }
 
     override fun onVisitCompleted(location: String, completedOffline: Boolean) {
         super.onVisitCompleted(location, completedOffline)
-        // 页面加载完成
     }
 
     override fun onVisitErrorReceived(location: String, errorCode: Int) {
         super.onVisitErrorReceived(location, errorCode)
-        showErrorView(errorCode)
     }
 
     private fun configureWebView() {
@@ -68,13 +69,24 @@ open class TurboWebViewFragment : TurboWebFragment() {
         }
     }
 
+    /**
+     * 将 Bridge 注入到当前 WebView
+     */
+    private fun attachBridge() {
+        turboView?.webView?.let { webView ->
+            (activity as? MainActivity)?.attachBridgesToWebView(webView)
+        }
+    }
+
     private fun buildUserAgent(defaultUA: String): String {
         return "$defaultUA Turbo Native/${BuildConfig.VERSION_NAME}"
     }
 
-    private fun showErrorView(errorCode: Int) {
-        // TODO: 显示友好的错误页面
-        // 当前使用 Turbo 内置的错误处理
+    /**
+     * 导航到指定 URL
+     */
+    fun visit(url: String) {
+        turboView?.webView?.loadUrl(url)
     }
 
     /**

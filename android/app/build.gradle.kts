@@ -1,6 +1,8 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    // Firebase - 取消注释启用 FCM
+    // id("com.google.gms.google-services")
 }
 
 android {
@@ -76,4 +78,11 @@ dependencies {
 
     // SwipeRefreshLayout
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
+
+    // Biometric - 指纹/面部识别
+    implementation("androidx.biometric:biometric:1.2.0-alpha05")
+
+    // Firebase Cloud Messaging - 取消注释启用 FCM
+    // implementation(platform("com.google.firebase:firebase-bom:32.7.1"))
+    // implementation("com.google.firebase:firebase-messaging-ktx")
 }

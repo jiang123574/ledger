@@ -1,29 +1,48 @@
 package com.ledger.app
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
-import dev.hotwire.turbo.session.TurboSessionNavHostFragment
-import dev.hotwire.turbo.views.TurboView
+import com.ledger.app.bridge.BiometricBridge
+import com.ledger.app.bridge.FilePickerBridge
+import com.ledger.app.bridge.NativeBridge
+import com.ledger.app.bridge.ShareBridge
+import com.ledger.app.turbo.TurboWebViewFragment
 
 /**
  * MainActivity - Ledger Android App 主入口
  *
  * 架构：
- * - 使用 Jetpack Navigation 管理底部 Tab 导航
- * - 每个 Tab 对应一个 TurboWebViewFragment
- * - Turbo Native 提供 WebView 渲染 + 原生导航体验
+ * - Jetpack Navigation 管理底部 Tab 导航
+ * - Turbo Native 渲染 Rails 页面
+ * - NativeBridge 提供 JS ↔ 原生双向通信
+ * - BiometricBridge / FilePickerBridge / ShareBridge 提供原生功能
  */
-class MainActivity : AppCompatActivity() {
+class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
+
+    lateinit var nativeBridge: NativeBridge
+        private set
+    private lateinit var biometricBridge: BiometricBridge
+    private lateinit var filePickerBridge: FilePickerBridge
+    private lateinit var shareBridge: ShareBridge
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         setupNavigation()
+        setupBridges()
+        handleIncomingIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent?) {
+        super.onNewIntent(intent)
+        intent?.let { handleIncomingIntent(it) }
     }
 
     private fun setupNavigation() {
@@ -33,20 +52,76 @@ class MainActivity : AppCompatActivity() {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setupWithNavController(navController)
+    }
 
-        // 根据导航切换显示/隐藏底部栏
-        navController.addOnDestinationChangedListener { _, destination, _ ->
-            when (destination.id) {
-                R.id.tab_accounts,
-                R.id.tab_budgets,
-                R.id.tab_reports,
-                R.id.tab_settings -> {
-                    bottomNav.visibility = View.VISIBLE
-                }
-                else -> {
-                    bottomNav.visibility = View.VISIBLE
-                }
-            }
+    private fun setupBridges() {
+        // Bridge 初始化在 WebView 就绪后完成
+        // 通过 TurboWebViewFragment 回调注入
+    }
+
+    /**
+     * 由 TurboWebViewFragment 在 WebView 就绪时调用
+     */
+    fun attachBridgesToWebView(webView: WebView) {
+        nativeBridge = NativeBridge(this, webView, this)
+        biometricBridge = BiometricBridge(this, nativeBridge)
+        filePickerBridge = FilePickerBridge(this, webView)
+        shareBridge = ShareBridge(this, nativeBridge)
+
+        // 注入 JS Bridge
+        webView.addJavascriptInterface(nativeBridge, NativeBridge.JS_INTERFACE_NAME)
+
+        // 设置 WebChromeClient 以拦截 input[type=file]
+        webView.webChromeClient = filePickerBridge.createWebChromeClient()
+    }
+
+    // ============================================================
+    // NativeBridge.BridgeCallbacks 实现
+    // ============================================================
+
+    override fun onBiometricRequested() {
+        biometricBridge.authenticate()
+    }
+
+    override fun onShareRequested(title: String, text: String) {
+        shareBridge.shareText(title, text)
+    }
+
+    override fun onFilePickRequested(accept: String) {
+        filePickerBridge.pickFile(accept)
+    }
+
+    override fun onImagePickRequested() {
+        filePickerBridge.pickImage()
+    }
+
+    // ============================================================
+    // Deep Link 处理
+    // ============================================================
+
+    private fun handleIncomingIntent(intent: Intent) {
+        // 处理 FCM 通知点击的 deep_link
+        val deepLink = intent.getStringExtra("deep_link")
+        if (deepLink != null) {
+            navigateToUrl(deepLink)
+        }
+
+        // 处理系统分享
+        if (intent.action == Intent.ACTION_SEND) {
+            shareBridge.handleIncomingShare(intent)
+        }
+    }
+
+    private fun navigateToUrl(url: String) {
+        // 通知当前活跃的 Fragment 导航到指定 URL
+        val currentFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment)
+            ?.childFragmentManager
+            ?.fragments
+            ?.firstOrNull()
+
+        if (currentFragment is TurboWebViewFragment) {
+            currentFragment.visit(url)
         }
     }
 
