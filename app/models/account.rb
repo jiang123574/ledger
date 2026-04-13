@@ -288,29 +288,71 @@ class Account < ApplicationRecord
     }
   end
 
-  # 批量计算多个账单周期的交易汇总
-  # 当前数据量（最大 9k entries）下 Ruby 内存过滤足够高效
+  # 批量计算多个账单周期的交易汇总（使用 Arel 安全构建 SQL）
+  # 单次聚合查询，高效且安全
   def batch_bill_cycle_summary(cycles)
     return {} if cycles.empty?
 
     min_start = cycles.map { |c| c[:start_date] }.min
     max_end = cycles.map { |c| c[:end_date] }.max
 
-    # 一次查询获取所有相关 entries
-    entries = transaction_entries.where(date: min_start..max_end).select(:date, :amount).to_a
+    entry_table = Entry.arel_table
+    aggs = []
 
-    # Ruby 内存过滤，O(n * m) 但数据量可控
-    cycles.each_with_object({}) do |cycle, hash|
-      cycle_entries = entries.select { |e| e.date >= cycle[:start_date] && e.date <= cycle[:end_date] }
-      spend_amount = cycle_entries.select { |e| e.amount < 0 }.sum { |e| e.amount.abs }.to_d
-      repay_amount = cycle_entries.select { |e| e.amount > 0 }.sum { |e| e.amount }.to_d
+    cycles.each do |cycle|
+      start_date = cycle[:start_date]
+      end_date = cycle[:end_date]
+
+      # 条件：日期在周期内
+      date_condition = entry_table[:date].gteq(start_date).and(entry_table[:date].lteq(end_date))
+
+      # 消费金额聚合（amount < 0 时取 ABS）
+      spend_condition = date_condition.and(entry_table[:amount].lt(0))
+      spend_abs = Arel::Nodes::NamedFunction.new("ABS", [ entry_table[:amount] ])
+      spend_sum = Arel::Nodes::Case.new.when(spend_condition).then(spend_abs).else(0)
+      aggs << spend_sum.sum
+
+      # 还款金额聚合（amount > 0）
+      repay_condition = date_condition.and(entry_table[:amount].gt(0))
+      repay_sum = Arel::Nodes::Case.new.when(repay_condition).then(entry_table[:amount]).else(0)
+      aggs << repay_sum.sum
+
+      # 消费笔数聚合
+      spend_cnt = Arel::Nodes::Case.new.when(spend_condition).then(1).else(0)
+      aggs << spend_cnt.sum
+
+      # 还款笔数聚合
+      repay_cnt = Arel::Nodes::Case.new.when(repay_condition).then(1).else(0)
+      aggs << repay_cnt.sum
+    end
+
+    result = transaction_entries.where(date: min_start..max_end).pick(*aggs)
+
+    if result.nil?
+      return cycles.each_with_object({}) do |cycle, hash|
+        hash[cycle[:end_date]] = {
+          spend_amount: 0.to_d,
+          repay_amount: 0.to_d,
+          balance_due: 0.to_d,
+          spend_count: 0,
+          repay_count: 0
+        }
+      end
+    end
+
+    cycles.each_with_index.each_with_object({}) do |(cycle, idx), hash|
+      base = idx * 4
+      spend_amount = result[base].to_d
+      repay_amount = result[base + 1].to_d
+      spend_count = result[base + 2].to_i
+      repay_count = result[base + 3].to_i
 
       hash[cycle[:end_date]] = {
         spend_amount: spend_amount,
         repay_amount: repay_amount,
         balance_due: spend_amount - repay_amount,
-        spend_count: cycle_entries.count { |e| e.amount < 0 },
-        repay_count: cycle_entries.count { |e| e.amount > 0 }
+        spend_count: spend_count,
+        repay_count: repay_count
       }
     end
   end
