@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_11_130000) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_13_004330) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -108,6 +108,16 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_130000) do
     t.string "status", limit: 20, default: "completed"
     t.datetime "updated_at", null: false
     t.string "webdav_url", limit: 500
+  end
+
+  create_table "bill_statements", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.date "billing_date", null: false
+    t.datetime "created_at", null: false
+    t.decimal "statement_amount", precision: 10, scale: 2, null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id", "billing_date"], name: "index_bill_statements_on_account_id_and_billing_date", unique: true
+    t.index ["account_id"], name: "index_bill_statements_on_account_id"
   end
 
   create_table "budget_items", force: :cascade do |t|
@@ -409,6 +419,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_11_130000) do
   add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "attachments", "entries", on_delete: :cascade
+  add_foreign_key "bill_statements", "accounts"
   add_foreign_key "budget_items", "categories", on_delete: :nullify
   add_foreign_key "budget_items", "single_budgets"
   add_foreign_key "budgets", "categories"

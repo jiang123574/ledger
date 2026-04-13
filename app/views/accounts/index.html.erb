@@ -2338,6 +2338,14 @@ if (!window.modalSelectorsInitialized) {
 
 <!-- ========== 信用卡账单区域 ========== -->
 <div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+  <!-- 期数选择器 -->
+  <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
+    <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
+    <button onclick="loadBillsWithCount(3)" class="bill-count-btn px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-count="3">3期</button>
+    <button onclick="loadBillsWithCount(12)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="12">12期</button>
+    <button onclick="loadBillsWithCount(24)" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="24">24期</button>
+    <button onclick="showStatementInputModal()" class="ml-auto px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">录入基准账单</button>
+  </div>
   <!-- 账单卡片行 -->
   <div id="bill-cards-container" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset overflow-x-auto">
     <div class="flex gap-3 min-w-max" id="bill-cards">
@@ -2527,7 +2535,8 @@ if (!window.modalSelectorsInitialized) {
         html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">进行中</span>';
       } else {
         html += '<span class="font-semibold text-sm text-primary dark:text-primary-dark">' + bill.label + '</span>';
-        html += '<span class="font-bold text-expense ml-2">' + formatBillMoney(bill.balance_due || 0) + '</span>';
+        const displayAmount = bill.statement_amount || bill.balance_due || 0;
+        html += '<span class="font-bold text-expense ml-2">' + formatBillMoney(displayAmount) + '</span>';
       }
       html += '</div>';
       // 消费金额和还款退款并排显示
@@ -2650,9 +2659,78 @@ if (!window.modalSelectorsInitialized) {
               .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   }
 
+  // 期数选择
+  let currentBillCount = 3;
+  window.loadBillsWithCount = function(count) {
+    currentBillCount = count;
+    document.querySelectorAll('.bill-count-btn').forEach(btn => {
+      btn.classList.remove('bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-600', 'dark:text-blue-400');
+      btn.classList.add('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover');
+      if (btn.dataset.count == count) {
+        btn.classList.add('bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-600', 'dark:text-blue-400');
+        btn.classList.remove('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover');
+      }
+    });
+    fetch('/accounts/' + accountId + '/bills.json?count=' + count)
+      .then(r => r.json())
+      .then(data => renderBillCards(data));
+  };
+
+  // 录入基准账单弹窗
+  window.showStatementInputModal = function() {
+    document.getElementById('statement-input-modal').classList.remove('hidden');
+  };
+
+  window.hideStatementInputModal = function() {
+    document.getElementById('statement-input-modal').classList.add('hidden');
+  };
+
+  window.saveStatementAmount = function() {
+    const billingDate = document.getElementById('statement-billing-date').value;
+    const amount = document.getElementById('statement-amount').value;
+    if (!billingDate || !amount) {
+      alert('请填写账单日期和金额');
+      return;
+    }
+    fetch('/accounts/' + accountId + '/create_bill_statement', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content },
+      body: JSON.stringify({ billing_date: billingDate, statement_amount: amount })
+    })
+    .then(r => r.json())
+    .then(data => {
+      if (data.success) {
+        hideStatementInputModal();
+        loadBillsWithCount(currentBillCount);
+      } else {
+        alert(data.error || '保存失败');
+      }
+    });
+  };
+
   // 初始化
   if (accountId) {
     initCreditBills();
   }
 })();
 </script>
+
+<!-- 录入基准账单弹窗 -->
+<div id="statement-input-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+  <div class="bg-white dark:bg-surface-dark rounded-lg p-4 w-80 shadow-lg">
+    <h3 class="font-semibold mb-3 text-primary dark:text-primary-dark">录入基准账单金额</h3>
+    <p class="text-xs text-secondary dark:text-secondary-dark mb-3">录入最早一期的账单金额，系统将自动计算后续账单</p>
+    <div class="mb-3">
+      <label class="text-xs text-secondary dark:text-secondary-dark mb-1 block">账单日期</label>
+      <input type="date" id="statement-billing-date" class="w-full border border-border dark:border-border-dark rounded px-2 py-1 text-sm bg-white dark:bg-surface-dark">
+    </div>
+    <div class="mb-3">
+      <label class="text-xs text-secondary dark:text-secondary-dark mb-1 block">账单金额</label>
+      <input type="number" id="statement-amount" step="0.01" placeholder="如 3077.66" class="w-full border border-border dark:border-border-dark rounded px-2 py-1 text-sm bg-white dark:bg-surface-dark">
+    </div>
+    <div class="flex gap-2 justify-end">
+      <button onclick="hideStatementInputModal()" class="px-3 py-1 rounded text-sm text-secondary dark:text-secondary-dark hover:bg-surface-hover">取消</button>
+      <button onclick="saveStatementAmount()" class="px-3 py-1 rounded text-sm bg-blue-500 text-white hover:bg-blue-600">保存</button>
+    </div>
+  </div>
+</div>
