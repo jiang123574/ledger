@@ -2215,6 +2215,14 @@ document.addEventListener('DOMContentLoaded', fixModalPositions);
 // Turbo 页面加载后修复
 document.addEventListener('turbo:load', fixModalPositions);
 document.addEventListener('turbo:render', fixModalPositions);
+
+// 全局刷新时移除 skeleton-loader
+document.addEventListener('turbo:load', function() {
+  document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
+});
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
+});
 </script>
 
 <%= render 'shared/receivable_form_modal', counterparties: @counterparties %>
