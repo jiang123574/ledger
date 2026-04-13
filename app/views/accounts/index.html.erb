@@ -2631,6 +2631,10 @@ if (!window.modalSelectorsInitialized) {
   window.switchViewMode = function(mode) {
     currentViewMode = mode;
     window.currentViewMode = mode;  // 更新全局变量
+    
+    // 每次都重新获取 wrapper，避免局部刷新后引用失效
+    wrapper = document.getElementById('credit-bill-wrapper');
+    
     const txList = document.getElementById('transaction-list');
     const summaryBar = document.getElementById('summary-bar');
     const filterBar = document.getElementById('filter-bar');
@@ -2669,8 +2673,12 @@ if (!window.modalSelectorsInitialized) {
 
   // 加载账单卡片
   window.loadBillCards = function() {
-    if (!accountId) return;
-    fetch('/accounts/' + accountId + '/bills.json?count=4', {
+    // 每次都重新获取 accountId，避免局部刷新后引用失效
+    const billWrapper = document.getElementById('credit-bill-wrapper');
+    const currentAccountId = billWrapper?.dataset?.accountId || accountId;
+    
+    if (!currentAccountId) return;
+    fetch('/accounts/' + currentAccountId + '/bills.json?count=4', {
       headers: { 'X-Requested-With': 'XMLHttpRequest' }
     })
     .then(r => r.json())
