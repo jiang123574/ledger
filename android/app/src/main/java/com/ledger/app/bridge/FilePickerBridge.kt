@@ -10,6 +10,7 @@ import android.webkit.WebView
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
+import com.ledger.app.MainActivity
 import java.io.InputStream
 
 /**

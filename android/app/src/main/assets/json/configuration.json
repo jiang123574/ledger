@@ -1,0 +1,14 @@
+{
+  "settings": {
+    "screenshots_enabled": "true"
+  },
+  "rules": [
+    {
+      "patterns": [".+"],
+      "properties": {
+        "uri": "turbo://fragment/webview",
+        "pull_to_refresh_enabled": "true"
+      }
+    }
+  ]
+}

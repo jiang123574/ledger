@@ -1,8 +1,11 @@
 package com.ledger.app.navigation
 
+import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.Fragment
 import dev.hotwire.turbo.config.TurboPathConfiguration
 import dev.hotwire.turbo.session.TurboSessionNavHostFragment
 import com.ledger.app.BuildConfig
+import kotlin.reflect.KClass
 
 /**
  * MainNavHostFragment - Turbo Session 导航宿主
@@ -18,17 +21,21 @@ class MainNavHostFragment : TurboSessionNavHostFragment() {
 
     override val startLocation = BuildConfig.BASE_URL
 
-    override val registeredActivities: List<Class<*>>
+    override val pathConfigurationLocation = TurboPathConfiguration.Location(
+        assetFilePath = "json/configuration.json"
+    )
+
+    override val registeredActivities: List<KClass<out AppCompatActivity>>
         get() = listOf(
             // 后续注册需要原生 Activity 处理的页面（如相机）
         )
 
-    override val registeredFragments: List<Class<*>>
+    override val registeredFragments: List<KClass<out Fragment>>
         get() = listOf(
-            AccountsTabFragment::class.java,
-            BudgetsTabFragment::class.java,
-            ReportsTabFragment::class.java,
-            SettingsTabFragment::class.java,
+            AccountsTabFragment::class,
+            BudgetsTabFragment::class,
+            ReportsTabFragment::class,
+            SettingsTabFragment::class,
         )
 
     override fun onSessionCreated() {

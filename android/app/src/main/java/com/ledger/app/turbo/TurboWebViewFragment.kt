@@ -2,6 +2,7 @@ package com.ledger.app.turbo
 
 import android.os.Bundle
 import android.view.View
+import dev.hotwire.turbo.errors.TurboVisitError
 import dev.hotwire.turbo.fragments.TurboWebFragment
 import dev.hotwire.turbo.nav.TurboNavGraphDestination
 import com.ledger.app.BuildConfig
@@ -46,12 +47,12 @@ open class TurboWebViewFragment : TurboWebFragment() {
         super.onVisitCompleted(location, completedOffline)
     }
 
-    override fun onVisitErrorReceived(location: String, errorCode: Int) {
-        super.onVisitErrorReceived(location, errorCode)
+    override fun onVisitErrorReceived(location: String, error: TurboVisitError) {
+        super.onVisitErrorReceived(location, error)
     }
 
     private fun configureWebView() {
-        turboView?.webView?.apply {
+        session.webView.apply {
             // 启用 JavaScript（Hotwire/Stimulus 依赖）
             settings.javaScriptEnabled = true
             settings.domStorageEnabled = true
@@ -73,9 +74,8 @@ open class TurboWebViewFragment : TurboWebFragment() {
      * 将 Bridge 注入到当前 WebView
      */
     private fun attachBridge() {
-        turboView?.webView?.let { webView ->
-            (activity as? MainActivity)?.attachBridgesToWebView(webView)
-        }
+        val webView = session.webView
+        (activity as? MainActivity)?.attachBridgesToWebView(webView)
     }
 
     private fun buildUserAgent(defaultUA: String): String {
@@ -86,20 +86,20 @@ open class TurboWebViewFragment : TurboWebFragment() {
      * 导航到指定 URL
      */
     fun visit(url: String) {
-        turboView?.webView?.loadUrl(url)
+        session.webView.loadUrl(url)
     }
 
     /**
      * 是否可以后退（WebView 历史）
      */
     fun canGoBack(): Boolean {
-        return turboView?.webView?.canGoBack() == true
+        return session.webView.canGoBack()
     }
 
     /**
      * 后退一步
      */
     fun goBack() {
-        turboView?.webView?.goBack()
+        session.webView.goBack()
     }
 }
