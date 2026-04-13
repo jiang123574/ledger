@@ -1151,6 +1151,61 @@ function updateCategoryFilterButtonLabel() {
   btn.textContent = selectedCategoryIds.length > 0 ? '分类筛选 (' + selectedCategoryIds.length + ')' : "分类筛选";
 }
 
+// 局部刷新右侧内容区域
+async function refreshMainContent(url) {
+  try {
+    const mainContent = document.querySelector('[data-account-page] > div:nth-child(2)');
+    if (mainContent) mainContent.style.opacity = '0.5';
+
+    const response = await fetch(url);
+    const html = await response.text();
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+
+    const newMainContent = doc.querySelector('[data-account-page] > div:nth-child(2)');
+    if (mainContent && newMainContent) {
+      mainContent.innerHTML = newMainContent.innerHTML;
+    }
+
+    const creditBillWrapper = document.getElementById('credit-bill-wrapper');
+    const newCreditBillWrapper = doc.getElementById('credit-bill-wrapper');
+    if (creditBillWrapper && newCreditBillWrapper) {
+      creditBillWrapper.innerHTML = newCreditBillWrapper.innerHTML;
+      creditBillWrapper.className = newCreditBillWrapper.className;
+    }
+
+    if (mainContent) mainContent.style.opacity = '1';
+    reinitializePageScripts();
+  } catch (error) {
+    console.error('刷新内容失败:', error);
+    window.location.href = url;
+  }
+}
+
+// 更新左侧账户列表高亮
+function updateAccountHighlight(accountId) {
+  document.querySelectorAll('.account-drag-item').forEach(item => {
+    item.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset');
+  });
+
+  if (accountId) {
+    const item = document.querySelector(`.account-drag-item[data-account-id="${accountId}"]`);
+    if (item) item.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset');
+  }
+}
+
+// 重新初始化页面脚本
+function reinitializePageScripts() {
+  const entryListEl = document.getElementById('transaction-list');
+  if (entryListEl && window.Stimulus) {
+    const controller = window.Stimulus.getControllerForElementAndIdentifier(entryListEl, 'entry-list');
+    if (controller) {
+      controller.disconnect();
+      controller.connect();
+    }
+  }
+  if (typeof initCreditBills === 'function') initCreditBills();
+}
+
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
