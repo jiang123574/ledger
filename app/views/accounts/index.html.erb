@@ -1105,9 +1105,10 @@ function reinitializePageScripts() {
   }
 
   // 重新初始化信用卡账单区域
-  if (typeof initCreditBills === 'function') {
-    initCreditBills();
-  }
+  if (typeof window.initCreditBills === 'function') window.initCreditBills();
+
+  // 重新初始化日期筛选显示
+  if (typeof syncPeriodInputType === 'function') syncPeriodInputType();
 }
 
 // 筛选功能
@@ -1164,19 +1165,6 @@ function updateAccountHighlight(accountId) {
     const item = document.querySelector(`.account-drag-item[data-account-id="${accountId}"]`);
     if (item) item.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset');
   }
-}
-
-// 重新初始化页面脚本
-function reinitializePageScripts() {
-  const entryListEl = document.getElementById('transaction-list');
-  if (entryListEl && window.Stimulus) {
-    const controller = window.Stimulus.getControllerForElementAndIdentifier(entryListEl, 'entry-list');
-    if (controller) {
-      controller.disconnect();
-      controller.connect();
-    }
-  }
-  if (typeof window.initCreditBills === 'function') window.initCreditBills();
 }
 
 function filterByAccount(id) {
