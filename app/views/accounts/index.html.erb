@@ -1,6 +1,5 @@
 <% content_for :head do %>
-  <meta name="turbo-cache-control" content="no-cache">
-  <meta name="turbo-visit-control" content="reload">
+  <meta name="turbo-cache-control" content="no-preview">
 <% end %>
 
 <div class="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-8rem)]" data-account-page>
@@ -1040,7 +1039,7 @@ function applyFilters() {
   selectedCategoryIds.forEach(function(id) { params.append('category_ids[]', id); });
   if (accountId) params.append('account_id', accountId);
   
-  window.location.href = '/accounts?' + params.toString();
+  Turbo.visit('/accounts?' + params.toString(), { action: 'replace' });
 }
 
 // 防抖筛选
@@ -1049,9 +1048,9 @@ const debouncedApplyFilters = debounce(applyFilters, 500);
 function clearFilters() {
   const accountId = '<%= params[:account_id] %>';
   if (accountId) {
-    window.location.href = '/accounts?account_id=' + accountId;
+    Turbo.visit('/accounts?account_id=' + accountId, { action: 'replace' });
   } else {
-    window.location.href = '/accounts';
+    Turbo.visit('/accounts', { action: 'replace' });
   }
 }
 
@@ -1064,19 +1063,19 @@ function updateCategoryFilterButtonLabel() {
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
-  window.location.href = '/accounts?' + params.toString();
+  Turbo.visit('/accounts?' + params.toString(), { action: 'replace' });
 }
 
 function viewAllTransactions() {
   const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
-  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  Turbo.visit('/accounts' + (params.toString() ? '?' + params.toString() : ''), { action: 'replace' });
 }
 
 function clearAccountFilter() {
   const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
-  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  Turbo.visit('/accounts' + (params.toString() ? '?' + params.toString() : ''), { action: 'replace' });
 }
 
 function toggleShowHidden() {
@@ -1086,7 +1085,7 @@ function toggleShowHidden() {
   } else {
     params.set('show_hidden', 'true');
   }
-  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  Turbo.visit('/accounts' + (params.toString() ? '?' + params.toString() : ''), { action: 'replace' });
 }
 
 // 回车搜索
