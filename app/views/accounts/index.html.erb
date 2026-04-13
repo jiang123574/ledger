@@ -2506,9 +2506,6 @@ if (!window.modalSelectorsInitialized) {
       return;
     }
 
-    // 找未出账单索引
-    const unbilledIdx = data.bills.findIndex(b => b.unbilled);
-
     let html = '';
     data.bills.forEach(function(bill, idx) {
       const isUnbilled = bill.unbilled;
