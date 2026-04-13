@@ -1044,6 +1044,9 @@ async function refreshMainContent(url) {
       creditBillWrapper.className = newCreditBillWrapper.className;
     }
 
+    // 移除 skeleton loader
+    document.getElementById('skeleton-loader')?.remove();
+
     // 恢复透明度
     if (mainContent) {
       mainContent.style.opacity = '1';
