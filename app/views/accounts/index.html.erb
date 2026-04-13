@@ -2887,6 +2887,9 @@ if (!window.modalSelectorsInitialized) {
   if (accountId) {
     initCreditBills();
   }
+
+  // 暴露到全局，供局部刷新后调用
+  window.initCreditBills = initCreditBills;
 })();
 </script>
 
