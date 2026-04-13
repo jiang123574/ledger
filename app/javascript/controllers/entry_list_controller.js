@@ -17,6 +17,11 @@ export default class extends Controller {
   }
 
   connect() {
+    // 如果元素是 hidden 的，跳过初始化
+    if (this.element.classList.contains('hidden')) {
+      return;
+    }
+
     this.isLoading = false
     this.currentPage = this.pageValue
     this.dragStartHandler = this.handleDragStart.bind(this)
