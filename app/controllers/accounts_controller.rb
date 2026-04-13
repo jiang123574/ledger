@@ -1,7 +1,7 @@
 require "ostruct"
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries ]
+  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries, :create_bill_statement ]
   before_action :prevent_locked_system_account!, only: [ :edit, :update, :destroy ]
 
   def index
