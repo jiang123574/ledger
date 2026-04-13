@@ -1154,6 +1154,7 @@ function updateCategoryFilterButtonLabel() {
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
+  // 保留 view_mode 参数
   // 更新 URL 不刷新页面
   history.pushState({}, '', '/accounts?' + params.toString());
   // 局部刷新右侧内容
@@ -2506,6 +2507,10 @@ if (!window.modalSelectorsInitialized) {
     wrapper = document.getElementById('credit-bill-wrapper');
     accountId = wrapper?.dataset?.accountId;
     if (!accountId || !wrapper) return;
+
+    // 从 URL 参数读取 view_mode
+    const urlParams = new URLSearchParams(window.location.search);
+    currentViewMode = urlParams.get('view_mode') || 'date';
 
     // 插入到交易列表前面
     const txList = document.getElementById('transaction-list');
