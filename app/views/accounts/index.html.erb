@@ -1159,8 +1159,11 @@ function reinitializePageScripts() {
 }
 
 // 筛选功能
-let selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
-const currentPage = <%= @page %>;
+// 使用 window 全局变量，避免 Turbo 导航时重复声明
+window.selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
+const selectedCategoryIds = window.selectedCategoryIds;
+window.currentPage = <%= @page %>;
+const currentPage = window.currentPage;
 
 function applyFilters() {
   const params = new URLSearchParams();
