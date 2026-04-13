@@ -1019,6 +1019,9 @@ function toggleAccountList() {
 // 局部刷新右侧内容区域
 async function refreshMainContent(url) {
   try {
+    // 先移除所有 skeleton-loader（避免局部刷新时累积）
+    document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
+
     // 显示加载状态
     const mainContent = document.querySelector('[data-account-page] > div:nth-child(2)');
     if (mainContent) {
