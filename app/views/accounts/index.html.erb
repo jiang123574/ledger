@@ -318,9 +318,9 @@
         <div class="truncate">账户</div>
         <div class="text-center">操作</div>
       </div>
-      <% if @entries_with_balance.any? %>
-        <%= render 'skeleton' unless @page > 1 %>
-        <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container" data-entry-list-target="container">
+      <%= render 'skeleton' unless @page > 1 %>
+      <div class="divide-y divide-border dark:divide-border-dark" id="transactions-container" data-entry-list-target="container">
+        <% if @entries_with_balance.any? %>
           <% @entries_with_balance.each do |e, balance| %>
             <%
               entry_type = e.display_entry_type
@@ -498,18 +498,18 @@
               </div>
             </div>
           <% end %>
-        </div>
-        <!-- 加载更多触发器 -->
-        <div id="load-more-sentinel" class="p-4 text-center <%= @total_count > @page * @per_page ? '' : 'hidden' %>">
-          <button id="load-more-btn" onclick="window.loadMoreEntries && window.loadMoreEntries()" class="px-4 py-2 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
-            加载更多
-          </button>
-        </div>
-        <div id="loading-indicator" class="hidden p-4 text-center">
-          <div class="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
-          <span class="ml-2 text-sm text-secondary dark:text-secondary-dark">加载中...</span>
-        </div>
-      <% else %>
+      </div>
+      <!-- 加载更多触发器 -->
+      <div id="load-more-sentinel" class="p-4 text-center <%= @total_count > @page * @per_page ? '' : 'hidden' %>">
+        <button id="load-more-btn" onclick="window.loadMoreEntries && window.loadMoreEntries()" class="px-4 py-2 text-sm font-medium rounded-lg bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+          加载更多
+        </button>
+      </div>
+      <div id="loading-indicator" class="hidden p-4 text-center">
+        <div class="inline-block w-6 h-6 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+        <span class="ml-2 text-sm text-secondary dark:text-secondary-dark">加载中...</span>
+      </div>
+      <% unless @entries_with_balance.any? %>
         <div class="p-8 text-center">
           <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface dark:bg-surface-dark flex items-center justify-center">
             <svg class="w-6 h-6 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
