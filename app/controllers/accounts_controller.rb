@@ -145,7 +145,7 @@ class AccountsController < ApplicationController
 
     entries = @account.transaction_entries
                     .where(date: start_date..end_date)
-                    .includes(:entryable, entryable: :category)
+                    .includes(:account, :entryable, entryable: :category)
                     .order(date: :desc)
     Entry.preload_transfer_accounts(entries.to_a)
 

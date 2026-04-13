@@ -107,6 +107,9 @@ class EntryPresenter
       display_name: display_name,
       note: entry.display_note,
       category_name: entry.display_category&.name,
+      account_name: entry.account&.name || "未知账户",
+      transfer_from: is_transfer && entry.source_account_for_transfer&.name,
+      transfer_to: is_transfer && entry.target_account_for_display&.name,
       is_repayment: entry.amount.positive?,
       is_spend: entry.amount.negative?,
       balance_after: balance_after
