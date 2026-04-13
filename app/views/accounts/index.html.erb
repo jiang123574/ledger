@@ -1168,7 +1168,9 @@ function applyFilters() {
   const type = document.getElementById('type-filter').value;
   const periodType = document.getElementById('period-type-filter').value;
   const periodValue = document.getElementById('period-value-filter').value;
-  const accountId = '<%= params[:account_id] %>';
+  // 从当前 URL 获取 account_id，而不是使用页面加载时的 ERB 变量
+  const urlParams = new URLSearchParams(window.location.search);
+  const accountId = urlParams.get('account_id') || '<%= params[:account_id] %>';
   
   if (search) params.append('search', search);
   if (type) params.append('type', type);
