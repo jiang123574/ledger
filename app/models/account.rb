@@ -288,22 +288,32 @@ class Account < ApplicationRecord
     }
   end
 
-  # 批量计算多个账单周期的交易汇总（一次查询）
+  # 批量计算多个账单周期的交易汇总（使用 SQL GROUP BY）
+  # 比原 Ruby 内存过滤方案更高效，适合大数据量
   def batch_bill_cycle_summary(cycles)
     return {} if cycles.empty?
 
     min_start = cycles.map { |c| c[:start_date] }.min
     max_end = cycles.map { |c| c[:end_date] }.max
 
-    entries = transaction_entries.where(date: min_start..max_end).select(:date, :amount)
+    # 使用 SQL 单次聚合查询，为每个周期计算消费和还款
+    cycle_cases = cycles.map do |cycle|
+      idx = cycles.index(cycle)
+      "SUM(CASE WHEN date >= '#{cycle[:start_date]}' AND date <= '#{cycle[:end_date]}' AND amount < 0 THEN ABS(amount) ELSE 0 END), " +
+      "SUM(CASE WHEN date >= '#{cycle[:start_date]}' AND date <= '#{cycle[:end_date]}' AND amount > 0 THEN amount ELSE 0 END), " +
+      "SUM(CASE WHEN date >= '#{cycle[:start_date]}' AND date <= '#{cycle[:end_date]}' AND amount < 0 THEN 1 ELSE 0 END), " +
+      "SUM(CASE WHEN date >= '#{cycle[:start_date]}' AND date <= '#{cycle[:end_date]}' AND amount > 0 THEN 1 ELSE 0 END)"
+    end.join(", ")
 
-    cycles.map do |cycle|
-      cycle_entries = entries.select { |e| e.date >= cycle[:start_date] && e.date <= cycle[:end_date] }
+    result = transaction_entries.where(date: min_start..max_end).pick(Arel.sql(cycle_cases))
 
-      spend_amount = cycle_entries.select { |e| e.amount < 0 }.sum { |e| e.amount.abs }.to_d
-      repay_amount = cycle_entries.select { |e| e.amount > 0 }.sum { |e| e.amount }.to_d
-      spend_count = cycle_entries.count { |e| e.amount < 0 }
-      repay_count = cycle_entries.count { |e| e.amount > 0 }
+    # 解析结果为 Hash（result 是数组，每 4 个元素对应一个周期）
+    cycles.each_with_index.map do |cycle, idx|
+      base = idx * 4
+      spend_amount = result[base].to_d
+      repay_amount = result[base + 1].to_d
+      spend_count = result[base + 2].to_i
+      repay_count = result[base + 3].to_i
 
       [ cycle[:end_date], {
         spend_amount: spend_amount,
