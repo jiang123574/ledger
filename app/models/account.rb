@@ -174,9 +174,9 @@ class Account < ApplicationRecord
       start_date: cycle_start,
       end_date: cycle_end,
       due_date: calculate_due_date(cycle_end),
-      label: format_bill_label(cycle_start),
-      # current 始终基于今天判断，不依赖传入的 month_date
-      current: (Date.current >= cycle_start && Date.current <= cycle_end)
+      label: format_bill_label(cycle_end),
+      # unbilled: 今天还没到账单日
+      unbilled: (Date.current >= cycle_start && Date.current < cycle_end)
     }
   end
 
@@ -185,61 +185,75 @@ class Account < ApplicationRecord
     bill_cycle_for(Date.current)
   end
 
-  # 最近 N 期的账单周期（包含当前期 + 未出账单）
-  # 返回数组：[未出账单(可选), 当期, 上期, 上上期, ...]
-  # 未出账单：当前日期已经过了当期 end_date（即本期已过账单日，下期已经开始但还没到下个账单日）
+  # 最近 N 期的账单周期
+  # 返回数组：[未出账单(可选), XX月账单, XX月账单, ...]
+  # 未出账单：今天还没到账单日
   def bill_cycles(count = 3)
     return [] unless credit_card?
 
     cycles = []
     base = Date.current
 
-    # 找到真正的当期：可能需要往前搜几个月
-    # 因为 bill_cycle_for(month_date) 对 mode=next 可能返回非当期
-    real_current = nil
+    # 找未出账单：今天在某账期内但还没到账单日
+    unbilled_cycle = nil
     (0..2).each do |i|
       c = bill_cycle_for(base - i.months)
-      if c && c[:current]
-        real_current = c
+      if c && c[:unbilled]
+        unbilled_cycle = c
         break
       end
     end
 
-    # 如果找不到 current，就用 bill_cycle_for(base) 作为基准
-    real_current ||= bill_cycle_for(base)
-
-    # 判断是否有未出账单：
-    # 今天已经超过了当期的 end_date → 本期已过账单日，下一期是"未出账单"
-    has_unbilled = real_current && base > real_current[:end_date]
-
-    # 未出账单 = 下一个账单周期（直接基于 real_current 推算，避免 bill_cycle_for 跳月）
-    if has_unbilled
-      unbilled_start = real_current[:start_date] + 1.month
-      unbilled_end = real_current[:end_date] + 1.month
+    # 如果有未出账单，加到数组第一位
+    if unbilled_cycle
+      cycles << unbilled_cycle
+      # 最近一期已出账单 = 未出账单的前一期
+      last_start = unbilled_cycle[:start_date] - 1.month
+      last_end = unbilled_cycle[:end_date] - 1.month
       cycles << {
-        start_date: unbilled_start,
-        end_date: unbilled_end,
-        due_date: calculate_due_date(unbilled_end),
-        label: format_bill_label(unbilled_start),
-        current: false
+        start_date: last_start,
+        end_date: last_end,
+        due_date: calculate_due_date(last_end),
+        label: format_bill_label(last_end),
+        unbilled: false
       }
-    end
+      # 往前推历史账单
+      (1...count).each do |i|
+        hist_start = last_start - i.months
+        hist_end = last_end - i.months
+        cycles << {
+          start_date: hist_start,
+          end_date: hist_end,
+          due_date: calculate_due_date(hist_end),
+          label: format_bill_label(hist_end),
+          unbilled: false
+        }
+      end
+    else
+      # 没有未出账单：今天已经过了最近账单日，找最近一期已出账单
+      last_cycle = nil
+      (0..2).each do |i|
+        c = bill_cycle_for(base - i.months)
+        if c && !c[:unbilled]
+          last_cycle = c
+          break
+        end
+      end
 
-    # 加当前/当期账单
-    cycles << real_current if real_current
-
-    # 往前推历史账单（直接从 real_current 的 start/end 减 1 个月）
-    # 不能用 bill_cycle_for(target) 因为它基于传入日期所在月份推算会跳月
-    (1...count).each do |i|
-      hist_start = real_current[:start_date] - i.months
-      hist_end = real_current[:end_date] - i.months
-      cycles << {
-        start_date: hist_start,
-        end_date: hist_end,
-        due_date: calculate_due_date(hist_end),
-        label: format_bill_label(hist_start),
-        current: false
-      }
+      if last_cycle
+        cycles << last_cycle
+        (1...count).each do |i|
+          hist_start = last_cycle[:start_date] - i.months
+          hist_end = last_cycle[:end_date] - i.months
+          cycles << {
+            start_date: hist_start,
+            end_date: hist_end,
+            due_date: calculate_due_date(hist_end),
+            label: format_bill_label(hist_end),
+            unbilled: false
+          }
+        end
+      end
     end
 
     cycles
@@ -293,7 +307,7 @@ class Account < ApplicationRecord
   end
 
   # 格式化账单标签如 "02月账单"
-  def format_bill_label(cycle_start)
-    "#{sprintf('%02d', cycle_start.month)}月账单"
+  def format_bill_label(cycle_end)
+    "#{sprintf('%02d', cycle_end.month)}月账单"
   end
 end

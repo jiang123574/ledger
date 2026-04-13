@@ -2506,22 +2506,15 @@ if (!window.modalSelectorsInitialized) {
       return;
     }
 
-    // 找当前期索引（用于高亮）
-    const currentIdx = data.bills.findIndex(b => b.current);
-
     let html = '';
     data.bills.forEach(function(bill, idx) {
-      const isCurrent = bill.current;
-      const isUnbilled = idx === 0 && !isCurrent; // 第一张且不是当期 = 未出账单
+      const isUnbilled = bill.unbilled;
       const isSelected = selectedBillLabel === bill.label;
       let cardClass = 'shrink-0 p-3 rounded-lg cursor-pointer transition-smooth min-w-[180px] ';
       if (isSelected) {
         cardClass += 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
       } else if (isUnbilled) {
-        // 未出账单 - 特殊样式：橙色调，表示尚未出账
         cardClass += 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 hover:border-orange-400';
-      } else if (isCurrent) {
-        cardClass += 'bg-white dark:bg-surface-dark border border-border dark:border-border-dark hover:border-blue-300';
       } else {
         cardClass += 'bg-gray-50 dark:bg-surface-dark border border-transparent hover:border-border dark:hover:border-border-dark';
       }
@@ -2532,49 +2525,37 @@ if (!window.modalSelectorsInitialized) {
       if (isUnbilled) {
         html += '<span class="font-semibold text-sm text-orange-600 dark:text-orange-400">未出账单</span>';
         html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">进行中</span>';
-      } else if (isCurrent) {
-        html += '<span class="font-semibold text-sm ' + (isCurrent ? 'text-blue-600 dark:text-blue-400' : 'text-primary dark:text-primary-dark') + '">' + bill.label + '</span>';
-        html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">当期</span>';
       } else {
         html += '<span class="font-semibold text-sm text-primary dark:text-primary-dark">' + bill.label + '</span>';
+        html += '<span class="font-bold text-expense ml-2">' + formatBillMoney(bill.balance_due || 0) + '</span>';
       }
       html += '</div>';
-      // 账单金额
-      html += '<div class="text-xs mb-2">';
-      html += '<span class="text-secondary dark:text-secondary-dark">账单金额：</span>';
-      html += '<span class="font-medium text-expense">' + formatBillMoney(bill.spend_amount || 0) + '</span>';
+      // 消费金额和还款退款并排显示
+      html += '<div class="flex justify-between text-xs mb-2">';
+      html += '<div><span class="text-secondary dark:text-secondary-dark">消费：</span><span class="font-medium">' + formatBillMoney(bill.spend_amount || 0) + '</span></div>';
+      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款退款：</span><span class="font-medium text-income">' + formatBillMoney(bill.repay_amount || 0) + '</span></div>';
       html += '</div>';
       // 账期范围
       html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-1.5">';
       html += '账期：' + bill.start_date + ' ~ ' + bill.end_date;
       html += '</div>';
-      // 还款日
+      // 账单日 & 还款日
       html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-2">';
-      html += '账单日 &nbsp;还款日：' + bill.due_date;
+      html += '账单日：' + bill.end_date + '  还款日：' + bill.due_date;
       html += '</div>';
-      // 还款金额
+      // 笔数
       html += '<div class="flex justify-between text-xs pt-1.5 border-t border-border/50 dark:border-border-dark/50">';
-      html += '<div><span class="text-secondary dark:text-secondary-dark">还款金额：</span><span class="font-medium text-income">' + formatBillMoney(bill.repay_amount || 0) + '</span></div>';
-      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">笔数：</span><span class="font-medium tabular-nums">' + (bill.spend_count || 0) + '笔消费 / ' + (bill.repay_count || 0) + '笔还款</span></div>';
+      html += '<div><span class="text-secondary dark:text-secondary-dark">消费笔数：</span><span class="font-medium tabular-nums">' + (bill.spend_count || 0) + '笔</span></div>';
+      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款笔数：</span><span class="font-medium tabular-nums">' + (bill.repay_count || 0) + '笔</span></div>';
       html += '</div>';
-      // 待还
-      if (bill.balance_due > 0) {
-        html += '<div class="text-xs mt-1.5 pt-1 border-t border-border/30 dark:border-border-dark/30">';
-        html += '<span class="text-secondary dark:text-secondary-dark">待还金额：</span>';
-        html += '<span class="font-bold text-expense">' + formatBillMoney(bill.balance_due || 0) + '</span>';
-        html += '</div>';
-      }
       html += '</div>';
     });
 
     container.innerHTML = html;
 
-    // 自动选中当前期（如果有的话），否则选未出账单或第一张
+    // 自动选中第一张账单
     if (!selectedBillLabel) {
-      if (currentIdx >= 0) {
-        const currentBill = data.bills[currentIdx];
-        selectBill(currentBill.label, currentBill.start_date, currentBill.end_date);
-      } else if (data.bills.length > 0) {
+      if (data.bills.length > 0) {
         const firstBill = data.bills[0];
         selectBill(firstBill.label, firstBill.start_date, firstBill.end_date);
       }

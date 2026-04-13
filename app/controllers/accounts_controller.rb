@@ -44,7 +44,7 @@ class AccountsController < ApplicationController
     page = [ [ params[:page].to_i, 1 ].max, 1000 ].min
     per_page = [ [ params[:per_page].to_i, 15 ].max, 200 ].min
     entries_cache_key = "entries_list/#{AccountDashboardService.build_entries_cache_key(params)}/#{page}/#{per_page}/#{ev}"
-    
+
     cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
       result = AccountStatsService.entries_with_balance(
         entries_query, page: page, per_page: per_page, account_id: params[:account_id].presence
@@ -81,7 +81,7 @@ class AccountsController < ApplicationController
       summary = @account.bill_cycle_summary(start_date: cycle[:start_date], end_date: cycle[:end_date])
       {
         label: cycle[:label],
-        current: cycle[:current],
+        unbilled: cycle[:unbilled],
         start_date: cycle[:start_date],
         end_date: cycle[:end_date],
         due_date: cycle[:due_date],
@@ -308,5 +308,4 @@ class AccountsController < ApplicationController
       :include_in_total, :hidden, :sort_order
     )
   end
-
 end
