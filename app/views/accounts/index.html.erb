@@ -1203,7 +1203,7 @@ function reinitializePageScripts() {
       controller.connect();
     }
   }
-  if (typeof initCreditBills === 'function') initCreditBills();
+  if (typeof window.initCreditBills === 'function') window.initCreditBills();
 }
 
 function filterByAccount(id) {
