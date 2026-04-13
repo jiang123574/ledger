@@ -521,7 +521,6 @@
         </div>
       <% end %>
     </div>
-  </div>
   <div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
   <!-- 期数选择器 -->
   <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
@@ -568,6 +567,7 @@
   <!-- 默认显示普通交易列表的提示（当未选中任何账单时） -->
   <div id="bill-default-hint" class="p-3 text-center text-xs text-secondary dark:text-secondary-dark hidden">
     点击上方账单卡片查看该期交易明细
+  </div>
   </div>
   </div>
 </div>
@@ -2711,14 +2711,14 @@ if (!window.modalSelectorsInitialized) {
 
     container.innerHTML = html;
 
-    // 自动选中第一张账单
-    if (!selectedBillLabel) {
-      if (data.bills.length > 0) {
-        const firstBill = data.bills[0];
-        selectBill(firstBill.label, firstBill.start_date, firstBill.end_date);
-      }
-    } else if (selectedBillLabel) {
-      loadBillEntries();
+    // 渲染完成后确保详情区状态与选中卡片一致
+    // 优先恢复之前选中的账单，不存在则默认选择第一张
+    const targetBill = data.bills.find(function(bill) {
+      return bill.label === selectedBillLabel;
+    }) || data.bills[0];
+
+    if (targetBill) {
+      selectBill(targetBill.label, targetBill.start_date, targetBill.end_date);
     }
   }
 
