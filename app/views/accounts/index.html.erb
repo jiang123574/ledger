@@ -1016,6 +1016,89 @@ function toggleAccountList() {
   }
 }
 
+// 局部刷新右侧内容区域
+async function refreshMainContent(url) {
+  try {
+    // 显示加载状态
+    const mainContent = document.querySelector('[data-account-page] > div:nth-child(2)');
+    if (mainContent) {
+      mainContent.style.opacity = '0.5';
+    }
+
+    const response = await fetch(url);
+    const html = await response.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, 'text/html');
+
+    // 更新右侧栏内容
+    const newMainContent = doc.querySelector('[data-account-page] > div:nth-child(2)');
+    if (mainContent && newMainContent) {
+      mainContent.innerHTML = newMainContent.innerHTML;
+    }
+
+    // 更新信用卡账单区域
+    const creditBillWrapper = document.getElementById('credit-bill-wrapper');
+    const newCreditBillWrapper = doc.getElementById('credit-bill-wrapper');
+    if (creditBillWrapper && newCreditBillWrapper) {
+      creditBillWrapper.innerHTML = newCreditBillWrapper.innerHTML;
+      creditBillWrapper.className = newCreditBillWrapper.className;
+    }
+
+    // 恢复透明度
+    if (mainContent) {
+      mainContent.style.opacity = '1';
+    }
+
+    // 重新初始化页面脚本
+    reinitializePageScripts();
+  } catch (error) {
+    console.error('刷新内容失败:', error);
+    // 失败时回退到页面刷新
+    window.location.href = url;
+  }
+}
+
+// 更新左侧账户列表高亮
+function updateAccountHighlight(accountId) {
+  // 移除所有高亮
+  document.querySelectorAll('.account-drag-item').forEach(item => {
+    item.classList.remove('bg-surface-inset', 'dark:bg-surface-dark-inset');
+  });
+
+  // 添加新的高亮
+  if (accountId) {
+    const accountItem = document.querySelector(`.account-drag-item[data-account-id="${accountId}"]`);
+    if (accountItem) {
+      accountItem.classList.add('bg-surface-inset', 'dark:bg-surface-dark-inset');
+    }
+  }
+
+  // 更新"所有交易"按钮样式
+  const allTransactionsBtn = document.querySelector('[onclick="viewAllTransactions()"]');
+  if (allTransactionsBtn) {
+    if (!accountId) {
+      allTransactionsBtn.classList.add('bg-blue-50', 'dark:bg-blue-900/20', 'text-blue-600', 'dark:text-blue-300');
+      allTransactionsBtn.classList.remove('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover', 'text-primary', 'dark:text-primary-dark');
+    } else {
+      allTransactionsBtn.classList.remove('bg-blue-50', 'dark:bg-blue-900/20', 'text-blue-600', 'dark:text-blue-300');
+      allTransactionsBtn.classList.add('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover', 'text-primary', 'dark:text-primary-dark');
+    }
+  }
+}
+
+// 重新初始化页面脚本
+function reinitializePageScripts() {
+  // 重新初始化 entry-list controller
+  const entryListEl = document.getElementById('transaction-list');
+  if (entryListEl && window.Stimulus) {
+    const controller = window.Stimulus.getControllerForElementAndIdentifier(entryListEl, 'entry-list');
+    if (controller) {
+      controller.disconnect();
+      controller.connect();
+    }
+  }
+}
+
 // 筛选功能
 let selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
 const currentPage = <%= @page %>;
@@ -1039,7 +1122,9 @@ function applyFilters() {
   selectedCategoryIds.forEach(function(id) { params.append('category_ids[]', id); });
   if (accountId) params.append('account_id', accountId);
   
-  Turbo.visit('/accounts?' + params.toString(), { action: 'replace' });
+  const url = '/accounts?' + params.toString();
+  history.pushState({}, '', url);
+  refreshMainContent(url);
 }
 
 // 防抖筛选
@@ -1047,11 +1132,9 @@ const debouncedApplyFilters = debounce(applyFilters, 500);
 
 function clearFilters() {
   const accountId = '<%= params[:account_id] %>';
-  if (accountId) {
-    Turbo.visit('/accounts?account_id=' + accountId, { action: 'replace' });
-  } else {
-    Turbo.visit('/accounts', { action: 'replace' });
-  }
+  const url = accountId ? '/accounts?account_id=' + accountId : '/accounts';
+  history.pushState({}, '', url);
+  refreshMainContent(url);
 }
 
 function updateCategoryFilterButtonLabel() {
@@ -1063,19 +1146,30 @@ function updateCategoryFilterButtonLabel() {
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
-  Turbo.visit('/accounts?' + params.toString(), { action: 'replace' });
+  // 更新 URL 不刷新页面
+  history.pushState({}, '', '/accounts?' + params.toString());
+  // 局部刷新右侧内容
+  refreshMainContent('/accounts?' + params.toString());
+  // 更新左侧栏高亮
+  updateAccountHighlight(id);
 }
 
 function viewAllTransactions() {
   const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
-  Turbo.visit('/accounts' + (params.toString() ? '?' + params.toString() : ''), { action: 'replace' });
+  const url = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  history.pushState({}, '', url);
+  refreshMainContent(url);
+  updateAccountHighlight(null);
 }
 
 function clearAccountFilter() {
   const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
-  Turbo.visit('/accounts' + (params.toString() ? '?' + params.toString() : ''), { action: 'replace' });
+  const url = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  history.pushState({}, '', url);
+  refreshMainContent(url);
+  updateAccountHighlight(null);
 }
 
 function toggleShowHidden() {
@@ -1085,7 +1179,8 @@ function toggleShowHidden() {
   } else {
     params.set('show_hidden', 'true');
   }
-  Turbo.visit('/accounts' + (params.toString() ? '?' + params.toString() : ''), { action: 'replace' });
+  // 显示/隐藏账户需要刷新整个页面
+  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
 // 回车搜索
