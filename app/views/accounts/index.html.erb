@@ -1064,13 +1064,30 @@ function updateCategoryFilterButtonLabel() {
 function filterByAccount(id) {
   const params = new URLSearchParams(window.location.search);
   params.set('account_id', id);
-  window.location.href = '/accounts?' + params.toString();
+  // 保留 view_mode 参数（如果当前是账单模式）
+  if (window.currentViewMode === 'bill') {
+    params.set('view_mode', 'bill');
+  }
+  // 更新 URL 不刷新页面
+  history.pushState({}, '', '/accounts?' + params.toString());
+  // 局部刷新右侧内容
+  refreshMainContent('/accounts?' + params.toString());
+  // 更新左侧栏高亮
+  updateAccountHighlight(id);
 }
 
 function viewAllTransactions() {
   const params = new URLSearchParams(window.location.search);
   params.delete('account_id');
-  window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  // 保留 view_mode 参数
+  if (window.currentViewMode === 'bill') {
+    params.set('view_mode', 'bill');
+  }
+  const url = '/accounts' + (params.toString() ? '?' + params.toString() : '');
+  history.pushState({}, '', url);
+  refreshMainContent(url);
+  updateAccountHighlight(null);
+}
 }
 
 function clearAccountFilter() {
@@ -2405,6 +2422,13 @@ if (!window.modalSelectorsInitialized) {
     accountId = wrapper?.dataset?.accountId;
     if (!accountId || !wrapper) return;
 
+    // 从 URL 参数读取 view_mode，兜底使用全局变量
+    const urlParams = new URLSearchParams(window.location.search);
+    currentViewMode = urlParams.get('view_mode') || window.currentViewMode || 'date';
+    
+    // 更新全局变量
+    window.currentViewMode = currentViewMode;
+
     // 插入到交易列表前面
     const txList = document.getElementById('transaction-list');
     if (txList && !txList.parentElement.contains(wrapper)) {
@@ -2458,6 +2482,7 @@ if (!window.modalSelectorsInitialized) {
   // 切换视图模式（按日期 / 按账单）
   window.switchViewMode = function(mode) {
     currentViewMode = mode;
+    window.currentViewMode = mode;  // 更新全局变量
     const txList = document.getElementById('transaction-list');
     const summaryBar = document.getElementById('summary-bar');
     const filterBar = document.getElementById('filter-bar');
