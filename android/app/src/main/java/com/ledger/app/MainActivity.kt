@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.webkit.WebView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.fragment.NavHostFragment
 import androidx.navigation.ui.setupWithNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
@@ -21,7 +22,7 @@ import com.ledger.app.turbo.TurboWebViewFragment
  * - Jetpack Navigation 管理底部 Tab 导航
  * - Turbo Native 渲染 Rails 页面
  * - NativeBridge 提供 JS ↔ 原生双向通信
- * - BiometricBridge / FilePickerBridge / ShareBridge 提供原生功能
+ * - Splash Screen 提供启动闪屏
  */
 class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
 
@@ -32,11 +33,16 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
     private lateinit var shareBridge: ShareBridge
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // 安装 Splash Screen（必须在 super.onCreate 之前）
+        val splashScreen = installSplashScreen()
+
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // Splash Screen 保持显示直到内容就绪
+        splashScreen.setKeepOnScreenCondition { false }
+
         setupNavigation()
-        setupBridges()
         handleIncomingIntent(intent)
     }
 
@@ -52,11 +58,6 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
 
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setupWithNavController(navController)
-    }
-
-    private fun setupBridges() {
-        // Bridge 初始化在 WebView 就绪后完成
-        // 通过 TurboWebViewFragment 回调注入
     }
 
     /**
@@ -100,20 +101,19 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
     // ============================================================
 
     private fun handleIncomingIntent(intent: Intent) {
-        // 处理 FCM 通知点击的 deep_link
         val deepLink = intent.getStringExtra("deep_link")
         if (deepLink != null) {
             navigateToUrl(deepLink)
         }
 
-        // 处理系统分享
         if (intent.action == Intent.ACTION_SEND) {
-            shareBridge.handleIncomingShare(intent)
+            if (::shareBridge.isInitialized) {
+                shareBridge.handleIncomingShare(intent)
+            }
         }
     }
 
     private fun navigateToUrl(url: String) {
-        // 通知当前活跃的 Fragment 导航到指定 URL
         val currentFragment = supportFragmentManager
             .findFragmentById(R.id.nav_host_fragment)
             ?.childFragmentManager
@@ -125,9 +125,6 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
         }
     }
 
-    /**
-     * 返回键处理 - 让 Turbo 处理 WebView 内的导航历史
-     */
     @Suppress("DEPRECATION")
     override fun onBackPressed() {
         val currentFragment = supportFragmentManager
