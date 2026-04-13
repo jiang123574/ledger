@@ -2,6 +2,15 @@ class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   allow_browser versions: :modern
 
+  # Turbo Native 适配
+  helper TurboNativeHelper
+
+  # 在 controller 中也可以直接调用 turbo_native_app?
+  def turbo_native_app?
+    request.user_agent.to_s.include?("Turbo Native")
+  end
+  helper_method :turbo_native_app?
+
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
