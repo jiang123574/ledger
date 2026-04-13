@@ -298,59 +298,55 @@ class Account < ApplicationRecord
     stored = bill_statements.order(:billing_date).to_a
     return cycles if stored.empty?
 
-    # 找最早和最晚的基准值
     earliest_base = stored.first
-    latest_base = stored.last
 
-    # 需要获取足够的 cycles 来包含基准值
-    # 计算需要多少期才能覆盖从基准值到当前
     months_from_base = (Date.current.year * 12 + Date.current.month) - (earliest_base.billing_date.year * 12 + earliest_base.billing_date.month)
-    needed_cycles = months_from_base + count + 1
+    needed_cycles = months_from_base + count + 2
 
-    # 重新获取足够多的 cycles
     all_cycles = bill_cycles(needed_cycles.clamp(1, 60))
     cycles_by_date = all_cycles.sort_by { |c| c[:end_date] }
 
-    # 计算每期账单金额
-    # 先找出有存储值的 cycle，作为起点
     prev_amount = nil
     base_found = false
 
     cycles_by_date.each do |cycle|
-      stored_for_cycle = stored.find { |s| s.billing_date == cycle[:end_date] }
+      # 匹配逻辑：billing_date 应该是账单日，end_date 是账单日的前一天 (mode=next)
+      # 或者 billing_date == end_date (mode=current)
+      # 所以用月份来匹配
+      stored_for_cycle = stored.find do |s|
+        s.billing_date.year == cycle[:end_date].year &&
+        s.billing_date.month == cycle[:end_date].month
+      end
 
       if stored_for_cycle
         cycle[:statement_amount] = stored_for_cycle.statement_amount
         prev_amount = stored_for_cycle.statement_amount
         base_found = true
       elsif base_found
-        # 在基准值之后，正向计算
         summary = bill_cycle_summary(start_date: cycle[:start_date], end_date: cycle[:end_date])
         cycle[:statement_amount] = summary[:spend_amount] - summary[:repay_amount] + prev_amount
         prev_amount = cycle[:statement_amount]
       else
-        # 在基准值之前，暂时跳过（反向计算需要从基准值往前推）
         cycle[:statement_amount] = nil
       end
     end
 
-    # 如果还有在基准值之前的 cycles，反向计算
     if base_found && cycles_by_date.first[:end_date] < earliest_base.billing_date
-      # 从基准值往前推
-      base_cycle_idx = cycles_by_date.find_index { |c| c[:end_date] == earliest_base.billing_date }
+      base_cycle_idx = cycles_by_date.find_index do |c|
+        c[:end_date].year == earliest_base.billing_date.year &&
+        c[:end_date].month == earliest_base.billing_date.month
+      end
       if base_cycle_idx && base_cycle_idx > 0
         prev_amount = earliest_base.statement_amount
         (base_cycle_idx - 1).downto(0) do |idx|
           cycle = cycles_by_date[idx]
           summary = bill_cycle_summary(start_date: cycle[:start_date], end_date: cycle[:end_date])
-          # 反向公式：上期账单金额 = 本期账单金额 - (本期消费 - 本期还款)
           cycle[:statement_amount] = prev_amount - (summary[:spend_amount] - summary[:repay_amount])
           prev_amount = cycle[:statement_amount]
         end
       end
     end
 
-    # 只返回用户请求的期数（最近的 count 期）
     cycles_by_date.last(count).reverse
   end
 
