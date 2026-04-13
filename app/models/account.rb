@@ -16,6 +16,7 @@ class Account < ApplicationRecord
   has_many :trade_entries, -> { where(entryable_type: "Entryable::Trade") }, class_name: "Entry"
   has_many :plans, dependent: :destroy
   has_many :recurring_transactions, dependent: :destroy
+  has_many :bill_statements, dependent: :destroy
 
   validates :name, presence: true, uniqueness: true
   validates :currency, presence: true, length: { is: 3 }
@@ -268,7 +269,6 @@ class Account < ApplicationRecord
   def bill_cycle_summary(start_date:, end_date:)
     scope = transaction_entries.where(date: start_date..end_date)
 
-    # 单次 CASE WHEN 聚合，替代 4 次独立查询
     result = scope.pick(
       Arel.sql("SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END)"),
       Arel.sql("SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END)"),
@@ -276,7 +276,8 @@ class Account < ApplicationRecord
       Arel.sql("SUM(CASE WHEN amount > 0 THEN 1 ELSE 0 END)")
     )
 
-    total_spend, total_repay, spend_count, repay_count = result.map { |v| v.to_i }
+    total_spend, total_repay = result[0..1].map { |v| v.to_d }
+    spend_count, repay_count = result[2..3].map { |v| v.to_i }
 
     {
       spend_amount: total_spend,
@@ -285,6 +286,136 @@ class Account < ApplicationRecord
       spend_count: spend_count,
       repay_count: repay_count
     }
+  end
+
+  # 批量计算多个账单周期的交易汇总（使用 Arel 安全构建 SQL）
+  # 单次聚合查询，高效且安全
+  def batch_bill_cycle_summary(cycles)
+    return {} if cycles.empty?
+
+    min_start = cycles.map { |c| c[:start_date] }.min
+    max_end = cycles.map { |c| c[:end_date] }.max
+
+    entry_table = Entry.arel_table
+    aggs = []
+
+    cycles.each do |cycle|
+      start_date = cycle[:start_date]
+      end_date = cycle[:end_date]
+
+      # 条件：日期在周期内
+      date_condition = entry_table[:date].gteq(start_date).and(entry_table[:date].lteq(end_date))
+
+      # 消费金额聚合（amount < 0 时取 ABS）
+      spend_condition = date_condition.and(entry_table[:amount].lt(0))
+      spend_abs = Arel::Nodes::NamedFunction.new("ABS", [ entry_table[:amount] ])
+      spend_sum = Arel::Nodes::Case.new.when(spend_condition).then(spend_abs).else(0)
+      aggs << spend_sum.sum
+
+      # 还款金额聚合（amount > 0）
+      repay_condition = date_condition.and(entry_table[:amount].gt(0))
+      repay_sum = Arel::Nodes::Case.new.when(repay_condition).then(entry_table[:amount]).else(0)
+      aggs << repay_sum.sum
+
+      # 消费笔数聚合
+      spend_cnt = Arel::Nodes::Case.new.when(spend_condition).then(1).else(0)
+      aggs << spend_cnt.sum
+
+      # 还款笔数聚合
+      repay_cnt = Arel::Nodes::Case.new.when(repay_condition).then(1).else(0)
+      aggs << repay_cnt.sum
+    end
+
+    result = transaction_entries.where(date: min_start..max_end).pick(*aggs)
+
+    if result.nil?
+      return cycles.each_with_object({}) do |cycle, hash|
+        hash[cycle[:end_date]] = {
+          spend_amount: 0.to_d,
+          repay_amount: 0.to_d,
+          balance_due: 0.to_d,
+          spend_count: 0,
+          repay_count: 0
+        }
+      end
+    end
+
+    cycles.each_with_index.each_with_object({}) do |(cycle, idx), hash|
+      base = idx * 4
+      spend_amount = result[base].to_d
+      repay_amount = result[base + 1].to_d
+      spend_count = result[base + 2].to_i
+      repay_count = result[base + 3].to_i
+
+      hash[cycle[:end_date]] = {
+        spend_amount: spend_amount,
+        repay_amount: repay_amount,
+        balance_due: spend_amount - repay_amount,
+        spend_count: spend_count,
+        repay_count: repay_count
+      }
+    end
+  end
+
+  # 带账单金额的账单周期（根据公式计算）
+  # 公式：本期账单金额 = 本期消费 - 本期还款 + 上期账单金额
+  def bill_cycles_with_statement(count = 3)
+    cycles = bill_cycles(count)
+    return cycles unless credit_card?
+
+    stored = bill_statements.order(:billing_date).to_a
+    return cycles if stored.empty?
+
+    earliest_base = stored.first
+
+    months_from_base = (Date.current.year * 12 + Date.current.month) - (earliest_base.billing_date.year * 12 + earliest_base.billing_date.month)
+    needed_cycles = months_from_base + count + 2
+
+    all_cycles = bill_cycles(needed_cycles.clamp(1, 60))
+    cycles_by_date = all_cycles.sort_by { |c| c[:end_date] }
+
+    # 批量获取所有周期的 summary（一次查询）
+    summaries = batch_bill_cycle_summary(cycles_by_date)
+
+    prev_amount = nil
+    base_found = false
+
+    cycles_by_date.each do |cycle|
+      stored_for_cycle = stored.find do |s|
+        s.billing_date.year == cycle[:end_date].year &&
+        s.billing_date.month == cycle[:end_date].month
+      end
+
+      if stored_for_cycle
+        cycle[:statement_amount] = stored_for_cycle.statement_amount.round(2)
+        prev_amount = stored_for_cycle.statement_amount
+        base_found = true
+      elsif base_found
+        summary = summaries[cycle[:end_date]]
+        cycle[:statement_amount] = (summary[:spend_amount] - summary[:repay_amount] + prev_amount).round(2)
+        prev_amount = cycle[:statement_amount]
+      else
+        cycle[:statement_amount] = nil
+      end
+    end
+
+    if base_found && cycles_by_date.first[:end_date] < earliest_base.billing_date
+      base_cycle_idx = cycles_by_date.find_index do |c|
+        c[:end_date].year == earliest_base.billing_date.year &&
+        c[:end_date].month == earliest_base.billing_date.month
+      end
+      if base_cycle_idx && base_cycle_idx > 0
+        prev_amount = earliest_base.statement_amount
+        (base_cycle_idx - 1).downto(0) do |idx|
+          cycle = cycles_by_date[idx]
+          summary = summaries[cycle[:end_date]]
+          cycle[:statement_amount] = (prev_amount - (summary[:spend_amount] - summary[:repay_amount])).round(2)
+          prev_amount = cycle[:statement_amount]
+        end
+      end
+    end
+
+    cycles_by_date.last(count).reverse
   end
 
   private

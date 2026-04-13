@@ -1,7 +1,7 @@
 require "ostruct"
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries ]
+  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries, :create_bill_statement ]
   before_action :prevent_locked_system_account!, only: [ :edit, :update, :destroy ]
 
   def index
@@ -75,8 +75,8 @@ class AccountsController < ApplicationController
       return
     end
 
-    count = (params[:count] || 3).to_i.clamp(1, 12)
-    cycles = @account.bill_cycles(count)
+    count = (params[:count] || 3).to_i.clamp(1, 24)
+    cycles = @account.bill_cycles_with_statement(count)
     bill_data = cycles.map do |cycle|
       summary = @account.bill_cycle_summary(start_date: cycle[:start_date], end_date: cycle[:end_date])
       {
@@ -88,6 +88,7 @@ class AccountsController < ApplicationController
         spend_amount: summary[:spend_amount],
         repay_amount: summary[:repay_amount],
         balance_due: summary[:balance_due],
+        statement_amount: cycle[:statement_amount],
         spend_count: summary[:spend_count],
         repay_count: summary[:repay_count]
       }
@@ -100,6 +101,33 @@ class AccountsController < ApplicationController
       bills: bill_data
     }
   end
+
+  def create_bill_statement
+    unless @account.credit_card?
+      render json: { error: "该账户不是信用卡" }, status: :unprocessable_entity
+      return
+    end
+
+    begin
+      billing_date = Date.parse(params[:billing_date])
+    rescue ArgumentError, Date::Error
+      render json: { error: "日期格式错误" }, status: :bad_request
+      return
+    end
+
+    statement_amount = BigDecimal(params[:statement_amount].to_s)
+    if statement_amount <= 0
+      render json: { error: "金额必须大于0" }, status: :bad_request
+      return
+    end
+
+    statement = @account.bill_statements.find_or_initialize_by(billing_date: billing_date)
+    statement.statement_amount = statement_amount
+    statement.save!
+
+    render json: { success: true, statement: { billing_date: statement.billing_date, statement_amount: statement.statement_amount.round(2).to_f } }
+  end
+
   def bills_entries
     unless @account.credit_card?
       render json: { entries: [] }
@@ -122,7 +150,7 @@ class AccountsController < ApplicationController
 
     entries = @account.transaction_entries
                     .where(date: start_date..end_date)
-                    .includes(:entryable, entryable: :category)
+                    .includes(:account, :entryable, entryable: :category)
                     .order(date: :desc)
     Entry.preload_transfer_accounts(entries.to_a)
 

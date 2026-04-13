@@ -38,6 +38,7 @@ Rails.application.routes.draw do
       get :versions
       get :bills
       get :bills_entries
+      post :create_bill_statement
       patch :reorder_entries
     end
     collection do
