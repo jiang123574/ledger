@@ -91,6 +91,7 @@ export default class extends Controller {
   // 检测指针下方的目标元素（通过 rAF 节流，~60fps 最大执行频率）
   _detectDropTarget() {
     this._rafId = null
+    if (!this.cloneElement) return  // disconnect 后 cloneElement 已清空
     const clientX = this._pendingClientX
     const clientY = this._pendingClientY
 
