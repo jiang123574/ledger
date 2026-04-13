@@ -89,8 +89,9 @@
                       <% end %>
                       <% if account.include_in_total != 1 %>
                         <span class="text-[10px] px-1 py-0.5 rounded bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400">不计资产</span>
-                      <% end %>
-                    </div>
+<% end %>
+          <% end %>
+      </div>
                     <% if account.type == 'CREDIT' && account.credit_limit %>
                       <% available_credit = account.credit_limit.to_d + (@account_balances[account.id] || 0).to_d %>
                       <p class="text-xs text-secondary dark:text-secondary-dark">可用额度 <%= format_currency(available_credit) %></p>
@@ -498,6 +499,7 @@
               </div>
             </div>
           <% end %>
+        <% end %>
       </div>
       <!-- 加载更多触发器 -->
       <div id="load-more-sentinel" class="p-4 text-center <%= @total_count > @page * @per_page ? '' : 'hidden' %>">
