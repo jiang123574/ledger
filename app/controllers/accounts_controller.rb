@@ -108,11 +108,16 @@ class AccountsController < ApplicationController
       return
     end
 
-    billing_date = Date.parse(params[:billing_date]) rescue nil
-    statement_amount = params[:statement_amount].to_d
+    begin
+      billing_date = Date.parse(params[:billing_date])
+    rescue ArgumentError, Date::Error
+      render json: { error: "日期格式错误" }, status: :bad_request
+      return
+    end
 
-    unless billing_date && statement_amount > 0
-      render json: { error: "参数错误" }, status: :bad_request
+    statement_amount = BigDecimal(params[:statement_amount].to_s)
+    if statement_amount <= 0
+      render json: { error: "金额必须大于0" }, status: :bad_request
       return
     end
 
@@ -120,7 +125,7 @@ class AccountsController < ApplicationController
     statement.statement_amount = statement_amount
     statement.save!
 
-    render json: { success: true, statement: { billing_date: statement.billing_date, statement_amount: statement.statement_amount } }
+    render json: { success: true, statement: { billing_date: statement.billing_date, statement_amount: statement.statement_amount.round(2).to_f } }
   end
 
   def bills_entries

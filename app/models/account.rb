@@ -269,7 +269,6 @@ class Account < ApplicationRecord
   def bill_cycle_summary(start_date:, end_date:)
     scope = transaction_entries.where(date: start_date..end_date)
 
-    # 单次 CASE WHEN 聚合，替代 4 次独立查询
     result = scope.pick(
       Arel.sql("SUM(CASE WHEN amount < 0 THEN ABS(amount) ELSE 0 END)"),
       Arel.sql("SUM(CASE WHEN amount > 0 THEN amount ELSE 0 END)"),
@@ -289,6 +288,33 @@ class Account < ApplicationRecord
     }
   end
 
+  # 批量计算多个账单周期的交易汇总（一次查询）
+  def batch_bill_cycle_summary(cycles)
+    return {} if cycles.empty?
+
+    min_start = cycles.map { |c| c[:start_date] }.min
+    max_end = cycles.map { |c| c[:end_date] }.max
+
+    entries = transaction_entries.where(date: min_start..max_end).select(:date, :amount)
+
+    cycles.map do |cycle|
+      cycle_entries = entries.select { |e| e.date >= cycle[:start_date] && e.date <= cycle[:end_date] }
+
+      spend_amount = cycle_entries.select { |e| e.amount < 0 }.sum { |e| e.amount.abs }.to_d
+      repay_amount = cycle_entries.select { |e| e.amount > 0 }.sum { |e| e.amount }.to_d
+      spend_count = cycle_entries.count { |e| e.amount < 0 }
+      repay_count = cycle_entries.count { |e| e.amount > 0 }
+
+      [ cycle[:end_date], {
+        spend_amount: spend_amount,
+        repay_amount: repay_amount,
+        balance_due: spend_amount - repay_amount,
+        spend_count: spend_count,
+        repay_count: repay_count
+      } ]
+    end.to_h
+  end
+
   # 带账单金额的账单周期（根据公式计算）
   # 公式：本期账单金额 = 本期消费 - 本期还款 + 上期账单金额
   def bill_cycles_with_statement(count = 3)
@@ -306,25 +332,25 @@ class Account < ApplicationRecord
     all_cycles = bill_cycles(needed_cycles.clamp(1, 60))
     cycles_by_date = all_cycles.sort_by { |c| c[:end_date] }
 
+    # 批量获取所有周期的 summary（一次查询）
+    summaries = batch_bill_cycle_summary(cycles_by_date)
+
     prev_amount = nil
     base_found = false
 
     cycles_by_date.each do |cycle|
-      # 匹配逻辑：billing_date 应该是账单日，end_date 是账单日的前一天 (mode=next)
-      # 或者 billing_date == end_date (mode=current)
-      # 所以用月份来匹配
       stored_for_cycle = stored.find do |s|
         s.billing_date.year == cycle[:end_date].year &&
         s.billing_date.month == cycle[:end_date].month
       end
 
       if stored_for_cycle
-        cycle[:statement_amount] = stored_for_cycle.statement_amount
+        cycle[:statement_amount] = stored_for_cycle.statement_amount.round(2)
         prev_amount = stored_for_cycle.statement_amount
         base_found = true
       elsif base_found
-        summary = bill_cycle_summary(start_date: cycle[:start_date], end_date: cycle[:end_date])
-        cycle[:statement_amount] = summary[:spend_amount] - summary[:repay_amount] + prev_amount
+        summary = summaries[cycle[:end_date]]
+        cycle[:statement_amount] = (summary[:spend_amount] - summary[:repay_amount] + prev_amount).round(2)
         prev_amount = cycle[:statement_amount]
       else
         cycle[:statement_amount] = nil
@@ -340,8 +366,8 @@ class Account < ApplicationRecord
         prev_amount = earliest_base.statement_amount
         (base_cycle_idx - 1).downto(0) do |idx|
           cycle = cycles_by_date[idx]
-          summary = bill_cycle_summary(start_date: cycle[:start_date], end_date: cycle[:end_date])
-          cycle[:statement_amount] = prev_amount - (summary[:spend_amount] - summary[:repay_amount])
+          summary = summaries[cycle[:end_date]]
+          cycle[:statement_amount] = (prev_amount - (summary[:spend_amount] - summary[:repay_amount])).round(2)
           prev_amount = cycle[:statement_amount]
         end
       end
