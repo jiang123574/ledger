@@ -1157,6 +1157,44 @@ function reinitializePageScripts() {
 
   // 重新初始化日期筛选显示
   if (typeof syncPeriodInputType === 'function') syncPeriodInputType();
+
+  // 重新绑定分类筛选按钮事件
+  const categoryFilterBtn = document.getElementById('open-category-filter');
+  if (categoryFilterBtn && !categoryFilterBtn._bound) {
+    categoryFilterBtn._bound = true;
+    categoryFilterBtn.addEventListener('click', function() {
+      document.getElementById('category-filter-modal').classList.remove('hidden');
+      document.getElementById('category-filter-search').value = '';
+      document.getElementById('category-filter-search').focus();
+      const sections = document.querySelectorAll('.category-type-section');
+      sections.forEach(function(s) { s.style.removeProperty('display'); });
+      const items = document.querySelectorAll('.category-filter-item');
+      items.forEach(function(item) { item.style.removeProperty('display'); });
+    });
+  }
+
+  // 重新绑定搜索框 Enter 和 input 防抖事件
+  const searchInput = document.getElementById('search-input');
+  if (searchInput && !searchInput._bound) {
+    searchInput._bound = true;
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') applyFilters();
+    });
+    searchInput.addEventListener('input', debouncedApplyFilters);
+  }
+
+  // 重新绑定筛选下拉 change 事件
+  const periodTypeFilter = document.getElementById('period-type-filter');
+  if (periodTypeFilter && !periodTypeFilter._bound) {
+    periodTypeFilter._bound = true;
+    periodTypeFilter.addEventListener('change', syncPeriodInputType);
+    periodTypeFilter.addEventListener('change', applyFilters);
+  }
+  const typeFilter = document.getElementById('type-filter');
+  if (typeFilter && !typeFilter._bound) {
+    typeFilter._bound = true;
+    typeFilter.addEventListener('change', applyFilters);
+  }
 }
 
 // 筛选功能
