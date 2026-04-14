@@ -29,8 +29,10 @@ class ReportsController < ApplicationController
     entries = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
       .where("transfer_id IS NULL")
 
-    @total_income = entries.where("amount > 0").sum(:amount)
-    @total_expense = entries.where("amount < 0").sum("ABS(amount)")
+    @total_income = entries.with_entryable_transaction
+      .where(entryable_transactions: { kind: "income" }).sum(:amount)
+    @total_expense = entries.with_entryable_transaction
+      .where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
     @net_balance = @total_income - @total_expense
 
     # 月度趋势

@@ -40,17 +40,18 @@ class DashboardController < ApplicationController
 
     # Cache monthly stats
     @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
-      entries = Entry.where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
+      entries = Entry.with_entryable_transaction
+        .where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
         .where("transfer_id IS NULL")
       {
-        income: entries.where("amount > 0").sum(:amount),
-        expense: entries.where("amount < 0").sum("ABS(amount)"),
-        balance: entries.where("amount > 0").sum(:amount) - entries.where("amount < 0").sum("ABS(amount)"),
+        income: entries.where(entryable_transactions: { kind: "income" }).sum(:amount),
+        expense: entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1"),
         count: entries.count
       }
     end
     @total_income = @monthly_stats[:income]
     @total_expense = @monthly_stats[:expense]
+    @monthly_stats[:balance] = @total_income - @total_expense
 
     # Cache expenses by category
     expenses_data = Rails.cache.fetch("dashboard/expenses/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do

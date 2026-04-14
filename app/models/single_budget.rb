@@ -42,7 +42,7 @@ class SingleBudget < ApplicationRecord
         .where(date: start_date..end_date_val)
         .sum("entries.amount * -1")
 
-      update(spent_amount: spent)
+      update(spent_amount: [spent, 0].max)
     else
       # 否则汇总子预算项的支出
       update(spent_amount: budget_items.sum(:spent_amount))
