@@ -11,9 +11,5 @@
 # Keep Kotlin metadata
 -keep class kotlin.Metadata { *; }
 
-# Firebase Cloud Messaging
--keep class com.google.firebase.** { *; }
--keep class com.ledger.app.notification.FCMService { *; }
-
 # Biometric
 -keep class androidx.biometric.** { *; }

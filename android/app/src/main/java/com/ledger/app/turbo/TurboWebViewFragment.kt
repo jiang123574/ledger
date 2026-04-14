@@ -52,21 +52,25 @@ open class TurboWebViewFragment : TurboWebFragment() {
     }
 
     private fun configureWebView() {
-        session.webView.apply {
-            // 启用 JavaScript（Hotwire/Stimulus 依赖）
-            settings.javaScriptEnabled = true
-            settings.domStorageEnabled = true
+        try {
+            session.webView.apply {
+                // 启用 JavaScript（Hotwire/Stimulus 依赖）
+                settings.javaScriptEnabled = true
+                settings.domStorageEnabled = true
 
-            // 设置 User-Agent，Rails 端据此检测 Turbo Native
-            settings.userAgentString = buildUserAgent(settings.userAgentString)
+                // 设置 User-Agent，Rails 端据此检测 Turbo Native
+                settings.userAgentString = buildUserAgent(settings.userAgentString)
 
-            // 启用缩放（报表页面可能需要）
-            settings.setSupportZoom(true)
-            settings.builtInZoomControls = true
-            settings.displayZoomControls = false
+                // 启用缩放（报表页面可能需要）
+                settings.setSupportZoom(true)
+                settings.builtInZoomControls = true
+                settings.displayZoomControls = false
 
-            // 混合内容（开发环境 HTTP 加载 HTTPS 资源）
-            settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+                // 混合内容（开发环境 HTTP 加载 HTTPS 资源）
+                settings.mixedContentMode = android.webkit.WebSettings.MIXED_CONTENT_COMPATIBILITY_MODE
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("TurboWebViewFragment", "WebView 配置失败", e)
         }
     }
 
