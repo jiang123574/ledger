@@ -64,6 +64,35 @@ To update counter cache for all accounts:
 /opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/bundle exec rubocop
 ```
 
+### Start Rails Server
+Rails 服务需绑定 `0.0.0.0` 以允许局域网设备（手机、Android）访问：
+```bash
+/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails server -b 0.0.0.0 -p 3000
+```
+
+## JavaScript 规范
+
+### 变量声明
+- 使用 `const` 或 `let`，禁止使用 `var`（已完成 PR #78 统一）
+- `const`：不会被重新赋值的变量
+- `let`：循环中或需要重新赋值的变量
+
+### Inline Script 与 Turbo 兼容
+Turbo 页面替换会重新执行 inline `<script>` 标签，导致顶层 `const`/`let` 重复声明报错。
+解决方案：用 IIFE 包裹整个 script 块，通过作用域隔离避免冲突：
+```erb
+<script>
+(function() {
+  const myVar = 'value';
+  function myFunc() { /* ... */ }
+
+  // inline handler 需要的函数暴露到 window
+  window.myFunc = myFunc;
+})();
+</script>
+```
+`<script type="module">` 天然有独立作用域，无需 IIFE。
+
 ## UI Components
 
 ### Pinyin Selector Component
