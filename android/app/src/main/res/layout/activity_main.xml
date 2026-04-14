@@ -7,7 +7,7 @@
     android:fitsSystemWindows="true">
 
     <!-- Turbo WebView 容器 -->
-    <FrameLayout
+    <fragment
         android:id="@+id/nav_host_fragment"
         android:name="com.ledger.app.navigation.MainNavHostFragment"
         android:layout_width="match_parent"
