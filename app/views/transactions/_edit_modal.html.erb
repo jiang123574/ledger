@@ -23,7 +23,11 @@
     <div id="edit-category-field-wrapper" class="<%= is_transfer ? 'hidden' : '' %>">
       <div class="flex items-center justify-between mb-1.5">
         <label class="block text-sm font-medium text-secondary dark:text-secondary-dark">分类 *</label>
-        <button type="button" id="edit-toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
+        <div class="flex items-center gap-2">
+          <button type="button" id="edit-type-toggle-income" class="text-xs px-2 py-0.5 rounded transition-smooth <%= is_income ? 'bg-income/10 text-income font-medium' : 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' %>">收入</button>
+          <button type="button" id="edit-type-toggle-expense" class="text-xs px-2 py-0.5 rounded transition-smooth <%= is_expense ? 'bg-expense/10 text-expense font-medium' : 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' %>">支出</button>
+          <button type="button" id="edit-toggle-transfer-btn" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
+        </div>
       </div>
       <div class="relative">
         <input type="text" id="edit-category-search-input"
@@ -279,6 +283,44 @@
       hiddenInputId: 'edit_account_id_income', items: allAccounts, itemClass: 'edit-account-opt-income'
     });
   }
+
+  // 收支类型切换（收入 ↔ 支出）
+  function updateTypeToggleButtons() {
+    const incomeBtn = document.getElementById('edit-type-toggle-income');
+    const expenseBtn = document.getElementById('edit-type-toggle-expense');
+    if (!incomeBtn || !expenseBtn) return;
+    if (currentType === 'INCOME') {
+      incomeBtn.className = 'text-xs px-2 py-0.5 rounded transition-smooth bg-income/10 text-income font-medium';
+      expenseBtn.className = 'text-xs px-2 py-0.5 rounded transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover';
+    } else {
+      incomeBtn.className = 'text-xs px-2 py-0.5 rounded transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover';
+      expenseBtn.className = 'text-xs px-2 py-0.5 rounded transition-smooth bg-expense/10 text-expense font-medium';
+    }
+  }
+
+  function switchToType(newType) {
+    if (currentType === newType) return;
+    currentType = newType;
+    document.getElementById('edit-transaction-type').value = currentType;
+    document.getElementById('transaction_type_hidden').value = currentType;
+    updateTypeToggleButtons();
+    // 重新初始化分类选择器（过滤不同类型的分类）
+    initSelector({
+      searchInputId: 'edit-category-search-input', dropdownId: 'edit-category-dropdown',
+      filterInputId: 'edit-category-filter-input', optionsId: 'edit-category-options',
+      hiddenInputId: 'edit_category_id', items: getFilteredCategories(), itemClass: 'edit-category-opt'
+    });
+    // 清空已选分类（因为类型变了，原分类可能不适用）
+    document.getElementById('edit_category_id').value = '';
+    document.getElementById('edit-category-search-input').value = '';
+  }
+
+  document.getElementById('edit-type-toggle-income')?.addEventListener('click', function() {
+    switchToType('INCOME');
+  });
+  document.getElementById('edit-type-toggle-expense')?.addEventListener('click', function() {
+    switchToType('EXPENSE');
+  });
 
   // 转账切换（收支 → 转账）
   document.getElementById('edit-toggle-transfer-btn').addEventListener('click', function() {
