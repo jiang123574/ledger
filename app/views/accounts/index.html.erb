@@ -1038,6 +1038,7 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <script>
+(function() {
 // 防抖函数
 function debounce(func, wait) {
   var timeout;
@@ -2233,6 +2234,29 @@ document.addEventListener('turbo:load', function() {
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
 });
+
+// 暴露 inline handler 需要的函数到 window
+window.toggleAccountList = toggleAccountList;
+window.viewAllTransactions = viewAllTransactions;
+window.filterByAccount = filterByAccount;
+window.clearAccountFilter = clearAccountFilter;
+window.toggleShowHidden = toggleShowHidden;
+window.togglePeriodPicker = togglePeriodPicker;
+window.shiftPickerYear = shiftPickerYear;
+window.shiftPeriod = shiftPeriod;
+window.clearFilters = clearFilters;
+window.openNewTransactionModal = openNewTransactionModal;
+window.openEditTransactionModal = openEditTransactionModal;
+window.submitAndContinue = submitAndContinue;
+window.swapTransferAccounts = swapTransferAccounts;
+window.confirmDeleteTransaction = confirmDeleteTransaction;
+window.applyFilters = applyFilters;
+window.syncPeriodInputType = syncPeriodInputType;
+window.refreshMainContent = refreshMainContent;
+window.updateAccountHighlight = updateAccountHighlight;
+window.reinitializePageScripts = reinitializePageScripts;
+window.debounce = debounce;
+})();
 </script>
 
 <%= render 'shared/receivable_form_modal', counterparties: @counterparties %>
