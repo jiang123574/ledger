@@ -1,5 +1,27 @@
 zh-CN:
   app_name: "我的账本"
+
+  activerecord:
+    models:
+      bill_statement: "基准账单"
+    attributes:
+      bill_statement:
+        billing_date: "账单日期"
+        statement_amount: "账单金额"
+        account: "账户"
+    errors:
+      models:
+        bill_statement:
+          attributes:
+            billing_date:
+              blank: "不能为空"
+              taken: "该账单日已有基准账单"
+            statement_amount:
+              blank: "不能为空"
+              not_a_number: "必须是数字"
+              greater_than: "必须大于 0"
+            account:
+              required: "必须关联账户"
   
   nav:
     dashboard: "仪表盘"
