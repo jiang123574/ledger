@@ -29,8 +29,10 @@ class ReportsController < ApplicationController
     entries = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
       .where("transfer_id IS NULL")
 
-    @total_income = entries.where("amount > 0").sum(:amount)
-    @total_expense = entries.where("amount < 0").sum("ABS(amount)")
+    @total_income = entries.with_entryable_transaction
+      .where(entryable_transactions: { kind: "income" }).sum(:amount)
+    @total_expense = entries.with_entryable_transaction
+      .where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
     @net_balance = @total_income - @total_expense
 
     # 月度趋势
@@ -83,7 +85,7 @@ class ReportsController < ApplicationController
         .non_transfers
         .where(date: @start_date..@end_date)
         .group("date_trunc('month', entries.date)", "entryable_transactions.kind")
-        .select("date_trunc('month', entries.date) as month_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
+        .select("date_trunc('month', entries.date) as month_date, entryable_transactions.kind as kind, SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END) as total")
         .map { |r| { month: r.month_date.month, kind: r.kind, amount: r.total.to_f } }
 
       stats_by_month = stats.group_by { |s| s[:month] }
@@ -104,7 +106,7 @@ class ReportsController < ApplicationController
         .non_transfers
         .where(date: @start_date..@end_date)
         .group("date_trunc('week', entries.date)", "entryable_transactions.kind")
-        .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
+        .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END) as total")
         .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
       stats_by_week = stats.group_by { |s| s[:week] }
@@ -134,14 +136,15 @@ class ReportsController < ApplicationController
   end
 
   def load_category_stats(kind)
+    amount_expr = kind == "expense" ? "entries.amount * -1" : "entries.amount"
     Entry.with_category
       .transactions_only
       .non_transfers
       .where(entryable_transactions: { kind: kind })
       .where(date: @start_date..@end_date)
       .group("categories.name")
-      .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
-      .sum("ABS(entries.amount)")
+      .order(Arel.sql("SUM(#{amount_expr}) DESC"))
+      .sum(amount_expr)
   end
 
   def load_budget_data
@@ -155,7 +158,7 @@ class ReportsController < ApplicationController
       .where(entryable_transactions: { kind: "expense", category_id: category_ids })
       .where(date: @start_date..@end_date)
       .group("entryable_transactions.category_id")
-      .sum("ABS(entries.amount)")
+      .sum("entries.amount * -1")
 
     @budget_progress = @budgets.map do |budget|
       spent = spent_by_category[budget.category_id] || 0
@@ -264,17 +267,17 @@ class ReportsController < ApplicationController
       .transactions_only
       .where(entryable_transactions: { category_id: category_ids })
       .where(date: @start_date..@end_date)
-      .group("entryable_transactions.category_id", "date_trunc('month', entries.date)")
-      .sum("ABS(entries.amount)")
+      .group("entryable_transactions.category_id", "date_trunc('month', entries.date)", "entryable_transactions.kind")
+      .sum("CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END")
 
     # 按 category_id 预索引
-    all_monthly_by_cat = all_monthly.group_by { |(cat_id, _), _| cat_id }
+    all_monthly_by_cat = all_monthly.group_by { |(cat_id, _, _), _| cat_id }
 
     categories = {}
     active_categories.each do |cat|
       monthly_data = (1..12).index_with { |m| 0.to_d }
 
-      (all_monthly_by_cat[cat[:id]] || []).each do |(_, month_key), amount|
+      (all_monthly_by_cat[cat[:id]] || []).each do |(_, month_key, _), amount|
         m = month_key.month rescue nil
         monthly_data[m] = amount.to_d.round(2) if m
       end
