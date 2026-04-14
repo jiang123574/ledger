@@ -1042,7 +1042,7 @@ function confirmDeleteAccount(id, name) {
 (function() {
 // 防抖函数
 function debounce(func, wait) {
-  var timeout;
+  let timeout;
   return function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout);
@@ -1201,9 +1201,9 @@ function reinitializePageScripts() {
 // 筛选功能
 // 使用 window 全局变量，避免 Turbo 导航时重复声明
 window.selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
-var selectedCategoryIds = window.selectedCategoryIds;
+const selectedCategoryIds = window.selectedCategoryIds;
 window.currentPage = <%= @page %>;
-var currentPage = window.currentPage;
+const currentPage = window.currentPage;
 
 function applyFilters() {
   const params = new URLSearchParams();
@@ -1232,7 +1232,7 @@ function applyFilters() {
 }
 
 // 防抖筛选
-var debouncedApplyFilters = debounce(applyFilters, 500);
+const debouncedApplyFilters = debounce(applyFilters, 500);
 
 function clearFilters() {
   const accountId = '<%= params[:account_id] %>';
@@ -1384,8 +1384,8 @@ function updatePeriodValueDisplay() {
   displayEl.textContent = formatPeriodValue(periodValueEl.value, periodTypeEl.value);
 }
 
-var pickerCurrentYear = new Date().getFullYear();
-var pickerPanelOpen = false;
+let pickerCurrentYear = new Date().getFullYear();
+let pickerPanelOpen = false;
 
 function togglePeriodPicker() {
   const panel = document.getElementById('period-picker-panel');
@@ -1688,18 +1688,18 @@ document.getElementById('confirm-category-filter')?.addEventListener('click', fu
 
 updateCategoryFilterButtonLabel();
 
-var transactionTypeInput = document.getElementById('transaction-type-input');
-var targetAccountField = document.getElementById('target-account-field');
-var targetAccountHiddenInput = document.getElementById('target_account_id');
-var targetAccountSearchInput = document.getElementById('target-account-search-input');
-var fundingAccountField = document.getElementById('funding-account-field');
-var fundingAccountHiddenInput = document.getElementById('funding_account_id');
-var fundingAccountSearchInput = document.getElementById('funding-account-search-input');
-var categoryField = document.getElementById('transaction-category-field');
-var toggleTransferBtn = document.getElementById('toggle-transfer-btn');
+const transactionTypeInput = document.getElementById('transaction-type-input');
+const targetAccountField = document.getElementById('target-account-field');
+const targetAccountHiddenInput = document.getElementById('target_account_id');
+const targetAccountSearchInput = document.getElementById('target-account-search-input');
+const fundingAccountField = document.getElementById('funding-account-field');
+const fundingAccountHiddenInput = document.getElementById('funding_account_id');
+const fundingAccountSearchInput = document.getElementById('funding-account-search-input');
+const categoryField = document.getElementById('transaction-category-field');
+const toggleTransferBtn = document.getElementById('toggle-transfer-btn');
 
 // 当前模式: 'category'（收支） 或 'transfer'（转账）
-var transactionMode = 'category';
+let transactionMode = 'category';
 
 // 切换转账模式
 function toggleTransferMode() {
@@ -1762,22 +1762,22 @@ if (toggleTransferBtn) {
   toggleTransferBtn.addEventListener('click', toggleTransferMode);
 }
 // 切换转账按钮（转账模式中的"收支"按钮）
-var toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
+const toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
 if (toggleTransferBtnAlt) {
   toggleTransferBtnAlt.addEventListener('click', toggleTransferMode);
 }
 
 // 分类选择器逻辑
-var categorySearchInput = document.getElementById('category-search-input');
-var categoryDropdown = document.getElementById('category-dropdown');
-var categoryFilterInput = document.getElementById('category-filter-input');
-var categoryOptions = document.getElementById('category-options');
-var categoryHiddenInput = document.getElementById('new_transaction_category_id');
-var allCategories = [];
-var currentCategoryType = 'EXPENSE';
+const categorySearchInput = document.getElementById('category-search-input');
+const categoryDropdown = document.getElementById('category-dropdown');
+const categoryFilterInput = document.getElementById('category-filter-input');
+const categoryOptions = document.getElementById('category-options');
+const categoryHiddenInput = document.getElementById('new_transaction_category_id');
+let allCategories = [];
+let currentCategoryType = 'EXPENSE';
 
 // 从合并数据加载全部分类
-var allCategoriesDataEl = document.getElementById('all-categories-data');
+const allCategoriesDataEl = document.getElementById('all-categories-data');
 if (allCategoriesDataEl) {
   allCategories = JSON.parse(allCategoriesDataEl.textContent);
 }
@@ -2076,8 +2076,8 @@ function escapeHtml(str) {
 }
 
 // 账户选择器逻辑
-var allAccounts = [];
-var accountsDataEl = document.getElementById('accounts-data');
+let allAccounts = [];
+const accountsDataEl = document.getElementById('accounts-data');
 if (accountsDataEl) {
   allAccounts = JSON.parse(accountsDataEl.textContent);
 }
@@ -2118,7 +2118,7 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   function updateOptions() {
     // 确保 allAccounts 已加载（防止时序问题）
     if (allAccounts.length === 0) {
-      var accountsDataEl = document.getElementById('accounts-data');
+      const accountsDataEl = document.getElementById('accounts-data');
       if (accountsDataEl && accountsDataEl.textContent) {
         try {
           allAccounts = JSON.parse(accountsDataEl.textContent);
@@ -2179,7 +2179,7 @@ initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
 
 // 表单提交前，根据模式将正确的 account_id 写入 transaction[account_id]
-var addTransactionForm = document.querySelector('#add-transaction-modal form');
+const addTransactionForm = document.querySelector('#add-transaction-modal form');
 if (addTransactionForm) {
   addTransactionForm.addEventListener('submit', function(e) {
     if (transactionMode === 'category') {
