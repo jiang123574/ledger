@@ -1,9 +1,12 @@
 package com.ledger.app.navigation
 
+import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import dev.hotwire.turbo.config.TurboPathConfiguration
 import dev.hotwire.turbo.session.TurboSessionNavHostFragment
+import dev.hotwire.turbo.nav.TurboNavGraphBuilder
 import com.ledger.app.BuildConfig
 import kotlin.reflect.KClass
 
@@ -40,7 +43,35 @@ class MainNavHostFragment : TurboSessionNavHostFragment() {
 
     override fun onSessionCreated() {
         super.onSessionCreated()
-        // Session 创建后的初始化
-        // 后续可在此添加自定义 WebView 设置
+        Log.d("MainNavHost", "Session created, startLocation=$startLocation")
+        Log.d("MainNavHost", "Path config rules count: ${session.pathConfiguration.let {
+            try {
+                it.properties(startLocation).toString()
+            } catch (e: Exception) {
+                "ERROR: ${e.message}"
+            }
+        }}")
+    }
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        try {
+            super.onCreate(savedInstanceState)
+        } catch (e: Exception) {
+            Log.e("MainNavHost", "Turbo init failed, falling back", e)
+            // Fallback: 重新加载 path config 再试
+            session.pathConfiguration.load(pathConfigurationLocation)
+            try {
+                navController.graph = TurboNavGraphBuilder(
+                    startLocation = startLocation,
+                    pathConfiguration = session.pathConfiguration,
+                    navController = findNavController()
+                ).build(
+                    registeredActivities = registeredActivities,
+                    registeredFragments = registeredFragments
+                )
+            } catch (e2: Exception) {
+                Log.e("MainNavHost", "Fallback also failed", e2)
+            }
+        }
     }
 }
