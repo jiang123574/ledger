@@ -32,6 +32,12 @@ class TransactionsController < ApplicationController
       type = category&.category_type || type
     end
 
+    # 负数支出自动转为收入（退款/流入）
+    if type == "EXPENSE" && amount < 0
+      type = "INCOME"
+      amount = amount.abs
+    end
+
     if type == "TRANSFER"
       create_transfer_entry(account_id, target_account_id, amount, date, currency, note)
     elsif create_expense_with_funding_transfer?
@@ -140,6 +146,15 @@ class TransactionsController < ApplicationController
     if attrs[:type].present?
       kind = attrs[:type].downcase
       amount = attrs[:amount].to_d
+
+      # 负数支出自动转为收入（退款/流入）
+      if kind == "expense" && amount < 0
+        kind = "income"
+        amount = amount.abs
+        # 同步更新 entryable 的 kind
+        @entry.entryable.kind = "income" if @entry.entryable.is_a?(Entryable::Transaction)
+      end
+
       if kind == "transfer"
         @entry.amount = -amount.abs
       elsif kind == "income"

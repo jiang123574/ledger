@@ -61,8 +61,17 @@ class EntriesController < ApplicationController
   def build_entry
     attrs = entry_params
 
+    kind = attrs[:kind] || "expense"
+    raw_amount = attrs[:amount].to_d
+
+    # 负数支出自动转为收入（退款/流入）
+    if kind == "expense" && raw_amount < 0
+      kind = "income"
+      raw_amount = raw_amount.abs
+    end
+
     entryable_attrs = {
-      kind: attrs[:kind] || "expense",
+      kind: kind,
       category_id: attrs[:category_id]
     }
 
@@ -73,8 +82,8 @@ class EntriesController < ApplicationController
     entry = Entry.new(
       account_id: attrs[:account_id],
       date: attrs[:date],
-      name: attrs[:name] || "#{attrs[:kind] == 'income' ? '收入' : '支出'} #{attrs[:amount]}",
-      amount: attrs[:kind] == "income" ? attrs[:amount].to_d : -attrs[:amount].to_d,
+      name: attrs[:name] || "#{kind == 'income' ? '收入' : '支出'} #{raw_amount}",
+      amount: kind == "income" ? raw_amount : -raw_amount,
       currency: attrs[:currency] || "CNY",
       notes: attrs[:notes]
     )
