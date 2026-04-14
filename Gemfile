@@ -81,6 +81,9 @@ group :development do
   # Detect N+1 queries in development
   gem "bullet"
 
+  # Request-level performance profiling (CPU, memory, SQL timing)
+  gem "rack-mini-profiler", require: false
+
   # Process manager for development (Tailwind CSS watch + Rails server)
   gem "foreman"
 
