@@ -5,6 +5,9 @@ class ApplicationController < ActionController::Base
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
 
+  # ============ 安全头 ============
+  before_action :set_security_headers
+
   # ============ Session-based Auth 全站保护 ============
   # 个人记账工具部署在公网，必须有访问控制
   # 通过 AUTH_USER / AUTH_PASSWORD 环境变量配置
@@ -18,6 +21,14 @@ class ApplicationController < ActionController::Base
   before_action :require_login
 
   private
+
+  def set_security_headers
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+  end
 
   def require_login
     return unless auth_configured?
