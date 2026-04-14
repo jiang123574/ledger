@@ -254,7 +254,11 @@ class AccountDashboardService
 
     if @params[:search].present?
       search_term = "%#{@params[:search].to_s.gsub(/[%_]/) { |char| "\\#{char}" }}%"
-      entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
+      entries = entries
+        .joins("LEFT JOIN entryable_transactions AS st ON entries.entryable_id = st.id AND entries.entryable_type = 'Entryable::Transaction'")
+        .joins("LEFT JOIN categories AS sc ON st.category_id = sc.id")
+        .where("entries.name LIKE ? OR entries.notes LIKE ? OR sc.name LIKE ? OR CAST(ABS(entries.amount) AS TEXT) LIKE ?",
+               search_term, search_term, search_term, search_term)
     end
 
     # 支持排序方向参数 (asc 或 desc)，默认 desc (倒序)
