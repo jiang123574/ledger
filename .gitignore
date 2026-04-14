@@ -66,3 +66,10 @@ app/assets/stylesheets/application.css
 
 # Temp planning files
 /temp/
+
+# IDE
+.idea/
+
+# Keystore
+*.jks
+

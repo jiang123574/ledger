@@ -1174,14 +1174,31 @@ function reinitializePageScripts() {
     });
   }
 
-  // 重新绑定搜索框 Enter 和 input 防抖事件
+  // 重新绑定搜索框 IME composition 事件
   const searchInput = document.getElementById('search-input');
   if (searchInput && !searchInput._bound) {
     searchInput._bound = true;
-    searchInput.addEventListener('keypress', function(e) {
-      if (e.key === 'Enter') applyFilters();
+    searchInput._isComposing = false;
+
+    searchInput.addEventListener('compositionstart', function() {
+      this._isComposing = true;
     });
-    searchInput.addEventListener('input', debouncedApplyFilters);
+
+    searchInput.addEventListener('compositionend', function() {
+      this._isComposing = false;
+      debouncedApplyFilters();
+    });
+
+    searchInput.addEventListener('input', function() {
+      if (this._isComposing) return;
+      debouncedApplyFilters();
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !this._isComposing) {
+        applyFilters();
+      }
+    });
   }
 
   // 重新绑定筛选下拉 change 事件
@@ -1307,15 +1324,36 @@ function toggleShowHidden() {
   window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
-// 回车搜索
-document.getElementById('search-input')?.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    applyFilters();
-  }
-});
+// 搜索输入 IME composition 处理
+// 中文输入法打拼音时，compositionstart 触发后每敲一个字母都会触发 input
+// 需要等 compositionend 后才执行搜索
+const _searchInput = document.getElementById('search-input');
+if (_searchInput && !_searchInput._imeInit) {
+  _searchInput._imeInit = true;
+  _searchInput._isComposing = false;
 
-// 搜索输入防抖
-document.getElementById('search-input')?.addEventListener('input', debouncedApplyFilters);
+  _searchInput.addEventListener('compositionstart', function() {
+    this._isComposing = true;
+  });
+
+  _searchInput.addEventListener('compositionend', function() {
+    this._isComposing = false;
+    // 输入法确认后触发搜索
+    debouncedApplyFilters();
+  });
+
+  _searchInput.addEventListener('input', function(e) {
+    // 输入法输入中不触发搜索
+    if (this._isComposing) return;
+    debouncedApplyFilters();
+  });
+
+  _searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !this._isComposing) {
+      applyFilters();
+    }
+  });
+}
 
 function syncPeriodInputType() {
   const periodTypeEl = document.getElementById('period-type-filter');
