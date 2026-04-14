@@ -84,8 +84,8 @@ class Entry < ApplicationRecord
   }
 
   scope :incomes, -> {
-    transactions_only.non_transfers
-      .where("amount > 0")
+    transactions_only.non_transfers.with_entryable_transaction
+      .where(entryable_transactions: { kind: "income" })
   }
 
   def transaction?
