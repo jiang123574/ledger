@@ -40,18 +40,17 @@ class DashboardController < ApplicationController
 
     # Cache monthly stats
     @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
-      entries = Entry.with_entryable_transaction
-        .where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
+      entries = Entry.where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
         .where("transfer_id IS NULL")
       {
-        income: entries.where(entryable_transactions: { kind: "income" }).sum(:amount),
-        expense: entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1"),
+        income: entries.where("amount > 0").sum(:amount),
+        expense: entries.where("amount < 0").sum("ABS(amount)"),
+        balance: entries.where("amount > 0").sum(:amount) - entries.where("amount < 0").sum("ABS(amount)"),
         count: entries.count
       }
     end
     @total_income = @monthly_stats[:income]
     @total_expense = @monthly_stats[:expense]
-    @monthly_stats[:balance] = @total_income - @total_expense
 
     # Cache expenses by category
     expenses_data = Rails.cache.fetch("dashboard/expenses/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
@@ -60,9 +59,9 @@ class DashboardController < ApplicationController
         .non_transfers
         .where(date: start_date..end_date)
         .where(entryable_transactions: { kind: "expense" })
-        .select("categories.id AS category_id, categories.name AS category_name, SUM(entries.amount * -1) AS total_amount")
+        .select("categories.id AS category_id, categories.name AS category_name, SUM(ABS(entries.amount)) AS total_amount")
         .group("categories.id, categories.name")
-        .order(Arel.sql("SUM(entries.amount * -1) DESC"))
+        .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
         .to_a
     end
 
@@ -78,7 +77,7 @@ class DashboardController < ApplicationController
         .non_transfers
         .where(entryable_transactions: { kind: "expense", category_id: @budgets.pluck(:category_id) })
         .where(date: start_date..end_date)
-        .sum("entries.amount * -1")
+        .sum("ABS(entries.amount)")
     end
 
     # Trend chart data for current month (weekly)
@@ -105,7 +104,7 @@ class DashboardController < ApplicationController
       .non_transfers
       .where(date: start_date..end_date)
       .group("date_trunc('week', entries.date)", "entryable_transactions.kind")
-      .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END) as total")
+      .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
       .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
     stats_by_week = stats.group_by { |s| s[:week] }

@@ -89,13 +89,11 @@ class Account < ApplicationRecord
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
 
-    month_entries = transaction_entries
-      .joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id AND entries.entryable_type = 'Entryable::Transaction'")
-      .where(date: start_date..end_date)
+    month_entries = transaction_entries.where(date: start_date..end_date)
 
     {
-      income: month_entries.where(entryable_transactions: { kind: "income" }).sum(:amount),
-      expense: month_entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
+      income: month_entries.where("amount > 0").sum(:amount),
+      expense: month_entries.where("amount < 0").sum("ABS(amount)")
     }
   end
 
@@ -108,11 +106,9 @@ class Account < ApplicationRecord
   end
 
   def cash_flow(from_date, to_date)
-    period_entries = transaction_entries
-      .joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id AND entries.entryable_type = 'Entryable::Transaction'")
-      .where(date: from_date..to_date)
-    income = period_entries.where(entryable_transactions: { kind: "income" }).sum(:amount)
-    expense = period_entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
+    period_entries = transaction_entries.where(date: from_date..to_date)
+    income = period_entries.where("amount > 0").sum(:amount)
+    expense = period_entries.where("amount < 0").sum("ABS(amount)")
     { income: income, expense: expense, net: income - expense }
   end
 
