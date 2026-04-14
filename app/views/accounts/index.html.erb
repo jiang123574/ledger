@@ -326,6 +326,7 @@
               is_transfer = entry_type == 'TRANSFER'
               current_account_filter = params[:account_id].to_s
               is_inflow = is_transfer && e.amount.positive?
+              flow_type = e.display_flow_type
               display_type = if is_transfer
                 if current_account_filter.blank?
                   "转账"
@@ -342,7 +343,7 @@
                   is_inflow ? "INCOME" : "EXPENSE"
                 end
               else
-                entry_type
+                flow_type
               end
               transfer_counterpart = if is_inflow
                 e.source_account_for_transfer&.name

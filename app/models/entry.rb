@@ -127,6 +127,25 @@ class Entry < ApplicationRecord
     amount.abs
   end
 
+  # 实际流向（考虑正数支出=流入的情况）
+  def display_flow_type
+    if transfer_id.present?
+      amount.positive? ? "INCOME" : "EXPENSE"
+    elsif entryable.respond_to?(:kind)
+      k = entryable.kind.upcase
+      # 正数支出 = 流入（退款），负数收入 = 流出
+      if k == "EXPENSE" && amount.positive?
+        "INCOME"
+      elsif k == "INCOME" && amount.negative?
+        "EXPENSE"
+      else
+        k
+      end
+    else
+      amount.positive? ? "INCOME" : "EXPENSE"
+    end
+  end
+
   # 分类（兼容旧视图）
   def display_category
     entryable.respond_to?(:category) ? entryable.category : nil
