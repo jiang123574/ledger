@@ -59,9 +59,9 @@ class DashboardController < ApplicationController
         .non_transfers
         .where(date: start_date..end_date)
         .where(entryable_transactions: { kind: "expense" })
-        .select("categories.id AS category_id, categories.name AS category_name, SUM(ABS(entries.amount)) AS total_amount")
+        .select("categories.id AS category_id, categories.name AS category_name, SUM(entries.amount * -1) AS total_amount")
         .group("categories.id, categories.name")
-        .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
+        .order(Arel.sql("SUM(entries.amount * -1) DESC"))
         .to_a
     end
 
@@ -77,7 +77,7 @@ class DashboardController < ApplicationController
         .non_transfers
         .where(entryable_transactions: { kind: "expense", category_id: @budgets.pluck(:category_id) })
         .where(date: start_date..end_date)
-        .sum("ABS(entries.amount)")
+        .sum("entries.amount * -1")
     end
 
     # Trend chart data for current month (weekly)
@@ -104,7 +104,7 @@ class DashboardController < ApplicationController
       .non_transfers
       .where(date: start_date..end_date)
       .group("date_trunc('week', entries.date)", "entryable_transactions.kind")
-      .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(ABS(entries.amount)) as total")
+      .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END) as total")
       .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
     stats_by_week = stats.group_by { |s| s[:week] }

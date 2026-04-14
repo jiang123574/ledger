@@ -95,7 +95,7 @@ class Account < ApplicationRecord
 
     {
       income: month_entries.where(entryable_transactions: { kind: "income" }).sum(:amount),
-      expense: month_entries.where(entryable_transactions: { kind: "expense" }).sum("ABS(entries.amount)")
+      expense: month_entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
     }
   end
 
@@ -112,7 +112,7 @@ class Account < ApplicationRecord
       .joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id AND entries.entryable_type = 'Entryable::Transaction'")
       .where(date: from_date..to_date)
     income = period_entries.where(entryable_transactions: { kind: "income" }).sum(:amount)
-    expense = period_entries.where(entryable_transactions: { kind: "expense" }).sum("ABS(entries.amount)")
+    expense = period_entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
     { income: income, expense: expense, net: income - expense }
   end
 

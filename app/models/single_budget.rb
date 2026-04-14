@@ -40,7 +40,7 @@ class SingleBudget < ApplicationRecord
         .where(entryable_type: "Entryable::Transaction")
         .where(entryable_transactions: { category_id: category_ids })
         .where(date: start_date..end_date_val)
-        .sum("ABS(entries.amount)")
+        .sum("entries.amount * -1")
 
       update(spent_amount: spent)
     else
