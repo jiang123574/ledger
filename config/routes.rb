@@ -38,9 +38,9 @@ Rails.application.routes.draw do
       get :versions
       get :bills
       get :bills_entries
-      post :create_bill_statement
       patch :reorder_entries
     end
+    post "bill_statements", to: "accounts/bill_statements#create", as: :create_bill_statement
     collection do
       get :stats
       get :entries

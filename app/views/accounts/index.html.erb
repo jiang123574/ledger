@@ -2947,7 +2947,7 @@ if (!window.modalSelectorsInitialized) {
       alert('请填写账单日期和金额');
       return;
     }
-    fetch('/accounts/' + accountId + '/create_bill_statement', {
+    fetch('/accounts/' + accountId + '/bill_statements', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content },
       body: JSON.stringify({ billing_date: billingDate, statement_amount: amount })
