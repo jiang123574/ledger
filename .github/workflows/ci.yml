@@ -1,0 +1,82 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  quality:
+    name: Code Quality
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: ledger_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    env:
+      RAILS_ENV: test
+      DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledger_test
+      RAILS_MASTER_KEY: test_key_for_ci
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: |
+          yarn install --frozen-lockfile
+          bundle exec rails db:prepare
+
+      - name: RuboCop (Style)
+        run: bundle exec rubocop
+
+      - name: Brakeman (Security)
+        run: bundle exec brakeman --quiet --no-pager
+
+      - name: Bundler Audit (Dependency Security)
+        run: bundle exec bundler-audit check --update
+
+      - name: Flog (Code Complexity)
+        run: |
+          bundle exec flog -s app/ | head -30
+          # Warn on methods with complexity > 30, don't fail
+
+      - name: Reek (Code Smells)
+        run: bundle exec reek app/ || true
+
+      - name: RSpec (Tests)
+        run: bundle exec rspec --format progress
+
+      - name: Coverage Gate
+        run: |
+          COVERAGE=$(bundle exec rspec --format json 2>/dev/null | ruby -rjson -e 'puts JSON.parse(STDIN.read)["coverage"]["line"] rescue puts "0"')
+          echo "Line coverage: ${COVERAGE}%"
+          if (( $(echo "$COVERAGE < 80" | bc -l) )); then
+            echo "::error::Test coverage (${COVERAGE}%) is below 80% threshold"
+            exit 1
+          fi

@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Run reek to detect code smells
+# Reek identifies common Ruby code smells
+
+set -e
+
+echo "Running reek (code smell detection)..."
+
+# Run reek on app directory
+reek --no-color app/ 2>/dev/null
+
+EXIT_CODE=$?
+
+if [ $EXIT_CODE -eq 0 ]; then
+  echo "✅ No code smells detected"
+else
+  echo ""
+  echo "⚠️  Code smells detected. Review the warnings above."
+  echo "Run 'reek app/' for detailed output."
+fi
+
+# Don't fail CI on code smells - just warn
+exit 0

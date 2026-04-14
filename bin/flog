@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Run flog to check code complexity
+# Flog measures code complexity - higher scores = more complex code
+# Threshold: methods with score > 30 should be refactored
+
+set -e
+
+THRESHOLD=${1:-30}
+echo "Running flog (complexity threshold: ${THRESHOLD})..."
+
+# Analyze app directory, skip files with complexity > threshold
+flog -s app/ 2>/dev/null | head -30
+
+# Check for any method exceeding threshold
+HIGH_COMPLEXITY=$(flog -s app/ 2>/dev/null | awk -v threshold="$THRESHOLD" 'NR>1 && $1+0 > threshold {print}')
+
+if [ -n "$HIGH_COMPLEXITY" ]; then
+  echo ""
+  echo "⚠️  Methods exceeding complexity threshold (${THRESHOLD}):"
+  echo "$HIGH_COMPLEXITY"
+  echo ""
+  echo "Consider refactoring these methods to reduce complexity."
+  exit 0  # Warning only, don't fail CI
+else
+  echo "✅ All methods within complexity threshold (${THRESHOLD})"
+  exit 0
+fi
