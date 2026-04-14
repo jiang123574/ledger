@@ -134,14 +134,15 @@ class ReportsController < ApplicationController
   end
 
   def load_category_stats(kind)
+    amount_expr = kind == "expense" ? "entries.amount * -1" : "entries.amount"
     Entry.with_category
       .transactions_only
       .non_transfers
       .where(entryable_transactions: { kind: kind })
       .where(date: @start_date..@end_date)
       .group("categories.name")
-      .order(Arel.sql("SUM(entries.amount * -1) DESC"))
-      .sum("entries.amount * -1")
+      .order(Arel.sql("SUM(#{amount_expr}) DESC"))
+      .sum(amount_expr)
   end
 
   def load_budget_data
