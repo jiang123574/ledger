@@ -7,9 +7,8 @@
     android:fitsSystemWindows="true">
 
     <!-- Turbo WebView 容器 -->
-    <fragment
+    <FrameLayout
         android:id="@+id/nav_host_fragment"
-        android:name="com.ledger.app.navigation.MainNavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />

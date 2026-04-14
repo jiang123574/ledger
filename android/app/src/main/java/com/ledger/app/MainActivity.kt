@@ -13,6 +13,7 @@ import com.ledger.app.bridge.BiometricBridge
 import com.ledger.app.bridge.FilePickerBridge
 import com.ledger.app.bridge.NativeBridge
 import com.ledger.app.bridge.ShareBridge
+import com.ledger.app.navigation.MainNavHostFragment
 import com.ledger.app.turbo.TurboWebViewFragment
 
 /**
@@ -52,10 +53,21 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
     }
 
     private fun setupNavigation() {
-        val navHostFragment = supportFragmentManager
-            .findFragmentById(R.id.nav_host_fragment) as? NavHostFragment ?: return
-        val navController = navHostFragment.navController
+        val existingFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as? NavHostFragment
 
+        val navHostFragment = if (existingFragment != null) {
+            existingFragment
+        } else {
+            val fragment = MainNavHostFragment()
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.nav_host_fragment, fragment)
+                .setPrimaryNavigationFragment(fragment)
+                .commitNow()
+            fragment
+        }
+
+        val navController = navHostFragment.navController
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setupWithNavController(navController)
     }
