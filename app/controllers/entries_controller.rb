@@ -64,6 +64,12 @@ class EntriesController < ApplicationController
     kind = attrs[:kind] || "expense"
     raw_amount = attrs[:amount].to_d
 
+    # 负数支出自动转为收入（退款/流入）
+    if kind == "expense" && raw_amount < 0
+      kind = "income"
+      raw_amount = raw_amount.abs
+    end
+
     entryable_attrs = {
       kind: kind,
       category_id: attrs[:category_id]
