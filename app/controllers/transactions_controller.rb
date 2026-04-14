@@ -140,6 +140,7 @@ class TransactionsController < ApplicationController
     if attrs[:type].present?
       kind = attrs[:type].downcase
       amount = attrs[:amount].to_d
+
       if kind == "transfer"
         @entry.amount = -amount.abs
       elsif kind == "income"

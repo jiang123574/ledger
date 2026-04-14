@@ -326,6 +326,7 @@
               is_transfer = entry_type == 'TRANSFER'
               current_account_filter = params[:account_id].to_s
               is_inflow = is_transfer && e.amount.positive?
+              flow_type = e.display_flow_type
               display_type = if is_transfer
                 if current_account_filter.blank?
                   "转账"
@@ -342,7 +343,7 @@
                   is_inflow ? "INCOME" : "EXPENSE"
                 end
               else
-                entry_type
+                flow_type
               end
               transfer_counterpart = if is_inflow
                 e.source_account_for_transfer&.name
@@ -1038,6 +1039,7 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <script>
+(function() {
 // 防抖函数
 function debounce(func, wait) {
   var timeout;
@@ -1156,14 +1158,52 @@ function reinitializePageScripts() {
 
   // 重新初始化日期筛选显示
   if (typeof syncPeriodInputType === 'function') syncPeriodInputType();
+
+  // 重新绑定分类筛选按钮事件
+  const categoryFilterBtn = document.getElementById('open-category-filter');
+  if (categoryFilterBtn && !categoryFilterBtn._bound) {
+    categoryFilterBtn._bound = true;
+    categoryFilterBtn.addEventListener('click', function() {
+      document.getElementById('category-filter-modal').classList.remove('hidden');
+      document.getElementById('category-filter-search').value = '';
+      document.getElementById('category-filter-search').focus();
+      const sections = document.querySelectorAll('.category-type-section');
+      sections.forEach(function(s) { s.style.removeProperty('display'); });
+      const items = document.querySelectorAll('.category-filter-item');
+      items.forEach(function(item) { item.style.removeProperty('display'); });
+    });
+  }
+
+  // 重新绑定搜索框 Enter 和 input 防抖事件
+  const searchInput = document.getElementById('search-input');
+  if (searchInput && !searchInput._bound) {
+    searchInput._bound = true;
+    searchInput.addEventListener('keypress', function(e) {
+      if (e.key === 'Enter') applyFilters();
+    });
+    searchInput.addEventListener('input', debouncedApplyFilters);
+  }
+
+  // 重新绑定筛选下拉 change 事件
+  const periodTypeFilter = document.getElementById('period-type-filter');
+  if (periodTypeFilter && !periodTypeFilter._bound) {
+    periodTypeFilter._bound = true;
+    periodTypeFilter.addEventListener('change', syncPeriodInputType);
+    periodTypeFilter.addEventListener('change', applyFilters);
+  }
+  const typeFilter = document.getElementById('type-filter');
+  if (typeFilter && !typeFilter._bound) {
+    typeFilter._bound = true;
+    typeFilter.addEventListener('change', applyFilters);
+  }
 }
 
 // 筛选功能
 // 使用 window 全局变量，避免 Turbo 导航时重复声明
 window.selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
-const selectedCategoryIds = window.selectedCategoryIds;
+var selectedCategoryIds = window.selectedCategoryIds;
 window.currentPage = <%= @page %>;
-const currentPage = window.currentPage;
+var currentPage = window.currentPage;
 
 function applyFilters() {
   const params = new URLSearchParams();
@@ -1192,7 +1232,7 @@ function applyFilters() {
 }
 
 // 防抖筛选
-const debouncedApplyFilters = debounce(applyFilters, 500);
+var debouncedApplyFilters = debounce(applyFilters, 500);
 
 function clearFilters() {
   const accountId = '<%= params[:account_id] %>';
@@ -1344,8 +1384,8 @@ function updatePeriodValueDisplay() {
   displayEl.textContent = formatPeriodValue(periodValueEl.value, periodTypeEl.value);
 }
 
-let pickerCurrentYear = new Date().getFullYear();
-let pickerPanelOpen = false;
+var pickerCurrentYear = new Date().getFullYear();
+var pickerPanelOpen = false;
 
 function togglePeriodPicker() {
   const panel = document.getElementById('period-picker-panel');
@@ -1648,18 +1688,18 @@ document.getElementById('confirm-category-filter')?.addEventListener('click', fu
 
 updateCategoryFilterButtonLabel();
 
-const transactionTypeInput = document.getElementById('transaction-type-input');
-const targetAccountField = document.getElementById('target-account-field');
-const targetAccountHiddenInput = document.getElementById('target_account_id');
-const targetAccountSearchInput = document.getElementById('target-account-search-input');
-const fundingAccountField = document.getElementById('funding-account-field');
-const fundingAccountHiddenInput = document.getElementById('funding_account_id');
-const fundingAccountSearchInput = document.getElementById('funding-account-search-input');
-const categoryField = document.getElementById('transaction-category-field');
-const toggleTransferBtn = document.getElementById('toggle-transfer-btn');
+var transactionTypeInput = document.getElementById('transaction-type-input');
+var targetAccountField = document.getElementById('target-account-field');
+var targetAccountHiddenInput = document.getElementById('target_account_id');
+var targetAccountSearchInput = document.getElementById('target-account-search-input');
+var fundingAccountField = document.getElementById('funding-account-field');
+var fundingAccountHiddenInput = document.getElementById('funding_account_id');
+var fundingAccountSearchInput = document.getElementById('funding-account-search-input');
+var categoryField = document.getElementById('transaction-category-field');
+var toggleTransferBtn = document.getElementById('toggle-transfer-btn');
 
 // 当前模式: 'category'（收支） 或 'transfer'（转账）
-let transactionMode = 'category';
+var transactionMode = 'category';
 
 // 切换转账模式
 function toggleTransferMode() {
@@ -1722,22 +1762,22 @@ if (toggleTransferBtn) {
   toggleTransferBtn.addEventListener('click', toggleTransferMode);
 }
 // 切换转账按钮（转账模式中的"收支"按钮）
-const toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
+var toggleTransferBtnAlt = document.getElementById('toggle-transfer-btn-alt');
 if (toggleTransferBtnAlt) {
   toggleTransferBtnAlt.addEventListener('click', toggleTransferMode);
 }
 
 // 分类选择器逻辑
-const categorySearchInput = document.getElementById('category-search-input');
-const categoryDropdown = document.getElementById('category-dropdown');
-const categoryFilterInput = document.getElementById('category-filter-input');
-const categoryOptions = document.getElementById('category-options');
-const categoryHiddenInput = document.getElementById('new_transaction_category_id');
+var categorySearchInput = document.getElementById('category-search-input');
+var categoryDropdown = document.getElementById('category-dropdown');
+var categoryFilterInput = document.getElementById('category-filter-input');
+var categoryOptions = document.getElementById('category-options');
+var categoryHiddenInput = document.getElementById('new_transaction_category_id');
 var allCategories = [];
-let currentCategoryType = 'EXPENSE';
+var currentCategoryType = 'EXPENSE';
 
 // 从合并数据加载全部分类
-const allCategoriesDataEl = document.getElementById('all-categories-data');
+var allCategoriesDataEl = document.getElementById('all-categories-data');
 if (allCategoriesDataEl) {
   allCategories = JSON.parse(allCategoriesDataEl.textContent);
 }
@@ -2139,7 +2179,7 @@ initAccountSelector('funding-account-search-input', 'funding-account-dropdown', 
 initAccountSelector('target-account-search-input', 'target-account-dropdown', 'target-account-filter-input', 'target-account-options', 'target_account_id', '选择转入账户');
 
 // 表单提交前，根据模式将正确的 account_id 写入 transaction[account_id]
-const addTransactionForm = document.querySelector('#add-transaction-modal form');
+var addTransactionForm = document.querySelector('#add-transaction-modal form');
 if (addTransactionForm) {
   addTransactionForm.addEventListener('submit', function(e) {
     if (transactionMode === 'category') {
@@ -2233,6 +2273,29 @@ document.addEventListener('turbo:load', function() {
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
 });
+
+// 暴露 inline handler 需要的函数到 window
+window.toggleAccountList = toggleAccountList;
+window.viewAllTransactions = viewAllTransactions;
+window.filterByAccount = filterByAccount;
+window.clearAccountFilter = clearAccountFilter;
+window.toggleShowHidden = toggleShowHidden;
+window.togglePeriodPicker = togglePeriodPicker;
+window.shiftPickerYear = shiftPickerYear;
+window.shiftPeriod = shiftPeriod;
+window.clearFilters = clearFilters;
+window.openNewTransactionModal = openNewTransactionModal;
+window.openEditTransactionModal = openEditTransactionModal;
+window.submitAndContinue = submitAndContinue;
+window.swapTransferAccounts = swapTransferAccounts;
+window.confirmDeleteTransaction = confirmDeleteTransaction;
+window.applyFilters = applyFilters;
+window.syncPeriodInputType = syncPeriodInputType;
+window.refreshMainContent = refreshMainContent;
+window.updateAccountHighlight = updateAccountHighlight;
+window.reinitializePageScripts = reinitializePageScripts;
+window.debounce = debounce;
+})();
 </script>
 
 <%= render 'shared/receivable_form_modal', counterparties: @counterparties %>
