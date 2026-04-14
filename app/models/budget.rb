@@ -27,7 +27,7 @@ class Budget < ApplicationRecord
       query = query.where(entryable_transactions: { category_id: category_id })
     end
 
-    query.sum("ABS(entries.amount)")
+    query.sum("entries.amount * -1")
   end
 
   # 已废弃：使用 spent_amount（基于 Entry 模型）
