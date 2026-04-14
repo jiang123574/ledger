@@ -159,7 +159,6 @@ class TransactionsController < ApplicationController
       elsif kind == "income"
         @entry.amount = amount
       else
-        # 支出取反（正常支出为负数，退款/流入为正数）
         @entry.amount = -amount
       end
     end
