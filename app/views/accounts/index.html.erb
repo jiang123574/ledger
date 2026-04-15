@@ -522,7 +522,7 @@
         </div>
       <% end %>
     </div>
-  <div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+  <div id="credit-bill-wrapper" data-controller="bill-statement" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-bill-statement-account-id-value="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
   <!-- 期数选择器 -->
   <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
     <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>

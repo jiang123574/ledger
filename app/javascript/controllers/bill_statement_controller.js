@@ -48,11 +48,7 @@ export default class extends Controller {
   }
 
   init() {
-    const wrapper = document.getElementById("credit-bill-wrapper")
-    const accountId = this.accountIdValue || wrapper?.dataset?.accountId
-    if (!accountId) return
-
-    this.accountIdValue = accountId
+    if (!this.accountIdValue) return
     this.loadBillsWithCount(this.currentBillCount)
   }
 
@@ -166,9 +162,8 @@ export default class extends Controller {
       container.querySelectorAll(":scope > div").forEach(card => {
         const isCardSelected = card.dataset.label === label
         card.className = card.className
-          .replace(/ring-\w+-\d+/g, "").trim()
+          .replace(/ring-2 ring-blue-\d+/g, "").trim()
           .replace(/bg-blue-100 dark:bg-blue-900\/40/g, "")
-          .replace(/ring-2 ring-blue-400/g, "")
         if (isCardSelected) {
           card.className += " bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400"
         }
@@ -282,9 +277,16 @@ export default class extends Controller {
 
   // === 工具方法 ===
 
-  dispatchBillEntriesEvent(eventName, detail = {}) {
+  dispatchBillEntriesEvent(eventName, detail = {}, retryCount = 0) {
     const container = document.getElementById("bill-detail-section")
     if (!container) return false
+    // 等待 credit-bill-entries controller 初始化完成（最多重试 20 次 = 1 秒）
+    if (container.dataset.creditBillEntriesReady !== "true") {
+      if (retryCount < 20) {
+        setTimeout(() => this.dispatchBillEntriesEvent(eventName, detail, retryCount + 1), 50)
+      }
+      return false
+    }
     container.dispatchEvent(new CustomEvent(eventName, { detail, bubbles: true }))
     return true
   }
