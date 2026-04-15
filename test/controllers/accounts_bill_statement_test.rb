@@ -81,7 +81,7 @@ class AccountsBillStatementTest < ActionDispatch::IntegrationTest
     assert_response :success
 
     data = JSON.parse(response.body)
-    assert_equal 3500.0, data["statement"]["statement_amount"]
+    assert_in_delta 3500.0, data["statement"]["statement_amount"].to_f, 0.005
 
     # 验证只有一条记录
     assert_equal 1, @credit_card.bill_statements.count

@@ -3,7 +3,7 @@ require "test_helper"
 class AccountBillTest < ActiveSupport::TestCase
   setup do
     @category = FactoryBot.create(:category)
-    @credit_card = FactoryBot.create(:account, :credit_card, billing_day: 16)
+    @credit_card = FactoryBot.create(:account, :credit_card)
   end
 
   # === bill_cycles_with_statement 正向计算 ===
@@ -34,9 +34,8 @@ class AccountBillTest < ActiveSupport::TestCase
 
     # 基准周期（02月）应直接使用存储值
     feb_cycle = cycles.find { |c| c[:end_date].month == 2 }
-    if feb_cycle
-      assert_in_delta 3000.00, feb_cycle[:statement_amount].to_f, 0.005
-    end
+    assert feb_cycle, "Expected to find February cycle"
+    assert_in_delta 3000.00, feb_cycle[:statement_amount].to_f, 0.005
   end
 
   test "bill_cycles_with_statement formula: current = spend - repay + prev" do
@@ -55,10 +54,10 @@ class AccountBillTest < ActiveSupport::TestCase
     cycles = @credit_card.bill_cycles_with_statement(6)
 
     mar_cycle = cycles.find { |c| c[:end_date].month == 3 }
-    if mar_cycle && mar_cycle[:statement_amount]
-      assert_in_delta 3300.00, mar_cycle[:statement_amount].to_f, 0.005,
-        "03月账单 = 500消费 - 200还款 + 3000上期 = 3300"
-    end
+    assert mar_cycle, "Expected to find March cycle"
+    assert mar_cycle[:statement_amount], "Expected statement_amount for March"
+    assert_in_delta 3300.00, mar_cycle[:statement_amount].to_f, 0.005,
+      "03月账单 = 500消费 - 200还款 + 3000上期 = 3300"
   end
 
   test "bill_cycles_with_statement multiple months forward" do
@@ -79,10 +78,10 @@ class AccountBillTest < ActiveSupport::TestCase
     cycles = @credit_card.bill_cycles_with_statement(6)
 
     apr_cycle = cycles.find { |c| c[:end_date].month == 4 }
-    if apr_cycle && apr_cycle[:statement_amount]
-      assert_in_delta 0.00, apr_cycle[:statement_amount].to_f, 0.005,
-        "04月账单 = 200消费 - 4000还款 + 3800上期 = 0"
-    end
+    assert apr_cycle, "Expected to find April cycle"
+    assert apr_cycle[:statement_amount], "Expected statement_amount for April"
+    assert_in_delta 0.00, apr_cycle[:statement_amount].to_f, 0.005,
+      "04月账单 = 200消费 - 4000还款 + 3800上期 = 0"
   end
 
   # === bill_cycles_with_statement 反向计算 ===
@@ -103,10 +102,10 @@ class AccountBillTest < ActiveSupport::TestCase
     cycles = @credit_card.bill_cycles_with_statement(6)
 
     feb_cycle = cycles.find { |c| c[:end_date].month == 2 }
-    if feb_cycle && feb_cycle[:statement_amount]
-      assert_in_delta 2000.00, feb_cycle[:statement_amount].to_f, 0.005,
-        "反向: 02月 = 2500 - (600 - 100) = 2000"
-    end
+    assert feb_cycle, "Expected to find February cycle"
+    assert feb_cycle[:statement_amount], "Expected statement_amount for February"
+    assert_in_delta 2000.00, feb_cycle[:statement_amount].to_f, 0.005,
+      "反向: 02月 = 2500 - (600 - 100) = 2000"
   end
 
   # === 精度测试 ===
@@ -125,12 +124,12 @@ class AccountBillTest < ActiveSupport::TestCase
     cycles = @credit_card.bill_cycles_with_statement(6)
 
     mar_cycle = cycles.find { |c| c[:end_date].month == 3 }
-    if mar_cycle && mar_cycle[:statement_amount]
-      # 3000.33 + 199.99 - 50.01 = 3150.31
-      assert_in_delta 3150.31, mar_cycle[:statement_amount].to_f, 0.005
-      # 验证精度：只有 2 位小数
-      assert_equal mar_cycle[:statement_amount].to_f.round(2), mar_cycle[:statement_amount].to_f
-    end
+    assert mar_cycle, "Expected to find March cycle"
+    assert mar_cycle[:statement_amount], "Expected statement_amount for March"
+    # 3000.33 + 199.99 - 50.01 = 3150.31
+    assert_in_delta 3150.31, mar_cycle[:statement_amount].to_f, 0.005
+    # 验证精度：只有 2 位小数
+    assert_equal mar_cycle[:statement_amount].to_f.round(2), mar_cycle[:statement_amount].to_f
   end
 
   # === bill_cycles 返回值基本结构 ===
