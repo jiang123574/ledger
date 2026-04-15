@@ -30,7 +30,7 @@ RSpec.describe ApplicationComponent do
 
     it "handles arrays" do
       component = Class.new { include ApplicationComponent }.new
-      expect(component.classes(["foo", "bar"], "baz")).to eq("foo bar baz")
+      expect(component.classes([ "foo", "bar" ], "baz")).to eq("foo bar baz")
     end
 
     it "compacts nil values" do

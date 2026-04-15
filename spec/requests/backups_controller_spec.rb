@@ -23,23 +23,23 @@ RSpec.describe BackupsController, type: :request do
         FileUtils.mkdir_p(File.dirname(file_path))
         File.write(file_path, "DUMP DATA")
       end
-      ["", "", status]
+      [ "", "", status ]
     end
   end
 
   def stub_pg_dump_failure(error_msg = "error")
     status = double(success?: false)
-    allow(Open3).to receive(:capture3).and_return(["", error_msg, status])
+    allow(Open3).to receive(:capture3).and_return([ "", error_msg, status ])
   end
 
   def stub_psql_success
     status = double(success?: true)
-    allow(Open3).to receive(:capture3).and_return(["", "", status])
+    allow(Open3).to receive(:capture3).and_return([ "", "", status ])
   end
 
   def stub_psql_failure(error_msg = "error")
     status = double(success?: false)
-    allow(Open3).to receive(:capture3).and_return(["", error_msg, status])
+    allow(Open3).to receive(:capture3).and_return([ "", error_msg, status ])
   end
 
   describe "GET /backups (index)" do

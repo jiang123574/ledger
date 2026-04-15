@@ -66,7 +66,7 @@ RSpec.describe Entryable::Transaction, type: :model do
 
     describe "#tag_list=" do
       it "creates tags from names" do
-        entry.entryable.tag_list = ["Tag1", "Tag2"]
+        entry.entryable.tag_list = [ "Tag1", "Tag2" ]
         entry.entryable.save!
 
         expect(entry.entryable.tags.pluck(:name)).to include("Tag1", "Tag2")
@@ -74,7 +74,7 @@ RSpec.describe Entryable::Transaction, type: :model do
 
       it "finds existing tags" do
         existing_tag = create(:tag, name: "Existing")
-        entry.entryable.tag_list = ["Existing"]
+        entry.entryable.tag_list = [ "Existing" ]
         entry.entryable.save!
 
         expect(entry.entryable.tags).to include(existing_tag)

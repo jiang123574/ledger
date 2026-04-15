@@ -27,23 +27,23 @@ RSpec.describe BackupService do
         FileUtils.mkdir_p(File.dirname(file_path))
         File.write(file_path, "DUMP DATA #{rand(1000)}")
       end
-      ["", "", status]
+      [ "", "", status ]
     end
   end
 
   def stub_pg_dump_failure(error_msg = "pg_dump error")
     status = double(success?: false)
-    allow(Open3).to receive(:capture3).and_return(["", error_msg, status])
+    allow(Open3).to receive(:capture3).and_return([ "", error_msg, status ])
   end
 
   def stub_psql_success
     status = double(success?: true)
-    allow(Open3).to receive(:capture3).and_return(["", "", status])
+    allow(Open3).to receive(:capture3).and_return([ "", "", status ])
   end
 
   def stub_psql_failure(error_msg = "psql error")
     status = double(success?: false)
-    allow(Open3).to receive(:capture3).and_return(["", error_msg, status])
+    allow(Open3).to receive(:capture3).and_return([ "", error_msg, status ])
   end
 
   # ========================
@@ -227,7 +227,7 @@ RSpec.describe BackupService do
         expect(cmd).to include("psql")
         expect(cmd).to include("-f", backup_file.to_s)
         expect(cmd).to include("-v", "ON_ERROR_STOP=1")
-        ["", "", status]
+        [ "", "", status ]
       end
 
       BackupService.restore_backup(backup_file.to_s)
@@ -452,10 +452,10 @@ RSpec.describe BackupService do
 
       webdav_client = instance_double(WebdavClient)
       allow(BackupConfig).to receive(:build_webdav_client).and_return(webdav_client)
-      allow(webdav_client).to receive(:list_files).and_return([{ name: "backup1.sql" }])
+      allow(webdav_client).to receive(:list_files).and_return([ { name: "backup1.sql" } ])
 
       result = BackupService.list_webdav_backups
-      expect(result).to eq([{ name: "backup1.sql" }])
+      expect(result).to eq([ { name: "backup1.sql" } ])
     end
   end
 

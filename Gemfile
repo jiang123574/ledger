@@ -67,6 +67,8 @@ group :development, :test do
 
   # Omakase Ruby styling [https://github.com/rails/rubocop-rails-omakase/]
   gem "rubocop-rails-omakase", require: false
+  gem "flog", require: false
+  gem "reek", require: false
 end
 
 group :test do
@@ -80,6 +82,10 @@ group :development do
 
   # Detect N+1 queries in development
   gem "bullet"
+
+  # Request-level performance profiling (CPU, memory, SQL timing)
+  gem "rack-mini-profiler", require: false
+  gem "stackprof", require: false  # rack-mini-profiler 内存分析依赖
 
   # Process manager for development (Tailwind CSS watch + Rails server)
   gem "foreman"

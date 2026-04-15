@@ -180,6 +180,7 @@ class Account < ApplicationRecord
       end_date: cycle_end,
       due_date: calculate_due_date(cycle_end),
       label: format_bill_label(cycle_end),
+      current: (Date.current >= cycle_start && Date.current <= cycle_end),
       # unbilled: 今天还没到账单日
       unbilled: (Date.current >= cycle_start && Date.current < cycle_end)
     }

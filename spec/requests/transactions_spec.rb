@@ -348,14 +348,14 @@ RSpec.describe "Transactions", type: :request do
 
     it "deletes multiple entries" do
       expect {
-        post "/transactions/bulk_destroy", params: { ids: [entry1.id, entry2.id] }
+        post "/transactions/bulk_destroy", params: { ids: [ entry1.id, entry2.id ] }
       }.to change(Entry, :count).by(-2)
 
       expect(response).to have_http_status(:redirect)
     end
 
     it "shows count in notice" do
-      post "/transactions/bulk_destroy", params: { ids: [entry1.id, entry2.id] }
+      post "/transactions/bulk_destroy", params: { ids: [ entry1.id, entry2.id ] }
 
       expect(flash[:notice]).to include("2")
     end
