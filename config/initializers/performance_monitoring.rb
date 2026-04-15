@@ -10,8 +10,7 @@ if Rails.env.development?
     # 在页面右下角显示性能分析面板
     config.start_hidden = false
 
-    # 排除静态资源请求（合并默认值）
-    config.skip_paths = config.skip_paths | %w[/.well-known /assets /favicon.ico /manifest.json]
+    # 跳过路径配置由 rack-mini-profiler 默认处理（含 /assets）
 
     # 最大请求数保留
     config.max_traces_to_show = 50
