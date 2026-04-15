@@ -14,7 +14,7 @@ if Rails.env.development?
     config.skip_paths = config.skip_paths | %w[/.well-known /assets /favicon.ico /manifest.json]
 
     # 最大请求数保留
-    config.max_traces_to_save = 50
+    config.max_traces_to_show = 50
 
     # 显示 SQL 查询详情（禁用缓存以获取完整信息，代价是每次请求都分析）
     config.disable_caching = true

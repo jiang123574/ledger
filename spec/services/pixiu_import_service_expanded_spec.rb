@@ -15,7 +15,7 @@ RSpec.describe PixiuImportService do
   end
 
   let(:csv_file) do
-    file = Tempfile.new(["pixiu_test", ".csv"])
+    file = Tempfile.new([ "pixiu_test", ".csv" ])
     file.write(valid_csv)
     file.rewind
     file
@@ -42,7 +42,7 @@ RSpec.describe PixiuImportService do
         2024-01-01,现金,日常支出,餐饮,午餐,0,50.00,午饭
         ,现金,日常支出,餐饮,晚餐,0,60.00,
       CSV
-      file = Tempfile.new(["blank_test", ".csv"])
+      file = Tempfile.new([ "blank_test", ".csv" ])
       file.write(csv_with_blank)
       file.rewind
 
@@ -57,7 +57,7 @@ RSpec.describe PixiuImportService do
       20.times do |i|
         many_rows += "2024-01-#{(i + 1).to_s.rjust(2, '0')},现金,日常支出,餐饮,午餐,0,#{i + 1}.00,备注#{i}\n"
       end
-      file = Tempfile.new(["many_rows", ".csv"])
+      file = Tempfile.new([ "many_rows", ".csv" ])
       file.write(many_rows)
       file.rewind
 
@@ -92,7 +92,7 @@ RSpec.describe PixiuImportService do
         日期,资金账户,收支大类,交易分类,交易类型,流入金额,流出金额,备注
         not-a-date,现金,日常支出,餐饮,午餐,0,50.00,午饭
       CSV
-      file = Tempfile.new(["bad_date", ".csv"])
+      file = Tempfile.new([ "bad_date", ".csv" ])
       file.write(bad_csv)
       file.rewind
 
@@ -107,7 +107,7 @@ RSpec.describe PixiuImportService do
         日期,资金账户,收支大类,交易分类,交易类型,流入金额,流出金额,备注
         ,现金,日常支出,餐饮,午餐,0,50.00,午饭
       CSV
-      file = Tempfile.new(["blank_date", ".csv"])
+      file = Tempfile.new([ "blank_date", ".csv" ])
       file.write(blank_csv)
       file.rewind
 

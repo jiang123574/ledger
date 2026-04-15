@@ -48,7 +48,7 @@ RSpec.describe ActivityLog, type: :model do
         action: "update",
         item_type: "Entry",
         item_id: entry.id,
-        changeset: { "name" => ["Old Name", "New Name"] }.to_json
+        changeset: { "name" => [ "Old Name", "New Name" ] }.to_json
       )
 
       expect(log.changes_summary).to eq("name: Old Name → New Name")
@@ -73,8 +73,8 @@ RSpec.describe ActivityLog, type: :model do
         item_type: "Entry",
         item_id: entry.id,
         changeset: {
-          "name" => ["Old", "New"],
-          "updated_at" => ["2024-01-01", "2024-01-02"]
+          "name" => [ "Old", "New" ],
+          "updated_at" => [ "2024-01-01", "2024-01-02" ]
         }.to_json
       )
 

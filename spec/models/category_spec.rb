@@ -194,7 +194,7 @@ RSpec.describe Category, type: :model do
 
       it 'returns all ancestors in order' do
         ancestors = grandchild_category.ancestors
-        expect(ancestors.map(&:id)).to eq([child_category.id, root_category.id])
+        expect(ancestors.map(&:id)).to eq([ child_category.id, root_category.id ])
       end
     end
 

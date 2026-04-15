@@ -17,7 +17,7 @@ RSpec.describe "Importers" do
     end
 
     let(:csv_file) do
-      file = Tempfile.new(["test", ".csv"])
+      file = Tempfile.new([ "test", ".csv" ])
       file.write(csv_content)
       file.rewind
       file

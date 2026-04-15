@@ -27,7 +27,7 @@ RSpec.describe Importers::ImportRowMapper do
 
   describe ".suggest_mapping" do
     it "maps known headers" do
-      headers = ["日期", "金额", "类型", "备注"]
+      headers = [ "日期", "金额", "类型", "备注" ]
       result = described_class.suggest_mapping(headers)
       expect(result["日期"]).to eq("date")
       expect(result["金额"]).to eq("amount")
@@ -36,14 +36,14 @@ RSpec.describe Importers::ImportRowMapper do
     end
 
     it "handles partial header matches" do
-      headers = ["交易时间", "金额（元）"]
+      headers = [ "交易时间", "金额（元）" ]
       result = described_class.suggest_mapping(headers)
       expect(result["交易时间"]).to eq("date")
       expect(result["金额（元）"]).to eq("amount")
     end
 
     it "returns empty for unknown headers" do
-      headers = ["未知字段", "Other"]
+      headers = [ "未知字段", "Other" ]
       result = described_class.suggest_mapping(headers)
       expect(result).to be_empty
     end

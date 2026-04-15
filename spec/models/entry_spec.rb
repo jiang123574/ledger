@@ -720,14 +720,14 @@ RSpec.describe Entry, type: :model do
       let!(:incoming) { create(:entry, account: account2, transfer_id: transfer_id, amount: 100) }
 
       it 'preloads transfer accounts for entries' do
-        entries = [outgoing, incoming]
+        entries = [ outgoing, incoming ]
         Entry.preload_transfer_accounts(entries)
         expect(outgoing.instance_variable_get(:@transfer_accounts_cache)).to be_present
         expect(incoming.instance_variable_get(:@transfer_accounts_cache)).to be_present
       end
 
       it 'returns empty hash when no transfer_ids' do
-        entries = [create(:entry)]
+        entries = [ create(:entry) ]
         expect(Entry.preload_transfer_accounts(entries)).to eq({})
       end
     end
