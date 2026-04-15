@@ -1,7 +1,7 @@
 require "ostruct"
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries, :create_bill_statement ]
+  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries ]
   before_action :prevent_locked_system_account!, only: [ :edit, :update, :destroy ]
 
   def index
@@ -100,32 +100,6 @@ class AccountsController < ApplicationController
       current_balance: @account.current_balance,
       bills: bill_data
     }
-  end
-
-  def create_bill_statement
-    unless @account.credit_card?
-      render json: { error: "该账户不是信用卡" }, status: :unprocessable_entity
-      return
-    end
-
-    begin
-      billing_date = Date.parse(params[:billing_date])
-    rescue ArgumentError, Date::Error
-      render json: { error: "日期格式错误" }, status: :bad_request
-      return
-    end
-
-    statement_amount = BigDecimal(params[:statement_amount].to_s)
-    if statement_amount <= 0
-      render json: { error: "金额必须大于0" }, status: :bad_request
-      return
-    end
-
-    statement = @account.bill_statements.find_or_initialize_by(billing_date: billing_date)
-    statement.statement_amount = statement_amount
-    statement.save!
-
-    render json: { success: true, statement: { billing_date: statement.billing_date, statement_amount: statement.statement_amount.round(2).to_f } }
   end
 
   def bills_entries

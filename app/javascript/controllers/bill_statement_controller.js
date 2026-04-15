@@ -260,7 +260,7 @@ export default class extends Controller {
       return
     }
 
-    fetch(`/accounts/${this.accountIdValue}/create_bill_statement`, {
+    fetch(`/accounts/${this.accountIdValue}/bill_statements`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
