@@ -98,7 +98,6 @@ jobs:
     env:
       RAILS_ENV: test
       DATABASE_URL: postgres://postgres:postgres@localhost:5432/ledger_test
-      DB_PASSWORD: postgres
       SECRET_KEY_BASE: ci_test_secret_key_base_not_for_production_use_64c
 
     steps:
@@ -119,10 +118,10 @@ jobs:
 
       - name: Prepare database
         run: |
+          # Remove encrypted credentials to avoid decryption failure in CI
+          rm -f config/credentials.yml.enc config/credentials/test.yml.enc
           bundle exec rails db:create
           bundle exec rails db:schema:load
-        env:
-          DB_PASSWORD: postgres
 
       - name: RSpec
         run: bundle exec rspec --format progress
