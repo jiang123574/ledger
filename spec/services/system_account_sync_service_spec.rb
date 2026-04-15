@@ -5,13 +5,13 @@ require "rails_helper"
 RSpec.describe SystemAccountSyncService, type: :service do
   # 清理系统账户
   before do
-    Account.where(name: ["应收款", "应付款"]).destroy_all
+    Account.where(name: [ "应收款", "应付款" ]).destroy_all
   end
 
   describe ".sync_all!" do
     it "creates system accounts" do
       described_class.sync_all!
-      
+
       expect(Account.exists?(name: "应收款")).to be true
       expect(Account.exists?(name: "应付款")).to be true
     end

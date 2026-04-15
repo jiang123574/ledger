@@ -44,7 +44,7 @@ class ReceivablesController < ApplicationController
 
   def update
     old_account_id = @receivable.account_id
-    
+
     ActiveRecord::Base.transaction do
       @receivable.update!(receivable_params)
 
@@ -59,23 +59,23 @@ class ReceivablesController < ApplicationController
         else
           # 更新转账金额、描述和日期
           transfer_note = "创建应收款 #{@receivable.description}"
-          
+
           Entry.where(transfer_id: @receivable.transfer_id).find_each do |entry|
             # 根据 entry 的正负号设置金额
             new_amount = entry.amount < 0 ? -@receivable.original_amount.to_d : @receivable.original_amount.to_d
-            
+
             updates = {
               amount: new_amount,
               name: transfer_note,
               notes: transfer_note,
               date: @receivable.date
             }
-            
+
             # 如果账户发生变化，更新转出账户的 entry
             if old_account_id != @receivable.account_id && entry.amount < 0
               updates[:account_id] = @receivable.account_id
             end
-            
+
             entry.update!(updates)
           end
         end

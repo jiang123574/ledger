@@ -4,10 +4,14 @@ CI.run do
   step "Setup", "bin/setup --skip-server"
 
   step "Style: Ruby", "bin/rubocop"
+  step "Quality: Code complexity (flog)", "bin/flog 30"
+  step "Quality: Code smells (reek)", "bin/reek"
 
   step "Security: Gem audit", "bin/bundler-audit"
   step "Security: Importmap vulnerability audit", "bin/importmap audit"
   step "Security: Brakeman code analysis", "bin/brakeman --quiet --no-pager --exit-on-warn --exit-on-error"
+
+  step "Tests", "bin/rspec --format progress"
 
 
   # Optional: set a green GitHub commit status to unblock PR merge.

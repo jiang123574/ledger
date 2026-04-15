@@ -54,7 +54,7 @@ RSpec.describe Tag, type: :model do
 
     describe ".alphabetically" do
       it "orders tags by name" do
-        expect(Tag.alphabetically.pluck(:name)).to eq(["Apple", "Banana", "Cherry"])
+        expect(Tag.alphabetically.pluck(:name)).to eq([ "Apple", "Banana", "Cherry" ])
       end
     end
   end
