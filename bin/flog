@@ -8,11 +8,13 @@ set -e
 THRESHOLD=${1:-30}
 echo "Running flog (complexity threshold: ${THRESHOLD})..."
 
-# Analyze app directory, skip files with complexity > threshold
-flog -s app/ 2>/dev/null | head -30
+# Run flog once, capture output
+FLOG_OUTPUT=$(flog -s app/ 2>&1)
+
+echo "$FLOG_OUTPUT" | head -30
 
 # Check for any method exceeding threshold
-HIGH_COMPLEXITY=$(flog -s app/ 2>/dev/null | awk -v threshold="$THRESHOLD" 'NR>1 && $1+0 > threshold {print}')
+HIGH_COMPLEXITY=$(echo "$FLOG_OUTPUT" | awk -v threshold="$THRESHOLD" 'NR>1 && $1+0 > threshold {print}')
 
 if [ -n "$HIGH_COMPLEXITY" ]; then
   echo ""
