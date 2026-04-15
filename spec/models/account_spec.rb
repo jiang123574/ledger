@@ -148,7 +148,7 @@ RSpec.describe Account, type: :model do
 
     describe '#monthly_flow' do
       let!(:income_entry) { create(:entry, :income, account: account, amount: 1000, date: Date.current.beginning_of_month) }
-      let!(:expense_entry) { create(:entry, :expense, account: account, amount: 300, date: Date.current.beginning_of_month + 1.day) }
+      let!(:expense_entry) { create(:entry, :expense, account: account, amount: -300, date: Date.current.beginning_of_month + 1.day) }
 
       it 'returns income and expense for the month' do
         month_str = Date.current.strftime('%Y-%m')
@@ -161,7 +161,7 @@ RSpec.describe Account, type: :model do
 
     describe '#cash_flow' do
       let!(:income_entry) { create(:entry, :income, account: account, amount: 2000, date: 5.days.ago) }
-      let!(:expense_entry) { create(:entry, :expense, account: account, amount: 500, date: 3.days.ago) }
+      let!(:expense_entry) { create(:entry, :expense, account: account, amount: -500, date: 3.days.ago) }
 
       it 'returns income, expense, and net for the period' do
         flow = account.cash_flow(7.days.ago, Date.current)
