@@ -38,13 +38,13 @@ export default class extends Controller {
 
   disconnect() {
     // 清理全局引用
-    delete window.loadBillsWithCount
-    delete window.showStatementInputModal
-    delete window.hideStatementInputModal
-    delete window.saveStatementAmount
-    delete window.selectBill
-    delete window.filterBillEntries
-    delete window.initCreditBills
+    window.loadBillsWithCount = undefined
+    window.showStatementInputModal = undefined
+    window.hideStatementInputModal = undefined
+    window.saveStatementAmount = undefined
+    window.selectBill = undefined
+    window.filterBillEntries = undefined
+    window.initCreditBills = undefined
   }
 
   init() {
@@ -189,8 +189,11 @@ export default class extends Controller {
   loadBillEntries() {
     if (!this.accountIdValue || !this.selectedStartDate || !this.selectedEndDate) return
 
-    // 通知 credit-bill-entries controller 显示 loading
-    this.dispatchBillEntriesEvent("credit-bill-entries:loading")
+    // loading 事件不走 retry（避免竞态：loading retry 在 render 之后执行导致闪"加载中"）
+    const container = document.getElementById("bill-detail-section")
+    if (container && container.dataset.creditBillEntriesReady === "true") {
+      container.dispatchEvent(new CustomEvent("credit-bill-entries:loading", { bubbles: true }))
+    }
 
     fetch(`/accounts/${this.accountIdValue}/bills_entries.json?start_date=${this.selectedStartDate}&end_date=${this.selectedEndDate}`, {
       headers: { "X-Requested-With": "XMLHttpRequest" }
@@ -213,11 +216,12 @@ export default class extends Controller {
 
     // 更新按钮样式
     this.filterBtnTargets.forEach(btn => {
-      if (btn.dataset.filter === filter) {
-        btn.className = "bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400"
-      } else {
-        btn.className = "bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover text-primary dark:text-primary-dark"
-      }
+      const isActive = btn.dataset.filter === filter
+      btn.classList.toggle("bg-blue-50", isActive)
+      btn.classList.toggle("dark:bg-blue-900/30", isActive)
+      btn.classList.toggle("text-blue-600", isActive)
+      btn.classList.toggle("dark:text-blue-400", isActive)
+      btn.classList.toggle("hover:bg-surface-hover", !isActive)
     })
 
     this.applyFilter()
