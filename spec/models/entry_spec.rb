@@ -185,8 +185,8 @@ RSpec.describe Entry, type: :model do
     end
 
     describe '.incomes' do
-      let!(:expense_entry) { create(:entry, amount: -100) }
-      let!(:income_entry) { create(:entry, amount: 200) }
+      let!(:expense_entry) { create(:entry, :expense, amount: 100) }
+      let!(:income_entry) { create(:entry, :income, amount: 200) }
 
       it 'returns only income entries (positive amount)' do
         expect(Entry.incomes).to include(income_entry)

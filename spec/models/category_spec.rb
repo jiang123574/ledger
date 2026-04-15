@@ -239,8 +239,8 @@ RSpec.describe Category, type: :model do
         account = create(:account)
         month_str = Date.current.strftime('%Y-%m')
 
-        create(:entry, account: account, amount: 100, date: Date.current, entryable: create(:entryable_transaction, category: root_category))
-        create(:entry, account: account, amount: -50, date: Date.current, entryable: create(:entryable_transaction, category: root_category))
+        create(:entry, :income, account: account, amount: 100, date: Date.current, entryable: create(:entryable_transaction, :income, category: root_category))
+        create(:entry, :expense, account: account, amount: -50, date: Date.current, entryable: create(:entryable_transaction, :expense, category: root_category))
 
         expect(root_category.monthly_amount(month_str)).to eq(150)
       end
