@@ -1218,9 +1218,9 @@ function reinitializePageScripts() {
 // 筛选功能
 // 使用 window 全局变量，避免 Turbo 导航时重复声明
 window.selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
-const selectedCategoryIds = window.selectedCategoryIds;
+let selectedCategoryIds = window.selectedCategoryIds;
 window.currentPage = <%= @page %>;
-const currentPage = window.currentPage;
+let currentPage = window.currentPage;
 
 function applyFilters() {
   const params = new URLSearchParams();
