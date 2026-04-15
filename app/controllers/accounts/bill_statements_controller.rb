@@ -17,17 +17,26 @@ module Accounts
         return
       end
 
-      statement_amount = BigDecimal(params[:statement_amount].to_s)
-      if statement_amount <= 0
-        render json: { error: "金额必须大于0" }, status: :bad_request
+      unless params[:statement_amount].present?
+        render json: { error: "金额不能为空" }, status: :bad_request
+        return
+      end
+
+      begin
+        statement_amount = BigDecimal(params[:statement_amount].to_s)
+      rescue ArgumentError
+        render json: { error: "金额格式错误" }, status: :bad_request
         return
       end
 
       statement = @account.bill_statements.find_or_initialize_by(billing_date: billing_date)
       statement.statement_amount = statement_amount
-      statement.save!
 
-      render json: { success: true, statement: { billing_date: statement.billing_date, statement_amount: statement.statement_amount.round(2).to_f } }
+      if statement.save
+        render json: { success: true, statement: { billing_date: statement.billing_date, statement_amount: statement.statement_amount.round(2).to_f } }
+      else
+        render json: { error: statement.errors.full_messages.join(", ") }, status: :unprocessable_entity
+      end
     end
 
     private
