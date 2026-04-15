@@ -3,7 +3,7 @@ zh-CN:
 
   activerecord:
     models:
-      bill_statement: "基准账单"
+      bill_statement: "账单"
     attributes:
       bill_statement:
         billing_date: "账单日期"
@@ -15,11 +15,11 @@ zh-CN:
           attributes:
             billing_date:
               blank: "不能为空"
-              taken: "该账单日已有基准账单"
+              taken: "该账户下该账单日已存在账单"
             statement_amount:
               blank: "不能为空"
               not_a_number: "必须是数字"
-              greater_than: "必须大于 0"
+              greater_than: "必须大于 %{count}"
             account:
               required: "必须关联账户"
   
