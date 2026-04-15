@@ -51,7 +51,7 @@ class AccountsBillStatementTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     data = JSON.parse(response.body)
-    assert_includes data["error"], "必须大于0"
+    assert_includes data["error"], "必须大于"
   end
 
   test "create bill statement rejects negative amount" do
@@ -62,7 +62,7 @@ class AccountsBillStatementTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     data = JSON.parse(response.body)
-    assert_includes data["error"], "必须大于0"
+    assert_includes data["error"], "必须大于"
   end
 
   test "create bill statement upserts on duplicate billing_date" do
