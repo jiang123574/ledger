@@ -35,7 +35,7 @@ class AccountBillTest < ActiveSupport::TestCase
     # 基准周期（02月）应直接使用存储值
     feb_cycle = cycles.find { |c| c[:end_date].month == 2 }
     if feb_cycle
-      assert_equal 3000.00, feb_cycle[:statement_amount].to_f
+      assert_in_delta 3000.00, feb_cycle[:statement_amount].to_f, 0.005
     end
   end
 
@@ -56,7 +56,7 @@ class AccountBillTest < ActiveSupport::TestCase
 
     mar_cycle = cycles.find { |c| c[:end_date].month == 3 }
     if mar_cycle && mar_cycle[:statement_amount]
-      assert_equal 3300.00, mar_cycle[:statement_amount].to_f,
+      assert_in_delta 3300.00, mar_cycle[:statement_amount].to_f, 0.005,
         "03月账单 = 500消费 - 200还款 + 3000上期 = 3300"
     end
   end
@@ -80,7 +80,7 @@ class AccountBillTest < ActiveSupport::TestCase
 
     apr_cycle = cycles.find { |c| c[:end_date].month == 4 }
     if apr_cycle && apr_cycle[:statement_amount]
-      assert_equal 0.00, apr_cycle[:statement_amount].to_f,
+      assert_in_delta 0.00, apr_cycle[:statement_amount].to_f, 0.005,
         "04月账单 = 200消费 - 4000还款 + 3800上期 = 0"
     end
   end
@@ -104,7 +104,7 @@ class AccountBillTest < ActiveSupport::TestCase
 
     feb_cycle = cycles.find { |c| c[:end_date].month == 2 }
     if feb_cycle && feb_cycle[:statement_amount]
-      assert_equal 2000.00, feb_cycle[:statement_amount].to_f,
+      assert_in_delta 2000.00, feb_cycle[:statement_amount].to_f, 0.005,
         "反向: 02月 = 2500 - (600 - 100) = 2000"
     end
   end
@@ -127,7 +127,7 @@ class AccountBillTest < ActiveSupport::TestCase
     mar_cycle = cycles.find { |c| c[:end_date].month == 3 }
     if mar_cycle && mar_cycle[:statement_amount]
       # 3000.33 + 199.99 - 50.01 = 3150.31
-      assert_equal 3150.31, mar_cycle[:statement_amount].to_f
+      assert_in_delta 3150.31, mar_cycle[:statement_amount].to_f, 0.005
       # 验证精度：只有 2 位小数
       assert_equal mar_cycle[:statement_amount].to_f.round(2), mar_cycle[:statement_amount].to_f
     end
@@ -162,8 +162,16 @@ class AccountBillTest < ActiveSupport::TestCase
   end
 
   test "bill_cycles_with_statement count limits results" do
+    # 创建较早的基准账单，确保有足够的账单周期
+    BillStatement.create!(
+      account: @credit_card,
+      billing_date: Date.new(2025, 6, 16),
+      statement_amount: 1000.00
+    )
+
     cycles_3 = @credit_card.bill_cycles_with_statement(3)
     assert cycles_3.length <= 4, "count=3 should return at most 4 (including unbilled)"
+    assert cycles_3.length >= 3, "count=3 should return at least 3 cycles"
 
     cycles_6 = @credit_card.bill_cycles_with_statement(6)
     assert cycles_6.length <= 7, "count=6 should return at most 7 (including unbilled)"

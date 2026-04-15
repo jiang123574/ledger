@@ -18,7 +18,7 @@ class AccountsBillStatementTest < ActionDispatch::IntegrationTest
     data = JSON.parse(response.body)
     assert data["success"]
     assert_equal "2026-03-16", data["statement"]["billing_date"]
-    assert_equal 3000.50, data["statement"]["statement_amount"]
+    assert_in_delta 3000.50, data["statement"]["statement_amount"].to_f, 0.005
   end
 
   test "create bill statement rejects non-credit account" do
