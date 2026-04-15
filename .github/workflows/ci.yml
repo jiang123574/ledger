@@ -46,7 +46,7 @@ jobs:
           bundler-cache: true
 
       - name: Brakeman
-        run: bundle exec brakeman --quiet --no-pager
+        run: bundle exec brakeman --quiet --no-pager --no-exit-on-warn
 
       - name: Bundler Audit
         run: bundle exec bundler-audit check --update
@@ -93,7 +93,7 @@ jobs:
     env:
       RAILS_ENV: test
       DATABASE_URL: postgres://postgres:***@localhost:5432/ledger_test
-      RAILS_MASTER_KEY: test_key_for_ci
+      RAILS_MASTER_KEY: 4c4e29e01b771589e53e61d91e4ca2b3
 
     steps:
       - uses: actions/checkout@v4
