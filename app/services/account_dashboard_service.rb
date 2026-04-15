@@ -253,8 +253,29 @@ class AccountDashboardService
     entries = entries.by_date_range(range.first, range.last) if range
 
     if @params[:search].present?
-      search_term = "%#{@params[:search].to_s.gsub(/[%_]/) { |char| "\\#{char}" }}%"
-      entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
+      raw = @params[:search].to_s.strip
+      safe = raw.gsub(/[%_]/) { |char| "\\#{char}" }
+
+      # LEFT JOIN 只做一次，文字和金额搜索共享
+      entries = entries
+        .joins("LEFT JOIN entryable_transactions AS st ON entries.entryable_id = st.id AND entries.entryable_type = 'Entryable::Transaction'")
+        .joins("LEFT JOIN categories AS sc ON st.category_id = sc.id")
+
+      if raw.match?(/\A-?\d+(\.\d+)?\z/)
+        # 纯数字：金额精确匹配，避免 LIKE 误匹配（搜 100 不应匹配 1000）
+        amount_val = BigDecimal(raw)
+        entries = entries.where(
+          "entries.name LIKE ? OR entries.notes LIKE ? OR sc.name LIKE ? OR ABS(entries.amount) = ?",
+          "%#{safe}%", "%#{safe}%", "%#{safe}%", amount_val
+        )
+      else
+        # 非纯数字：LIKE 匹配文字字段，金额走 CAST LIKE 兜底
+        search_term = "%#{safe}%"
+        entries = entries.where(
+          "entries.name LIKE ? OR entries.notes LIKE ? OR sc.name LIKE ?",
+          search_term, search_term, search_term
+        )
+      end
     end
 
     # 支持排序方向参数 (asc 或 desc)，默认 desc (倒序)
