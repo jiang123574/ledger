@@ -131,16 +131,10 @@ jobs:
         run: |
           COVERAGE=$(ruby -rjson -e '
             data = JSON.parse(File.read("coverage/.resultset.json"))
-            suite = data.values.first
-            # SimpleCov 0.22: coverage.line is array of counts
-            lines = suite.dig("coverage", "line") || suite.dig("coverage", "lines")
-            if lines.nil?
-              warn "Coverage structure: #{suite.keys.inspect}"
-              puts "0"
-              exit
-            end
-            covered = lines.count { |l| l && l > 0 }
-            total = lines.count { |l| !l.nil? }
+            coverage = data.values.first["coverage"]
+            all_lines = coverage.values.flat_map { |f| f["lines"] || f[:lines] || [] }
+            covered = all_lines.count { |l| l && l > 0 }
+            total = all_lines.count { |l| !l.nil? }
             puts (covered.to_f / total * 100).round(2)
           ' 2>&1 || echo "0")
           echo "Line coverage: ${COVERAGE}%"
