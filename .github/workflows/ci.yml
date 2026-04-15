@@ -45,6 +45,9 @@ jobs:
           ruby-version: .ruby-version
           bundler-cache: true
 
+      - name: Update vulnerable gems
+        run: bundle update mcp
+
       - name: Brakeman
         run: bundle exec brakeman --quiet --no-pager --no-exit-on-warn
 
@@ -112,7 +115,9 @@ jobs:
         run: npm ci
 
       - name: Prepare database
-        run: bundle exec rails db:prepare
+        run: |
+          bundle exec rails db:create
+          bundle exec rails db:schema:load
 
       - name: RSpec
         run: bundle exec rspec --format progress
