@@ -18,7 +18,7 @@
 
   <% if @categories.any? %>
     <div class="space-y-4">
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-x-auto">
         <div class="px-4 py-2.5 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
           <h2 class="font-semibold text-sm text-primary dark:text-primary-dark">支出分类</h2>
           <span class="text-xs text-secondary dark:text-secondary-dark"><%= @expense_roots.sum { |root| 1 + root.children.size } %> 项</span>
@@ -76,7 +76,7 @@
         </table>
       </div>
 
-      <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">
+      <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-x-auto">
         <div class="px-4 py-2.5 bg-surface dark:bg-surface-dark border-b border-border dark:border-border-dark flex items-center justify-between">
           <h2 class="font-semibold text-sm text-primary dark:text-primary-dark">收入分类</h2>
           <span class="text-xs text-secondary dark:text-secondary-dark"><%= @income_roots.sum { |root| 1 + root.children.size } %> 项</span>
