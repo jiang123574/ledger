@@ -20,7 +20,7 @@ class BudgetsController < ApplicationController
           .where(entryable_type: "Entryable::Transaction", date: start_date..end_date)
           .where(entryable_transactions: { kind: "expense", category_id: budget_category_ids })
           .where(transfer_id: nil)
-          .sum("ABS(entries.amount)")
+          .sum("entries.amount * -1")
       else
         0
       end

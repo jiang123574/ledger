@@ -98,7 +98,7 @@ RSpec.describe "20260411120003 ConvertTransferIdToUuidFormat", type: :migration,
         receivable = create(:receivable,
           account: account,
           transfer_id: nil,
-          reimbursement_transfer_ids: ["22222", "33333"]
+          reimbursement_transfer_ids: [ "22222", "33333" ]
         )
 
         ActiveRecord::Migration.suppress_messages do

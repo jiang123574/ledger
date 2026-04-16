@@ -164,18 +164,19 @@
       <!-- Section Content -->
       <div class="divide-y divide-border" data-dashboard-section-target="content">
         <% @entries.first(8).each do |e| %>
+          <% flow_type = e.display_flow_type %>
           <%= link_to transaction_path(e), class: "flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
             <div class="flex items-center gap-3 min-w-0">
-              <div class="ie-icon-chip ie-icon-chip-md <%= e.display_entry_type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
-                <%= render(Ds::IconComponent.new(name: e.display_entry_type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: e.display_entry_type == "INCOME" ? :income : :expense)) %>
+              <div class="ie-icon-chip ie-icon-chip-md <%= flow_type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
+                <%= render(Ds::IconComponent.new(name: flow_type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: flow_type == "INCOME" ? :income : :expense)) %>
               </div>
               <div class="min-w-0">
                 <p class="font-medium text-primary dark:text-primary-dark truncate"><%= (@category_map && @category_map[e.display_category_id])&.name || t("dashboard.uncategorized") %></p>
                 <p class="text-xs text-secondary dark:text-secondary-dark"><%= e.date&.strftime("%Y-%m-%d") %> · <%= e.account_name %></p>
               </div>
             </div>
-            <span class="font-medium <%= e.display_entry_type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
-              <%= format_currency_with_sign(e.display_amount, type: e.display_entry_type) %>
+            <span class="font-medium <%= flow_type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
+              <%= format_currency_with_sign(e.display_amount, type: flow_type) %>
             </span>
           <% end %>
         <% end %>

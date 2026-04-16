@@ -32,6 +32,7 @@ services:
       DB_USERNAME: ${DB_USERNAME:-postgres}
       DB_PASSWORD: ${DB_PASSWORD}
       RAILS_SERVE_STATIC_FILES: "true"
+      SOLID_QUEUE_IN_PUMA: "true"
       TZ: Asia/Shanghai
     depends_on:
       db:

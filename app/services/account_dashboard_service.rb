@@ -28,14 +28,14 @@ class AccountDashboardService
     # entries 查询构建 + 分页 + 运行余额计算
     period_type = @params[:period_type].presence || "month"
     period_value = @params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
-    
+
     entries_query = build_entries_query(period_type, period_value)
     count_cache_key = build_count_cache_key
     total_count = load_entries_count(entries_query, count_cache_key, ev)
-    
-    page = [[@params[:page].to_i, 1].max, 1000].min
-    per_page = [[@params[:per_page].to_i, 15].max, 200].min
-    
+
+    page = [ [ @params[:page].to_i, 1 ].max, 1000 ].min
+    per_page = [ [ @params[:per_page].to_i, 15 ].max, 200 ].min
+
     entries_with_balance = load_entries_with_balance(entries_query, page, per_page, ev)
 
     # 统计数据
@@ -165,7 +165,7 @@ class AccountDashboardService
   # 加载带余额的条目列表
   def load_entries_with_balance(entries_query, page, per_page, ev)
     entries_cache_key = "entries_list/#{build_entries_cache_key}/#{page}/#{per_page}/#{ev}"
-    
+
     # 缓存 ID+balance 而非完整 ActiveRecord 对象：
     # - 余额计算（运行余额逐行求和）是 O(n) 开销，值得缓存
     # - Marshal 序列化会丢失 includes 预加载信息，缓存对象后仍需重新查询
@@ -175,13 +175,13 @@ class AccountDashboardService
         entries_query, page: page, per_page: per_page, account_id: @params[:account_id].presence
       )
       # 缓存只存 ID 和 balance，不缓存 ActiveRecord 对象（序列化会丢失预加载）
-      result.map { |entry, balance| [entry.id, balance] }
+      result.map { |entry, balance| [ entry.id, balance ] }
     end
 
     # 重新查询并预加载（每次请求都执行，确保预加载信息完整）
     entry_ids = cached_data.map(&:first)
     balance_map = cached_data.to_h
-    
+
     if entry_ids.empty?
       []
     else
@@ -192,15 +192,15 @@ class AccountDashboardService
       # 优化：从 O(n²) 优化为 O(n) 通过预计算索引映射
       entry_id_to_index = entry_ids.each_with_index.to_h
       entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
-      AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [e, nil] })
-      entries.map { |e| [e, balance_map[e.id]] }
+      AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
+      entries.map { |e| [ e, balance_map[e.id] ] }
     end
   end
 
   # 加载统计数据
   def load_stats(period_type, period_value, category_ids, ev)
     stats_cache_key = "stats/#{@params[:account_id] || 'all'}/#{period_type}/#{period_value}/#{@params[:type]}/#{category_ids.empty? ? 'no_cat' : category_ids.sort.join(',')}/#{ev}"
-    
+
     Rails.cache.fetch(stats_cache_key, expires_in: CacheConfig::SHORT) do
       AccountStatsService.entry_stats(
         account_id: @params[:account_id].presence,
@@ -226,7 +226,7 @@ class AccountDashboardService
 
   # 构建 entries 查询
   def build_entries_query(period_type, period_value)
-    entries = Entry.where(entryable_type: ["Entryable::Transaction"])
+    entries = Entry.where(entryable_type: [ "Entryable::Transaction" ])
 
     if @params[:account_id].present?
       entries = entries.where(account_id: @params[:account_id])
@@ -253,8 +253,29 @@ class AccountDashboardService
     entries = entries.by_date_range(range.first, range.last) if range
 
     if @params[:search].present?
-      search_term = "%#{@params[:search].to_s.gsub(/[%_]/) { |char| "\\#{char}" }}%"
-      entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
+      raw = @params[:search].to_s.strip
+      safe = raw.gsub(/[%_]/) { |char| "\\#{char}" }
+
+      # LEFT JOIN 只做一次，文字和金额搜索共享
+      entries = entries
+        .joins("LEFT JOIN entryable_transactions AS st ON entries.entryable_id = st.id AND entries.entryable_type = 'Entryable::Transaction'")
+        .joins("LEFT JOIN categories AS sc ON st.category_id = sc.id")
+
+      if raw.match?(/\A-?\d+(\.\d+)?\z/)
+        # 纯数字：金额精确匹配，避免 LIKE 误匹配（搜 100 不应匹配 1000）
+        amount_val = BigDecimal(raw)
+        entries = entries.where(
+          "entries.name LIKE ? OR entries.notes LIKE ? OR sc.name LIKE ? OR ABS(entries.amount) = ?",
+          "%#{safe}%", "%#{safe}%", "%#{safe}%", amount_val
+        )
+      else
+        # 非纯数字：LIKE 匹配文字字段，金额走 CAST LIKE 兜底
+        search_term = "%#{safe}%"
+        entries = entries.where(
+          "entries.name LIKE ? OR entries.notes LIKE ? OR sc.name LIKE ?",
+          search_term, search_term, search_term
+        )
+      end
     end
 
     # 支持排序方向参数 (asc 或 desc)，默认 desc (倒序)

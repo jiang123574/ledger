@@ -135,7 +135,7 @@ RSpec.describe "DS Components", type: :component do
 
   describe Ds::DonutChartComponent do
     it "renders a donut chart container" do
-      render_inline(Ds::DonutChartComponent.new(data: [{ label: "A", value: 100 }]))
+      render_inline(Ds::DonutChartComponent.new(data: [ { label: "A", value: 100 } ]))
       expect(page).to have_css("div")
     end
   end

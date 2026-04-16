@@ -107,7 +107,7 @@ RSpec.describe Receivable, type: :model do
       end
 
       it 'returns array when present' do
-        ids = [SecureRandom.uuid, SecureRandom.uuid]
+        ids = [ SecureRandom.uuid, SecureRandom.uuid ]
         receivable = build(:receivable, reimbursement_transfer_ids: ids)
         expect(receivable.reimbursement_transfer_ids).to eq(ids)
       end

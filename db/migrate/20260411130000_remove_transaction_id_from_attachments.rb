@@ -6,7 +6,7 @@ class RemoveTransactionIdFromAttachments < ActiveRecord::Migration[8.0]
   def up
     # 移除索引
     remove_index :attachments, :transaction_id if index_exists?(:attachments, :transaction_id)
-    remove_index :attachments, [:transaction_id, :file_type] if index_exists?(:attachments, [:transaction_id, :file_type])
+    remove_index :attachments, [ :transaction_id, :file_type ] if index_exists?(:attachments, [ :transaction_id, :file_type ])
 
     # 移除外键约束（如果存在）
     remove_foreign_key :attachments, :transactions if foreign_key_exists?(:attachments, :transactions)
@@ -22,7 +22,7 @@ class RemoveTransactionIdFromAttachments < ActiveRecord::Migration[8.0]
     unless column_exists?(:attachments, :transaction_id)
       add_column :attachments, :transaction_id, :integer
       add_index :attachments, :transaction_id
-      add_index :attachments, [:transaction_id, :file_type]
+      add_index :attachments, [ :transaction_id, :file_type ]
       puts "✅ Re-added transaction_id to attachments table"
     end
   end

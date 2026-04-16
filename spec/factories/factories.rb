@@ -34,6 +34,20 @@ FactoryBot.define do
     initial_balance { 1000 }
     include_in_total { true }
     hidden { false }
+
+    trait :credit_card do
+      type { 'CREDIT' }
+      billing_day { 16 }
+      billing_day_mode { 'current' }
+      due_day { 5 }
+      due_day_mode { 'fixed' }
+    end
+  end
+
+  factory :bill_statement do
+    association :account, :credit_card
+    billing_date { Date.current }
+    statement_amount { 1000.00 }
   end
 
   factory :budget do
