@@ -407,7 +407,7 @@
               </div>
               
               <!-- 余额 -->
-              <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate">
+              <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate" data-field="balance">
                 <%= format_currency(balance) %>
               </div>
               
@@ -436,7 +436,7 @@
             </div>
             
             <!-- 移动端卡片 -->
-            <div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-mobile-entry-id="<%= e.id %>" data-date="<%= e.date %>">
+            <div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="<%= e.id %>" data-date="<%= e.date %>">
               <!-- 日期 -->
               <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
                 <%= e.date&.strftime("%Y-%m-%d") %>
@@ -483,7 +483,7 @@
                 <% end %>
                 <p class="text-xs text-secondary dark:text-secondary-dark">
                   <span>余额:</span>
-                  <span><%= format_currency(balance) %></span>
+                  <span data-field="balance-mobile"><%= format_currency(balance) %></span>
                 </p>
               </div>
               

@@ -206,6 +206,54 @@
 
 ---
 
+### 22. `[class*="hover:bg-"]` 选择器优化
+
+**优先级**: 低
+**来源**: PR #119 code review
+**状态**: ⏳ 待完成
+
+**问题**: CSS 选择器 `[class*="hover:bg-"]` 偏宽泛，任何 class 名包含 `hover:bg-` 的元素都会被选中（含组内嵌套的 `group-hover:bg-*`）。当前模板中未出现此类嵌套，风险低但不够精确。
+
+**优化方案**: 改为逐个类名硬编码排除，或改用 `[class^="hover:bg-"]` + `[class*=" hover:bg-"]` 组合。
+
+---
+
+### 23. `button.p-1` 触摸目标尺寸覆盖
+
+**优先级**: 低
+**来源**: PR #119 code review
+**状态**: ⏳ 待完成
+
+**问题**: 全局 CSS `button.p-1 { min-width: 44px; min-height: 44px; }` 会覆盖所有 `p-1` 按钮的尺寸，可能影响桌面端紧凑图标的布局。`p-1` 在 Tailwind 中是 padding 4px，意味着 icon-only 按钮也会被强制 44px。
+
+**优化方案**: 限制在移动端视口内生效（`@media (max-width: 640px)`），或改为给具体页面按钮类加触摸目标尺寸，而非全局覆盖。
+
+---
+
+### 24. `overflow-hidden` 改 `overflow-x-auto` 圆角边界
+
+**优先级**: 低
+**来源**: PR #119 code review
+**状态**: ⏳ 待完成
+
+**问题**: 将 `.rounded-lg` + `overflow-hidden` 改为 `overflow-x-auto` 后，横向滚动内容会溢出圆角边界。视觉上有轻微毛刺。
+
+**优化方案**: 在外层保留 `overflow-hidden` 圆角容器，内层用独立的 `overflow-x-auto` 容器包裹表格。
+
+---
+
+### 25. 移动端/桌面端模板代码重复
+
+**优先级**: 低
+**来源**: PR #119 code review
+**状态**: ⏳ 待完成
+
+**问题**: 应收款/应付款页面桌面端和移动端条目渲染逻辑完全独立（`_entry_list.html.erb` vs `_entry_mobile.html.erb`），DOM 结构差异大，维护成本高。后续新增字段需两边同步修改。
+
+**优化方案**: 考虑用共享 partial + 布局参数（`locals: { layout: :mobile }`）统一桌面/移动端渲染逻辑，减少重复代码。当前模式与项目已有惯例一致，非紧急。
+
+---
+
 ## 文档维护规则
 
 1. **本文件（TODO.md）**：唯一的活跃待办清单

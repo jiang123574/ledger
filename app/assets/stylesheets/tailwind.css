@@ -1101,23 +1101,90 @@ body:has(.modal-overlay:not(.hidden)) {
 
 /* Disable hover effects on touch devices to prevent "sticky" hover */
 @media (hover: none) and (pointer: coarse) {
-  tr:hover {
+  /* === Table/List hover backgrounds === */
+  tr:hover,
+  li:hover,
+  .settings-nav-item:hover {
     background-color: transparent !important;
   }
 
-  .hover\:bg-surface:hover,
-  .hover\:bg-surface-dark:hover {
+  /* === Tailwind hover:bg-* utilities === */
+  [class*="hover:bg-"]:hover {
     background-color: transparent !important;
   }
 
-  .hover\:shadow-md:hover,
+  /* === Tailwind hover:shadow-* utilities === */
   [class*="hover:shadow"]:hover {
     box-shadow: none !important;
   }
 
-  /* Use active (tap) state instead of hover on touch */
-  tr:active {
-    background-color: var(--color-surface, #f8f9fa);
+  /* === Tailwind hover:text-* utilities === */
+  [class*="hover:text-"]:hover {
+    color: inherit !important;
+  }
+
+  /* === Tailwind hover:border-* utilities === */
+  [class*="hover:border-"]:hover {
+    border-color: inherit !important;
+  }
+
+  /* === Card hover effects === */
+  .mobile-card:hover,
+  .card-hover:hover,
+  section:hover {
+    background-color: transparent !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* === Button hover effects === */
+  .btn-modern:hover:not(:disabled) {
+    background-color: inherit !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* === Custom CSS hover classes === */
+  .mobile-nav-item:hover {
+    background-color: transparent !important;
+  }
+
+  /* === Scrollbar hover === */
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-gray-300) !important;
+  }
+
+  /* === Use active (tap) state for touch feedback instead === */
+  tr:active,
+  li:active {
+    background-color: var(--color-surface-hover, #f1f3f5);
+  }
+
+  .dark tr:active,
+  .dark li:active,
+  [data-theme="dark"] tr:active,
+  [data-theme="dark"] li:active {
+    background-color: var(--color-surface-dark-hover, #262626);
+  }
+
+  /* Touch feedback for cards */
+  .mobile-card:active,
+  .card-hover:active {
+    background-color: var(--color-surface-hover, #f1f3f5) !important;
+    opacity: 0.85;
+  }
+
+  .dark .mobile-card:active,
+  .dark .card-hover:active,
+  [data-theme="dark"] .mobile-card:active,
+  [data-theme="dark"] .card-hover:active {
+    background-color: var(--color-surface-dark-hover, #262626) !important;
+  }
+
+  /* Touch feedback for buttons */
+  button:active,
+  a:active {
+    opacity: 0.7;
   }
 }
 
@@ -1135,6 +1202,23 @@ body:has(.modal-overlay:not(.hidden)) {
     min-height: 36px;
     padding: 0.25rem 0.5rem;
   }
+}
+
+/* ========================================
+   Touch Target Sizes (iOS/Android minimum 44px)
+   ======================================== */
+
+/* Modal close buttons — ensure 44px minimum touch target */
+.modal-overlay button,
+button.p-1 {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Table action links/buttons */
+td a,
+td button {
+  min-height: 36px;
 }
 
 /* ========================================
