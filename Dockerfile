@@ -53,6 +53,11 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
+# Download Chart.js UMD bundle (public/assets is gitignored, download during build)
+RUN mkdir -p public/assets && \
+    curl -sL "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" \
+    -o public/assets/chart.js.umd.js
+
 # Install JavaScript dependencies
 RUN npm install && \
     npm cache clean --force
@@ -83,6 +88,12 @@ RUN for pkg in "@hotwired--stimulus.js" "@hotwired--turbo.js" "@hotwired--turbo-
         exit 1; \
       fi; \
     done
+
+# Verify Chart.js UMD bundle exists
+RUN if [ ! -f "public/assets/chart.js.umd.js" ]; then \
+      echo "ERROR: Missing public/assets/chart.js.umd.js - Chart.js will not work in production"; \
+      exit 1; \
+    fi
 
 # Remove unnecessary files from the build context to reduce image size
 # NOTE: vendor/javascript directory is preserved - contains vendored JS modules for production

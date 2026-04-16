@@ -12,11 +12,9 @@ export async function getChartJs() {
         return
       }
 
-      const script = document.createElement("script")
-      script.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"
-      script.onload = () => resolve(window.Chart)
-      script.onerror = () => reject(new Error("Failed to load Chart.js"))
-      document.head.appendChild(script)
+      // Chart.js should be loaded via UMD script tag in layout
+      // If not available, the UMD file is missing from production
+      reject(new Error("Chart.js not loaded. Ensure /assets/chart.js.umd.js exists."))
     })
   }
 
