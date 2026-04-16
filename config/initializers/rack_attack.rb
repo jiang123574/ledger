@@ -29,6 +29,11 @@ if Rails.env.development?
   end
 end
 
+# Don't throttle web vitals reporting (Turbo Native health monitoring)
+Rack::Attack.safelist("allow vitals") do |req|
+  req.path == "/api/vitals"
+end
+
 # Custom throttle response
 Rack::Attack.throttled_responder = lambda do |request|
   match_data = request.env["rack.attack.match_data"]

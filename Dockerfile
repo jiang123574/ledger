@@ -77,7 +77,7 @@ RUN if grep -E "https://|http://" config/importmap.rb | grep -v "# "; then \
     fi
 
 # Verify vendor/javascript files exist for all pinned packages
-RUN for pkg in "@hotwired--stimulus.js" "@hotwired--turbo.js" "@hotwired--turbo-rails.js" "chart.js.js" "@floating-ui--utils.js" "@floating-ui--core.js" "@floating-ui--dom.js"; do \
+RUN for pkg in "@hotwired--stimulus.js" "@hotwired--turbo.js" "@hotwired--turbo-rails.js" "@floating-ui--utils.js" "@floating-ui--core.js" "@floating-ui--dom.js"; do \
       if [ ! -f "vendor/javascript/$pkg" ]; then \
         echo "ERROR: Missing vendor/javascript/$pkg - required for production"; \
         exit 1; \
