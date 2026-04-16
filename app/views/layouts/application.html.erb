@@ -282,9 +282,7 @@
             e.stopPropagation();
             if (typeof openNewTransactionModal === 'function') {
               openNewTransactionModal();
-              if (typeof transactionMode !== 'undefined' && transactionMode === 'category') {
-                toggleTransferMode();
-              }
+              toggleTransferMode();
             } else {
               window.location.href = '/accounts?open_new_transaction=1&transfer=1';
             }
