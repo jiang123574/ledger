@@ -298,9 +298,14 @@ export default class extends Controller {
   updateBalances(balances) {
     balances.forEach(({ entry_id, balance_after }) => {
       const item = this.containerTarget.querySelector(`[data-entry-id="${entry_id}"]`)
-      const balanceField = item?.querySelector('[data-field="balance"]')
+      if (!item) return
+      const balanceField = item.querySelector('[data-field="balance"]')
       if (balanceField) {
         balanceField.textContent = `余额: ${balance_after}`
+      }
+      const mobileBalanceField = item.querySelector('[data-field="balance-mobile"]')
+      if (mobileBalanceField) {
+        mobileBalanceField.textContent = balance_after
       }
     })
   }
