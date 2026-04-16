@@ -55,8 +55,8 @@
 /node_modules
 
 
-app/assets/stylesheets/tailwind_output.css
-app/assets/stylesheets/application.css
+# Tailwind output - committed to git for production consistency
+# app/assets/stylesheets/application.css
 
 # Documentation files (personal notes, drafts)
 *.doc
