@@ -12,7 +12,7 @@ import android.content.SharedPreferences
 object ServerConfig {
     private const val PREFS_NAME = "ledger_server"
     private const val KEY_BASE_URL = "base_url"
-    private const val DEFAULT_URL = "http://192.168.10.232:3000/"
+    private const val DEFAULT_URL = "http://YOUR_SERVER_IP:3000/"
 
     private fun prefs(context: Context): SharedPreferences {
         return context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
@@ -33,6 +33,20 @@ object ServerConfig {
         val normalized = if (url.endsWith("/")) url else "$url/"
         prefs(context).edit().putString(KEY_BASE_URL, normalized).apply()
     }
+
+    /**
+     * 验证 URL 格式是否有效
+     * @return true 如果 URL 以 http:// 或 https:// 开头
+     */
+    fun isValidUrl(url: String): Boolean {
+        val trimmed = url.trim()
+        return trimmed.startsWith("http://") || trimmed.startsWith("https://")
+    }
+
+    /**
+     * 获取默认服务器地址
+     */
+    fun getDefaultUrl(): String = DEFAULT_URL
 
     /**
      * 是否已配置过（非首次启动）
