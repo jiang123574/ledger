@@ -407,7 +407,7 @@
               </div>
               
               <!-- 余额 -->
-              <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate">
+              <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate" data-field="balance">
                 <%= format_currency(balance) %>
               </div>
               
@@ -483,7 +483,7 @@
                 <% end %>
                 <p class="text-xs text-secondary dark:text-secondary-dark">
                   <span>余额:</span>
-                  <span><%= format_currency(balance) %></span>
+                  <span data-field="balance-mobile"><%= format_currency(balance) %></span>
                 </p>
               </div>
               
