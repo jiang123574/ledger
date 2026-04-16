@@ -1,2 +1,2 @@
-web: bin/rails server -p 3000
+web: SOLID_QUEUE_IN_PUMA=true bin/rails server -p 3000
 css: npx @tailwindcss/cli -i ./app/assets/stylesheets/tailwind.css -o ./app/assets/stylesheets/application.css --watch
