@@ -280,11 +280,11 @@
           case 'z':
             e.preventDefault();
             e.stopPropagation();
-            if (typeof openNewTransactionModal === 'function' && typeof toggleTransferMode === 'function') {
-              openNewTransactionModal();
+            if (typeof openNewTransactionModal === 'function') {
               if (typeof transactionMode !== 'undefined' && transactionMode === 'category') {
                 toggleTransferMode();
               }
+              openNewTransactionModal();
             } else {
               window.location.href = '/accounts?open_new_transaction=1&transfer=1';
             }
