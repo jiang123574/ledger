@@ -61,10 +61,10 @@ RUN npm install && \
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
-# Compile Tailwind CSS before precompiling assets
-RUN chmod +x ./bin/build-css && ./bin/build-css
+# Tailwind CSS is already compiled and committed to git
+# RUN chmod +x ./bin/build-css && ./bin/build-css
 
-# Remove devDependencies after Tailwind compilation to reduce image size
+# Remove devDependencies (Tailwind not needed for compilation anymore)
 RUN npm prune --production && npm cache clean --force
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
