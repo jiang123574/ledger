@@ -66,10 +66,15 @@ app/assets/stylesheets/application.css
 
 # Temp planning files
 /temp/
+# Android
+android/.gradle/
+android/app/build/
+android/.idea/
+android/local.properties
+android/keystore.properties
 
 # IDE
 .idea/
 
 # Keystore
 *.jks
-
