@@ -1208,11 +1208,13 @@ body:has(.modal-overlay:not(.hidden)) {
    Touch Target Sizes (iOS/Android minimum 44px)
    ======================================== */
 
-/* Modal close buttons — ensure 44px minimum touch target */
-.modal-overlay button,
-button.p-1 {
+/* Modal close buttons — ensure 44px minimum touch target and centered icon */
+.modal-overlay button {
   min-width: 44px;
   min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Table action links/buttons */

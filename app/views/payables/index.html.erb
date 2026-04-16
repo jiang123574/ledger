@@ -488,6 +488,25 @@
 </script>
 <script type="module">
 import { initSelectorWithData } from 'selectors';
+function openNewPayableModal() {
+  const form = document.getElementById('new-payable-form');
+  if (form) {
+    form.reset();
+    const dateInput = form.querySelector('input[name="payable[date]"]');
+    if (dateInput) dateInput.value = '<%= Date.today %>';
+  }
+  const accountIdInput = document.getElementById('new-payable-account-id');
+  const accountSearchInput = document.getElementById('new-payable-account-search');
+  if (accountIdInput) accountIdInput.value = '';
+  if (accountSearchInput) accountSearchInput.value = '';
+  const categoryIdInput = document.getElementById('new-payable-category-id');
+  const categorySearchInput = document.getElementById('new-payable-category-search');
+  if (categoryIdInput) categoryIdInput.value = '';
+  if (categorySearchInput) categorySearchInput.value = '';
+  const modal = document.getElementById('add-payable-modal');
+  if (modal) modal.classList.remove('hidden');
+}
+
 function openEditPayableModal(id, description, date, amount, category, counterpartyId, accountId, note) {
   const form = document.getElementById('edit-payable-form');
   form.action = '/payables/' + id;
@@ -620,6 +639,7 @@ initSelectorWithData({
 });
 
 // Expose functions to global scope for onclick handlers
+window.openNewPayableModal = openNewPayableModal;
 window.openEditPayableModal = openEditPayableModal;
 window.openSettleModal = openSettleModal;
 window.setFullAmountPayable = setFullAmountPayable;
