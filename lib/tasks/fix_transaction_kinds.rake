@@ -9,8 +9,8 @@
 # 两边余额变化均为 0
 #
 # 用法：
-#   bin/rails fix_transaction_kinds:dry_run    # 预览，不修改
-#   bin/rails fix_transaction_kinds:run         # 执行修复
+#   bin/rake fix_transaction_kinds:dry_run    # 预览，不修改
+#   bin/rake fix_transaction_kinds:run         # 执行修复
 #
 namespace :fix_transaction_kinds do
   desc "预览：显示需要修复的交易（不修改数据）"
