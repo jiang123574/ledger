@@ -63,7 +63,7 @@ app/
 
 详细的开发规范和已实现功能清单，请参阅：
 
-👉 **[PROJECT_GUIDE.md](./PROJECT_GUIDE.md)**
+👉 **[AGENTS.md](./AGENTS.md)**
 
 ## 环境变量
 
