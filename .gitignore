@@ -78,3 +78,5 @@ android/keystore.properties
 
 # Keystore
 *.jks
+
+bin/dev-server
