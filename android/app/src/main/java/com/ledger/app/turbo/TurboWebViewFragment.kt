@@ -53,6 +53,12 @@ open class TurboWebViewFragment : TurboWebFragment() {
 
     private fun configureWebView() {
         try {
+            // 启用 Cookie 管理（保持 session 登录状态）
+            android.webkit.CookieManager.getInstance().apply {
+                setAcceptCookie(true)
+                setAcceptThirdPartyCookies(session.webView, true)
+            }
+
             session.webView.apply {
                 // 启用 JavaScript（Hotwire/Stimulus 依赖）
                 settings.javaScriptEnabled = true
