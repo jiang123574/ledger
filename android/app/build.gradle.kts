@@ -15,6 +15,13 @@ if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
 
+// 读取本地开发配置 (BASE_URL 等)
+val localPropertiesFile = rootProject.file("local.properties")
+val localProperties = Properties()
+if (localPropertiesFile.exists()) {
+    localProperties.load(FileInputStream(localPropertiesFile))
+}
+
 android {
     namespace = "com.ledger.app"
     compileSdk = 36
@@ -27,8 +34,9 @@ android {
         versionCode = 1
         versionName = "1.0.0"
 
-        // Ledger 服务器地址
-        buildConfigField("String", "BASE_URL", "\"https://ledger.example.com\"")
+        // Ledger 服务器地址 (从 local.properties 读取，未配置时使用默认值)
+        val baseUrl = localProperties.getProperty("BASE_URL", "https://ledger.example.com")
+        buildConfigField("String", "BASE_URL", "\"$baseUrl\"")
 
         // 启用矢量图兼容
         vectorDrawables.useSupportLibrary = true
@@ -63,8 +71,10 @@ android {
             isMinifyEnabled = false
             applicationIdSuffix = ".debug"
             versionNameSuffix = "-debug"
-            // 开发环境指向真机可访问的局域网地址
-            buildConfigField("String", "BASE_URL", "\"http://192.168.10.232:3000/\"")
+            // 开发环境 BASE_URL 从 local.properties 读取 (debug.BASE_URL 或 BASE_URL)
+            val debugBaseUrl = localProperties.getProperty("debug.BASE_URL") 
+                ?: localProperties.getProperty("BASE_URL", "http://10.0.2.2:3000/")
+            buildConfigField("String", "BASE_URL", "\"$debugBaseUrl\"")
         }
     }
 

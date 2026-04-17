@@ -49,3 +49,7 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+# macOS
+.DS_Store
+**/.DS_Store

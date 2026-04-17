@@ -75,6 +75,7 @@ android/app/build/
 android/.idea/
 android/local.properties
 android/keystore.properties
+**/.DS_Store
 
 # IDE
 .idea/

@@ -148,6 +148,7 @@
 
       <%# Mobile Top Header (hidden in Turbo Native - native toolbar replaces it) %>
       <% unless turbo_native_app? %>
+      <header class="lg:hidden fixed top-0 left-0 right-0 z-30 bg-container dark:bg-container-dark border-b border-border dark:border-border-dark">
         <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
           <div class="flex items-center justify-between h-14 px-4">
             <%# Menu Button %>

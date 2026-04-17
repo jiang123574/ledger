@@ -78,6 +78,29 @@ git checkout feature/turbo-android
 2. 等待 Gradle Sync 完成（首次会下载大量依赖，可能需要 5-10 分钟）
 3. 如果 Sync 失败，点击 **Try Again**（可能是网络超时）
 
+### 配置开发服务器地址
+
+真机调试需配置局域网 IP：
+
+1. 复制示例配置：
+   ```powershell
+   copy android\local.properties.example android\local.properties
+   ```
+
+2. 编辑 `android\local.properties`，设置你的 Rails 服务器 IP：
+   ```properties
+   # 模拟器使用 10.0.2.2 (Android 模拟器专用地址)
+   BASE_URL=http://10.0.2.2:3000/
+   
+   # 真机使用局域网 IP (需同时修改 network_security_config.xml)
+   # BASE_URL=http://192.168.x.x:3000/
+   ```
+
+3. 如使用真机，还需修改 `android\app\src\main\res\xml\network_security_config.xml`：
+   ```xml
+   <domain includeSubdomains="true">192.168.x.x</domain>
+   ```
+
 ### Gradle Sync 常见问题
 
 如果 sync 报错找不到依赖，在 Android Studio 的 **Terminal** 中执行：

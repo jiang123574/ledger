@@ -3,7 +3,8 @@
 set -e
 
 PORT=${1:-3000}
-PROJECT_DIR="$HOME/Desktop/ledger"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 PID_FILE="$PROJECT_DIR/tmp/pids/server.pid"
 LOG_FILE="$PROJECT_DIR/log/dev-server.log"
 
