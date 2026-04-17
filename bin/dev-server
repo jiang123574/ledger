@@ -1,0 +1,41 @@
+#!/bin/bash
+# 一键重启 Rails 开发服务器 (后台运行)
+set -e
+
+PORT=${1:-3000}
+PROJECT_DIR="$HOME/Desktop/ledger"
+PID_FILE="$PROJECT_DIR/tmp/pids/server.pid"
+LOG_FILE="$PROJECT_DIR/log/dev-server.log"
+
+stop() {
+  echo "🔪 停止旧进程 (port $PORT)..."
+  lsof -ti:$PORT | xargs kill -9 2>/dev/null || true
+  rm -f "$PID_FILE"
+  sleep 1
+}
+
+start() {
+  echo "🚀 启动 Rails server on 0.0.0.0:$PORT ..."
+  cd "$PROJECT_DIR"
+  eval "$(rbenv init -)"
+  rm -f tmp/pids/server.pid
+
+  nohup bin/rails server -b 0.0.0.0 -p $PORT > "$LOG_FILE" 2>&1 &
+  sleep 5
+
+  if curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT | grep -q "^[23]"; then
+    echo "✅ 已启动: http://localhost:$PORT (PID $(cat "$PID_FILE" 2>/dev/null || echo '?'))"
+  else
+    echo "⚠️  启动中，请稍后访问 http://localhost:$PORT"
+  fi
+}
+
+case "${2:-}" in
+  stop)
+    stop
+    ;;
+  *)
+    stop
+    start
+    ;;
+esac
