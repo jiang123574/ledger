@@ -1104,8 +1104,8 @@ async function refreshMainContent(url) {
       mainContent.style.opacity = '1';
     }
 
-    // 重新初始化页面脚本
-    reinitializePageScripts();
+    // 重新初始化页面脚本（延迟执行，等待Stimulus控制器完全重新连接）
+    setTimeout(() => reinitializePageScripts(), 50);
   } catch (error) {
     console.error('刷新内容失败:', error);
     // 失败时回退到页面刷新
