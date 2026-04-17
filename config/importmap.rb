@@ -45,6 +45,7 @@ pin "controllers/report_tabs_controller", to: "controllers/report_tabs_controlle
 pin "controllers/asset_trend_chart_controller", to: "controllers/asset_trend_chart_controller.js"
 pin "controllers/category_comparison_controller", to: "controllers/category_comparison_controller.js"
 pin "controllers/filter_popover_controller", to: "controllers/filter_popover_controller.js"
+pin "controllers/bill_statement_controller", to: "controllers/bill_statement_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Hotwired packages - vendored for production reliability
@@ -61,7 +62,6 @@ pin "@floating-ui/utils/dom", to: "@floating-ui--utils--dom.js" # @0.2.11
 pin "@floating-ui/core", to: "@floating-ui--core.js" # @1.7.5
 pin "@floating-ui/dom", to: "@floating-ui--dom.js" # @1.7.6
 
-# Chart.js for charts - vendored for production reliability
-pin "chart.js" # @4.5.1
+# Chart.js - loaded via UMD script tag
 pin "@kurkle/color", to: "@kurkle--color.js" # @0.3.4
 pin "@rails/actioncable/src", to: "@rails--actioncable--src.js" # @8.1.300

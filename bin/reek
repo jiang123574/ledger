@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# Run reek to detect code smells
+# Reek identifies common Ruby code smells
+
+echo "Running reek (code smell detection)..."
+
+# Run reek on app directory (allow non-zero exit on smells)
+reek --no-color app/ || true

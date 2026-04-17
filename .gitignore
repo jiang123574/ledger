@@ -55,17 +55,32 @@
 /node_modules
 
 
-app/assets/stylesheets/tailwind_output.css
-app/assets/stylesheets/application.css
+# Tailwind output - committed to git for production consistency
+# app/assets/stylesheets/application.css
 
 # Documentation files (personal notes, drafts)
 *.doc
 *.docs
 /.doc
 /.docs
-
 # Temp planning files
 /temp/
 
 # VS Code
 /.vscode
+
+# Android
+android/.gradle/
+android/app/build/
+android/.idea/
+android/local.properties
+android/keystore.properties
+
+# IDE
+.idea/
+
+# Keystore
+*.jks
+
+# Scripts
+bin/dev-server

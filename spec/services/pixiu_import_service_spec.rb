@@ -32,7 +32,7 @@ RSpec.describe PixiuImportService, type: :service do
     end
 
     let(:temp_file) do
-      file = Tempfile.new(["test", ".csv"])
+      file = Tempfile.new([ "test", ".csv" ])
       file.write(csv_content)
       file.close
       file

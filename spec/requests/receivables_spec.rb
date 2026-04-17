@@ -49,6 +49,10 @@ RSpec.describe "Receivables", type: :request do
   end
 
   describe "POST /receivables" do
+    before do
+      create(:account, name: SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME, type: "CASH")
+    end
+
     it "creates a receivable" do
       expect {
         post "/receivables", params: {

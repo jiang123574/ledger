@@ -72,6 +72,7 @@
     
     <%# Tailwind CSS v4 - compiled application.css %>
     <%= stylesheet_link_tag :application %>
+    <script src="/assets/chart.js.umd.js"></script>
     <%= javascript_importmap_tags %>
   </head>
 
@@ -290,11 +291,9 @@
           case 'z':
             e.preventDefault();
             e.stopPropagation();
-            if (typeof openNewTransactionModal === 'function' && typeof toggleTransferMode === 'function') {
+            if (typeof openNewTransactionModal === 'function') {
               openNewTransactionModal();
-              if (typeof transactionMode !== 'undefined' && transactionMode === 'category') {
-                toggleTransferMode();
-              }
+              toggleTransferMode();
             } else {
               window.location.href = '/accounts?open_new_transaction=1&transfer=1';
             }

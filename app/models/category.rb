@@ -110,7 +110,8 @@ class Category < ApplicationRecord
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month
 
-    entries.where(date: start_date..end_date).sum("ABS(amount)")
+    entries.where(date: start_date..end_date)
+      .sum("CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END")
   end
 
   # 预算进度

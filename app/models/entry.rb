@@ -84,8 +84,8 @@ class Entry < ApplicationRecord
   }
 
   scope :incomes, -> {
-    transactions_only.non_transfers
-      .where("amount > 0")
+    transactions_only.non_transfers.with_entryable_transaction
+      .where(entryable_transactions: { kind: "income" })
   }
 
   def transaction?
@@ -125,6 +125,25 @@ class Entry < ApplicationRecord
   # 交易金额绝对值（视图展示用）
   def display_amount
     amount.abs
+  end
+
+  # 实际流向（考虑正数支出=流入的情况）
+  def display_flow_type
+    if transfer_id.present?
+      amount.positive? ? "INCOME" : "EXPENSE"
+    elsif entryable.respond_to?(:kind)
+      k = entryable.kind.upcase
+      # 正数支出 = 流入（退款），负数收入 = 流出
+      if k == "EXPENSE" && amount.positive?
+        "INCOME"
+      elsif k == "INCOME" && amount.negative?
+        "EXPENSE"
+      else
+        k
+      end
+    else
+      amount.positive? ? "INCOME" : "EXPENSE"
+    end
   end
 
   # 分类（兼容旧视图）

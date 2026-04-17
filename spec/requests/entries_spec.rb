@@ -169,7 +169,7 @@ RSpec.describe "Entries", type: :request do
 
     it "destroys multiple entries" do
       expect {
-        post bulk_destroy_entries_path, params: { ids: [entry1.id, entry2.id] }
+        post bulk_destroy_entries_path, params: { ids: [ entry1.id, entry2.id ] }
       }.to change(Entry, :count).by(-2)
 
       expect(flash[:notice]).to eq("已删除 2 笔交易")

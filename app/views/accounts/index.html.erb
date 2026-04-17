@@ -98,7 +98,7 @@
                   <div class="flex items-center gap-1">
                     <p class="font-medium text-sm text-primary dark:text-primary-dark"><%= format_currency(@account_balances[account.id] || 0) %></p>
                     <% if [SystemAccountSyncService::RECEIVABLE_ACCOUNT_NAME, SystemAccountSyncService::PAYABLE_ACCOUNT_NAME].include?(account.name) %>
-                      <span class="p-1 rounded text-secondary dark:text-secondary-dark opacity-60" title="系统账户已锁定">
+                      <span class="inline-flex items-center justify-center p-1 rounded text-secondary dark:text-secondary-dark opacity-60" title="系统账户已锁定">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 0h12a2 2 0 002-2v-5a2 2 0 00-2-2h-1V7a5 5 0 00-10 0v1H6a2 2 0 00-2 2v5a2 2 0 002 2zm3-9V7a3 3 0 016 0v1H9z"></path></svg>
                       </span>
                     <% else %>
@@ -116,7 +116,7 @@
                               data-due-day-mode="<%= account.due_day_mode || 'fixed' %>"
                               data-due-day="<%= account.due_day || '' %>"
                               data-due-day-offset="<%= account.due_day_offset || '' %>"
-                              class="p-1 rounded lg:opacity-0 lg:group-hover:opacity-100 hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth">
+                              class="inline-flex items-center justify-center border-0 p-1 rounded lg:opacity-0 lg:group-hover:opacity-100 hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth">
                         <svg class="w-3.5 h-3.5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                       </button>
                     <% end %>
@@ -326,6 +326,7 @@
               is_transfer = entry_type == 'TRANSFER'
               current_account_filter = params[:account_id].to_s
               is_inflow = is_transfer && e.amount.positive?
+              flow_type = e.display_flow_type
               display_type = if is_transfer
                 if current_account_filter.blank?
                   "转账"
@@ -342,7 +343,7 @@
                   is_inflow ? "INCOME" : "EXPENSE"
                 end
               else
-                entry_type
+                flow_type
               end
               transfer_counterpart = if is_inflow
                 e.source_account_for_transfer&.name
@@ -406,7 +407,7 @@
               </div>
               
               <!-- 余额 -->
-              <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate">
+              <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate" data-field="balance">
                 <%= format_currency(balance) %>
               </div>
               
@@ -435,7 +436,7 @@
             </div>
             
             <!-- 移动端卡片 -->
-            <div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-mobile-entry-id="<%= e.id %>" data-date="<%= e.date %>">
+            <div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="<%= e.id %>" data-date="<%= e.date %>">
               <!-- 日期 -->
               <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20">
                 <%= e.date&.strftime("%Y-%m-%d") %>
@@ -482,7 +483,7 @@
                 <% end %>
                 <p class="text-xs text-secondary dark:text-secondary-dark">
                   <span>余额:</span>
-                  <span><%= format_currency(balance) %></span>
+                  <span data-field="balance-mobile"><%= format_currency(balance) %></span>
                 </p>
               </div>
               
@@ -521,7 +522,7 @@
         </div>
       <% end %>
     </div>
-  <div id="credit-bill-wrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-account-id="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+  <div id="credit-bill-wrapper" data-controller="bill-statement" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-bill-statement-account-id-value="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
   <!-- 期数选择器 -->
   <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
     <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
@@ -812,7 +813,7 @@ function confirmDeleteAccount(id, name) {
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">新建交易</h3>
-        <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <button type="button" onclick="document.getElementById('add-transaction-modal').classList.add('hidden')" class="inline-flex items-center justify-center p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -1038,9 +1039,10 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <script>
+(function() {
 // 防抖函数
 function debounce(func, wait) {
-  var timeout;
+  let timeout;
   return function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout);
@@ -1102,8 +1104,8 @@ async function refreshMainContent(url) {
       mainContent.style.opacity = '1';
     }
 
-    // 重新初始化页面脚本
-    reinitializePageScripts();
+    // 重新初始化页面脚本（延迟执行，等待Stimulus控制器完全重新连接）
+    setTimeout(() => reinitializePageScripts(), 50);
   } catch (error) {
     console.error('刷新内容失败:', error);
     // 失败时回退到页面刷新
@@ -1151,19 +1153,80 @@ function reinitializePageScripts() {
     }
   }
 
-  // 重新初始化信用卡账单区域
-  if (typeof window.initCreditBills === 'function') window.initCreditBills();
+  // 重新初始化信用卡账单区域（仅在 Stimulus connect 未自动初始化时兜底）
+  if (typeof window.initCreditBills === 'function') {
+    const wrapper = document.getElementById('credit-bill-wrapper')
+    // 只有当 wrapper 存在且有 accountIdValue 时才调用
+    if (wrapper && wrapper.dataset.billStatementAccountIdValue) {
+      window.initCreditBills()
+    }
+  }
 
   // 重新初始化日期筛选显示
   if (typeof syncPeriodInputType === 'function') syncPeriodInputType();
+
+  // 重新绑定分类筛选按钮事件
+  const categoryFilterBtn = document.getElementById('open-category-filter');
+  if (categoryFilterBtn && !categoryFilterBtn._bound) {
+    categoryFilterBtn._bound = true;
+    categoryFilterBtn.addEventListener('click', function() {
+      document.getElementById('category-filter-modal').classList.remove('hidden');
+      document.getElementById('category-filter-search').value = '';
+      document.getElementById('category-filter-search').focus();
+      const sections = document.querySelectorAll('.category-type-section');
+      sections.forEach(function(s) { s.style.removeProperty('display'); });
+      const items = document.querySelectorAll('.category-filter-item');
+      items.forEach(function(item) { item.style.removeProperty('display'); });
+    });
+  }
+
+  // 重新绑定搜索框 IME composition 事件
+  const searchInput = document.getElementById('search-input');
+  if (searchInput && !searchInput._bound) {
+    searchInput._bound = true;
+    searchInput._isComposing = false;
+
+    searchInput.addEventListener('compositionstart', function() {
+      this._isComposing = true;
+    });
+
+    searchInput.addEventListener('compositionend', function() {
+      this._isComposing = false;
+      debouncedApplyFilters();
+    });
+
+    searchInput.addEventListener('input', function() {
+      if (this._isComposing) return;
+      debouncedApplyFilters();
+    });
+
+    searchInput.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !this._isComposing) {
+        applyFilters();
+      }
+    });
+  }
+
+  // 重新绑定筛选下拉 change 事件
+  const periodTypeFilter = document.getElementById('period-type-filter');
+  if (periodTypeFilter && !periodTypeFilter._bound) {
+    periodTypeFilter._bound = true;
+    periodTypeFilter.addEventListener('change', syncPeriodInputType);
+    periodTypeFilter.addEventListener('change', applyFilters);
+  }
+  const typeFilter = document.getElementById('type-filter');
+  if (typeFilter && !typeFilter._bound) {
+    typeFilter._bound = true;
+    typeFilter.addEventListener('change', applyFilters);
+  }
 }
 
 // 筛选功能
 // 使用 window 全局变量，避免 Turbo 导航时重复声明
 window.selectedCategoryIds = <%= raw selected_category_ids.to_json %>;
-const selectedCategoryIds = window.selectedCategoryIds;
+let selectedCategoryIds = window.selectedCategoryIds;
 window.currentPage = <%= @page %>;
-const currentPage = window.currentPage;
+let currentPage = window.currentPage;
 
 function applyFilters() {
   const params = new URLSearchParams();
@@ -1267,15 +1330,36 @@ function toggleShowHidden() {
   window.location.href = '/accounts' + (params.toString() ? '?' + params.toString() : '');
 }
 
-// 回车搜索
-document.getElementById('search-input')?.addEventListener('keypress', function(e) {
-  if (e.key === 'Enter') {
-    applyFilters();
-  }
-});
+// 搜索输入 IME composition 处理
+// 中文输入法打拼音时，compositionstart 触发后每敲一个字母都会触发 input
+// 需要等 compositionend 后才执行搜索
+const _searchInput = document.getElementById('search-input');
+if (_searchInput && !_searchInput._imeInit) {
+  _searchInput._imeInit = true;
+  _searchInput._isComposing = false;
 
-// 搜索输入防抖
-document.getElementById('search-input')?.addEventListener('input', debouncedApplyFilters);
+  _searchInput.addEventListener('compositionstart', function() {
+    this._isComposing = true;
+  });
+
+  _searchInput.addEventListener('compositionend', function() {
+    this._isComposing = false;
+    // 输入法确认后触发搜索
+    debouncedApplyFilters();
+  });
+
+  _searchInput.addEventListener('input', function(e) {
+    // 输入法输入中不触发搜索
+    if (this._isComposing) return;
+    debouncedApplyFilters();
+  });
+
+  _searchInput.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !this._isComposing) {
+      applyFilters();
+    }
+  });
+}
 
 function syncPeriodInputType() {
   const periodTypeEl = document.getElementById('period-type-filter');
@@ -1733,7 +1817,7 @@ const categoryDropdown = document.getElementById('category-dropdown');
 const categoryFilterInput = document.getElementById('category-filter-input');
 const categoryOptions = document.getElementById('category-options');
 const categoryHiddenInput = document.getElementById('new_transaction_category_id');
-var allCategories = [];
+let allCategories = [];
 let currentCategoryType = 'EXPENSE';
 
 // 从合并数据加载全部分类
@@ -2036,8 +2120,8 @@ function escapeHtml(str) {
 }
 
 // 账户选择器逻辑
-var allAccounts = [];
-var accountsDataEl = document.getElementById('accounts-data');
+let allAccounts = [];
+const accountsDataEl = document.getElementById('accounts-data');
 if (accountsDataEl) {
   allAccounts = JSON.parse(accountsDataEl.textContent);
 }
@@ -2078,7 +2162,7 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
   function updateOptions() {
     // 确保 allAccounts 已加载（防止时序问题）
     if (allAccounts.length === 0) {
-      var accountsDataEl = document.getElementById('accounts-data');
+      const accountsDataEl = document.getElementById('accounts-data');
       if (accountsDataEl && accountsDataEl.textContent) {
         try {
           allAccounts = JSON.parse(accountsDataEl.textContent);
@@ -2233,6 +2317,35 @@ document.addEventListener('turbo:load', function() {
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('#skeleton-loader').forEach(el => el.remove());
 });
+
+// 暴露 inline handler 需要的函数到 window
+window.toggleAccountList = toggleAccountList;
+window.viewAllTransactions = viewAllTransactions;
+window.filterByAccount = filterByAccount;
+window.clearAccountFilter = clearAccountFilter;
+window.toggleShowHidden = toggleShowHidden;
+window.togglePeriodPicker = togglePeriodPicker;
+window.shiftPickerYear = shiftPickerYear;
+window.shiftPeriod = shiftPeriod;
+window.clearFilters = clearFilters;
+window.openNewTransactionModal = openNewTransactionModal;
+window.toggleTransferMode = toggleTransferMode;
+window.transactionMode = transactionMode;
+window.openEditTransactionModal = openEditTransactionModal;
+window.submitAndContinue = submitAndContinue;
+window.swapTransferAccounts = swapTransferAccounts;
+window.confirmDeleteTransaction = confirmDeleteTransaction;
+window.applyFilters = applyFilters;
+window.syncPeriodInputType = syncPeriodInputType;
+window.refreshMainContent = refreshMainContent;
+window.updateAccountHighlight = updateAccountHighlight;
+window.reinitializePageScripts = reinitializePageScripts;
+window.debounce = debounce;
+window.selectPickerMonth = selectPickerMonth;
+window.selectPickerWeek = selectPickerWeek;
+window.selectPickerYear = selectPickerYear;
+window.closePeriodPicker = closePeriodPicker;
+})();
 </script>
 
 <%= render 'shared/receivable_form_modal', counterparties: @counterparties %>
@@ -2526,86 +2639,16 @@ if (!window.modalSelectorsInitialized) {
 <!-- ========== 信用卡账单区域 ========== -->
 
 <script>
+// 视图模式切换（按日期 / 按账单）
 (function() {
-  let wrapper = document.getElementById('credit-bill-wrapper');
-  let accountId = wrapper?.dataset?.accountId;
   let currentViewMode = '<%= params[:view_mode] %>' || 'date';
-  
-  // 立即设置全局变量，确保其他函数可以访问
   window.currentViewMode = currentViewMode;
-  
-  const billFormatters = window.BillFormatters || {};
 
-  function formatBillMoney(value) {
-    if (billFormatters.formatMoney) return billFormatters.formatMoney(value);
-    const num = parseFloat(value) || 0;
-    return num.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  }
-
-  function initCreditBills() {
-    wrapper = document.getElementById('credit-bill-wrapper');
-    accountId = wrapper?.dataset?.accountId;
-    if (!accountId || !wrapper) return;
-
-    // 从 URL 参数读取 view_mode，兜底使用全局变量
-    const urlParams = new URLSearchParams(window.location.search);
-    currentViewMode = urlParams.get('view_mode') || window.currentViewMode || 'date';
-    
-    // 更新全局变量
-    window.currentViewMode = currentViewMode;
-
-    // 如果当前模式是账单模式，初始化
-    if (currentViewMode === 'bill') {
-      wrapper.classList.remove('hidden');
-      loadBillCards();
-    }
-  }
-
-  function getBillDetailSection() {
-    return document.getElementById('bill-detail-section');
-  }
-
-  function dispatchBillEntriesEvent(eventName, detail) {
-    const section = getBillDetailSection();
-    if (!section) return false;
-    if (section.dataset.creditBillEntriesReady !== 'true') return false;
-
-    section.dispatchEvent(new CustomEvent(eventName, { detail: detail || {} }));
-    return true;
-  }
-
-  function renderBillEntryList(entries) {
-    if (dispatchBillEntriesEvent('credit-bill-entries:render', { entries: entries || [] })) {
-      return;
-    }
-    const container = document.getElementById('bill-entries-container');
-    if (container) container.innerHTML = '<div class="p-8 text-center text-secondary dark:text-secondary-dark text-sm">该期暂无交易记录</div>';
-  }
-
-  function showBillEntriesLoading() {
-    if (dispatchBillEntriesEvent('credit-bill-entries:loading')) {
-      return;
-    }
-    const container = document.getElementById('bill-entries-container');
-    if (container) container.innerHTML = '<div class="p-4 text-center text-secondary dark:text-secondary-dark text-sm">加载中...</div>';
-  }
-
-  function showBillEntriesError() {
-    if (dispatchBillEntriesEvent('credit-bill-entries:error', { message: '加载失败' })) {
-      return;
-    }
-    const container = document.getElementById('bill-entries-container');
-    if (container) container.innerHTML = '<div class="p-4 text-center text-red-500 text-sm">加载失败</div>';
-  }
-
-  // 切换视图模式（按日期 / 按账单）
   window.switchViewMode = function(mode) {
     currentViewMode = mode;
-    window.currentViewMode = mode;  // 更新全局变量
-    
-    // 每次都重新获取 wrapper，避免局部刷新后引用失效
-    wrapper = document.getElementById('credit-bill-wrapper');
-    
+    window.currentViewMode = mode;
+
+    const wrapper = document.getElementById('credit-bill-wrapper');
     const txList = document.getElementById('transaction-list');
     const summaryBar = document.getElementById('summary-bar');
     const filterBar = document.getElementById('filter-bar');
@@ -2613,16 +2656,14 @@ if (!window.modalSelectorsInitialized) {
     const billBtn = document.getElementById('mode-bill-btn');
 
     if (mode === 'bill') {
-      // 切到账单模式
       if (wrapper) wrapper.classList.remove('hidden');
       if (txList) txList.classList.add('hidden');
       if (summaryBar) summaryBar.classList.add('hidden');
       if (filterBar) filterBar.classList.add('hidden');
       if (dateBtn) { dateBtn.className = 'px-2.5 py-1 rounded-md transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover'; }
       if (billBtn) { billBtn.className = 'px-2.5 py-1 rounded-md transition-smooth bg-blue-500 text-white font-medium shadow-xs'; }
-      loadBillCards();
+      if (window.initCreditBills) window.initCreditBills();
     } else {
-      // 切回日期模式
       if (wrapper) wrapper.classList.add('hidden');
       if (txList) txList.classList.remove('hidden');
       if (summaryBar) summaryBar.classList.remove('hidden');
@@ -2631,7 +2672,6 @@ if (!window.modalSelectorsInitialized) {
       if (billBtn) { billBtn.className = 'px-2.5 py-1 rounded-md transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover'; }
     }
 
-    // 更新 URL（不刷新页面）
     const params = new URLSearchParams(window.location.search);
     if (mode === 'bill') {
       params.set('view_mode', 'bill');
@@ -2641,236 +2681,10 @@ if (!window.modalSelectorsInitialized) {
     const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
     history.replaceState({ mode: mode }, '', newUrl);
   };
-
-  // 加载账单卡片
-  window.loadBillCards = function() {
-    // 每次都重新获取 accountId，避免局部刷新后引用失效
-    const billWrapper = document.getElementById('credit-bill-wrapper');
-    const currentAccountId = billWrapper?.dataset?.accountId || accountId;
-    
-    if (!currentAccountId) return;
-    fetch('/accounts/' + currentAccountId + '/bills.json?count=4', {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.json())
-    .then(data => {
-      renderBillCards(data);
-    })
-    .catch(err => console.error('Failed to load bills:', err));
-  };
-
-  // 渲染账单卡片
-  function renderBillCards(data) {
-    const container = document.getElementById('bill-cards');
-    if (!container) return;  // 容器不存在时直接返回
-    if (!data.bills || data.bills.length === 0) {
-      container.innerHTML = '<div class="text-sm text-secondary dark:text-secondary-dark">暂无账单数据</div>';
-      return;
-    }
-
-    let html = '';
-    data.bills.forEach(function(bill, idx) {
-      const isUnbilled = bill.unbilled;
-      const isSelected = selectedBillLabel === bill.label;
-      let cardClass = 'shrink-0 p-3 rounded-lg cursor-pointer transition-smooth min-w-[180px] ';
-      if (isSelected) {
-        cardClass += 'bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
-      } else if (isUnbilled) {
-        cardClass += 'bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 hover:border-orange-400';
-      } else {
-        cardClass += 'bg-gray-50 dark:bg-surface-dark border border-transparent hover:border-border dark:hover:border-border-dark';
-      }
-
-      html += '<div class="' + cardClass + '" onclick="selectBill(\'' + escapeHtml(bill.label) + '\', \'' + bill.start_date + '\', \'' + bill.end_date + '\')" data-label="' + escapeHtml(bill.label) + '">';
-      // 卡片标题
-      html += '<div class="flex items-center justify-between mb-2">';
-      if (isUnbilled) {
-        html += '<span class="font-semibold text-sm text-orange-600 dark:text-orange-400">未出账单</span>';
-        html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">进行中</span>';
-      } else {
-        html += '<span class="font-semibold text-sm text-primary dark:text-primary-dark">' + bill.label + '</span>';
-        const displayAmount = bill.statement_amount || bill.balance_due || 0;
-        html += '<span class="font-bold text-expense ml-2">' + formatBillMoney(displayAmount) + '</span>';
-      }
-      html += '</div>';
-      // 消费金额和还款退款并排显示
-      html += '<div class="flex justify-between text-xs mb-2">';
-      html += '<div><span class="text-secondary dark:text-secondary-dark">消费：</span><span class="font-medium">' + formatBillMoney(bill.spend_amount || 0) + '</span></div>';
-      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款退款：</span><span class="font-medium text-income">' + formatBillMoney(bill.repay_amount || 0) + '</span></div>';
-      html += '</div>';
-      // 账期范围
-      html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-1.5">';
-      html += '账期：' + bill.start_date + ' ~ ' + bill.end_date;
-      html += '</div>';
-      // 账单日 & 还款日
-      html += '<div class="text-xs text-secondary dark:text-secondary-dark mb-2">';
-      html += '账单日：' + bill.end_date + '  还款日：' + bill.due_date;
-      html += '</div>';
-      // 笔数
-      html += '<div class="flex justify-between text-xs pt-1.5 border-t border-border/50 dark:border-border-dark/50">';
-      html += '<div><span class="text-secondary dark:text-secondary-dark">消费笔数：</span><span class="font-medium tabular-nums">' + (bill.spend_count || 0) + '笔</span></div>';
-      html += '<div class="text-right"><span class="text-secondary dark:text-secondary-dark">还款笔数：</span><span class="font-medium tabular-nums">' + (bill.repay_count || 0) + '笔</span></div>';
-      html += '</div>';
-      html += '</div>';
-    });
-
-    container.innerHTML = html;
-
-    // 渲染完成后确保详情区状态与选中卡片一致
-    // 优先恢复之前选中的账单，不存在则默认选择第一张
-    const targetBill = data.bills.find(function(bill) {
-      return bill.label === selectedBillLabel;
-    }) || data.bills[0];
-
-    if (targetBill) {
-      selectBill(targetBill.label, targetBill.start_date, targetBill.end_date);
-    }
-  }
-
-  // 当前选中的账单
-  let selectedBillLabel = null;
-  let selectedStartDate = null;
-  let selectedEndDate = null;
-  let allBillEntries = [];
-
-  // 选择某期账单
-  window.selectBill = function(label, startDate, endDate) {
-    selectedBillLabel = label;
-    selectedStartDate = startDate;
-    selectedEndDate = endDate;
-
-    // 更新卡片选中状态
-    document.querySelectorAll('#bill-cards > div').forEach(function(card) {
-      const isSelected = card.dataset.label === label;
-      if (isSelected) {
-        card.className = card.className.replace(/ring-\w+-\d+/g, '').trim() +
-          ' bg-blue-100 dark:bg-blue-900/40 ring-2 ring-blue-400';
-      } else {
-        card.className = card.className.replace(/ring-2 ring-blue-400/g, '').replace(/bg-blue-100 dark:bg-blue-900\/40/g, '');
-        // 恢复默认样式...
-      }
-    });
-
-    // 更新账期信息栏
-    const periodInfo = document.getElementById('bill-period-info');
-    const dueInfo = document.getElementById('bill-due-info');
-    if (periodInfo) periodInfo.textContent = '账期：' + startDate + ' ~ ' + endDate;
-    if (dueInfo) dueInfo.textContent = '';
-
-    // 加载交易明细
-    loadBillEntries();
-
-    // 显示详情区，隐藏默认提示
-    document.getElementById('bill-detail-section')?.classList.remove('hidden');
-    document.getElementById('bill-default-hint')?.classList.add('hidden');
-  };
-
-  // 加载某期账单的交易明细
-  window.loadBillEntries = function() {
-    if (!accountId || !selectedStartDate || !selectedEndDate) return;
-
-    showBillEntriesLoading();
-
-    fetch('/accounts/' + accountId + '/bills_entries.json?start_date=' + selectedStartDate + '&end_date=' + selectedEndDate, {
-      headers: { 'X-Requested-With': 'XMLHttpRequest' }
-    })
-    .then(r => r.json())
-    .then(data => {
-      allBillEntries = data.entries || [];
-      renderBillEntryList(allBillEntries);
-    })
-    .catch(err => {
-      console.error(err);
-      showBillEntriesError();
-    });
-  };
-
-  // 筛选账单交易
-  let currentBillFilter = 'all';
-  window.filterBillEntries = function(filter) {
-    currentBillFilter = filter;
-    // 更新按钮样式
-    document.querySelectorAll('.bill-filter-btn').forEach(function(btn) {
-      if (btn.dataset.filter === filter) {
-        btn.className = 'bill-filter-btn px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400';
-      } else {
-        btn.className = 'bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover text-primary dark:text-primary-dark';
-      }
-    });
-    const filtered = allBillEntries.filter(function(e) {
-      if (filter === 'all') return true;
-      if (filter === 'repay') return e.is_repayment;
-      if (filter === 'spend') return e.is_spend;
-      return true;
-    });
-    renderBillEntryList(filtered);
-  }
-
-  // HTML 转义，防止 XSS
-  function escapeHtml(str) {
-    if (!str) return '';
-    return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
-              .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
-  }
-
-  // 期数选择
-  let currentBillCount = 3;
-  window.loadBillsWithCount = function(count) {
-    currentBillCount = count;
-    document.querySelectorAll('.bill-count-btn').forEach(btn => {
-      btn.classList.remove('bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-600', 'dark:text-blue-400');
-      btn.classList.add('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover');
-      if (btn.dataset.count == count) {
-        btn.classList.add('bg-blue-50', 'dark:bg-blue-900/30', 'text-blue-600', 'dark:text-blue-400');
-        btn.classList.remove('hover:bg-surface-hover', 'dark:hover:bg-surface-dark-hover');
-      }
-    });
-    fetch('/accounts/' + accountId + '/bills.json?count=' + count)
-      .then(r => r.json())
-      .then(data => renderBillCards(data));
-  };
-
-  // 录入基准账单弹窗
-  window.showStatementInputModal = function() {
-    document.getElementById('statement-input-modal').classList.remove('hidden');
-  };
-
-  window.hideStatementInputModal = function() {
-    document.getElementById('statement-input-modal').classList.add('hidden');
-  };
-
-  window.saveStatementAmount = function() {
-    const billingDate = document.getElementById('statement-billing-date').value;
-    const amount = document.getElementById('statement-amount').value;
-    if (!billingDate || !amount) {
-      alert('请填写账单日期和金额');
-      return;
-    }
-    fetch('/accounts/' + accountId + '/create_bill_statement', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content },
-      body: JSON.stringify({ billing_date: billingDate, statement_amount: amount })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.success) {
-        hideStatementInputModal();
-        loadBillsWithCount(currentBillCount);
-      } else {
-        alert(data.error || '保存失败');
-      }
-    });
-  };
-
-  // 初始化
-  if (accountId) {
-    initCreditBills();
-  }
-
-  // 暴露到全局，供局部刷新后调用
-  window.initCreditBills = initCreditBills;
 })();
 </script>
+
+
 
 <!-- 录入基准账单弹窗 -->
 <div id="statement-input-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">

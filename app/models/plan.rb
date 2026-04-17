@@ -10,6 +10,7 @@ class Plan < ApplicationRecord
   TYPES = [ INSTALLMENT, MORTGAGE, RECURRING, ONE_TIME ].freeze
 
   belongs_to :account, class_name: "Account", optional: true
+  belongs_to :category, optional: true
 
   validates :name, presence: true
   validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
@@ -74,7 +75,7 @@ class Plan < ApplicationRecord
         date: Date.current,
         name: transaction_note,
         kind: "expense",
-        category: find_or_create_default_category
+        category: category || find_or_create_default_category
       )
 
       if installment_like?

@@ -64,7 +64,7 @@ RSpec.describe "Accounts reorder", type: :request do
       # Controller sets sort_order as total_entries - index (descending for first item)
       # So order by sort_order ascending gives: e2(1), e1(2), e3(3)
       entries = Entry.where(id: reordered_ids).order(:sort_order)
-      expect(entries.pluck(:id)).to eq([e2.id, e1.id, e3.id])
+      expect(entries.pluck(:id)).to eq([ e2.id, e1.id, e3.id ])
 
       balances = response_data["balances"]
       # Balances are returned in date asc, sort_order asc order

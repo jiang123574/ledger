@@ -28,7 +28,7 @@ class EntryPresenter
         is_inflow ? "INCOME" : "EXPENSE"
       end
     else
-      entry_type
+      entry.display_flow_type
     end
 
     transfer_counterpart = if is_inflow
@@ -85,7 +85,7 @@ class EntryPresenter
     display_amount_type = if is_transfer
       is_inflow ? "INCOME" : "EXPENSE"
     else
-      entry_type
+      entry.display_flow_type
     end
 
     display_name = if is_transfer

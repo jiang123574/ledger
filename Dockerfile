@@ -53,6 +53,11 @@ RUN bundle install && \
 # Copy application code
 COPY . .
 
+# Download Chart.js UMD bundle (public/assets is gitignored, download during build)
+RUN mkdir -p public/assets && \
+    curl -sL "https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js" \
+    -o public/assets/chart.js.umd.js
+
 # Install JavaScript dependencies
 RUN npm install && \
     npm cache clean --force
@@ -61,10 +66,10 @@ RUN npm install && \
 # -j 1 disable parallel compilation to avoid a QEMU bug: https://github.com/rails/bootsnap/issues/495
 RUN bundle exec bootsnap precompile -j 1 app/ lib/
 
-# Compile Tailwind CSS before precompiling assets
-RUN chmod +x ./bin/build-css && ./bin/build-css
+# Tailwind CSS is already compiled and committed to git
+# RUN chmod +x ./bin/build-css && ./bin/build-css
 
-# Remove devDependencies after Tailwind compilation to reduce image size
+# Remove devDependencies (Tailwind not needed for compilation anymore)
 RUN npm prune --production && npm cache clean --force
 
 # Precompiling assets for production without requiring secret RAILS_MASTER_KEY
@@ -77,12 +82,18 @@ RUN if grep -E "https://|http://" config/importmap.rb | grep -v "# "; then \
     fi
 
 # Verify vendor/javascript files exist for all pinned packages
-RUN for pkg in "@hotwired--stimulus.js" "@hotwired--turbo.js" "@hotwired--turbo-rails.js" "chart.js.js" "@floating-ui--utils.js" "@floating-ui--core.js" "@floating-ui--dom.js"; do \
+RUN for pkg in "@hotwired--stimulus.js" "@hotwired--turbo.js" "@hotwired--turbo-rails.js" "@floating-ui--utils.js" "@floating-ui--core.js" "@floating-ui--dom.js"; do \
       if [ ! -f "vendor/javascript/$pkg" ]; then \
         echo "ERROR: Missing vendor/javascript/$pkg - required for production"; \
         exit 1; \
       fi; \
     done
+
+# Verify Chart.js UMD bundle exists
+RUN if [ ! -f "public/assets/chart.js.umd.js" ]; then \
+      echo "ERROR: Missing public/assets/chart.js.umd.js - Chart.js will not work in production"; \
+      exit 1; \
+    fi
 
 # Remove unnecessary files from the build context to reduce image size
 # NOTE: vendor/javascript directory is preserved - contains vendored JS modules for production

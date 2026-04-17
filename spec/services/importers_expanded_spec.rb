@@ -32,7 +32,7 @@ RSpec.describe "Importers" do
           ^
         QIF
 
-        file = Tempfile.new(["test", ".qif"])
+        file = Tempfile.new([ "test", ".qif" ])
         file.write(qif_content)
         file.rewind
 
@@ -68,7 +68,7 @@ RSpec.describe "Importers" do
           ^
         QIF
 
-        file = Tempfile.new(["test", ".qif"])
+        file = Tempfile.new([ "test", ".qif" ])
         file.write(qif_content)
         file.rewind
 
@@ -92,7 +92,7 @@ RSpec.describe "Importers" do
           ^
         QIF
 
-        file = Tempfile.new(["memo", ".qif"])
+        file = Tempfile.new([ "memo", ".qif" ])
         file.write(qif_content)
         file.rewind
 
@@ -119,7 +119,7 @@ RSpec.describe "Importers" do
           ^
         QIF
 
-        file = Tempfile.new(["partial", ".qif"])
+        file = Tempfile.new([ "partial", ".qif" ])
         file.write(qif_content)
         file.rewind
 
@@ -135,7 +135,7 @@ RSpec.describe "Importers" do
       it "handles empty QIF file" do
         qif_content = "!Type:Bank\n"
 
-        file = Tempfile.new(["empty", ".qif"])
+        file = Tempfile.new([ "empty", ".qif" ])
         file.write(qif_content)
         file.rewind
 
@@ -163,7 +163,7 @@ RSpec.describe "Importers" do
           ^
         QIF
 
-        file = Tempfile.new(["multi", ".qif"])
+        file = Tempfile.new([ "multi", ".qif" ])
         file.write(qif_content)
         file.rewind
 
@@ -258,7 +258,7 @@ RSpec.describe "Importers" do
           ^
         QIF
 
-        file = Tempfile.new(["preview", ".qif"])
+        file = Tempfile.new([ "preview", ".qif" ])
         file.write(qif_content)
         file.rewind
 
@@ -437,7 +437,7 @@ RSpec.describe "Importers" do
 
   # Helper to wrap a Tempfile with original_filename for ImportService
   def fake_upload(filename, content)
-    file = Tempfile.new(["upload", File.extname(filename)])
+    file = Tempfile.new([ "upload", File.extname(filename) ])
     file.write(content)
     file.rewind
     wrapper = OpenStruct.new(

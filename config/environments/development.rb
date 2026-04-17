@@ -77,6 +77,7 @@ Rails.application.configure do
     # AccountStatsService 内部通过 preload_transfer_accounts 批量加载 account，
     # Bullet 无法追踪跨 scope 的预加载，会产生误报
     Bullet.add_safelist type: :n_plus_one_query, class_name: "Entry", association: :account
+    Bullet.add_safelist type: :unused_eager_loading, class_name: "Entry", association: :account
     Bullet.add_safelist type: :unused_eager_loading, class_name: "Receivable", association: :source_entry
     Bullet.add_safelist type: :unused_eager_loading, class_name: "Payable", association: :source_entry
   end

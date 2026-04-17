@@ -13,7 +13,7 @@ RSpec.describe Ds::SelectComponent, type: :component do
 
   describe "initialization" do
     it "accepts hash items" do
-      items = [{ value: 1, label: "Option 1" }, { value: 2, label: "Option 2" }]
+      items = [ { value: 1, label: "Option 1" }, { value: 2, label: "Option 2" } ]
       component = described_class.new(form: form, method: :category_id, items: items)
       expect(component.items.length).to eq(2)
       expect(component.items.first[:label]).to eq("Option 1")
@@ -21,14 +21,14 @@ RSpec.describe Ds::SelectComponent, type: :component do
 
     it "normalizes object items" do
       item = double("item", id: 42, name: "Test Item")
-      component = described_class.new(form: form, method: :category_id, items: [item])
+      component = described_class.new(form: form, method: :category_id, items: [ item ])
       expect(component.items.first[:value]).to eq(42)
       expect(component.items.first[:label]).to eq("Test Item")
       expect(component.items.first[:object]).to eq(item)
     end
 
     it "supports include_blank option" do
-      items = [{ value: 1, label: "Option 1" }]
+      items = [ { value: 1, label: "Option 1" } ]
       component = described_class.new(form: form, method: :category_id, items: items, include_blank: "None")
       expect(component.items.first[:value]).to be_nil
       expect(component.items.first[:label]).to eq("None")
@@ -36,7 +36,7 @@ RSpec.describe Ds::SelectComponent, type: :component do
     end
 
     it "stores selected value" do
-      items = [{ value: 1, label: "Option 1" }]
+      items = [ { value: 1, label: "Option 1" } ]
       component = described_class.new(form: form, method: :category_id, items: items, selected: 1)
       expect(component.selected_value).to eq(1)
     end
@@ -62,13 +62,13 @@ RSpec.describe Ds::SelectComponent, type: :component do
 
   describe "#selected_item" do
     it "returns the selected item" do
-      items = [{ value: 1, label: "A" }, { value: 2, label: "B" }]
+      items = [ { value: 1, label: "A" }, { value: 2, label: "B" } ]
       component = described_class.new(form: form, method: :category_id, items: items, selected: 2)
       expect(component.selected_item[:label]).to eq("B")
     end
 
     it "returns nil when nothing selected" do
-      items = [{ value: 1, label: "A" }]
+      items = [ { value: 1, label: "A" } ]
       component = described_class.new(form: form, method: :category_id, items: items)
       expect(component.selected_item).to be_nil
     end
@@ -76,7 +76,7 @@ RSpec.describe Ds::SelectComponent, type: :component do
 
   describe "#call" do
     it "renders a div with controller" do
-      items = [{ value: 1, label: "Option 1" }]
+      items = [ { value: 1, label: "Option 1" } ]
       component = described_class.new(form: form, method: :category_id, items: items)
       result = render_inline(component)
       expect(result.to_s).to include("data-controller")
@@ -84,49 +84,49 @@ RSpec.describe Ds::SelectComponent, type: :component do
     end
 
     it "renders list-filter controller when searchable" do
-      items = [{ value: 1, label: "Option 1" }]
+      items = [ { value: 1, label: "Option 1" } ]
       component = described_class.new(form: form, method: :category_id, items: items, searchable: true)
       result = render_inline(component)
       expect(result).to have_css("div[data-controller*='list-filter']")
     end
 
     it "renders button with placeholder when nothing selected" do
-      items = [{ value: 1, label: "Option 1" }]
+      items = [ { value: 1, label: "Option 1" } ]
       component = described_class.new(form: form, method: :category_id, items: items, placeholder: "Choose...")
       result = render_inline(component)
       expect(result).to have_css("button", text: "Choose...")
     end
 
     it "renders button with selected label" do
-      items = [{ value: 1, label: "My Option" }]
+      items = [ { value: 1, label: "My Option" } ]
       component = described_class.new(form: form, method: :category_id, items: items, selected: 1)
       result = render_inline(component)
       expect(result).to have_css("button", text: "My Option")
     end
 
     it "renders options in listbox" do
-      items = [{ value: 1, label: "A" }, { value: 2, label: "B" }]
+      items = [ { value: 1, label: "A" }, { value: 2, label: "B" } ]
       component = described_class.new(form: form, method: :category_id, items: items)
       result = render_inline(component)
       expect(result).to have_css("[role='option']", count: 2)
     end
 
     it "renders search input when searchable" do
-      items = [{ value: 1, label: "A" }]
+      items = [ { value: 1, label: "A" } ]
       component = described_class.new(form: form, method: :category_id, items: items, searchable: true)
       result = render_inline(component)
       expect(result).to have_css("input[type='search']")
     end
 
     it "does not render search input when not searchable" do
-      items = [{ value: 1, label: "A" }]
+      items = [ { value: 1, label: "A" } ]
       component = described_class.new(form: form, method: :category_id, items: items)
       result = render_inline(component)
       expect(result).not_to have_css("input[type='search']")
     end
 
     it "marks selected option with aria-selected" do
-      items = [{ value: 1, label: "A" }, { value: 2, label: "B" }]
+      items = [ { value: 1, label: "A" }, { value: 2, label: "B" } ]
       component = described_class.new(form: form, method: :category_id, items: items, selected: 1)
       result = render_inline(component)
       expect(result).to have_css("[aria-selected='true']", text: "A")
