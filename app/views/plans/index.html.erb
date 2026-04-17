@@ -46,6 +46,9 @@
                     <% end %>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.account') %>:</span> <%= plan.account&.name || '-' %></span>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.day_of_month') %>:</span> <%= plan.day_of_month %><%= t('plans.day', default: '日') %></span>
+                    <% if plan.category %>
+                      <span class="ml-4"><span class="font-medium"><%= t('plans.category', default: '分类') %>:</span> <%= plan.category.name %></span>
+                    <% end %>
                   </div>
 
                   <% if [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
@@ -70,7 +73,7 @@
                   <% elsif ![Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
                     <%= button_to t('plans.execute', default: '执行'), execute_plan_path(plan), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
                   <% end %>
-                  <button onclick="openEditPlanModal(<%= plan.id %>, '<%= j plan.name %>', '<%= plan.type %>', '<%= plan.account_id %>', '<%= j(plan.account&.name || '') %>', '<%= plan.amount %>', '<%= plan.total_amount || '' %>', '<%= plan.installments_total || '' %>', '<%= plan.installments_completed || 0 %>', '<%= plan.day_of_month %>', '<%= plan.currency || 'CNY' %>', <%= plan.active %>)" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
+                  <button onclick="openEditPlanModal(<%= plan.id %>, '<%= j plan.name %>', '<%= plan.type %>', '<%= plan.account_id %>', '<%= j(plan.account&.name || '') %>', '<%= plan.amount %>', '<%= plan.total_amount || '' %>', '<%= plan.installments_total || '' %>', '<%= plan.installments_completed || 0 %>', '<%= plan.day_of_month %>', '<%= plan.currency || 'CNY' %>', <%= plan.active %>, '<%= plan.category_id %>', '<%= j(plan.category&.name || '') %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
                     <%= t('common.edit') %>
                   </button>
                   <%= button_to t('common.delete'), plan_path(plan), method: :delete, onclick: "if(!confirm('确定删除此计划？')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
@@ -163,14 +166,38 @@
           </div>
 
           <!-- Basic Info -->
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">计划名称</label>
+            <input type="text" name="plan[name]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="例如: 花呗分期">
+          </div>
+
+          <!-- Category & Account -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">计划名称</label>
-              <input type="text" name="plan[name]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="例如: 花呗分期">
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类</label>
+              <input type="hidden" name="plan[category_id]" id="new-plan-category-id" value="">
+              <div class="relative">
+                <input type="text" id="new-plan-category-search"
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                       placeholder="选择分类..."
+                       autocomplete="off"
+                       readonly>
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                <div id="new-plan-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                  <div class="p-2 border-b border-border dark:border-border-dark">
+                    <input type="text" id="new-plan-category-filter"
+                           class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                           placeholder="搜索分类..."
+                           autocomplete="off">
+                  </div>
+                  <div id="new-plan-category-options" class="py-1"></div>
+                </div>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">关联账户</label>
-              <input type="hidden" name="plan[account_id]" id="new-plan-account-id" value="">
               <div class="relative">
                 <input type="text" id="new-plan-account-search" 
                        class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
@@ -301,10 +328,35 @@
           </div>
 
           <!-- Basic Info -->
+          <div>
+            <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">计划名称</label>
+            <input type="text" id="edit-plan-name" name="plan[name]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+          </div>
+
+          <!-- Category & Account -->
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">计划名称</label>
-              <input type="text" id="edit-plan-name" name="plan[name]" required class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+              <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类</label>
+              <input type="hidden" name="plan[category_id]" id="edit-plan-category-id" value="">
+              <div class="relative">
+                <input type="text" id="edit-plan-category-search"
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                       placeholder="选择分类..."
+                       autocomplete="off"
+                       readonly>
+                <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+                <div id="edit-plan-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
+                  <div class="p-2 border-b border-border dark:border-border-dark">
+                    <input type="text" id="edit-plan-category-filter"
+                           class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                           placeholder="搜索分类..."
+                           autocomplete="off">
+                  </div>
+                  <div id="edit-plan-category-options" class="py-1"></div>
+                </div>
+              </div>
             </div>
             <div>
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">关联账户</label>
@@ -421,6 +473,11 @@
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 
+<!-- 分类数据（用于 JavaScript） -->
+<script id="categories-data" type="application/json">
+  <%= raw @categories.map { |c| { id: c.id, name: c.name, full_name: build_full_name_in_memory(c, @category_parent_map), level: c.level || 0, parent_id: c.parent_id, type: (c.category_type || c.type), pinyin: PinYin.abbr(build_full_name_in_memory(c, @category_parent_map)).downcase } }.to_json %>
+</script>
+
 <script>
   function setInputDisabled(id, disabled) {
     const input = document.getElementById(id)
@@ -533,7 +590,7 @@
     document.getElementById('new-plan-modal').classList.remove('hidden')
   }
 
-  function openEditPlanModal(id, name, type, accountId, accountName, amount, totalAmount, installments, completedInstallments, dayOfMonth, currency, active) {
+  function openEditPlanModal(id, name, type, accountId, accountName, amount, totalAmount, installments, completedInstallments, dayOfMonth, currency, active, categoryId, categoryName) {
     const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
     
@@ -544,6 +601,8 @@
     
     // Set fields
     document.getElementById('edit-plan-name').value = name
+    document.getElementById('edit-plan-category-id').value = categoryId || ''
+    document.getElementById('edit-plan-category-search').value = categoryName || ''
     document.getElementById('edit-plan-account-id').value = accountId
     document.getElementById('edit-plan-account-search').value = accountName
     document.getElementById('edit-plan-day').value = dayOfMonth
@@ -666,4 +725,101 @@
   // 初始化账户选择器
   initAccountSelector('new-plan-account-search', 'new-plan-account-dropdown', 'new-plan-account-filter', 'new-plan-account-options', 'new-plan-account-id');
   initAccountSelector('edit-plan-account-search', 'edit-plan-account-dropdown', 'edit-plan-account-filter', 'edit-plan-account-options', 'edit-plan-account-id');
+
+  // 分类选择器逻辑（带拼音搜索，分组显示）
+  var allCategories = [];
+  var categoriesDataEl = document.getElementById('categories-data');
+  if (categoriesDataEl) {
+    allCategories = JSON.parse(categoriesDataEl.textContent);
+  }
+
+  function initCategorySelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
+    var searchInput = document.getElementById(searchInputId);
+    var dropdown = document.getElementById(dropdownId);
+    var filterInput = document.getElementById(filterInputId);
+    var optionsContainer = document.getElementById(optionsId);
+    var hiddenInput = document.getElementById(hiddenInputId);
+
+    if (!searchInput || !dropdown || !optionsContainer) return;
+
+    function renderOptions(filterText) {
+      var filtered = allCategories.filter(function(cat) {
+        if (!filterText) return true;
+        var query = filterText.toLowerCase();
+        if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
+        if (cat.name && cat.name.toLowerCase().includes(query)) return true;
+        if (cat.pinyin && cat.pinyin.includes(query)) return true;
+        return false;
+      });
+
+      if (filtered.length === 0) {
+        return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
+      }
+
+      var html = '';
+      var lastType = null;
+
+      filtered.forEach(function(cat) {
+        // 分组标题
+        if (cat.type !== lastType) {
+          if (lastType !== null) html += '<div class="border-t border-border dark:border-border-dark my-1"></div>';
+          var sectionLabel = cat.type === 'INCOME' ? '收入' : '支出';
+          var sectionColor = cat.type === 'INCOME' ? 'text-income' : 'text-expense';
+          html += '<div class="px-3 py-1 text-xs font-medium ' + sectionColor + ' uppercase tracking-wide">' + sectionLabel + '</div>';
+          lastType = cat.type;
+        }
+
+        var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
+        var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+        var escapedName = escapeHtml(cat.full_name);
+        html += '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '" data-type="' + cat.type + '">' +
+                 escapedName +
+               '</div>';
+      });
+
+      return html;
+    }
+
+    function updateOptions() {
+      var filterText = filterInput ? filterInput.value : '';
+      optionsContainer.innerHTML = renderOptions(filterText);
+
+      optionsContainer.querySelectorAll('.category-option').forEach(function(option) {
+        option.addEventListener('click', function() {
+          var id = this.dataset.id;
+          var name = this.dataset.name;
+          if (hiddenInput) hiddenInput.value = id;
+          if (searchInput) searchInput.value = name;
+          if (dropdown) dropdown.classList.add('hidden');
+          if (filterInput) filterInput.value = '';
+        });
+      });
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener('click', function() {
+        dropdown.classList.toggle('hidden');
+        if (!dropdown.classList.contains('hidden')) {
+          updateOptions();
+          if (filterInput) filterInput.focus();
+        }
+      });
+    }
+
+    if (filterInput) {
+      filterInput.addEventListener('focus', function() { this.placeholder = ''; });
+      filterInput.addEventListener('blur', function() { this.placeholder = '搜索分类...'; });
+      filterInput.addEventListener('input', function() { updateOptions(); });
+    }
+
+    document.addEventListener('click', function(e) {
+      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+        dropdown.classList.add('hidden');
+      }
+    });
+  }
+
+  // 初始化分类选择器
+  initCategorySelector('new-plan-category-search', 'new-plan-category-dropdown', 'new-plan-category-filter', 'new-plan-category-options', 'new-plan-category-id');
+  initCategorySelector('edit-plan-category-search', 'edit-plan-category-dropdown', 'edit-plan-category-filter', 'edit-plan-category-options', 'edit-plan-category-id');
 </script>

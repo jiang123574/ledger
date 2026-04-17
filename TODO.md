@@ -1,6 +1,6 @@
 # TODO
 
-更新时间：2026-04-16
+更新时间：2026-04-17
 维护规则：本文件为项目唯一的活跃待办清单，所有新的待办、优化任务只更新本文件。
 已完成任务请查看 DONE.md。
 
@@ -251,6 +251,30 @@
 **问题**: 应收款/应付款页面桌面端和移动端条目渲染逻辑完全独立（`_entry_list.html.erb` vs `_entry_mobile.html.erb`），DOM 结构差异大，维护成本高。后续新增字段需两边同步修改。
 
 **优化方案**: 考虑用共享 partial + 布局参数（`locals: { layout: :mobile }`）统一桌面/移动端渲染逻辑，减少重复代码。当前模式与项目已有惯例一致，非紧急。
+
+---
+
+### 26. `@category_parent_map` 只加载一层父级
+
+**优先级**: 低
+**来源**: PR #127 code review
+**状态**: ⏳ 待完成
+
+**问题**: PlansController 中 `@category_parent_map` 只加载直接父级。`build_full_name_in_memory` 递归查找 parent_map 构建 full_name，如果未来有 level 2+ 的分类（孙级），map 中找不到祖先会返回 nil。
+
+**优化方案**: 改用 `Category.all.index_by(&:id)` 加载全部分类，或在 `build_full_name_in_memory` 中做安全检查。当前数据只有一层父子关系，非紧急。
+
+---
+
+### 27. `openEditPlanModal` 参数过多
+
+**优先级**: 低
+**来源**: PR #127 code review
+**状态**: ⏳ 待完成
+
+**问题**: `openEditPlanModal` 已有 14 个参数，随着功能增加会继续膨胀。模板中的 onclick 调用也越来越长，可读性差。
+
+**优化方案**: 改为传对象参数 `openEditPlanModal({id, name, type, ...})`，或用 data 属性存储参数。非本次引入的问题，可与其他 modal 统一处理。
 
 ---
 

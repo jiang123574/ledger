@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_13_004330) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_17_002825) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -319,6 +319,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_004330) do
     t.integer "account_id"
     t.integer "active", default: 1
     t.decimal "amount", precision: 10, scale: 2
+    t.integer "category_id"
     t.datetime "created_at", null: false
     t.string "currency", limit: 3, default: "CNY"
     t.integer "day_of_month", default: 1
@@ -330,6 +331,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_004330) do
     t.string "type"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_plans_on_account_id"
+    t.index ["category_id"], name: "index_plans_on_category_id"
   end
 
   create_table "receivables", force: :cascade do |t|
@@ -432,6 +434,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_13_004330) do
   add_foreign_key "payables", "counterparties"
   add_foreign_key "payables", "entries", column: "source_entry_id", on_delete: :nullify
   add_foreign_key "plans", "accounts"
+  add_foreign_key "plans", "categories", validate: false
   add_foreign_key "receivables", "accounts"
   add_foreign_key "receivables", "counterparties"
   add_foreign_key "recurring_transactions", "accounts"
