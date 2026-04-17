@@ -35,10 +35,8 @@ class ApplicationController < ActionController::Base
     response.headers["X-XSS-Protection"] = "0"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()"
-    # Turbo Native 需要更宽松的 CSP 以支持 inline script 和 style
-    if turbo_native_app?
-      response.headers["Content-Security-Policy"] = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-    else
+    # Turbo Native 不设置 CSP，避免 importmap/inline script 被阻止
+    unless turbo_native_app?
       response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
     end
   end

@@ -49,6 +49,7 @@ open class TurboWebViewFragment : TurboWebFragment() {
 
     override fun onVisitErrorReceived(location: String, error: TurboVisitError) {
         super.onVisitErrorReceived(location, error)
+        android.util.Log.e("TurboWebView", "访问错误: $location, error=$error")
     }
 
     private fun configureWebView() {
