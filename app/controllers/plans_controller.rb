@@ -2,10 +2,11 @@ class PlansController < ApplicationController
   before_action :set_plan, only: %i[update destroy execute]
 
   def index
-    @plans = Plan.includes(:account).order(:name)
+    @plans = Plan.includes(:account, :category).order(:name)
     @active_plans = @plans.select(&:active?)
     @completed_plans = @plans.reject(&:active?)
     @accounts = Account.order(:name)
+    @categories = Category.active.order(:name)
   end
 
   def show
@@ -83,7 +84,8 @@ class PlansController < ApplicationController
     params.require(:plan).permit(
       :name, :type, :amount, :currency, :total_amount,
       :installments_total, :installments_completed,
-      :account_id, :day_of_month, :active, :last_generated
+      :account_id, :day_of_month, :active, :last_generated,
+      :category_id
     )
   end
 
