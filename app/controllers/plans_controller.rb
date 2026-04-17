@@ -7,6 +7,7 @@ class PlansController < ApplicationController
     @completed_plans = @plans.reject(&:active?)
     @accounts = Account.order(:name)
     @categories = Category.active.order(:name)
+    @category_parent_map = Category.where(id: @categories.map(&:parent_id).compact).index_by(&:id)
   end
 
   def show

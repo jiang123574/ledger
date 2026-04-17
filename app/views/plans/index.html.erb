@@ -475,7 +475,7 @@
 
 <!-- 分类数据（用于 JavaScript） -->
 <script id="categories-data" type="application/json">
-  <%= raw @categories.map { |c| { id: c.id, name: c.name, type: c.category_type, pinyin: PinYin.abbr(c.name).downcase } }.to_json %>
+  <%= raw @categories.map { |c| { id: c.id, name: c.name, full_name: build_full_name_in_memory(c, @category_parent_map), level: c.level || 0, parent_id: c.parent_id, type: (c.category_type || c.type), pinyin: PinYin.abbr(build_full_name_in_memory(c, @category_parent_map)).downcase } }.to_json %>
 </script>
 
 <script>
@@ -726,7 +726,7 @@
   initAccountSelector('new-plan-account-search', 'new-plan-account-dropdown', 'new-plan-account-filter', 'new-plan-account-options', 'new-plan-account-id');
   initAccountSelector('edit-plan-account-search', 'edit-plan-account-dropdown', 'edit-plan-account-filter', 'edit-plan-account-options', 'edit-plan-account-id');
 
-  // 分类选择器逻辑（带拼音搜索）
+  // 分类选择器逻辑（带拼音搜索，分组显示）
   var allCategories = [];
   var categoriesDataEl = document.getElementById('categories-data');
   if (categoriesDataEl) {
@@ -746,6 +746,7 @@
       var filtered = allCategories.filter(function(cat) {
         if (!filterText) return true;
         var query = filterText.toLowerCase();
+        if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
         if (cat.name && cat.name.toLowerCase().includes(query)) return true;
         if (cat.pinyin && cat.pinyin.includes(query)) return true;
         return false;
@@ -755,14 +756,28 @@
         return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
       }
 
-      return filtered.map(function(cat) {
+      var html = '';
+      var lastType = null;
+
+      filtered.forEach(function(cat) {
+        // 分组标题
+        if (cat.type !== lastType) {
+          if (lastType !== null) html += '<div class="border-t border-border dark:border-border-dark my-1"></div>';
+          var sectionLabel = cat.type === 'INCOME' ? '收入' : '支出';
+          var sectionColor = cat.type === 'INCOME' ? 'text-income' : 'text-expense';
+          html += '<div class="px-3 py-1 text-xs font-medium ' + sectionColor + ' uppercase tracking-wide">' + sectionLabel + '</div>';
+          lastType = cat.type;
+        }
+
+        var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
         var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        var typeBadge = cat.type === 'INCOME' ? '🟢' : '🔴';
-        var escapedName = escapeHtml(cat.name);
-        return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
-                 typeBadge + ' ' + escapedName +
+        var escapedName = escapeHtml(cat.full_name);
+        html += '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '" data-type="' + cat.type + '">' +
+                 escapedName +
                '</div>';
-      }).join('');
+      });
+
+      return html;
     }
 
     function updateOptions() {
