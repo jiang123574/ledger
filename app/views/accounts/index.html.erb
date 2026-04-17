@@ -1153,8 +1153,14 @@ function reinitializePageScripts() {
     }
   }
 
-  // 重新初始化信用卡账单区域
-  if (typeof window.initCreditBills === 'function') window.initCreditBills();
+  // 重新初始化信用卡账单区域（仅在 Stimulus connect 未自动初始化时兜底）
+  if (typeof window.initCreditBills === 'function') {
+    const wrapper = document.getElementById('credit-bill-wrapper')
+    // 只有当 wrapper 存在且有 accountIdValue 时才调用
+    if (wrapper && wrapper.dataset.billStatementAccountIdValue) {
+      window.initCreditBills()
+    }
+  }
 
   // 重新初始化日期筛选显示
   if (typeof syncPeriodInputType === 'function') syncPeriodInputType();
