@@ -31,8 +31,10 @@ export default class extends Controller {
     window.filterBillEntries = this.filterBillEntries.bind(this)
     window.initCreditBills = this.init.bind(this)
 
+    // 确保在 connect 时初始化（不依赖 reinitializePageScripts）
     if (this.accountIdValue) {
-      this.init()
+      // 使用 requestAnimationFrame 确保 DOM 已完全就绪
+      requestAnimationFrame(() => this.init())
     }
   }
 
