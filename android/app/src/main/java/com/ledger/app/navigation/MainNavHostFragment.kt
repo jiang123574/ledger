@@ -4,8 +4,10 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import dev.hotwire.turbo.config.TurboPathConfiguration
+import dev.hotwire.turbo.nav.TurboNavGraphDestination
 import dev.hotwire.turbo.session.TurboSessionNavHostFragment
 import com.ledger.app.BuildConfig
+import com.ledger.app.turbo.TurboWebViewFragment
 import kotlin.reflect.KClass
 
 /**
@@ -33,6 +35,7 @@ class MainNavHostFragment : TurboSessionNavHostFragment() {
 
     override val registeredFragments: List<KClass<out Fragment>>
         get() = listOf(
+            TurboWebViewFragment::class,
             AccountsTabFragment::class,
             BudgetsTabFragment::class,
             ReportsTabFragment::class,

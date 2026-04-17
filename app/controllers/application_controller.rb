@@ -1,16 +1,7 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
   # Turbo Native Android WebView 的 Chrome 版本可能低于要求，跳过检查
-  allow_browser versions: :modern unless: :turbo_native_app?
-
-  # Turbo Native 适配
-  helper TurboNativeHelper
-
-  # 在 controller 中也可以直接调用 turbo_native_app?
-  def turbo_native_app?
-    request.user_agent.to_s.include?("Turbo Native")
-  end
-  helper_method :turbo_native_app?
+  before_action :check_browser_support
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
@@ -36,6 +27,11 @@ class ApplicationController < ActionController::Base
     request.user_agent.to_s.include?("Turbo Native")
   end
   helper_method :turbo_native_app?
+
+  def check_browser_support
+    return if turbo_native_app?
+    allow_browser versions: :modern
+  end
 
   def set_security_headers
     response.headers["X-Content-Type-Options"] = "nosniff"
