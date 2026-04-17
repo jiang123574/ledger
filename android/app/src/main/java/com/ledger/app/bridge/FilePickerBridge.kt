@@ -27,21 +27,12 @@ import java.io.InputStream
  */
 class FilePickerBridge(
     private val activity: FragmentActivity,
-    private val webView: WebView
+    private val webView: WebView,
+    private val filePickerLauncher: ActivityResultLauncher<Intent>,
+    private val imagePickerLauncher: ActivityResultLauncher<Intent>
 ) {
     private var filePathCallback: ValueCallback<Array<Uri>>? = null
     private var jsCallbackFunction: String? = null
-
-    // 注册 Activity Result Launcher
-    val filePickerLauncher: ActivityResultLauncher<Intent> =
-        activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            handleFileResult(result.data)
-        }
-
-    val imagePickerLauncher: ActivityResultLauncher<Intent> =
-        activity.registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
-            handleImageResult(result.data)
-        }
 
     /**
      * 创建兼容 WebView input[type=file] 的 WebChromeClient
@@ -97,7 +88,7 @@ class FilePickerBridge(
     /**
      * 处理 WebChromeClient 的文件选择结果
      */
-    private fun handleFileResult(data: Intent?) {
+    fun handleFileResult(data: Intent?) {
         val uris = extractUris(data)
         filePathCallback?.onReceiveValue(uris)
         filePathCallback = null
@@ -106,7 +97,7 @@ class FilePickerBridge(
     /**
      * 处理 JS Bridge 的图片选择结果
      */
-    private fun handleImageResult(data: Intent?) {
+    fun handleImageResult(data: Intent?) {
         val uri = data?.data ?: return
         convertToBase64AndNotify(uri, "image/jpeg")
     }

@@ -1,9 +1,12 @@
 package com.ledger.app
 
 import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import android.webkit.WebView
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.fragment.NavHostFragment
@@ -33,6 +36,10 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
     private lateinit var filePickerBridge: FilePickerBridge
     private lateinit var shareBridge: ShareBridge
 
+    // Activity Result Launcher 必须在 onCreate 中注册（STARTED 之前）
+    private lateinit var filePickerLauncher: ActivityResultLauncher<Intent>
+    private lateinit var imagePickerLauncher: ActivityResultLauncher<Intent>
+
     override fun onCreate(savedInstanceState: Bundle?) {
         // 安装 Splash Screen（必须在 super.onCreate 之前）
         val splashScreen = installSplashScreen()
@@ -40,11 +47,32 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        // 注册 Activity Result Launcher（必须在 STARTED 之前）
+        registerActivityResultLaunchers()
+
         // Splash Screen 保持显示直到内容就绪
         splashScreen.setKeepOnScreenCondition { false }
 
         setupNavigation()
         handleIncomingIntent(intent)
+    }
+
+    private fun registerActivityResultLaunchers() {
+        filePickerLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (::filePickerBridge.isInitialized) {
+                filePickerBridge.handleFileResult(result.data)
+            }
+        }
+
+        imagePickerLauncher = registerForActivityResult(
+            ActivityResultContracts.StartActivityForResult()
+        ) { result ->
+            if (::filePickerBridge.isInitialized) {
+                filePickerBridge.handleImageResult(result.data)
+            }
+        }
     }
 
     override fun onNewIntent(intent: Intent?) {
@@ -78,7 +106,7 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
     fun attachBridgesToWebView(webView: WebView) {
         nativeBridge = NativeBridge(this, webView, this)
         biometricBridge = BiometricBridge(this, nativeBridge)
-        filePickerBridge = FilePickerBridge(this, webView)
+        filePickerBridge = FilePickerBridge(this, webView, filePickerLauncher, imagePickerLauncher)
         shareBridge = ShareBridge(this, nativeBridge)
 
         // 注入 JS Bridge
