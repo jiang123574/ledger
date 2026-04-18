@@ -179,4 +179,11 @@ export default class extends Controller {
       tooltip.classList.add("hidden")
     }
   }
+
+  disconnect() {
+    const tooltip = document.getElementById("heatmap-tooltip")
+    if (tooltip) {
+      tooltip.remove()
+    }
+  }
 }
