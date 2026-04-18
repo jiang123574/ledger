@@ -3,8 +3,8 @@
 require "rails_helper"
 
 RSpec.describe BackupService do
-  let(:backup_dir) { Rails.root.join("tmp", "backups") }
-  let(:config_file) { Rails.root.join("tmp", "backup_config.json") }
+  let(:backup_dir) { BackupService::BACKUP_DIR }
+  let(:config_file) { BackupConfig::CONFIG_FILE }
 
   before do
     FileUtils.mkdir_p(backup_dir)
@@ -154,7 +154,7 @@ RSpec.describe BackupService do
 end
 
 RSpec.describe BackupConfig do
-  let(:config_file) { Rails.root.join("tmp", "backup_config.json") }
+  let(:config_file) { BackupConfig::CONFIG_FILE }
 
   after do
     File.delete(config_file) if File.exist?(config_file)

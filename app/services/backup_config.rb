@@ -6,7 +6,7 @@ require "fileutils"
 # Manages backup configuration (WebDAV credentials, auto-backup settings).
 # Persists to a JSON file in tmp/.
 class BackupConfig
-  CONFIG_FILE = Rails.root.join("tmp", "backup_config.json").freeze
+  CONFIG_FILE = Rails.root.join("storage", "backup_config.json").freeze
 
   # ---- WebDAV Configuration ----
 
