@@ -105,6 +105,7 @@ export default class extends Controller {
       if (isUnbilled) {
         html += '<span class="font-semibold text-sm text-orange-600 dark:text-orange-400">未出账单</span>'
         html += '<span class="text-[10px] px-1.5 py-0.5 rounded bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400">进行中</span>'
+        html += `<span class="font-bold text-orange-600 dark:text-orange-400 ml-2">${this.formatBillMoney(bill.statement_amount || bill.balance_due || 0)}</span>`
       } else {
         html += `<span class="font-semibold text-sm text-primary dark:text-primary-dark">${bill.label}</span>`
         const displayAmount = bill.statement_amount || bill.balance_due || 0

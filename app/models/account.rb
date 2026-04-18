@@ -200,20 +200,10 @@ class Account < ApplicationRecord
     cycles = []
     base = Date.current
 
-    # 找未出账单：今天在某账期内但还没到账单日
-    unbilled_cycle = nil
-    (0..2).each do |i|
-      c = bill_cycle_for(base - i.months)
-      if c && c[:unbilled]
-        unbilled_cycle = c
-        break
-      end
-    end
+    unbilled_cycle = find_unbilled_cycle(base)
 
-    # 如果有未出账单，加到数组第一位
     if unbilled_cycle
       cycles << unbilled_cycle
-      # 最近一期已出账单 = 未出账单的前一期
       last_start = unbilled_cycle[:start_date] - 1.month
       last_end = unbilled_cycle[:end_date] - 1.month
       cycles << {
@@ -223,7 +213,6 @@ class Account < ApplicationRecord
         label: format_bill_label(last_end),
         unbilled: false
       }
-      # 往前推历史账单
       (1...count).each do |i|
         hist_start = last_start - i.months
         hist_end = last_end - i.months
@@ -236,7 +225,6 @@ class Account < ApplicationRecord
         }
       end
     else
-      # 没有未出账单：今天已经过了最近账单日，找最近一期已出账单
       last_cycle = nil
       (0..2).each do |i|
         c = bill_cycle_for(base - i.months)
@@ -265,7 +253,6 @@ class Account < ApplicationRecord
     cycles
   end
 
-  # 获取指定标签的账单周期（用于前端点击时查找）
   def bill_cycle_by_label(label)
     bill_cycles(12).find { |c| c[:label] == label }
   end
@@ -425,7 +412,22 @@ class Account < ApplicationRecord
 
   private
 
-  # 根据账单截止日计算还款到期日
+  def find_unbilled_cycle(base)
+    next_cycle = bill_cycle_for(base + 1.month)
+    if next_cycle && Date.current >= next_cycle[:start_date] && Date.current < next_cycle[:end_date]
+      return next_cycle.merge(unbilled: true)
+    end
+
+    (0..2).each do |i|
+      c = bill_cycle_for(base - i.months)
+      if c && c[:unbilled]
+        return c
+      end
+    end
+
+    nil
+  end
+
   def calculate_due_date(bill_end_date)
     case due_day_mode
     when "relative"
