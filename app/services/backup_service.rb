@@ -5,7 +5,7 @@ require "open3"
 
 # Backup management facade. Delegates to BackupConfig, WebDAVClient.
 class BackupService
-  BACKUP_DIR = Rails.root.join("tmp", "backups").freeze
+  BACKUP_DIR = Rails.root.join("storage", "backups").freeze
 
   # ===================
   # Local Backup

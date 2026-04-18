@@ -109,7 +109,7 @@ class SettingsController < ApplicationController
     # 确保 .sql 后缀存在（Rails 路由可能把 .sql 当作 format 解析）
     backup_name = "#{backup_name}.sql" unless backup_name.end_with?(".sql")
 
-    backup_path = Rails.root.join("tmp", "backups", backup_name)
+    backup_path = BackupService::BACKUP_DIR.join(backup_name)
 
     unless File.exist?(backup_path)
       redirect_to settings_path, alert: "备份文件不存在"
@@ -135,7 +135,7 @@ class SettingsController < ApplicationController
 
     # 保存上传的文件到临时位置
     uploaded_file = params[:backup_file]
-    temp_path = Rails.root.join("tmp", "backups", "restore_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql")
+    temp_path = BackupService::BACKUP_DIR.join("restore_#{Time.now.strftime('%Y%m%d_%H%M%S')}.sql")
 
     # 确保目录存在
     FileUtils.mkdir_p(File.dirname(temp_path))

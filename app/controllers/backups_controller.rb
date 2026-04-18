@@ -93,7 +93,7 @@ class BackupsController < ApplicationController
 
   def webdav_download
     safe_filename = File.basename(params[:filename].to_s)
-    result = BackupService.download_from_webdav(safe_filename, Rails.root.join("tmp", "backups", safe_filename))
+    result = BackupService.download_from_webdav(safe_filename, BackupService::BACKUP_DIR.join(safe_filename))
 
     if result[:success]
       send_file result[:path], filename: safe_filename
