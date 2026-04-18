@@ -399,5 +399,44 @@
 
 ---
 
-**最后更新**: 2026-04-16
+## P2 - 图表功能增强 ✅
+
+### 16. 数据可视化图表优化
+
+**完成日期**: 2026-04-18
+**分支**: `feature/chart-enhancement`
+**优先级**: 中
+**预估工期**: 2-3 天
+
+**完成内容**:
+- [x] Dashboard 近6个月收支柱状图 (`bar_chart_controller.js`)
+- [x] Dashboard 净资产趋势折线图 (`net_worth_trend_controller.js`)
+- [x] Reports 日历热力图 (`calendar_heatmap_controller.js`)
+- [x] Reports 瀑布图 (`waterfall_chart.js`)
+- [x] Reports 桑基图（已修复数据生成 bug）
+- [x] 删除 Dashboard "最近交易" 和 "预算仪表盘" 区块
+
+**技术要点**:
+- Chart.js UMD 放在 `vendor/assets/javascripts/`，需配置 `config/initializers/assets.rb`
+- Stimulus controller 需同时在 `app/javascript/controllers/index.js` (import + register) 和 `config/importmap.rb` (pin) 注册
+- Rails `.group('categories.id, categories.name').sum(...)` 返回 hash 的 key 是数组 `[id, name]`，需单独解构
+
+**Bug 修复**:
+- `calendar_heatmap_controller.js`: try-finally 结构导致 colors 变量未定义，改为 early return + `_drawing` flag
+- 桑基图数据生成：`group` 返回的 key 是数组，需 `cat_id, cat_name = key` 解构
+
+**相关文件**:
+- `app/javascript/controllers/bar_chart_controller.js`
+- `app/javascript/controllers/calendar_heatmap_controller.js`
+- `app/javascript/controllers/net_worth_trend_controller.js`
+- `app/javascript/controllers/waterfall_chart_controller.js`
+- `vendor/assets/javascripts/chart.js.umd.js`
+- `app/controllers/dashboard_controller.rb`
+- `app/controllers/reports_controller.rb`
+- `app/views/dashboard/show.html.erb`
+- `app/views/reports/show.html.erb`
+
+---
+
+**最后更新**: 2026-04-18
 **维护者**: 开发团队
