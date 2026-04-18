@@ -8,7 +8,7 @@ export default class extends Controller {
   static targets = ["sidebar", "overlay"]
   
   connect() {
-    this.isOpen = false
+    this.isOpen = this.hasSidebarTarget && !this.sidebarTarget.classList.contains('-translate-x-full')
     this.previousScrollY = 0
     this.bindEvents()
   }
