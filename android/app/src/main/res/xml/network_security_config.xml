@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<network-security-config>
+    <!-- 开发环境允许明文 HTTP -->
+    <!-- 如需真机调试，在 local.properties 配置 BASE_URL 后，添加对应 IP 到此处 -->
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+        <!-- 示例：真机调试时添加局域网 IP
+        <domain includeSubdomains="true">192.168.x.x</domain>
+        -->
+    </domain-config>
+</network-security-config>

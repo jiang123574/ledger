@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/tab_accounts"
+        android:icon="@drawable/ic_folder"
+        android:title="@string/nav_accounts" />
+
+    <item
+        android:id="@+id/tab_budgets"
+        android:icon="@drawable/ic_map"
+        android:title="@string/nav_budgets" />
+
+    <item
+        android:id="@+id/tab_reports"
+        android:icon="@drawable/ic_bar_chart"
+        android:title="@string/nav_reports" />
+
+    <item
+        android:id="@+id/tab_settings"
+        android:icon="@drawable/ic_settings"
+        android:title="@string/nav_settings" />
+
+</menu>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/tab_accounts">
+
+    <!-- 账户 Tab -->
+    <fragment
+        android:id="@+id/tab_accounts"
+        android:name="com.ledger.app.navigation.AccountsTabFragment"
+        android:label="@string/nav_accounts">
+    </fragment>
+
+    <!-- 预算 Tab -->
+    <fragment
+        android:id="@+id/tab_budgets"
+        android:name="com.ledger.app.navigation.BudgetsTabFragment"
+        android:label="@string/nav_budgets">
+    </fragment>
+
+    <!-- 报表 Tab -->
+    <fragment
+        android:id="@+id/tab_reports"
+        android:name="com.ledger.app.navigation.ReportsTabFragment"
+        android:label="@string/nav_reports">
+    </fragment>
+
+    <!-- 设置 Tab -->
+    <fragment
+        android:id="@+id/tab_settings"
+        android:name="com.ledger.app.navigation.SettingsTabFragment"
+        android:label="@string/nav_settings">
+    </fragment>
+
+</navigation>

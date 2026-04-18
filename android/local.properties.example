@@ -1,0 +1,13 @@
+# Android 本地开发配置
+# ⚠️ 此文件不提交到 Git，包含本地环境信息
+
+# SDK 路径 (Android Studio 自动生成)
+sdk.dir=/Users/yourname/Library/Android/sdk
+
+# 开发服务器地址
+# 模拟器: 使用 10.0.2.2 (Android 模拟器专用地址)
+# 真机: 使用局域网 IP (如 192.168.1.100)
+BASE_URL=http://10.0.2.2:3000/
+
+# Debug 模式专用地址 (可选，优先级高于 BASE_URL)
+# debug.BASE_URL=http://192.168.1.100:3000/

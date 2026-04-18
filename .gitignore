@@ -63,15 +63,19 @@
 *.docs
 /.doc
 /.docs
-
 # Temp planning files
 /temp/
+
+# VS Code
+/.vscode
+
 # Android
 android/.gradle/
 android/app/build/
 android/.idea/
 android/local.properties
 android/keystore.properties
+**/.DS_Store
 
 # IDE
 .idea/
@@ -79,4 +83,5 @@ android/keystore.properties
 # Keystore
 *.jks
 
+# Scripts
 bin/dev-server

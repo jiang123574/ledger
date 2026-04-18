@@ -1,6 +1,7 @@
 class ApplicationController < ActionController::Base
   # Only allow modern browsers supporting webp images, web push, badges, import maps, CSS nesting, and CSS :has.
-  allow_browser versions: :modern
+  # Turbo Native Android WebView 的 Chrome 版本可能低于要求，跳过检查
+  allow_browser versions: :modern, if: -> { !turbo_native_app? }
 
   # Changes to the importmap will invalidate the etag for HTML responses
   stale_when_importmap_changes
@@ -22,13 +23,22 @@ class ApplicationController < ActionController::Base
 
   private
 
+  def turbo_native_app?
+    request.user_agent.to_s.include?("Turbo Native")
+  end
+  helper_method :turbo_native_app?
+
   def set_security_headers
     response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["X-Frame-Options"] = "SAMEORIGIN"
+    # Turbo Native Android WebView 需要在 iframe 中加载，不能限制同源
+    response.headers["X-Frame-Options"] = "SAMEORIGIN" unless turbo_native_app?
     response.headers["X-XSS-Protection"] = "0"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()"
-    response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    # Turbo Native 不设置 CSP，避免 importmap/inline script 被阻止
+    unless turbo_native_app?
+      response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    end
   end
 
   def require_login

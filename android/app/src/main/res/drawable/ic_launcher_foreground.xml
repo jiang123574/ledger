@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- 记账本 Logo: 钱袋/账本图标 -->
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M30,40h48v28H30z"
+        android:strokeWidth="2"
+        android:strokeColor="#ffffff" />
+    <path
+        android:fillColor="#ffffff"
+        android:pathData="M36,36h36c3.3,0 6,2.7 6,6v4H30v-4C30,38.7 32.7,36 36,36z" />
+    <path
+        android:fillColor="#10b981"
+        android:pathData="M54,50m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+</vector>
