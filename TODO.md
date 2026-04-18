@@ -300,6 +300,32 @@
 
 ---
 
+### 29. Orphaned page-skeleton/page-transition 代码清理
+
+**优先级**: 低
+**来源**: PR #131 Turbo morph 优化
+**状态**: ⏳ 待完成
+
+**问题**: 禁用 `page-skeleton` 和 `page-transition` 动画后，相关代码仍存在：
+- `app/javascript/controllers/page_skeleton_controller.js` — controller 文件
+- `app/javascript/controllers/page_transition_controller.js` — controller 文件
+- `app/javascript/controllers/index.js` (lines 19-20, 60-61) — import 和 register
+- `app/javascript/stimulus-loading.js` (lines 16-17) — import 和 register
+- CSS 类：`.page-skeleton`, `.page-skeleton-hidden`, `.skeleton-block`, `.page-fade-enter`, `.page-fade-leave`
+
+**优化方案**: 确认是否永久禁用后清理：
+1. 删除两个 controller 文件
+2. 移除 index.js 和 stimulus-loading.js 中的 import/register
+3. 清理 tailwind.css 和 application.css 中的相关 CSS
+4. 清理 config/importmap.rb 中的 pin（如有）
+
+**验证清单**:
+- [ ] 无 orphaned JavaScript controllers
+- [ ] 无 orphaned CSS classes
+- [ ] 无 importmap 中未使用的 pin
+
+---
+
 ## 文档维护规则
 
 1. **本文件（TODO.md）**：唯一的活跃待办清单
