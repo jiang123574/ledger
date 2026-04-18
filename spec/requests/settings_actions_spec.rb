@@ -138,7 +138,7 @@ RSpec.describe "Settings Actions", type: :request do
     end
 
     it "sends backup file when it exists" do
-      backup_dir = Rails.root.join("tmp", "backups")
+      backup_dir = BackupService::BACKUP_DIR
       FileUtils.mkdir_p(backup_dir)
       backup_file = backup_dir.join("test_backup.sql")
       File.write(backup_file, "SELECT 1;")

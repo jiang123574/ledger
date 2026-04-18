@@ -438,7 +438,7 @@ RSpec.describe BackupsController, type: :request do
     it "downloads file from webdav and sends it" do
       BackupConfig.configure_webdav(url: "https://dav.example.com", username: "u", password: "p")
 
-      target_path = Rails.root.join("tmp", "backups", "remote.sql")
+      target_path = BackupService::BACKUP_DIR.join("remote.sql")
       FileUtils.mkdir_p(backup_dir)
       File.write(target_path, "REMOTE DATA")
 
