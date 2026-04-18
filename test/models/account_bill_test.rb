@@ -172,6 +172,26 @@ class AccountBillTest < ActiveSupport::TestCase
     assert_equal [], cycles
   end
 
+  test "find_unbilled_cycle finds unbilled after billing day" do
+    travel_to Date.new(2026, 4, 18) do
+      cycles = @credit_card.bill_cycles(3)
+      unbilled = cycles.find { |c| c[:unbilled] }
+      assert unbilled, "Should find unbilled cycle after billing day"
+      assert_equal Date.new(2026, 4, 17), unbilled[:start_date]
+      assert_equal Date.new(2026, 5, 16), unbilled[:end_date]
+    end
+  end
+
+  test "find_unbilled_cycle finds unbilled before billing day" do
+    travel_to Date.new(2026, 4, 10) do
+      cycles = @credit_card.bill_cycles(3)
+      unbilled = cycles.find { |c| c[:unbilled] }
+      assert unbilled, "Should find unbilled cycle before billing day"
+      assert_equal Date.new(2026, 3, 17), unbilled[:start_date]
+      assert_equal Date.new(2026, 4, 16), unbilled[:end_date]
+    end
+  end
+
   test "bill_cycles_with_statement count limits results" do
     travel_to Date.new(2025, 7, 18) do
       # 创建较早的基准账单，确保有足够的账单周期
