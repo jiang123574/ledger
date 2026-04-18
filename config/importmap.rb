@@ -46,6 +46,10 @@ pin "controllers/asset_trend_chart_controller", to: "controllers/asset_trend_cha
 pin "controllers/category_comparison_controller", to: "controllers/category_comparison_controller.js"
 pin "controllers/filter_popover_controller", to: "controllers/filter_popover_controller.js"
 pin "controllers/bill_statement_controller", to: "controllers/bill_statement_controller.js"
+pin "controllers/bar_chart_controller", to: "controllers/bar_chart_controller.js"
+pin "controllers/calendar_heatmap_controller", to: "controllers/calendar_heatmap_controller.js"
+pin "controllers/net_worth_trend_controller", to: "controllers/net_worth_trend_controller.js"
+pin "controllers/waterfall_chart_controller", to: "controllers/waterfall_chart_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Hotwired packages - vendored for production reliability

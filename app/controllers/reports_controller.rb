@@ -52,6 +52,21 @@ class ReportsController < ApplicationController
       @category_monthly_comparison = load_category_monthly_comparison
     end
 
+    # 桑基图数据（年度视图）
+    if @report_type == :yearly
+      @sankey_data = load_sankey_data
+    end
+
+    # 日历热力图数据（年度视图）
+    if @report_type == :yearly
+      @calendar_heatmap_data = load_calendar_heatmap_data
+    end
+
+    # 瀑布图数据（年度视图）
+    if @report_type == :yearly
+      @waterfall_data = load_waterfall_data
+    end
+
     # 预算进度
     load_budget_data if @report_type == :monthly
 
@@ -334,5 +349,206 @@ class ReportsController < ApplicationController
       expense: cats.select { |c| c[:kind] == "expense" },
       income: cats.select { |c| c[:kind] == "income" }
     }
+  end
+
+  # 桑基图数据 — 收入来源 -> 分类 -> 支出流向
+  def load_sankey_data
+    nodes = []
+    links = []
+
+    max_income_categories = 10
+    max_expense_categories = 15
+
+    income_categories = Entry.with_category
+      .transactions_only
+      .non_transfers
+      .where(entryable_transactions: { kind: "income" })
+      .where(date: @start_date..@end_date)
+      .group("categories.id, categories.name")
+      .order(Arel.sql("SUM(entries.amount) DESC"))
+      .sum("entries.amount")
+
+    top_income = income_categories.select { |_, a| a > 0 }.first(max_income_categories)
+    other_income_amount = income_categories.select { |_, a| a > 0 }.drop(max_income_categories).sum { |_, a| a }
+
+    top_income.each do |cat_name, amount|
+      nodes << { name: cat_name, type: "income" }
+    end
+    if other_income_amount > 0
+      nodes << { name: "其他收入", type: "income" }
+    end
+
+    expense_categories = Entry.with_category
+      .transactions_only
+      .non_transfers
+      .where(entryable_transactions: { kind: "expense" })
+      .where(date: @start_date..@end_date)
+      .group("categories.id, categories.name")
+      .order(Arel.sql("SUM(entries.amount * -1) DESC"))
+      .sum("entries.amount * -1")
+
+    top_expense = expense_categories.select { |_, a| a > 0 }.first(max_expense_categories)
+    other_expense_amount = expense_categories.select { |_, a| a > 0 }.drop(max_expense_categories).sum { |_, a| a }
+
+    top_expense.each do |cat_name, amount|
+      nodes << { name: cat_name, type: "expense" }
+    end
+    if other_expense_amount > 0
+      nodes << { name: "其他支出", type: "expense" }
+    end
+
+    nodes << { name: "总收入", type: "center_income" }
+    nodes << { name: "总支出", type: "center_expense" }
+
+    top_income.each do |cat_name, amount|
+      links << {
+        source: cat_name,
+        target: "总收入",
+        value: amount.to_f,
+        type: "income"
+      }
+    end
+    if other_income_amount > 0
+      links << {
+        source: "其他收入",
+        target: "总收入",
+        value: other_income_amount.to_f,
+        type: "income"
+      }
+    end
+
+    if @total_income > 0
+      expense_flow = [ @total_expense, @total_income ].min
+      links << {
+        source: "总收入",
+        target: "总支出",
+        value: expense_flow.to_f,
+        type: "flow"
+      }
+    end
+
+    top_expense.each do |cat_name, amount|
+      links << {
+        source: "总支出",
+        target: cat_name,
+        value: amount.to_f,
+        type: "expense"
+      }
+    end
+    if other_expense_amount > 0
+      links << {
+        source: "总支出",
+        target: "其他支出",
+        value: other_expense_amount.to_f,
+        type: "expense"
+      }
+    end
+
+    { nodes: nodes, links: links }
+  end
+
+  # 日历热力图数据 — 每日消费金额/频率分布
+  def load_calendar_heatmap_data
+    daily_data = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(entryable_transactions: { kind: "expense" })
+      .where(date: @start_date..@end_date)
+      .group("entries.date")
+      .select("entries.date, COUNT(*) as count, SUM(entries.amount * -1) as total")
+      .map { |r| { date: r.date.to_s, count: r.count.to_i, amount: r.total.to_f.abs } }
+
+    daily_data.map do |d|
+      {
+        date: d[:date],
+        count: d[:count],
+        amount: d[:amount],
+        level: calculate_heatmap_level(d[:amount])
+      }
+    end
+  end
+
+  def calculate_heatmap_level(amount)
+    case amount
+    when 0..100 then 1
+    when 100..500 then 2
+    when 500..1000 then 3
+    when 1000..5000 then 4
+    else 5
+    end
+  end
+
+  # 瀑布图数据 — 账户余额变动明细（按月汇总）
+  def load_waterfall_data
+    labels = []
+    data = []
+    totals = []
+
+    asset_types = %w[CASH BANK INVESTMENT]
+    liability_types = %w[CREDIT LOAN DEBT]
+
+    current_balances = Account.visible.included_in_total
+      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
+      .group("accounts.id")
+      .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
+      .to_h { |id, type, bal| [ id, { type: type, balance: bal.to_d } ] }
+
+    Account.visible.included_in_total.where.not(id: current_balances.keys)
+      .pluck(:id, :type, :initial_balance)
+      .each { |id, type, bal| current_balances[id] = { type: type, balance: bal.to_d } }
+
+    asset_account_ids = current_balances.select { |_, v| asset_types.include?(v[:type]) }.keys
+    liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
+
+    current_assets = current_balances.select { |_, v| asset_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
+    current_liabilities = current_balances.select { |_, v| liability_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
+
+    monthly_changes = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
+      .group("date_trunc('month', date)")
+      .group(:account_id)
+      .sum(:amount)
+
+    monthly_asset_delta = Hash.new(0)
+    monthly_liability_delta = Hash.new(0)
+
+    monthly_changes.each do |(month_key, account_id), amount|
+      m = month_key.to_date.month rescue nil
+      next unless m
+      if asset_account_ids.include?(account_id)
+        monthly_asset_delta[m] += amount.to_d
+      elsif liability_account_ids.include?(account_id)
+        monthly_liability_delta[m] += amount.to_d
+      end
+    end
+
+    yearly_asset_delta = (1..12).sum { |m| monthly_asset_delta[m] || 0 }
+    yearly_liability_delta = (1..12).sum { |m| monthly_liability_delta[m] || 0 }
+
+    estimated_start_net_worth = (current_assets + current_liabilities) - (yearly_asset_delta + yearly_liability_delta)
+
+    # 期初余额
+    labels << "年初"
+    data << 0
+    totals << estimated_start_net_worth.to_f.round(2)
+
+    cumulative = 0
+    (1..12).each do |m|
+      asset_delta = monthly_asset_delta[m] || 0
+      liability_delta = monthly_liability_delta[m] || 0
+      net_delta = asset_delta + liability_delta
+
+      cumulative += net_delta
+
+      labels << "#{m}月"
+      data << net_delta.to_f.round(2)
+      totals << (estimated_start_net_worth + cumulative).to_f.round(2)
+    end
+
+    # 期末余额（作为汇总条）
+    labels << "年末"
+    data << 0
+    totals << (current_assets + current_liabilities).to_f.round(2)
+
+    { labels: labels, data: data, totals: totals }
   end
 end

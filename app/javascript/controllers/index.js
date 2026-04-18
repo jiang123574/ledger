@@ -37,6 +37,10 @@ import CategoryComparisonController from "controllers/category_comparison_contro
 import FilterPopoverController from "controllers/filter_popover_controller"
 import EntryListController from "controllers/entry_list_controller"
 import BillStatementController from "controllers/bill_statement_controller"
+import BarChartController from "controllers/bar_chart_controller"
+import CalendarHeatmapController from "controllers/calendar_heatmap_controller"
+import NetWorthTrendController from "controllers/net_worth_trend_controller"
+import WaterfallChartController from "controllers/waterfall_chart_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -74,3 +78,7 @@ application.register("category-comparison", CategoryComparisonController)
 application.register("filter-popover", FilterPopoverController)
 application.register("entry-list", EntryListController)
 application.register("bill-statement", BillStatementController)
+application.register("bar-chart", BarChartController)
+application.register("calendar-heatmap", CalendarHeatmapController)
+application.register("net-worth-trend", NetWorthTrendController)
+application.register("waterfall-chart", WaterfallChartController)

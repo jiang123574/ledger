@@ -2,7 +2,7 @@
 <% display_month = Date.current.strftime("%Y-%m") unless display_month =~ /\A\d{4}-\d{2}\z/ %>
 <% current_date = Date.new(display_month[0..3].to_i, display_month[5..6].to_i, 1) %>
 
-<div class="space-y-4 sm:space-y-6" data-controller="chart-visibility" data-chart-visibility-page-value="dashboard" data-chart-visibility-default-visible-value='["recent_transactions", "trend_chart", "expense_chart", "budget_status"]'>
+<div class="space-y-4 sm:space-y-6" data-controller="chart-visibility" data-chart-visibility-page-value="dashboard" data-chart-visibility-default-visible-value='["trend_chart", "expense_chart", "six_month_bar", "net_worth_trend"]'>
   <!-- Header -->
   <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
     <div>
@@ -30,10 +30,6 @@
           <div class="p-3 space-y-2">
             <p class="text-xs font-medium text-secondary dark:text-secondary-dark mb-2">显示图表</p>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="recent_transactions" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
-              <span class="text-sm text-primary dark:text-primary-dark">最近交易</span>
-            </label>
-            <label class="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="trend_chart" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
               <span class="text-sm text-primary dark:text-primary-dark">收支趋势</span>
             </label>
@@ -42,8 +38,12 @@
               <span class="text-sm text-primary dark:text-primary-dark">分类支出</span>
             </label>
             <label class="flex items-center gap-2 cursor-pointer">
-              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="budget_status" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
-              <span class="text-sm text-primary dark:text-primary-dark">预算仪表盘</span>
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="six_month_bar" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">6个月收支</span>
+            </label>
+            <label class="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" data-chart-visibility-target="checkbox" data-section-key="net_worth_trend" data-action="change->chart-visibility#toggleSection" class="w-4 h-4 rounded border-border text-primary focus:ring-primary">
+              <span class="text-sm text-primary dark:text-primary-dark">净资产走势</span>
             </label>
           </div>
         </div>
@@ -113,84 +113,6 @@
     role="list" 
     aria-label="Dashboard sections">
     
-    <!-- Recent Transactions Section -->
-    <section
-      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-      data-dashboard-sortable-target="section"
-      data-chart-visibility-target="section"
-      data-section-key="recent_transactions"
-      data-controller="dashboard-section"
-      data-dashboard-section-section-key-value="recent_transactions"
-      draggable="true"
-      tabindex="0"
-      role="listitem"
-      aria-grabbed="false"
-      data-action="
-        dragstart->dashboard-sortable#dragStart
-        dragend->dashboard-sortable#dragEnd
-        touchstart->dashboard-sortable#touchStart
-        touchmove->dashboard-sortable#touchMove
-        touchend->dashboard-sortable#touchEnd
-        keydown->dashboard-sortable#handleKeyDown">
-      
-      <!-- Section Header -->
-      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
-        <div class="flex items-center gap-2">
-          <button
-            type="button"
-            class="text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5"
-            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
-            data-dashboard-section-target="button"
-            aria-label="<%= t('dashboard.toggle_section') %>"
-            aria-expanded="true">
-            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
-          </button>
-          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">
-            <%= t("dashboard.recent_transactions") %>
-          </h2>
-        </div>
-        <div class="flex items-center gap-2">
-          <%= link_to t("dashboard.view_all"), accounts_path, 
-              class: "text-sm text-primary dark:text-primary-dark hover:text-secondary dark:text-secondary-dark font-medium" %>
-          <button
-            type="button"
-            class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
-            aria-label="<%= t('dashboard.drag_to_reorder') %>">
-            <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
-          </button>
-        </div>
-      </div>
-      
-      <!-- Section Content -->
-      <div class="divide-y divide-border" data-dashboard-section-target="content">
-        <% @entries.first(8).each do |e| %>
-          <% flow_type = e.display_flow_type %>
-          <%= link_to transaction_path(e), class: "flex items-center justify-between p-4 hover:bg-surface dark:hover:bg-surface-dark transition-smooth" do %>
-            <div class="flex items-center gap-3 min-w-0">
-              <div class="ie-icon-chip ie-icon-chip-md <%= flow_type == "INCOME" ? "ie-icon-income" : "ie-icon-expense" %>">
-                <%= render(Ds::IconComponent.new(name: flow_type == "INCOME" ? "arrow-right" : "arrow-left", size: :md, color: flow_type == "INCOME" ? :income : :expense)) %>
-              </div>
-              <div class="min-w-0">
-                <p class="font-medium text-primary dark:text-primary-dark truncate"><%= (@category_map && @category_map[e.display_category_id])&.name || t("dashboard.uncategorized") %></p>
-                <p class="text-xs text-secondary dark:text-secondary-dark"><%= e.date&.strftime("%Y-%m-%d") %> · <%= e.account_name %></p>
-              </div>
-            </div>
-            <span class="font-medium <%= flow_type == "INCOME" ? "text-income" : "text-expense" %> shrink-0 ml-2">
-              <%= format_currency_with_sign(e.display_amount, type: flow_type) %>
-            </span>
-          <% end %>
-        <% end %>
-        <% if @entries.empty? %>
-          <div class="p-8 text-center" data-dashboard-section-target="content">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
-              <%= render(Ds::IconComponent.new(name: "receipt", size: :lg, color: :secondary)) %>
-            </div>
-            <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_transactions_yet") %></p>
-          </div>
-        <% end %>
-      </div>
-    </section>
-
     <!-- Trend Chart Section -->
     <section
       class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
@@ -215,7 +137,7 @@
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5"
+            class="text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5"
             data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
             data-dashboard-section-target="button"
             aria-label="<%= t('dashboard.toggle_section') %>"
@@ -228,7 +150,7 @@
         </div>
         <button
           type="button"
-          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
           aria-label="<%= t('dashboard.drag_to_reorder') %>">
           <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
         </button>
@@ -274,7 +196,7 @@
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5"
+            class="text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5"
             data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
             data-dashboard-section-target="button"
             aria-label="<%= t('dashboard.toggle_section') %>"
@@ -287,7 +209,7 @@
         </div>
         <button
           type="button"
-          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
           aria-label="<%= t('dashboard.drag_to_reorder') %>">
           <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
         </button>
@@ -332,14 +254,14 @@
       </div>
     </section>
 
-    <!-- Budget Status Section -->
+    <!-- Six Month Bar Chart Section -->
     <section
       class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
       data-dashboard-sortable-target="section"
       data-chart-visibility-target="section"
-      data-section-key="budget_status"
+      data-section-key="six_month_bar"
       data-controller="dashboard-section"
-      data-dashboard-section-section-key-value="budget_status"
+      data-dashboard-section-section-key-value="six_month_bar"
       draggable="true"
       tabindex="0"
       role="listitem"
@@ -352,12 +274,11 @@
         touchend->dashboard-sortable#touchEnd
         keydown->dashboard-sortable#handleKeyDown">
       
-      <!-- Section Header -->
       <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
         <div class="flex items-center gap-2">
           <button
             type="button"
-            class="text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5"
+            class="text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5"
             data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
             data-dashboard-section-target="button"
             aria-label="<%= t('dashboard.toggle_section') %>"
@@ -365,67 +286,87 @@
             <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
           </button>
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">
-            <%= t("dashboard.budget_status") %>
+            近6个月收支对比
           </h2>
         </div>
         <button
           type="button"
-          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
           aria-label="<%= t('dashboard.drag_to_reorder') %>">
           <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
         </button>
       </div>
       
-      <!-- Section Content -->
       <div class="p-4" data-dashboard-section-target="content">
-        <% if @budgets.any? || @total_budget > 0 %>
-          <div class="flex flex-col sm:flex-row items-center gap-6">
-            <% if @total_budget > 0 %>
-              <% budget_percentage = (@total_spent / @total_budget * 100).round %>
-              <div data-controller="budget-gauge"
-                   data-budget-gauge-percentage-value="<%= budget_percentage %>"
-                   data-budget-gauge-spent-value="<%= @total_spent %>"
-                   data-budget-gauge-total-value="<%= @total_budget %>"
-                   class="flex flex-col items-center">
-                <svg data-budget-gauge-target="gauge" width="120" height="120" class="shrink-0"></svg>
-                <div class="text-center mt-2">
-                  <p data-budget-gauge-target="percentage" class="text-2xl font-bold"></p>
-                </div>
-              </div>
-              <div class="flex-1 space-y-3">
-                <div class="flex justify-between items-center pb-3 border-b border-border dark:border-border-dark">
-                  <span class="font-medium text-primary dark:text-primary-dark"><%= t("dashboard.total_budget") %></span>
-                  <span class="font-semibold text-primary dark:text-primary-dark"><%= format_currency(@total_budget) %></span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-secondary dark:text-secondary-dark"><%= t("dashboard.spent") %></span>
-                  <span class="<%= budget_percentage > 100 ? 'text-expense' : 'text-primary dark:text-primary-dark' %> font-medium">
-                    <%= format_currency(@total_spent) %>
-                  </span>
-                </div>
-                <div class="flex justify-between items-center">
-                  <span class="text-secondary dark:text-secondary-dark"><%= t("dashboard.remaining") %></span>
-                  <span class="font-medium <%= (@total_budget - @total_spent) >= 0 ? 'text-income' : 'text-expense' %>">
-                    <%= format_currency(@total_budget - @total_spent) %>
-                  </span>
-                </div>
-              </div>
-            <% else %>
-              <div class="flex-1 text-center">
-                <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
-                  <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
-                </div>
-                <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_budgets_set") %></p>
-              </div>
-            <% end %>
+        <% has_bar_data = @six_month_bar_data[:income].any? { |v| v > 0 } || @six_month_bar_data[:expense].any? { |v| v > 0 } %>
+        <% if has_bar_data %>
+          <div data-controller="bar-chart"
+               data-bar-chart-labels-value="<%= @six_month_bar_data[:labels].to_json %>"
+               data-bar-chart-income-data-value="<%= @six_month_bar_data[:income].to_json %>"
+               data-bar-chart-expense-data-value="<%= @six_month_bar_data[:expense].to_json %>"
+               class="h-64">
+            <canvas data-bar-chart-target="canvas"></canvas>
           </div>
         <% else %>
-          <div class="text-center py-6">
-            <div class="w-12 h-12 mx-auto mb-3 rounded-full bg-surface-inset dark:bg-surface-dark-inset flex items-center justify-center">
-              <%= render(Ds::IconComponent.new(name: "target", size: :lg, color: :secondary)) %>
-            </div>
-            <p class="text-secondary dark:text-secondary-dark"><%= t("dashboard.no_budgets_set") %></p>
+          <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
+        <% end %>
+      </div>
+    </section>
+
+    <!-- Net Worth Trend Section -->
+    <section
+      class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+      data-dashboard-sortable-target="section"
+      data-chart-visibility-target="section"
+      data-section-key="net_worth_trend"
+      data-controller="dashboard-section"
+      data-dashboard-section-section-key-value="net_worth_trend"
+      draggable="true"
+      tabindex="0"
+      role="listitem"
+      aria-grabbed="false"
+      data-action="
+        dragstart->dashboard-sortable#dragStart
+        dragend->dashboard-sortable#dragEnd
+        touchstart->dashboard-sortable#touchStart
+        touchmove->dashboard-sortable#touchMove
+        touchend->dashboard-sortable#touchEnd
+        keydown->dashboard-sortable#handleKeyDown">
+      
+      <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
+        <div class="flex items-center gap-2">
+          <button
+            type="button"
+            class="text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5"
+            data-action="click->dashboard-section#toggle keydown->dashboard-section#handleToggleKeydown"
+            data-dashboard-section-target="button"
+            aria-label="<%= t('dashboard.toggle_section') %>"
+            aria-expanded="true">
+            <%= render(Ds::IconComponent.new(name: "chevron-down", size: :sm, class: "transition-transform", data: { dashboard_section_target: "chevron" })) %>
+          </button>
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">
+            净资产走势
+          </h2>
+        </div>
+        <button
+          type="button"
+          class="cursor-grab active:cursor-grabbing text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-colors p-0.5 opacity-0 group-hover:opacity-100 hidden lg:block"
+          aria-label="<%= t('dashboard.drag_to_reorder') %>">
+          <%= render(Ds::IconComponent.new(name: "grip-vertical", size: :sm)) %>
+        </button>
+      </div>
+      
+      <div class="p-4" data-dashboard-section-target="content">
+        <% has_net_worth_data = @net_worth_trend_data[:net_worth].any? { |v| v != 0 } %>
+        <% if has_net_worth_data %>
+          <div data-controller="net-worth-trend"
+               data-net-worth-trend-labels-value="<%= @net_worth_trend_data[:labels].to_json %>"
+               data-net-worth-trend-net-worth-data-value="<%= @net_worth_trend_data[:net_worth].to_json %>"
+               class="h-64">
+            <canvas data-net-worth-trend-target="canvas"></canvas>
           </div>
+        <% else %>
+          <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
         <% end %>
       </div>
     </section>

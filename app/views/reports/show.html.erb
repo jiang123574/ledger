@@ -51,12 +51,39 @@
         </a>
         <% end %>
 
-        <% if @report_type == :yearly && @category_monthly_comparison&.any? %>
+        <% if @report_type == :yearly && @category_monthly_comparison[:categories]&.any? %>
         <a href="#comparison" data-report-tabs-target="navItem" data-panel-id="comparison"
            data-action="report-tabs#switchPanel"
            class="settings-nav-item shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
           <span class="hidden lg:inline">月度对比</span>
+        </a>
+        <% end %>
+
+        <% if @report_type == :yearly && @sankey_data&.any? %>
+        <a href="#sankey" data-report-tabs-target="navItem" data-panel-id="sankey"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6 6"></path></svg>
+          <span class="hidden lg:inline">收支流向</span>
+        </a>
+        <% end %>
+
+        <% if @report_type == :yearly && @calendar_heatmap_data&.any? %>
+        <a href="#heatmap" data-report-tabs-target="navItem" data-panel-id="heatmap"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+          <span class="hidden lg:inline">消费日历</span>
+        </a>
+        <% end %>
+
+        <% if @report_type == :yearly && @waterfall_data&.any? %>
+        <a href="#waterfall" data-report-tabs-target="navItem" data-panel-id="waterfall"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M7 16v-4m4 4v-8m4 4v-6m4 6v-2"></path></svg>
+          <span class="hidden lg:inline">余额变动</span>
         </a>
         <% end %>
 
@@ -497,6 +524,71 @@
                 <canvas id="comparison-line-chart"></canvas>
               </div>
             </div>
+          </div>
+        </div>
+      </section>
+    </div>
+    <% end %>
+
+    <!-- ====== 面板 7: 收支流向桑基图（仅年度） ====== -->
+    <% if @report_type == :yearly && @sankey_data&.any? %>
+    <div data-report-tabs-target="panel" data-panel-name="sankey" class="hidden" role="tabpanel" aria-label="收支流向">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">收支流向图（桑基图）</h2>
+          <p class="text-xs text-secondary dark:text-secondary-dark mt-1">展示收入来源如何流向各类支出</p>
+        </div>
+        <div class="p-4 overflow-x-auto">
+          <% if @sankey_data[:nodes]&.any? && @sankey_data[:links]&.any? %>
+            <div data-controller="sankey-chart"
+                 data-sankey-chart-data-value="<%= @sankey_data.to_json %>"
+                 data-sankey-chart-height-value="400"
+                 class="min-w-[600px]">
+              <svg data-sankey-chart-target="chart" class="w-full"></svg>
+            </div>
+          <% else %>
+            <div class="h-64 flex items-center justify-center text-secondary dark:text-secondary-dark">暂无数据</div>
+          <% end %>
+        </div>
+      </section>
+    </div>
+    <% end %>
+
+    <!-- ====== 面板 8: 消费日历热力图（仅年度） ====== -->
+    <% if @report_type == :yearly && @calendar_heatmap_data&.any? %>
+    <div data-report-tabs-target="panel" data-panel-name="heatmap" class="hidden" role="tabpanel" aria-label="消费日历">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">消费日历热力图</h2>
+          <p class="text-xs text-secondary dark:text-secondary-dark mt-1">每日消费金额分布（颜色越深消费越高）</p>
+        </div>
+        <div class="p-4">
+          <div data-controller="calendar-heatmap"
+               data-calendar-heatmap-data-value="<%= @calendar_heatmap_data.to_json %>"
+               data-calendar-heatmap-year-value="<%= @year %>"
+               class="overflow-x-auto">
+            <svg data-calendar-heatmap-target="chart"></svg>
+          </div>
+        </div>
+      </section>
+    </div>
+    <% end %>
+
+    <!-- ====== 面板 9: 净资产瀑布图（仅年度） ====== -->
+    <% if @report_type == :yearly && @waterfall_data&.any? %>
+    <div data-report-tabs-target="panel" data-panel-name="waterfall" class="hidden" role="tabpanel" aria-label="余额变动">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">净资产变动瀑布图</h2>
+          <p class="text-xs text-secondary dark:text-secondary-dark mt-1">展示全年净资产从年初到年末的月度变化</p>
+        </div>
+        <div class="p-4">
+          <div data-controller="waterfall-chart"
+               data-waterfall-chart-labels-value="<%= @waterfall_data[:labels].to_json %>"
+               data-waterfall-chart-data-value="<%= @waterfall_data[:data].to_json %>"
+               data-waterfall-chart-totals-value="<%= @waterfall_data[:totals].to_json %>"
+               class="h-72">
+            <canvas data-waterfall-chart-target="canvas"></canvas>
           </div>
         </div>
       </section>
