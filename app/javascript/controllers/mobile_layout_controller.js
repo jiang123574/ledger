@@ -31,12 +31,13 @@ export default class extends Controller {
     this.boundHandleKeydown = this.handleKeydown.bind(this)
     document.addEventListener('keydown', this.boundHandleKeydown)
 
-    // 点击侧边栏导航链接时关闭菜单
+    // 事件委托：点击侧边栏内任意链接时关闭菜单
     if (this.hasSidebarTarget) {
-      this.boundHandleNavClick = () => { if (this.isOpen) this.close() }
-      this.sidebarTarget.querySelectorAll('a').forEach(link => {
-        link.addEventListener('click', this.boundHandleNavClick)
-      })
+      this.boundHandleNavClick = (e) => {
+        const link = e.target.closest('a')
+        if (link && this.isOpen) this.close()
+      }
+      this.sidebarTarget.addEventListener('click', this.boundHandleNavClick)
     }
   }
 
@@ -45,9 +46,7 @@ export default class extends Controller {
       document.removeEventListener('keydown', this.boundHandleKeydown)
     }
     if (this.hasSidebarTarget && this.boundHandleNavClick) {
-      this.sidebarTarget.querySelectorAll('a').forEach(link => {
-        link.removeEventListener('click', this.boundHandleNavClick)
-      })
+      this.sidebarTarget.removeEventListener('click', this.boundHandleNavClick)
     }
   }
 
