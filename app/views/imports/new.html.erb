@@ -95,32 +95,61 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const dropZone = document.getElementById('drop-zone');
-  const fileInput = document.getElementById('file-input');
-  const fileInfo = document.getElementById('file-info');
-  const fileName = document.getElementById('file-name');
-  const fileSize = document.getElementById('file-size');
-  const removeBtn = document.getElementById('remove-file');
+(function() {
+  var dropZone = document.getElementById('drop-zone');
+  var fileInput = document.getElementById('file-input');
+  var fileInfo = document.getElementById('file-info');
+  var fileName = document.getElementById('file-name');
+  var fileSize = document.getElementById('file-size');
+  var removeBtn = document.getElementById('remove-file');
 
-  // Click to select file
-  dropZone.addEventListener('click', () => fileInput.click());
+  if (!dropZone) return;
+
+  // Click to select file — 原生 App 优先
+  dropZone.addEventListener('click', function(e) {
+    if (window.NativeApp && window.NativeApp.isNative) {
+      e.preventDefault();
+      window.NativeApp.pickFile('.csv,.xlsx,.xls,.ofx,.qif');
+    } else {
+      fileInput.click();
+    }
+  });
+
+  // 监听原生文件选择结果
+  window.addEventListener('native:file-selected', function(e) {
+    var detail = e.detail;
+    if (!detail || !detail.data) return;
+
+    var byteChars = atob(detail.data);
+    var byteNumbers = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNumbers);
+    var blob = new Blob([byteArray], { type: detail.type || 'application/octet-stream' });
+    var file = new File([blob], detail.name || 'import.csv', { type: detail.type || 'application/octet-stream' });
+
+    var dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+    showFileInfo(file);
+  });
 
   // Drag and drop
-  dropZone.addEventListener('dragover', (e) => {
+  dropZone.addEventListener('dragover', function(e) {
     e.preventDefault();
-    dropZone.classList.add('border-inverse', 'bg-surface-inset dark:bg-container-dark');
+    dropZone.classList.add('border-inverse', 'bg-surface-inset');
   });
 
-  dropZone.addEventListener('dragleave', () => {
-    dropZone.classList.remove('border-inverse', 'bg-surface-inset dark:bg-container-dark');
+  dropZone.addEventListener('dragleave', function() {
+    dropZone.classList.remove('border-inverse', 'bg-surface-inset');
   });
 
-  dropZone.addEventListener('drop', (e) => {
+  dropZone.addEventListener('drop', function(e) {
     e.preventDefault();
-    dropZone.classList.remove('border-inverse', 'bg-surface-inset dark:bg-container-dark');
-    
-    const files = e.dataTransfer.files;
+    dropZone.classList.remove('border-inverse', 'bg-surface-inset');
+
+    var files = e.dataTransfer.files;
     if (files.length > 0) {
       fileInput.files = files;
       showFileInfo(files[0]);
@@ -128,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   // File input change
-  fileInput.addEventListener('change', () => {
+  fileInput.addEventListener('change', function() {
     if (fileInput.files.length > 0) {
       showFileInfo(fileInput.files[0]);
     }
@@ -143,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Remove file
-  removeBtn.addEventListener('click', () => {
+  removeBtn.addEventListener('click', function() {
     fileInput.value = '';
     fileInfo.classList.add('hidden');
     dropZone.classList.remove('hidden');
@@ -155,5 +184,5 @@ document.addEventListener('DOMContentLoaded', function() {
     if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   }
-});
+})();
 </script>
