@@ -36,7 +36,8 @@ module ApplicationHelper
     content_tag(:div, class: "relative group") do
       link_to(
         path,
-        class: nav_item_link_classes(is_active)
+        class: nav_item_link_classes(is_active),
+        data: { nav_path: path }
       ) do
         safe_join([
           active_indicator(is_active),
@@ -53,6 +54,7 @@ module ApplicationHelper
     link_to(
       path,
       class: mobile_nav_item_classes(is_active),
+      data: { nav_path: path },
       "aria-current": is_active ? "page" : nil
     ) do
       safe_join([
