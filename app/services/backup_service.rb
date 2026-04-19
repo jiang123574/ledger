@@ -226,6 +226,8 @@ class BackupService
     db_user = db_config["username"] || "postgres"
     db_password = db_config["password"]
 
+    filtered_file = filter_pg17_params(backup_file)
+
     env_vars = { "PGPASSWORD" => db_password }
     cmd = [
       "psql",
@@ -234,15 +236,38 @@ class BackupService
       "-d", db_name,
       "-1",
       "-v", "ON_ERROR_STOP=1",
-      "-f", backup_file
+      "-f", filtered_file
     ]
 
     stdout, stderr, status = Open3.capture3(env_vars, *cmd)
+
+    FileUtils.rm_f(filtered_file) if filtered_file != backup_file
 
     if status.success?
       { success: true, error: nil }
     else
       { success: false, error: stderr.presence || stdout.presence || "psql 命令执行失败" }
+    end
+  end
+
+  def self.filter_pg17_params(backup_file)
+    pg_version = get_pg_version
+    if pg_version && pg_version < 17
+      filtered_file = backup_file.sub(/\.sql$/, "_filtered.sql")
+      content = File.read(backup_file)
+      filtered_content = content.gsub(/^SET transaction_timeout = .*;\n/, "")
+      File.write(filtered_file, filtered_content)
+      filtered_file
+    else
+      backup_file
+    end
+  end
+
+  def self.get_pg_version
+    stdout, _, status = Open3.capture3("psql --version")
+    if status.success?
+      match = stdout.match(/PostgreSQL\)\s+(\d+)/)
+      match ? match[1].to_i : nil
     end
   end
 
