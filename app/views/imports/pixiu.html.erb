@@ -265,35 +265,67 @@
 </div>
 
 <script>
+(function() {
   // File upload drag & drop
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('file-input');
   const fileInfo = document.getElementById('file-info');
   const fileName = document.getElementById('file-name');
 
-  if (dropZone) {
-    dropZone.addEventListener('dragover', (e) => {
+  if (!dropZone) return;
+
+  // 原生 App 文件选择支持
+  dropZone.addEventListener('click', function(e) {
+    if (window.NativeApp && window.NativeApp.isNative) {
       e.preventDefault();
-      dropZone.classList.add('border-inverse', 'bg-surface-inset');
-    });
+      window.NativeApp.pickFile('.csv');
+    }
+    // 非原生环境：默认 input[type=file] 行为
+  });
 
-    dropZone.addEventListener('dragleave', () => {
-      dropZone.classList.remove('border-inverse', 'bg-surface-inset');
-    });
+  // 监听原生文件选择结果
+  window.addEventListener('native:file-selected', function(e) {
+    var detail = e.detail;
+    if (!detail || !detail.data) return;
 
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('border-inverse', 'bg-surface-inset');
-      
-      const files = e.dataTransfer.files;
-      if (files.length > 0) {
-        fileInput.files = files;
-        updateFileInfo();
-      }
-    });
+    // Base64 → Blob → File
+    var byteChars = atob(detail.data);
+    var byteNumbers = new Array(byteChars.length);
+    for (var i = 0; i < byteChars.length; i++) {
+      byteNumbers[i] = byteChars.charCodeAt(i);
+    }
+    var byteArray = new Uint8Array(byteNumbers);
+    var blob = new Blob([byteArray], { type: detail.type || 'text/csv' });
+    var file = new File([blob], detail.name || 'import.csv', { type: detail.type || 'text/csv' });
 
-    fileInput.addEventListener('change', updateFileInfo);
-  }
+    // 注入到 file input
+    var dataTransfer = new DataTransfer();
+    dataTransfer.items.add(file);
+    fileInput.files = dataTransfer.files;
+    updateFileInfo();
+  });
+
+  dropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    dropZone.classList.add('border-inverse', 'bg-surface-inset');
+  });
+
+  dropZone.addEventListener('dragleave', function() {
+    dropZone.classList.remove('border-inverse', 'bg-surface-inset');
+  });
+
+  dropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    dropZone.classList.remove('border-inverse', 'bg-surface-inset');
+
+    var files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      updateFileInfo();
+    }
+  });
+
+  fileInput.addEventListener('change', updateFileInfo);
 
   function updateFileInfo() {
     if (fileInput.files.length > 0) {
@@ -301,4 +333,5 @@
       fileInfo.classList.remove('hidden');
     }
   }
+})();
 </script>
