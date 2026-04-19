@@ -12,7 +12,7 @@ class ExchangeRate < ApplicationRecord
   end
 
   scope :latest, -> { order(date: :desc) }
-  scope :for_date, ->(date) { where(date: date) }
+  scope :for_date, ->(date) { where(date: date.beginning_of_day..date.end_of_day) }
 
   # 获取最新汇率
   def self.latest_rate(from, to)
@@ -26,7 +26,9 @@ class ExchangeRate < ApplicationRecord
   def self.rate_on_date(from, to, date)
     return BigDecimal("1") if from == to
 
-    rate = where(from_currency: from, to_currency: to, date: date).first
+    rate = where(from_currency: from, to_currency: to)
+              .where(date: date.beginning_of_day..date.end_of_day)
+              .first
     rate&.rate || latest_rate(from, to)
   end
 

@@ -107,7 +107,7 @@ RSpec.describe ExchangeRate, type: :model do
 
       expect { rate.create_reverse! }.to change { ExchangeRate.count }.by(1)
 
-      reverse_rate = ExchangeRate.find_by(from_currency: "CNY", to_currency: "USD", date: Date.current)
+      reverse_rate = ExchangeRate.for_date(Date.current).find_by(from_currency: "CNY", to_currency: "USD")
       expect(reverse_rate).to be_present
       expect(reverse_rate.rate).to eq((1.0 / 7.2).round(6))
       expect(reverse_rate.source).to eq("manual_auto_reversed")
