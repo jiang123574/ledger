@@ -222,6 +222,8 @@ RSpec.describe BackupService do
       backup_file = backup_dir.join("restore_cmd.sql")
       File.write(backup_file, "SELECT 1;")
 
+      allow(BackupService).to receive(:get_pg_version).and_return(17)
+
       status = double(success?: true)
       expect(Open3).to receive(:capture3) do |env, *cmd|
         expect(cmd).to include("psql")
