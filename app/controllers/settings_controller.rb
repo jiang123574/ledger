@@ -169,10 +169,11 @@ class SettingsController < ApplicationController
       return
     end
 
-    ActiveRecord::Base.transaction do
-      old_timeout = ActiveRecord::Base.connection.execute("SHOW statement_timeout").first["statement_timeout"]
-      ActiveRecord::Base.connection.execute("SET statement_timeout = '300000'")
+    connection = ActiveRecord::Base.connection
+    old_timeout = connection.execute("SHOW statement_timeout").first["statement_timeout"]
+    connection.execute("SET statement_timeout = '300000'")
 
+    begin
       Attachment.delete_all
       ImportBatch.delete_all
       RecurringTransaction.delete_all
@@ -197,14 +198,14 @@ class SettingsController < ApplicationController
       Category.delete_all
       Account.delete_all
 
-      ActiveRecord::Base.connection.execute("SET statement_timeout = '#{old_timeout}'")
+      Rails.cache.clear
+
+      redirect_to settings_path, notice: "所有数据已清除"
+    rescue StandardError => e
+      redirect_to settings_path, alert: "清除失败: #{e.message}"
+    ensure
+      connection.execute("SET statement_timeout = '#{old_timeout}'")
     end
-
-    Rails.cache.clear
-
-    redirect_to settings_path, notice: "所有数据已清除"
-  rescue StandardError => e
-    redirect_to settings_path, alert: "清除失败: #{e.message}"
   end
 
   def reset_shortcuts
