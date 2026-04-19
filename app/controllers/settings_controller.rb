@@ -164,32 +164,48 @@ class SettingsController < ApplicationController
   end
 
   def clear_all_data
-    # 二次确认：需要输入 AUTH_PASSWORD
     unless confirm_with_password(params[:confirm_password])
       redirect_to settings_path, alert: "确认密码错误，操作已取消"
       return
     end
 
-    ActiveRecord::Base.transaction do
-      Attachment.destroy_all
-      ImportBatch.destroy_all
-      RecurringTransaction.destroy_all
-      Plan.destroy_all
-      Budget.destroy_all
+    connection = ActiveRecord::Base.connection
+    old_timeout = connection.execute("SHOW statement_timeout").first["statement_timeout"]
+    connection.execute("SET statement_timeout = '300000'")
 
-      # 清理 Entry 数据
-      Entryable::Transaction.destroy_all
-      Entry.destroy_all
+    begin
+      Attachment.delete_all
+      ImportBatch.delete_all
+      RecurringTransaction.delete_all
+      Plan.delete_all
+      BillStatement.delete_all
+      BudgetItem.delete_all
+      SingleBudget.delete_all
+      Budget.delete_all
+      OneTimeBudget.delete_all
+      Payable.delete_all
+      Receivable.delete_all
+      Counterparty.delete_all
+      ActivityLog.delete_all
+      Tagging.delete_all
+      Tag.delete_all
 
-      Category.destroy_all
-      Account.destroy_all
+      Entryable::Transaction.delete_all
+      Entryable::Valuation.delete_all
+      Entryable::Trade.delete_all
+      Entry.delete_all
+
+      Category.delete_all
+      Account.delete_all
+
+      Rails.cache.clear
+
+      redirect_to settings_path, notice: "所有数据已清除"
+    rescue StandardError => e
+      redirect_to settings_path, alert: "清除失败: #{e.message}"
+    ensure
+      connection.execute("SET statement_timeout = '#{old_timeout}'")
     end
-
-    Rails.cache.clear
-
-    redirect_to settings_path, notice: "所有数据已清除"
-  rescue StandardError => e
-    redirect_to settings_path, alert: "清除失败: #{e.message}"
   end
 
   def reset_shortcuts
