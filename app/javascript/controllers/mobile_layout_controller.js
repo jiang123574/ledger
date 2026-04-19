@@ -8,8 +8,18 @@ export default class extends Controller {
   static targets = ["sidebar", "overlay"]
   
   connect() {
-    this.isOpen = this.hasSidebarTarget && !this.sidebarTarget.classList.contains('-translate-x-full')
     this.previousScrollY = 0
+    // 页面加载/导航后始终重置侧边栏为关闭状态
+    this.isOpen = false
+    if (this.hasSidebarTarget) {
+      this.sidebarTarget.classList.remove('translate-x-0')
+      this.sidebarTarget.classList.add('-translate-x-full')
+    }
+    if (this.hasOverlayTarget) {
+      this.overlayTarget.classList.remove('opacity-100', 'pointer-events-auto')
+      this.overlayTarget.classList.add('opacity-0', 'pointer-events-none')
+    }
+    document.body.classList.remove('overflow-hidden')
     this.bindEvents()
   }
 
@@ -20,11 +30,24 @@ export default class extends Controller {
   bindEvents() {
     this.boundHandleKeydown = this.handleKeydown.bind(this)
     document.addEventListener('keydown', this.boundHandleKeydown)
+
+    // 点击侧边栏导航链接时关闭菜单
+    if (this.hasSidebarTarget) {
+      this.boundHandleNavClick = () => { if (this.isOpen) this.close() }
+      this.sidebarTarget.querySelectorAll('a').forEach(link => {
+        link.addEventListener('click', this.boundHandleNavClick)
+      })
+    }
   }
 
   unbindEvents() {
     if (this.boundHandleKeydown) {
       document.removeEventListener('keydown', this.boundHandleKeydown)
+    }
+    if (this.hasSidebarTarget && this.boundHandleNavClick) {
+      this.sidebarTarget.querySelectorAll('a').forEach(link => {
+        link.removeEventListener('click', this.boundHandleNavClick)
+      })
     }
   }
 
