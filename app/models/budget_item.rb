@@ -1,5 +1,5 @@
 class BudgetItem < ApplicationRecord
-  belongs_to :single_budget
+  belongs_to :single_budget, counter_cache: true
   belongs_to :category, class_name: "Category", optional: true
 
   validates :name, length: { maximum: 100 }, allow_nil: true

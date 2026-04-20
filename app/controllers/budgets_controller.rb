@@ -58,7 +58,7 @@ class BudgetsController < ApplicationController
     # 只有选中预算才加载 budget_items（详情面板需要）
     if @selected_budget
       @selected_budget = SingleBudget.where(id: @selected_budget.id)
-        .includes(:category, budget_items: :category).first
+        .includes(:category, budget_items: { category: :parent }).first
     end
   end
 
