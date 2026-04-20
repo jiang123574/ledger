@@ -13,8 +13,6 @@ import ListFilterController from "controllers/list_filter_controller"
 import LoadingButtonController from "controllers/loading_button_controller"
 import MenuController from "controllers/menu_controller"
 import MobileLayoutController from "controllers/mobile_layout_controller"
-import NativeBridgeController, { NativeApp } from "controllers/native_bridge_controller"
-window.NativeApp = NativeApp  // 暴露到全局供 ERB 内联脚本使用
 
 import PageSkeletonController from "controllers/page_skeleton_controller"
 import PageTransitionController from "controllers/page_transition_controller"
@@ -37,7 +35,6 @@ application.register("list-filter", ListFilterController)
 application.register("loading-button", LoadingButtonController)
 application.register("menu", MenuController)
 application.register("mobile-layout", MobileLayoutController)
-application.register("native-bridge", NativeBridgeController)
 application.register("page-skeleton", PageSkeletonController)
 application.register("page-transition", PageTransitionController)
 application.register("sankey-chart", SankeyChartController)
