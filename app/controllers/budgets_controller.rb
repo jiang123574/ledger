@@ -31,10 +31,9 @@ class BudgetsController < ApplicationController
       Category.expense.pluck(:id)
     end
     cv = CacheBuster.version(:categories)
-    categories = Category.where(id: @category_ids).includes(:parent).to_a
-    @categories = categories
     @categories_json = Rails.cache.fetch("budgets/categories_json/#{cv}", expires_in: CacheConfig::LONG) do
-      categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json
+      # 缓存未命中时才需要加载 parent（full_name 递归调用 parent）
+      Category.where(id: @category_ids).includes(:parent).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json
     end
 
     status = params[:status]
@@ -47,7 +46,7 @@ class BudgetsController < ApplicationController
 
     # 在缓存外做完整预加载，bullet 能正确追踪
     @single_budgets = SingleBudget.where(id: @single_budgets)
-      .includes(:category, budget_items: { category: :parent })
+      .includes(:category)
     @single_total_budget = @single_budgets.sum(:total_amount)
     @single_total_spent = @single_budgets.sum(:spent_amount)
 
@@ -55,6 +54,11 @@ class BudgetsController < ApplicationController
       @single_budgets.find_by(id: params[:selected_id])
     elsif @single_budgets.any?
       @single_budgets.first
+    end
+    # 只有选中预算才加载 budget_items（详情面板需要）
+    if @selected_budget
+      @selected_budget = SingleBudget.where(id: @selected_budget.id)
+        .includes(:category, budget_items: :category).first
     end
   end
 
