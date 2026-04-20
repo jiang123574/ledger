@@ -29,8 +29,6 @@ pin "controllers/loading_button_controller", to: "controllers/loading_button_con
 pin "controllers/menu_controller", to: "controllers/menu_controller.js"
 pin "controllers/mobile_layout_controller", to: "controllers/mobile_layout_controller.js"
 pin "controllers/native_bridge_controller", to: "controllers/native_bridge_controller.js"
-pin "controllers/page_skeleton_controller", to: "controllers/page_skeleton_controller.js"
-pin "controllers/page_transition_controller", to: "controllers/page_transition_controller.js"
 pin "controllers/sankey_chart_controller", to: "controllers/sankey_chart_controller.js"
 pin "controllers/select_controller", to: "controllers/select_controller.js"
 pin "controllers/sparkline_chart_controller", to: "controllers/sparkline_chart_controller.js"
