@@ -128,18 +128,21 @@ RSpec.describe "Transactions", type: :request do
         expect(transfer_ids.size).to eq(1)
       end
 
-      it "handles missing target account" do
-        post "/transactions", params: {
-          transaction: {
-            type: "TRANSFER",
-            amount: 100,
-            date: Date.current,
-            account_id: account.id,
-            target_account_id: -1
+      it "does not create entry with missing target account" do
+        expect {
+          post "/transactions", params: {
+            transaction: {
+              type: "TRANSFER",
+              amount: 100,
+              date: Date.current,
+              account_id: account.id,
+              target_account_id: -1
+            }
           }
-        }
+        }.not_to change(Entry, :count)
 
         expect(response).to have_http_status(:redirect)
+        expect(flash[:alert]).to be_present
       end
     end
 
@@ -164,45 +167,54 @@ RSpec.describe "Transactions", type: :request do
         expect(response).to have_http_status(:redirect)
       end
 
-      it "handles missing funding account" do
-        post "/transactions", params: {
-          transaction: {
-            type: "EXPENSE",
-            amount: 100,
-            date: Date.current,
-            account_id: account.id
-          },
-          funding_account_id: -1
-        }
+      it "does not create entry with missing funding account" do
+        expect {
+          post "/transactions", params: {
+            transaction: {
+              type: "EXPENSE",
+              amount: 100,
+              date: Date.current,
+              account_id: account.id
+            },
+            funding_account_id: -1
+          }
+        }.not_to change(Entry, :count)
 
         expect(response).to have_http_status(:redirect)
+        expect(flash[:alert]).to be_present
       end
     end
 
     context "with validation errors" do
-      it "handles missing required fields" do
-        post "/transactions", params: {
-          transaction: {
-            type: "EXPENSE",
-            account_id: account.id
-            # missing amount and date
+      it "does not create entry with missing required fields" do
+        expect {
+          post "/transactions", params: {
+            transaction: {
+              type: "EXPENSE",
+              account_id: account.id
+              # missing amount and date
+            }
           }
-        }
+        }.not_to change(Entry, :count)
 
         expect(response).to have_http_status(:redirect)
+        expect(flash[:alert]).to be_present
       end
 
-      it "handles invalid account" do
-        post "/transactions", params: {
-          transaction: {
-            type: "EXPENSE",
-            amount: 100,
-            date: Date.current,
-            account_id: -1
+      it "does not create entry with invalid account" do
+        expect {
+          post "/transactions", params: {
+            transaction: {
+              type: "EXPENSE",
+              amount: 100,
+              date: Date.current,
+              account_id: -1
+            }
           }
-        }
+        }.not_to change(Entry, :count)
 
         expect(response).to have_http_status(:redirect)
+        expect(flash[:alert]).to be_present
       end
     end
 
