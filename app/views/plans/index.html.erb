@@ -73,7 +73,22 @@
                   <% elsif ![Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
                     <%= button_to t('plans.execute', default: '执行'), execute_plan_path(plan), method: :post, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
                   <% end %>
-                  <button onclick="openEditPlanModal(<%= plan.id %>, '<%= j plan.name %>', '<%= plan.type %>', '<%= plan.account_id %>', '<%= j(plan.account&.name || '') %>', '<%= plan.amount %>', '<%= plan.total_amount || '' %>', '<%= plan.installments_total || '' %>', '<%= plan.installments_completed || 0 %>', '<%= plan.day_of_month %>', '<%= plan.currency || 'CNY' %>', <%= plan.active %>, '<%= plan.category_id %>', '<%= j(plan.category&.name || '') %>')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
+                  <button data-plan-id="<%= plan.id %>"
+                          data-plan-name="<%= j plan.name %>"
+                          data-plan-type="<%= plan.type %>"
+                          data-plan-account-id="<%= plan.account_id %>"
+                          data-plan-account-name="<%= j(plan.account&.name || '') %>"
+                          data-plan-amount="<%= plan.amount %>"
+                          data-plan-total-amount="<%= plan.total_amount || '' %>"
+                          data-plan-installments="<%= plan.installments_total || '' %>"
+                          data-plan-completed="<%= plan.installments_completed || 0 %>"
+                          data-plan-day="<%= plan.day_of_month %>"
+                          data-plan-currency="<%= plan.currency || 'CNY' %>"
+                          data-plan-active="<%= plan.active %>"
+                          data-plan-category-id="<%= plan.category_id %>"
+                          data-plan-category-name="<%= j(plan.category&.name || '') %>"
+                          onclick="openEditPlanModal(this.dataset)"
+                          class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
                     <%= t('common.edit') %>
                   </button>
                   <%= button_to t('common.delete'), plan_path(plan), method: :delete, onclick: "if(!confirm('确定删除此计划？')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
@@ -590,7 +605,23 @@
     document.getElementById('new-plan-modal').classList.remove('hidden')
   }
 
-  function openEditPlanModal(id, name, type, accountId, accountName, amount, totalAmount, installments, completedInstallments, dayOfMonth, currency, active, categoryId, categoryName) {
+  function openEditPlanModal(d) {
+    // d is dataset or plain object: { planId, planName, planType, ... }
+    const id = d.planId
+    const name = d.planName
+    const type = d.planType
+    const accountId = d.planAccountId
+    const accountName = d.planAccountName
+    const amount = d.planAmount
+    const totalAmount = d.planTotalAmount
+    const installments = d.planInstallments
+    const completedInstallments = d.planCompleted
+    const dayOfMonth = d.planDay
+    const currency = d.planCurrency
+    const active = d.planActive === 'true'
+    const categoryId = d.planCategoryId
+    const categoryName = d.planCategoryName
+
     const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
     
