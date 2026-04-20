@@ -83,70 +83,11 @@
       <%= render "layouts/sidebar" %>
       <% end %>
 
-      <%# Mobile Sidebar Overlay %>
-      <% unless turbo_native_app? %>
-      <div
-        id="sidebar-overlay"
-        class="lg:hidden fixed inset-0 z-40 bg-black/50 opacity-0 pointer-events-none transition-opacity duration-300"
-        data-mobile-layout-target="overlay"
-        data-action="click->mobile-layout#closeSidebar">
-      </div>
-
-      <%# Mobile Sidebar %>
-      <aside
-        id="mobile-sidebar"
-        data-turbo-permanent
-        class="lg:hidden fixed inset-y-0 left-0 z-50 w-72 bg-container dark:bg-container-dark shadow-xl transform -translate-x-full transition-transform duration-300 ease-out"
-        data-mobile-layout-target="sidebar">
-        <%# Mobile Sidebar Header with Safe Area %>
-        <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
-          <div class="h-14 flex items-center justify-between px-4 border-b border-border dark:border-border-dark">
-            <%= link_to dashboard_path, class: "flex items-center gap-3 min-h-[44px]" do %>
-              <div class="w-8 h-8 bg-linear-to-br from-emerald-500 to-teal-600 rounded-lg flex items-center justify-center shadow-xs">
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                </svg>
-              </div>
-              <span class="font-semibold text-primary dark:text-primary-dark"><%= t("app_name") %></span>
-            <% end %>
-            <button
-              type="button"
-              data-action="click->mobile-layout#closeSidebar"
-              class="p-2 -mr-2 text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors"
-              aria-label="关闭菜单">
-              <%= render(Ds::IconComponent.new(name: "x", size: :md)) %>
-            </button>
-          </div>
-        </div>
-
-        <%# Mobile Sidebar Navigation %>
-        <nav class="p-4 space-y-1">
-          <%= nav_item(:dashboard, t("nav.dashboard"), dashboard_path, "home") %>
-          <%= nav_item(:accounts, t("nav.accounts"), accounts_path, "folder") %>
-          <%= nav_item(:budgets, t("nav.budgets"), budgets_path, "map") %>
-          <%= nav_item(:plans, t("nav.plans"), plans_path, "calendar") %>
-          <%= nav_item(:receivables, "应收款", receivables_path, "inbox") %>
-          <%= nav_item(:payables, "应付款", payables_path, "wallet") %>
-        </nav>
-
-
-      </aside>
-      <% end %>
-
       <%# Mobile Top Header (hidden in Turbo Native - native toolbar replaces it) %>
       <% unless turbo_native_app? %>
       <header id="mobile-header" data-turbo-permanent class="lg:hidden fixed top-0 left-0 right-0 z-30 bg-container dark:bg-container-dark border-b border-border dark:border-border-dark">
         <div class="pt-[calc(env(safe-area-inset-top)+0.5rem)]">
           <div class="flex items-center justify-between h-14 px-4">
-            <%# Menu Button %>
-            <button
-              type="button"
-              data-action="click->mobile-layout#toggle"
-              class="p-2 -ml-2 text-secondary dark:text-secondary-dark hover:text-primary dark:text-primary-dark dark:hover:text-primary dark:text-primary-dark min-w-[44px] min-h-[44px] flex items-center justify-center rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors"
-              aria-label="打开菜单">
-              <%= render(Ds::IconComponent.new(name: "menu", size: :md)) %>
-            </button>
-
             <%# Page Title %>
             <span class="font-semibold text-primary dark:text-primary-dark truncate"><%= content_for(:title) || t("app_name") %></span>
 

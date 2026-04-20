@@ -1,15 +1,42 @@
 import { Controller } from "@hotwired/stimulus"
 
+// 模块级：只注册一次，不受 Turbo 导航影响
+let _navActiveHandlerRegistered = false
+
+// 导航后更新底部栏的选中状态
+function updateNavActiveState() {
+  const currentPath = window.location.pathname
+
+  document.querySelectorAll('#mobile-bottom-nav [data-nav-path]').forEach(link => {
+    const navPath = link.getAttribute('data-nav-path')
+    const isActive = currentPath === navPath ||
+      (navPath !== '/' && currentPath.startsWith(navPath + '/'))
+
+    if (isActive) {
+      link.classList.remove('text-secondary', 'hover:text-primary', 'hover:bg-surface-hover')
+      link.classList.add('text-blue-600', 'bg-blue-50')
+      link.setAttribute('aria-current', 'page')
+    } else {
+      link.classList.remove('text-blue-600', 'bg-blue-50')
+      link.classList.add('text-secondary', 'hover:text-primary', 'hover:bg-surface-hover')
+      link.removeAttribute('aria-current')
+    }
+  })
+}
+
+function ensureNavActiveHandler() {
+  if (_navActiveHandlerRegistered) return
+  _navActiveHandlerRegistered = true
+  document.addEventListener('turbo:load', updateNavActiveState)
+}
+
 /**
  * Mobile Layout Controller
- * Handles mobile sidebar, safe areas, and responsive interactions
+ * Handles bottom nav active state and keyboard shortcuts
  */
 export default class extends Controller {
-  static targets = ["sidebar", "overlay"]
-  
   connect() {
-    this.isOpen = this.hasSidebarTarget && !this.sidebarTarget.classList.contains('-translate-x-full')
-    this.previousScrollY = 0
+    ensureNavActiveHandler()
     this.bindEvents()
   }
 
@@ -28,54 +55,13 @@ export default class extends Controller {
     }
   }
 
-  open() {
-    if (this.isOpen) return
-    
-    this.previousScrollY = window.scrollY
-    this.isOpen = true
-    
-    if (this.hasSidebarTarget) {
-      this.sidebarTarget.classList.remove('-translate-x-full')
-      this.sidebarTarget.classList.add('translate-x-0')
-    }
-    
-    if (this.hasOverlayTarget) {
-      this.overlayTarget.classList.remove('opacity-0', 'pointer-events-none')
-      this.overlayTarget.classList.add('opacity-100', 'pointer-events-auto')
-    }
-    
-    document.body.classList.add('overflow-hidden')
-  }
-
-  close() {
-    if (!this.isOpen) return
-    
-    this.isOpen = false
-    
-    if (this.hasSidebarTarget) {
-      this.sidebarTarget.classList.remove('translate-x-0')
-      this.sidebarTarget.classList.add('-translate-x-full')
-    }
-    
-    if (this.hasOverlayTarget) {
-      this.overlayTarget.classList.remove('opacity-100', 'pointer-events-auto')
-      this.overlayTarget.classList.add('opacity-0', 'pointer-events-none')
-    }
-    
-    document.body.classList.remove('overflow-hidden')
-  }
-
-  toggle() {
-    if (this.isOpen) {
-      this.close()
-    } else {
-      this.open()
-    }
-  }
-
   handleKeydown(e) {
-    if (e.key === 'Escape' && this.isOpen) {
-      this.close()
+    if (e.key === 'Escape') {
+      // 关闭可见的弹窗
+      const modals = document.querySelectorAll('.fixed.inset-0:not(.hidden)')
+      if (modals.length > 0) {
+        modals[modals.length - 1].classList.add('hidden')
+      }
     }
   }
 }
