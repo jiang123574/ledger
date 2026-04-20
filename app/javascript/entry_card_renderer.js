@@ -22,9 +22,9 @@ const ENTRY_CARD_TEMPLATE_DESKTOP = `
 </div>
 `
 const ENTRY_CARD_TEMPLATE_MOBILE = `
-<div class="lg:hidden flex gap-3 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="" data-date="" draggable="false">
-  <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark w-20" data-field="date"></div>
-  <div class="flex-1 min-w-0 flex items-center gap-2">
+<div class="lg:hidden flex gap-2 items-center py-2 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="" data-date="" draggable="false">
+  <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark" data-field="date"></div>
+  <div class="flex-1 min-w-0 flex items-center gap-1.5">
     <span data-field="type" class="shrink-0"></span>
     <span class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></span>
   </div>
@@ -34,14 +34,6 @@ const ENTRY_CARD_TEMPLATE_MOBILE = `
       <span>余额:</span>
       <span data-field="balance-mobile"></span>
     </p>
-  </div>
-  <div class="flex items-center gap-1 shrink-0">
-    <button type="button" data-role="edit-mobile" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-    </button>
-    <button type="button" data-role="delete-mobile" class="p-1.5 rounded-lg hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-    </button>
   </div>
 </div>
 `
@@ -127,11 +119,12 @@ function createEntryCard(entry, options = {}) {
   mobileRow.dataset.date = entry.date || ''
   mobileRow.draggable = false
 
-  mobileRow.querySelector('[data-field="date"]').textContent = entry.date || ""
+  const dateStr = entry.date || ""
+  mobileRow.querySelector('[data-field="date"]').textContent = dateStr.length > 5 ? dateStr.slice(5) : dateStr
   
   const mobileTypeEl = mobileRow.querySelector('[data-field="type"]')
   mobileTypeEl.textContent = entry.display_type || ""
-  mobileTypeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
+  mobileTypeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${typeBadgeCls}`
   
   const mobileNameEl = mobileRow.querySelector('[data-field="name"]')
   mobileNameEl.textContent = entry.display_name || "-"
@@ -145,15 +138,6 @@ function createEntryCard(entry, options = {}) {
   }
 
   mobileRow.querySelector('[data-field="balance-mobile"]').textContent = formatCurrencyRaw(entry.balance_after || 0)
-
-  const editMobileBtn = mobileRow.querySelector('[data-role="edit-mobile"]')
-  const deleteMobileBtn = mobileRow.querySelector('[data-role="delete-mobile"]')
-  if (editMobileBtn && options.onEdit) {
-    editMobileBtn.addEventListener("click", () => options.onEdit(entry.id))
-  }
-  if (deleteMobileBtn && options.onDelete) {
-    deleteMobileBtn.addEventListener("click", () => options.onDelete(entry.id, entry.display_name || ""))
-  }
 
   fragment.appendChild(desktopRow)
   fragment.appendChild(mobileRow)

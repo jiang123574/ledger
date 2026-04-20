@@ -18,8 +18,19 @@ export default class extends Controller {
     this.holdTimer = null;
     this.holdActivated = false;
 
+    // Disable drag on mobile/tablet (< lg breakpoint)
+    if (window.innerWidth < 1024) {
+      this.sectionTargets.forEach((section) => {
+        section.setAttribute("draggable", "false");
+      });
+    }
+
     // Restore order from localStorage
     this.restoreOrder();
+  }
+
+  isMobile() {
+    return window.innerWidth < 1024;
   }
 
   // ===== Mouse Drag Events =====
@@ -71,6 +82,8 @@ export default class extends Controller {
 
   // ===== Touch Events =====
   touchStart(event) {
+    if (this.isMobile()) return;
+
     const section = event.currentTarget.closest("[data-dashboard-sortable-target='section']");
     if (!section) return;
 
@@ -103,6 +116,7 @@ export default class extends Controller {
   }
 
   touchMove(event) {
+    if (this.isMobile()) return;
     if (!this.holdActivated || !this.isTouching || !this.draggedElement) return;
 
     event.preventDefault();
@@ -120,6 +134,11 @@ export default class extends Controller {
   }
 
   touchEnd() {
+    if (this.isMobile()) {
+      this.cancelHold();
+      return;
+    }
+
     this.cancelHold();
 
     if (!this.holdActivated || !this.isTouching || !this.draggedElement) {

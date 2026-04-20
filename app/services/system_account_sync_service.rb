@@ -7,9 +7,10 @@ class SystemAccountSyncService
 
   class << self
     def sync_all!
-      changed_receivable = sync_receivable_account!
-      changed_payable = sync_payable_account!
-      bump_cache_versions if changed_receivable || changed_payable
+      sync_receivable_account!
+      sync_payable_account!
+      CacheBuster.bump(:accounts)
+      CacheBuster.bump(:entries)
     end
 
     def sync_receivable_account!
@@ -37,11 +38,6 @@ class SystemAccountSyncService
       account.initial_balance = initial_balance
       account.save!
       true
-    end
-
-    def bump_cache_versions
-      CacheBuster.bump(:accounts)
-      CacheBuster.bump(:entries)
     end
   end
 end

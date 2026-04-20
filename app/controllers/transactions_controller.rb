@@ -135,14 +135,13 @@ class TransactionsController < ApplicationController
     @entry.date = attrs[:date] if attrs[:date].present?
     @entry.name = attrs[:note] if attrs[:note].present?
     @entry.notes = attrs[:note] if attrs[:note].present?
-    @entry.account_id = attrs[:account_id] if attrs[:account_id].present?
 
     if attrs[:type].present?
       kind = attrs[:type].downcase
       amount = attrs[:amount].to_d
 
       if kind == "transfer"
-        @entry.amount = -amount.abs
+        @entry.amount = @entry.amount < 0 ? -amount.abs : amount.abs
       elsif kind == "income"
         @entry.amount = amount
       else
@@ -157,39 +156,49 @@ class TransactionsController < ApplicationController
     end
 
     Entry.transaction do
-      # 转账：同步更新配对 Entry（与主 entry 在同一事务中，保证原子性）
-      if @entry.transfer_id.present? && attrs[:target_account_id].present?
-        target_account = Account.find_by(id: attrs[:target_account_id])
-        if target_account
-          paired_entry = Entry.where(transfer_id: @entry.transfer_id).where.not(id: @entry.id).first
-          if paired_entry
-            # 配对条目始终是转入方：正数金额 + income kind
-            if paired_entry.entryable.is_a?(Entryable::Transaction)
-              paired_entry.entryable.update!(kind: "income")
+      if @entry.transfer_id.present?
+        paired_entry = Entry.where(transfer_id: @entry.transfer_id).where.not(id: @entry.id).first
+        if paired_entry
+          transfer_amount = attrs[:amount].to_d.abs
+          source_account_id = attrs[:account_id]
+          target_account_id = attrs[:target_account_id]
+
+          if source_account_id.present? && target_account_id.present?
+            if @entry.amount < 0
+              @entry.account_id = source_account_id
+              paired_entry.account_id = target_account_id
+              paired_entry.amount = transfer_amount
+            else
+              @entry.account_id = target_account_id
+              paired_entry.account_id = source_account_id
+              paired_entry.amount = -transfer_amount
             end
-            transfer_amount = attrs[:amount].to_d.abs
-            paired_entry.update!(
-              account_id: target_account.id,
-              date: @entry.date,
-              amount: transfer_amount,
-              notes: @entry.notes
-            )
-          else
-            # 孤儿转账（只有转出没有转入）：自动创建配对转入条目
-            transfer_amount = attrs[:amount].to_d.abs
-            transfer_note = @entry.notes.presence || "转账: #{@entry.account.name} → #{target_account.name}"
-            Entry.create!(
-              account_id: target_account.id,
-              date: @entry.date,
-              name: transfer_note,
-              amount: transfer_amount,
-              currency: @entry.currency,
-              notes: transfer_note,
-              entryable: Entryable::Transaction.create!(kind: "income"),
-              transfer_id: @entry.transfer_id
-            )
+            paired_entry.date = @entry.date
+            paired_entry.notes = @entry.notes
+            if paired_entry.entryable.is_a?(Entryable::Transaction)
+              paired_entry.entryable.update!(kind: paired_entry.amount > 0 ? "income" : "expense")
+            end
+            paired_entry.save!
+          elsif source_account_id.present?
+            if @entry.amount < 0
+              @entry.account_id = source_account_id
+            else
+              paired_entry.account_id = source_account_id
+              paired_entry.save!
+            end
+          elsif target_account_id.present?
+            if @entry.amount < 0
+              paired_entry.account_id = target_account_id
+              paired_entry.save!
+            else
+              @entry.account_id = target_account_id
+            end
           end
+        else
+          Rails.logger.warn "Orphan transfer: entry #{@entry.id} has transfer_id #{@entry.transfer_id} but no paired entry found"
         end
+      else
+        @entry.account_id = attrs[:account_id] if attrs[:account_id].present?
       end
 
       @entry.save!

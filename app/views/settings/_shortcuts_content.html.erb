@@ -17,7 +17,7 @@
     <% @shortcuts.group_by { |s| s[:group] }.each do |group, shortcuts| %>
       <div class="mb-4">
         <h3 class="font-medium text-primary dark:text-primary-dark mb-2"><%= group %></h3>
-        <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg overflow-hidden">
+        <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg overflow-x-auto">
           <table class="min-w-full">
             <tbody class="divide-y divide-border dark:divide-border-dark">
               <% shortcuts.each do |shortcut| %>

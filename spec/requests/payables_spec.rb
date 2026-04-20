@@ -115,7 +115,7 @@ RSpec.describe "Payables", type: :request do
   end
 
   describe "POST /payables/:id/settle" do
-    it "settles a payable" do
+    it "settles a payable and decreases remaining_amount" do
       payable = create(:payable,
         account: account, counterparty: counterparty,
         original_amount: 1000, remaining_amount: 1000
@@ -127,6 +127,21 @@ RSpec.describe "Payables", type: :request do
 
       expect(response).to redirect_to(payables_path)
       expect(flash[:notice]).to be_present
+      expect(payable.reload.remaining_amount).to eq(0)
+    end
+
+    it "supports partial settlement" do
+      payable = create(:payable,
+        account: account, counterparty: counterparty,
+        original_amount: 1000, remaining_amount: 1000
+      )
+
+      post "/payables/#{payable.id}/settle", params: {
+        amount: 300, account_id: account.id, settlement_date: Date.current.to_s
+      }
+
+      expect(response).to redirect_to(payables_path)
+      expect(payable.reload.remaining_amount).to eq(700)
     end
 
     it "rejects invalid amount" do
@@ -140,14 +155,23 @@ RSpec.describe "Payables", type: :request do
   end
 
   describe "POST /payables/:id/revert" do
-    it "reverts a settlement" do
+    it "reverts a settlement and restores remaining_amount" do
       payable = create(:payable,
         account: account, counterparty: counterparty,
         original_amount: 1000, remaining_amount: 1000
       )
 
+      # 先 settle
+      post "/payables/#{payable.id}/settle", params: {
+        amount: 700, account_id: account.id, settlement_date: Date.current.to_s
+      }
+      expect(payable.reload.remaining_amount).to eq(300)
+
+      # 再 revert 最后一笔结算
       post "/payables/#{payable.id}/revert"
       expect(response).to redirect_to(payables_path)
+      expect(flash[:notice]).to be_present
+      expect(payable.reload.remaining_amount).to eq(1000)
     end
   end
 end

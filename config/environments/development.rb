@@ -80,5 +80,7 @@ Rails.application.configure do
     Bullet.add_safelist type: :unused_eager_loading, class_name: "Entry", association: :account
     Bullet.add_safelist type: :unused_eager_loading, class_name: "Receivable", association: :source_entry
     Bullet.add_safelist type: :unused_eager_loading, class_name: "Payable", association: :source_entry
+    # BudgetsController#index 中 @selected_budget 需要 eager load budget_items 用于详情面板
+    Bullet.add_safelist type: :unused_eager_loading, class_name: "SingleBudget", association: :budget_items
   end
 end

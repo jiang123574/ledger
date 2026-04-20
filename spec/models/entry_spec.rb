@@ -373,15 +373,12 @@ RSpec.describe Entry, type: :model do
         let!(:incoming_entry) { create(:entry, account: account2, transfer_id: transfer_id, amount: 100) }
 
         it 'returns the target account for incoming transfer' do
-          # incoming_entry 的 target 应该是 outgoing_entry 的 account
-          # 但 target_account_for_display 查找的是 amount > 0 的条目
-          # outgoing_entry 的 amount 是 -100，所以不会被找到
-          expect(incoming_entry.target_account_for_display).to be_nil
+          # incoming_entry 是转入方（amount > 0），自己就是 target_account
+          expect(incoming_entry.target_account_for_display).to eq(account2)
         end
 
-        it 'returns the source account for outgoing transfer' do
-          # outgoing_entry 的 target 应该是 incoming_entry 的 account
-          # outgoing_entry 的 amount 是 -100，所以它会查找 amount > 0 的条目
+        it 'returns the target account for outgoing transfer' do
+          # outgoing_entry 是转出方（amount < 0），target_account 是配对的转入账户
           expect(outgoing_entry.target_account_for_display).to eq(account2)
         end
       end
