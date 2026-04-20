@@ -280,18 +280,176 @@ RSpec.describe "Transactions", type: :request do
       expect(entry.entryable.category_id).to eq(new_category.id)
     end
 
-    context "updating transfer" do
+    context "updating transfer from outgoing entry" do
       let(:transfer_id) { SecureRandom.uuid }
       let!(:out_entry) { create(:entry, account: account, amount: -100, transfer_id: transfer_id, entryable: create(:entryable_transaction)) }
       let!(:in_entry) { create(:entry, account: another_account, amount: 100, transfer_id: transfer_id, entryable: create(:entryable_transaction)) }
 
-      it "updates transfer and paired entry" do
+      it "updates both accounts when source and target are provided" do
+        new_source = create(:account, name: 'New Source')
         new_target = create(:account, name: 'New Target')
 
         patch "/transactions/#{out_entry.id}", params: {
           transaction: {
+            type: "TRANSFER",
             amount: 500,
+            account_id: new_source.id,
             target_account_id: new_target.id
+          }
+        }
+
+        expect(response).to have_http_status(:redirect)
+        out_entry.reload
+        in_entry.reload
+
+        expect(out_entry.account_id).to eq(new_source.id)
+        expect(out_entry.amount).to eq(-500)
+        expect(in_entry.account_id).to eq(new_target.id)
+        expect(in_entry.amount).to eq(500)
+      end
+
+      it "updates only source account when only account_id is provided" do
+        new_source = create(:account, name: 'New Source')
+
+        patch "/transactions/#{out_entry.id}", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 200,
+            account_id: new_source.id
+          }
+        }
+
+        expect(response).to have_http_status(:redirect)
+        out_entry.reload
+        in_entry.reload
+
+        expect(out_entry.account_id).to eq(new_source.id)
+        expect(in_entry.account_id).to eq(another_account.id) # unchanged
+      end
+
+      it "updates only target account when only target_account_id is provided" do
+        new_target = create(:account, name: 'New Target')
+
+        patch "/transactions/#{out_entry.id}", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 300,
+            target_account_id: new_target.id
+          }
+        }
+
+        expect(response).to have_http_status(:redirect)
+        out_entry.reload
+        in_entry.reload
+
+        expect(out_entry.account_id).to eq(account.id) # unchanged
+        expect(in_entry.account_id).to eq(new_target.id)
+      end
+
+      it "syncs paired entry date and notes" do
+        new_target = create(:account)
+
+        patch "/transactions/#{out_entry.id}", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 100,
+            account_id: account.id,
+            target_account_id: new_target.id,
+            date: "2025-06-15",
+            note: "Updated transfer note"
+          }
+        }
+
+        in_entry.reload
+        expect(in_entry.date).to eq(Date.parse("2025-06-15"))
+        expect(in_entry.notes).to eq("Updated transfer note")
+      end
+    end
+
+    context "updating transfer from incoming entry" do
+      let(:transfer_id) { SecureRandom.uuid }
+      let!(:out_entry) { create(:entry, account: account, amount: -100, transfer_id: transfer_id, entryable: create(:entryable_transaction)) }
+      let!(:in_entry) { create(:entry, account: another_account, amount: 100, transfer_id: transfer_id, entryable: create(:entryable_transaction)) }
+
+      it "updates both accounts when source and target are provided" do
+        new_source = create(:account, name: 'New Source')
+        new_target = create(:account, name: 'New Target')
+
+        patch "/transactions/#{in_entry.id}", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 600,
+            account_id: new_source.id,
+            target_account_id: new_target.id
+          }
+        }
+
+        expect(response).to have_http_status(:redirect)
+        out_entry.reload
+        in_entry.reload
+
+        # incoming entry (amount > 0): own account = target, paired account = source
+        expect(in_entry.account_id).to eq(new_target.id)
+        expect(in_entry.amount).to eq(600)
+        expect(out_entry.account_id).to eq(new_source.id)
+        expect(out_entry.amount).to eq(-600)
+      end
+
+      it "updates only source when only account_id is provided" do
+        new_source = create(:account, name: 'New Source')
+
+        patch "/transactions/#{in_entry.id}", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 250,
+            account_id: new_source.id
+          }
+        }
+
+        expect(response).to have_http_status(:redirect)
+        out_entry.reload
+        in_entry.reload
+
+        # incoming entry: source_account_id → paired (outgoing) account
+        expect(in_entry.account_id).to eq(another_account.id) # own unchanged
+        expect(out_entry.account_id).to eq(new_source.id)
+      end
+
+      it "updates only target when only target_account_id is provided" do
+        new_target = create(:account, name: 'New Target')
+
+        patch "/transactions/#{in_entry.id}", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 350,
+            target_account_id: new_target.id
+          }
+        }
+
+        expect(response).to have_http_status(:redirect)
+        out_entry.reload
+        in_entry.reload
+
+        # incoming entry: target_account_id → own account
+        expect(in_entry.account_id).to eq(new_target.id)
+        expect(out_entry.account_id).to eq(account.id) # paired unchanged
+      end
+    end
+
+    context "orphan transfer (no paired entry)" do
+      let(:transfer_id) { SecureRandom.uuid }
+      let!(:orphan_entry) { create(:entry, account: account, amount: -100, transfer_id: transfer_id, entryable: create(:entryable_transaction)) }
+
+      it "does not raise error and updates the entry" do
+        new_account = create(:account)
+
+        expect(Rails.logger).to receive(:warn).with(/Orphan transfer/)
+
+        patch "/transactions/#{orphan_entry.id}", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 50,
+            account_id: new_account.id
           }
         }
 
