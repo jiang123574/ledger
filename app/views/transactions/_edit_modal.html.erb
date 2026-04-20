@@ -15,8 +15,8 @@
 <%= form_with model: @entry, url: transaction_path(@entry), method: :patch, local: false, id: "transaction-edit-form" do |f| %>
   <input type="hidden" id="edit-transaction-type" value="<%= entry_type %>">
   <input type="hidden" name="transaction[category_id]" id="edit_category_id" value="<%= @entry.display_category_id %>">
-  <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="">
-  <input type="hidden" name="transaction[target_account_id]" id="transaction_target_account_id" value="">
+  <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="<%= is_transfer ? @entry.source_account_id_for_transfer : @entry.account_id %>">
+  <input type="hidden" name="transaction[target_account_id]" id="transaction_target_account_id" value="<%= is_transfer ? @entry.target_account_id_for_display : '' %>">
   <input type="hidden" name="transaction[type]" id="transaction_type_hidden" value="<%= entry_type %>">
   <div class="space-y-4">
     <!-- 1. 分类（收支时显示） -->
@@ -219,7 +219,7 @@
       }).join('');
     }
 
-    function updateOptions() {
+function updateOptions() {
       var filterText = filterInput ? filterInput.value : '';
       optionsContainer.innerHTML = renderOptions(filterText, config.items);
       optionsContainer.querySelectorAll('.' + config.itemClass).forEach(function(option) {
@@ -390,13 +390,16 @@
     syncUnifiedInputs();
 
     var form = this;
-    var formData = new FormData(form); // 自动收集 transaction[category_id]/transaction[account_id]/transaction[target_account_id] 等 hidden inputs
-    // 补充 date/amount/note/currency（Rails form_with 生成 entry[...] 前缀，controller 需要 transaction[...]）
-    formData.append('transaction[date]', form.querySelector('[name="entry[date]"]')?.value || '');
-    formData.append('transaction[amount]', form.querySelector('[name="entry[amount]"]')?.value || '');
-    formData.append('transaction[note]', form.querySelector('[name="entry[notes]"]')?.value || '');
-    formData.append('transaction[currency]', 'CNY');
-    formData.append('transaction[type]', currentType);
+    var formData = new FormData(form);
+    
+    // 强制覆盖 FormData 中的值（FormData 读取的是 HTML 属性，不是 JS 更新的 value）
+    formData.set('transaction[account_id]', document.getElementById('transaction_account_id')?.value || '');
+    formData.set('transaction[target_account_id]', document.getElementById('transaction_target_account_id')?.value || '');
+    formData.set('transaction[type]', currentType);
+    formData.set('transaction[date]', form.querySelector('[name="entry[date]"]')?.value || '');
+    formData.set('transaction[amount]', form.querySelector('[name="entry[amount]"]')?.value || '');
+    formData.set('transaction[note]', form.querySelector('[name="entry[notes]"]')?.value || '');
+    formData.set('transaction[currency]', 'CNY');
 
     fetch(form.action, {
       method: 'PATCH',

@@ -155,16 +155,22 @@ class Entry < ApplicationRecord
     entryable.respond_to?(:category_id) ? entryable.category_id : nil
   end
 
-  # 转账对方账户（优先使用预加载缓存）
+  # 转账目标账户（转入方）
+  # 对于转出 entry（amount < 0），返回配对的转入账户
+  # 对于转入 entry（amount > 0），返回自己的账户
   def target_account_for_display
     return nil unless transfer_id.present?
     return transfer_accounts_cache[:"#{transfer_id}_target"] if transfer_accounts_cache.key?(:"#{transfer_id}_target")
 
-    target_entry = Entry.where(transfer_id: transfer_id)
-                        .where.not(id: id)
-                        .where("amount > 0")
-                        .first
-    Account.find_by(id: target_entry&.account_id)
+    if amount > 0
+      account
+    else
+      target_entry = Entry.where(transfer_id: transfer_id)
+                          .where.not(id: id)
+                          .where("amount > 0")
+                          .first
+      Account.find_by(id: target_entry&.account_id)
+    end
   end
 
   def target_account_id_for_display
