@@ -16,6 +16,10 @@ import ListFilterController from "controllers/list_filter_controller"
 import LoadingButtonController from "controllers/loading_button_controller"
 import MenuController from "controllers/menu_controller"
 import MobileLayoutController from "controllers/mobile_layout_controller"
+import NativeBridgeController, { NativeApp } from "controllers/native_bridge_controller"
+window.NativeApp = NativeApp
+import PageSkeletonController from "controllers/page_skeleton_controller"
+import PageTransitionController from "controllers/page_transition_controller"
 import SankeyChartController from "controllers/sankey_chart_controller"
 import SelectController from "controllers/select_controller"
 import BudgetGaugeController from "controllers/budget_gauge_controller"
@@ -55,6 +59,9 @@ application.register("list-filter", ListFilterController)
 application.register("loading-button", LoadingButtonController)
 application.register("menu", MenuController)
 application.register("mobile-layout", MobileLayoutController)
+application.register("native-bridge", NativeBridgeController)
+application.register("page-skeleton", PageSkeletonController)
+application.register("page-transition", PageTransitionController)
 application.register("sankey-chart", SankeyChartController)
 application.register("select", SelectController)
 application.register("budget-gauge", BudgetGaugeController)
