@@ -73,6 +73,12 @@ export default class extends Controller {
     if (NativeApp.isNative) {
       this.element.classList.add("native-app")
       this.element.dataset.nativeApp = "true"
+
+      // 显示原生专属元素（分享按钮等）
+      if (this.hasShareBtnTarget) {
+        this.shareBtnTarget.classList.remove("hidden")
+        this.shareBtnTarget.classList.add("inline-flex")
+      }
     }
   }
 
