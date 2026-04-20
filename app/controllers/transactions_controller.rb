@@ -194,6 +194,8 @@ class TransactionsController < ApplicationController
               @entry.account_id = target_account_id
             end
           end
+        else
+          Rails.logger.warn "Orphan transfer: entry #{@entry.id} has transfer_id #{@entry.transfer_id} but no paired entry found"
         end
       else
         @entry.account_id = attrs[:account_id] if attrs[:account_id].present?

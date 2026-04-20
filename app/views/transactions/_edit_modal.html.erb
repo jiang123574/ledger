@@ -219,7 +219,7 @@
       }).join('');
     }
 
-function updateOptions() {
+    function updateOptions() {
       var filterText = filterInput ? filterInput.value : '';
       optionsContainer.innerHTML = renderOptions(filterText, config.items);
       optionsContainer.querySelectorAll('.' + config.itemClass).forEach(function(option) {
