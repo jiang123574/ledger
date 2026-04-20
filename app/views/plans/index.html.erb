@@ -607,22 +607,22 @@
 
   function openEditPlanModal(d) {
     // d is dataset or plain object: { planId, planName, planType, ... }
-    var id = d.planId
-    var name = d.planName
-    var type = d.planType
-    var accountId = d.planAccountId
-    var accountName = d.planAccountName
-    var amount = d.planAmount
-    var totalAmount = d.planTotalAmount
-    var installments = d.planInstallments
-    var completedInstallments = d.planCompleted
-    var dayOfMonth = d.planDay
-    var currency = d.planCurrency
-    var active = d.planActive === 'true'
-    var categoryId = d.planCategoryId
-    var categoryName = d.planCategoryName
+    const id = d.planId
+    const name = d.planName
+    const type = d.planType
+    const accountId = d.planAccountId
+    const accountName = d.planAccountName
+    const amount = d.planAmount
+    const totalAmount = d.planTotalAmount
+    const installments = d.planInstallments
+    const completedInstallments = d.planCompleted
+    const dayOfMonth = d.planDay
+    const currency = d.planCurrency
+    const active = d.planActive === 'true'
+    const categoryId = d.planCategoryId
+    const categoryName = d.planCategoryName
 
-    var form = document.getElementById('edit-plan-form')
+    const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
     
     // Set type display
