@@ -5,6 +5,7 @@ class Receivable < ApplicationRecord
     super || []
   end
 
+  belongs_to :source_entry, class_name: "Entry", foreign_key: "source_entry_id", optional: true
   belongs_to :counterparty, optional: true
   belongs_to :account, optional: true
 
