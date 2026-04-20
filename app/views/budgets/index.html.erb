@@ -250,6 +250,11 @@
       addBtn.classList.remove('hidden');
       addBtn.dataset.budgetId = budgetId;
     }
+    // 更新删除表单的 action
+    var deleteForm = document.getElementById('delete-budget-form');
+    if (deleteForm) {
+      deleteForm.action = '/single_budgets/' + budgetId;
+    }
     fetch('/budgets/' + budgetId + '/data')
       .then(function(response) { return response.json(); })
       .then(function(data) {

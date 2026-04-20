@@ -56,6 +56,7 @@ class BudgetsController < ApplicationController
       @single_budgets.first
     end
     # 只有选中预算才加载 budget_items（详情面板需要）
+    # bullet 误报：检测逻辑无法识别"先取 ID 再独立查询"的模式
     if @selected_budget
       @selected_budget = SingleBudget.where(id: @selected_budget.id)
         .includes(:category, budget_items: { category: :parent }).first
