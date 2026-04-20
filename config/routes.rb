@@ -57,12 +57,10 @@ Rails.application.routes.draw do
       get :data
     end
   end
+
   # 单次预算功能已合并到预算管理 /budgets
   get "single_budgets" => redirect("/budgets", status: 301)
   resources :single_budgets, only: [ :create, :update, :destroy ] do
-    patch :start
-    patch :complete
-    patch :cancel
     resources :budget_items, only: [ :create, :update, :destroy ]
   end
   resources :plans, only: [ :index, :show, :create, :update, :destroy ] do
