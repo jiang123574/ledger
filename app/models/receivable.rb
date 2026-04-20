@@ -5,6 +5,7 @@ class Receivable < ApplicationRecord
     super || []
   end
 
+  belongs_to :source_entry, class_name: "Entry", foreign_key: "source_entry_id", optional: true
   belongs_to :counterparty, optional: true
   belongs_to :account, optional: true
 
@@ -27,6 +28,18 @@ class Receivable < ApplicationRecord
 
   def settled?
     settled_at.present? || remaining_amount.to_d <= 0
+  end
+
+  def source_transaction_or_entry
+    source_entry
+  end
+
+  def source_amount
+    source_entry&.amount || original_amount
+  end
+
+  def source_date
+    source_entry&.date || date
   end
 
   def progress_percentage

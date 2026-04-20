@@ -10,13 +10,17 @@ export default class extends Controller {
   }
 
   async connect() {
-    this.chart = null
+    if (this.chart) {
+      this.chart.destroy()
+      this.chart = null
+    }
     this.selectedIndex = null
   }
 
   disconnect() {
     if (this.chart) {
       this.chart.destroy()
+      this.chart = null
     }
   }
 
@@ -147,6 +151,11 @@ export default class extends Controller {
 
   highlightSlice(selectedIndex) {
     if (!this.chart) return
+    if (!this.canvasInDom()) {
+      this.chart.destroy()
+      this.chart = null
+      return
+    }
 
     const isDark = document.documentElement.classList.contains("dark")
     const defaultColors = [
@@ -174,6 +183,11 @@ export default class extends Controller {
 
   resetColors() {
     if (!this.chart) return
+    if (!this.canvasInDom()) {
+      this.chart.destroy()
+      this.chart = null
+      return
+    }
 
     const isDark = document.documentElement.classList.contains("dark")
     const defaultColors = [
@@ -187,6 +201,10 @@ export default class extends Controller {
 
     this.chart.data.datasets[0].backgroundColor = originalColors
     this.chart.update()
+  }
+
+  canvasInDom() {
+    return this.canvasTarget && document.body.contains(this.canvasTarget)
   }
 
   adjustColorOpacity(color, opacity) {
@@ -217,6 +235,8 @@ export default class extends Controller {
       this.resetColors()
       return
     }
+
+    if (!this.chart || !this.canvasInDom()) return
 
     const index = this.categoryIds.findIndex(id => String(id) === categoryId)
     if (index !== -1) {

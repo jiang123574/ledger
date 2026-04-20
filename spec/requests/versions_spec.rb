@@ -16,7 +16,7 @@ RSpec.describe "Versions", type: :request do
       expect(response).to have_http_status(:success)
     end
 
-    it "displays activity logs" do
+    it "displays activity logs in response" do
       ActivityLog.create!(
         action: "create",
         item_type: "Entry",
@@ -26,22 +26,38 @@ RSpec.describe "Versions", type: :request do
 
       get versions_path
       expect(response).to have_http_status(:success)
+      expect(response.body).to include("创建交易")
     end
 
     context "with filters" do
-      it "filters by item_type" do
+      it "filters by item_type and shows matching logs" do
+        ActivityLog.create!(action: "create", item_type: "Entry", item_id: entry.id, description: "Entry操作")
+        ActivityLog.create!(action: "create", item_type: "Account", item_id: account.id, description: "Account操作")
+
         get versions_path, params: { item_type: "Entry" }
         expect(response).to have_http_status(:success)
+        expect(response.body).to include("Entry操作")
+        expect(response.body).not_to include("Account操作")
       end
 
-      it "filters by action_type" do
+      it "filters by action_type and shows matching logs" do
+        ActivityLog.create!(action: "create", item_type: "Entry", item_id: entry.id, description: "创建操作")
+        ActivityLog.create!(action: "update", item_type: "Entry", item_id: entry.id, description: "更新操作")
+
         get versions_path, params: { action_type: "create" }
         expect(response).to have_http_status(:success)
+        expect(response.body).to include("创建操作")
+        expect(response.body).not_to include("更新操作")
       end
 
-      it "filters by search" do
-        get versions_path, params: { search: "test" }
+      it "filters by search keyword" do
+        ActivityLog.create!(action: "create", item_type: "Entry", item_id: entry.id, description: "特殊关键词")
+        ActivityLog.create!(action: "create", item_type: "Entry", item_id: entry.id, description: "其他操作")
+
+        get versions_path, params: { search: "特殊关键词" }
         expect(response).to have_http_status(:success)
+        expect(response.body).to include("特殊关键词")
+        expect(response.body).not_to include("其他操作")
       end
     end
   end

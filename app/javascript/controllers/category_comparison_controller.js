@@ -11,6 +11,7 @@ export default class extends Controller {
   connect() {
     this._chart = null
     this._selectedRow = null
+    this._isConnected = true
 
     // 使用事件委托，避免给每行单独绑定事件（防止内存泄漏）
     this._boundRowClick = this._handleRowClick.bind(this)
@@ -45,6 +46,7 @@ export default class extends Controller {
       // 默认展开图表区域
       if (toggleCheckbox.checked) {
         setTimeout(() => {
+          if (!this._isConnected) return
           const chartArea = document.getElementById('comparison-chart-area')
           if (chartArea) chartArea.classList.remove('hidden')
           // 自动选中第一行
@@ -129,7 +131,18 @@ export default class extends Controller {
     if (!Chart) return
 
     const ctx = canvas.getContext('2d')
-    if (this._chart) this._chart.destroy()
+
+    // 销毁当前实例的 chart
+    if (this._chart) {
+      this._chart.destroy()
+      this._chart = null
+    }
+
+    // 销毁 canvas 上可能残留的旧 chart（Turbo 页面切换时可能出现）
+    const existingChart = Chart.getChart(canvas)
+    if (existingChart) {
+      existingChart.destroy()
+    }
 
     const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
     const maxVal = Math.round(Math.max(...expenseData, ...incomeData, 100) * 1.15 * 100) / 100
@@ -249,8 +262,16 @@ export default class extends Controller {
 
     const ctx = canvas.getContext('2d')
 
+    // 销毁当前实例的 chart
     if (this._chart) {
       this._chart.destroy()
+      this._chart = null
+    }
+
+    // 销毁 canvas 上可能残留的旧 chart（Turbo 页面切换时可能出现）
+    const existingChart = Chart.getChart(canvas)
+    if (existingChart) {
+      existingChart.destroy()
     }
 
     const months = Array.from({ length: 12 }, (_, i) => `${i + 1}月`)
@@ -317,6 +338,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    this._isConnected = false
     if (this._boundRowClick) {
       this.element.removeEventListener('click', this._boundRowClick)
       this._boundRowClick = null

@@ -3643,12 +3643,6 @@ body.account-sorting * {
 .dark .mobile-card:hover, .dark section:hover, .dark .card-hover:hover, [data-theme="dark"] .mobile-card:hover, [data-theme="dark"] section:hover, [data-theme="dark"] .card-hover:hover {
   box-shadow: 0 14px 26px rgba(0, 0, 0, 0.45);
 }
-.page-fade-enter {
-  animation: page-fade-in 180ms ease-out;
-}
-.page-fade-leave {
-  animation: page-fade-out 150ms ease-in forwards;
-}
 .stagger-item {
   animation: stagger-fade-up 220ms ease both;
   animation-delay: calc(var(--stagger-index, 0) * 70ms);
@@ -3656,24 +3650,6 @@ body.account-sorting * {
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-@keyframes page-fade-in {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-@keyframes page-fade-out {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
   }
 }
 @keyframes stagger-fade-up {
@@ -3684,36 +3660,6 @@ body.account-sorting * {
   to {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-.page-skeleton {
-  position: fixed;
-  inset: 0;
-  background: var(--color-surface);
-  z-index: 60;
-  pointer-events: none;
-  opacity: 1;
-  transition: opacity 200ms ease;
-}
-.page-skeleton-hidden {
-  opacity: 0;
-}
-.skeleton-block {
-  height: 12px;
-  border-radius: 9999px;
-  background: linear-gradient(90deg, rgba(0, 0, 0, 0.06) 0%, rgba(0, 0, 0, 0.12) 50%, rgba(0, 0, 0, 0.06) 100%);
-  background-size: 200% 100%;
-  animation: skeleton-shimmer 1.3s ease-in-out infinite;
-}
-.dark .skeleton-block, [data-theme="dark"] .skeleton-block {
-  background: linear-gradient(90deg, rgba(255, 255, 255, 0.05) 0%, rgba(255, 255, 255, 0.12) 50%, rgba(255, 255, 255, 0.05) 100%);
-}
-@keyframes skeleton-shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
   }
 }
 .focus-ring {

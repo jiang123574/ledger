@@ -103,16 +103,4 @@ class SingleBudget < ApplicationRecord
   def cancelled?
     status == "cancelled"
   end
-
-  def start!
-    update(status: "active")
-  end
-
-  def complete!
-    update(status: "completed")
-  end
-
-  def cancel!
-    update(status: "cancelled")
-  end
 end
