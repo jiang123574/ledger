@@ -1285,6 +1285,15 @@ function filterByAccount(id) {
   refreshMainContent('/accounts?' + params.toString());
   // 更新左侧栏高亮
   updateAccountHighlight(id);
+  // 移动端自动收起账户列表
+  if (window.innerWidth < 1024) {
+    const list = document.getElementById('account-list');
+    const icon = document.getElementById('account-toggle-icon');
+    if (list && !list.classList.contains('hidden')) {
+      list.classList.add('hidden');
+      if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+  }
 }
 
 function viewAllTransactions() {
@@ -1298,6 +1307,15 @@ function viewAllTransactions() {
   history.pushState({}, '', url);
   refreshMainContent(url);
   updateAccountHighlight(null);
+  // 移动端自动收起账户列表
+  if (window.innerWidth < 1024) {
+    const list = document.getElementById('account-list');
+    const icon = document.getElementById('account-toggle-icon');
+    if (list && !list.classList.contains('hidden')) {
+      list.classList.add('hidden');
+      if (icon) icon.style.transform = 'rotate(0deg)';
+    }
+  }
 }
 
 function clearAccountFilter() {
