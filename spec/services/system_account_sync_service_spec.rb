@@ -27,8 +27,9 @@ RSpec.describe SystemAccountSyncService, type: :service do
         described_class.sync_all!
       end
 
-      it "does not bump cache versions" do
-        expect(CacheBuster).not_to receive(:bump)
+      it "still bumps cache versions (entries may have changed)" do
+        expect(CacheBuster).to receive(:bump).with(:accounts)
+        expect(CacheBuster).to receive(:bump).with(:entries)
         described_class.sync_all!
       end
     end
