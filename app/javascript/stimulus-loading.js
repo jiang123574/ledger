@@ -14,8 +14,6 @@ import LoadingButtonController from "controllers/loading_button_controller"
 import MenuController from "controllers/menu_controller"
 import MobileLayoutController from "controllers/mobile_layout_controller"
 
-import PageSkeletonController from "controllers/page_skeleton_controller"
-import PageTransitionController from "controllers/page_transition_controller"
 import SankeyChartController from "controllers/sankey_chart_controller"
 import SelectController from "controllers/select_controller"
 import SparklineChartController from "controllers/sparkline_chart_controller"
