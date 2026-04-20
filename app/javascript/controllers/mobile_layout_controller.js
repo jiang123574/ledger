@@ -3,10 +3,46 @@ import { Controller } from "@hotwired/stimulus"
 // 模块级：只注册一次，不受 Turbo 导航影响
 let _navActiveHandlerRegistered = false
 
-// 导航后更新底部栏的选中状态
+// 导航后更新导航栏的选中状态（sidebar + mobile bottom nav）
 function updateNavActiveState() {
   const currentPath = window.location.pathname
 
+  // 更新 sidebar 导航
+  document.querySelectorAll('#desktop-sidebar nav [data-nav-path]').forEach(link => {
+    const navPath = link.getAttribute('data-nav-path')
+    const isActive = currentPath === navPath ||
+      (navPath !== '/' && currentPath.startsWith(navPath + '/'))
+
+    const indicator = link.querySelector('.absolute.left-0')
+    const iconContainer = link.querySelector('.w-8.h-8')
+    const textSpan = link.querySelector('span.text-sm')
+
+    if (isActive) {
+      link.classList.remove('text-secondary', 'hover:text-primary', 'hover:bg-surface-hover')
+      link.classList.add('bg-surface', 'text-primary')
+      if (indicator) indicator.classList.remove('hidden')
+      if (iconContainer) {
+        iconContainer.classList.remove('bg-gray-100', 'dark:bg-surface-dark-inset')
+        iconContainer.classList.add('bg-gray-200', 'dark:bg-surface-dark-hover')
+      }
+      if (textSpan) textSpan.classList.remove('text-secondary')
+      if (textSpan) textSpan.classList.add('text-primary')
+      link.setAttribute('aria-current', 'page')
+    } else {
+      link.classList.remove('bg-surface', 'text-primary')
+      link.classList.add('text-secondary', 'hover:text-primary', 'hover:bg-surface-hover')
+      if (indicator) indicator.classList.add('hidden')
+      if (iconContainer) {
+        iconContainer.classList.remove('bg-gray-200', 'dark:bg-surface-dark-hover')
+        iconContainer.classList.add('bg-gray-100', 'dark:bg-surface-dark-inset')
+      }
+      if (textSpan) textSpan.classList.remove('text-primary')
+      if (textSpan) textSpan.classList.add('text-secondary')
+      link.removeAttribute('aria-current')
+    }
+  })
+
+  // 更新底部导航
   document.querySelectorAll('#mobile-bottom-nav [data-nav-path]').forEach(link => {
     const navPath = link.getAttribute('data-nav-path')
     const isActive = currentPath === navPath ||
