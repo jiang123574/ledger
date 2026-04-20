@@ -23,6 +23,10 @@ function initSelectorWithData(config) {
 
   if (!searchInput || !dropdown || !optionsContainer) return;
 
+  // 防止重复初始化：已绑定过的元素跳过
+  if (searchInput.dataset.selectorBound === 'true') return;
+  searchInput.dataset.selectorBound = 'true';
+
   var valueKey = config.valueKey || 'id';
   var nameKey = config.nameKey || 'name';
   var fullNameKey = config.fullNameKey || 'full_name';

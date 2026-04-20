@@ -125,7 +125,7 @@ RSpec.describe "Receivables", type: :request do
   end
 
   describe "POST /receivables/:id/settle" do
-    it "settles a receivable" do
+    it "settles a receivable and decreases remaining_amount" do
       receivable = create(:receivable,
         account: account,
         counterparty: counterparty,
@@ -141,6 +141,25 @@ RSpec.describe "Receivables", type: :request do
 
       expect(response).to redirect_to(receivables_path)
       expect(flash[:notice]).to be_present
+      expect(receivable.reload.remaining_amount).to eq(0)
+    end
+
+    it "supports partial settlement" do
+      receivable = create(:receivable,
+        account: account,
+        counterparty: counterparty,
+        original_amount: 1000,
+        remaining_amount: 1000
+      )
+
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 400,
+        account_id: account.id,
+        settlement_date: Date.current.to_s
+      }
+
+      expect(response).to redirect_to(receivables_path)
+      expect(receivable.reload.remaining_amount).to eq(600)
     end
 
     it "rejects invalid amount" do
@@ -169,7 +188,7 @@ RSpec.describe "Receivables", type: :request do
   end
 
   describe "POST /receivables/:id/revert" do
-    it "reverts a settlement" do
+    it "reverts a settlement and restores remaining_amount" do
       receivable = create(:receivable,
         account: account,
         counterparty: counterparty,
@@ -177,8 +196,17 @@ RSpec.describe "Receivables", type: :request do
         remaining_amount: 1000
       )
 
+      # 先 settle
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 600, account_id: account.id, settlement_date: Date.current.to_s
+      }
+      expect(receivable.reload.remaining_amount).to eq(400)
+
+      # 再 revert 最后一笔结算
       post "/receivables/#{receivable.id}/revert"
       expect(response).to redirect_to(receivables_path)
+      expect(flash[:notice]).to be_present
+      expect(receivable.reload.remaining_amount).to eq(1000)
     end
   end
 end

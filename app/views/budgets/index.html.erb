@@ -50,7 +50,7 @@
             <div class="flex items-center gap-2 text-xs text-secondary dark:text-secondary-dark">
               <span><%= budget.category&.name || "全部分类" %></span>
               <span>•</span>
-              <span><%= budget.budget_items.count %>项</span>
+              <span><%= budget.budget_items_count %>项</span>
             </div>
             <% percentage = budget.progress_percentage %>
             <div class="mt-2 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
@@ -249,6 +249,11 @@
     if (addBtn) {
       addBtn.classList.remove('hidden');
       addBtn.dataset.budgetId = budgetId;
+    }
+    // 更新删除表单的 action
+    var deleteForm = document.getElementById('delete-budget-form');
+    if (deleteForm) {
+      deleteForm.action = '/single_budgets/' + budgetId;
     }
     fetch('/budgets/' + budgetId + '/data')
       .then(function(response) { return response.json(); })

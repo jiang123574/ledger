@@ -1,5 +1,5 @@
 class SingleBudgetsController < ApplicationController
-  before_action :set_single_budget, only: %i[show edit update destroy start complete cancel]
+  before_action :set_single_budget, only: %i[update destroy]
 
   def index
     @status = params[:status]
@@ -45,24 +45,6 @@ class SingleBudgetsController < ApplicationController
     @single_budget.destroy
     CacheBuster.bump(:budgets)
     redirect_to single_budgets_path, notice: "单次预算已删除"
-  end
-
-  def start
-    @single_budget.start!
-    CacheBuster.bump(:budgets)
-    redirect_to @single_budget, notice: "预算已启动"
-  end
-
-  def complete
-    @single_budget.complete!
-    CacheBuster.bump(:budgets)
-    redirect_to @single_budget, notice: "预算已完成"
-  end
-
-  def cancel
-    @single_budget.cancel!
-    CacheBuster.bump(:budgets)
-    redirect_to @single_budget, notice: "预算已取消"
   end
 
   private

@@ -160,26 +160,5 @@ RSpec.describe SingleBudget, type: :model do
         expect(budget.active?).to be false
       end
     end
-
-    describe "#start!" do
-      it "changes status to active" do
-        budget.start!
-        expect(budget.reload.status).to eq("active")
-      end
-    end
-
-    describe "#complete!" do
-      it "changes status to completed" do
-        budget.complete!
-        expect(budget.reload.status).to eq("completed")
-      end
-    end
-
-    describe "#cancel!" do
-      it "changes status to cancelled" do
-        budget.cancel!
-        expect(budget.reload.status).to eq("cancelled")
-      end
-    end
   end
 end

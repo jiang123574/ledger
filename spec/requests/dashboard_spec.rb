@@ -61,9 +61,10 @@ RSpec.describe "Dashboard", type: :request do
         expect(response.body).to include("支出")
       end
 
-      it "displays expense categories" do
+      it "displays expense categories with category name" do
         get "/dashboard"
         expect(response).to have_http_status(:success)
+        expect(response.body).to include("餐饮")
       end
     end
 
@@ -75,6 +76,7 @@ RSpec.describe "Dashboard", type: :request do
       it "displays budget information" do
         get "/dashboard"
         expect(response).to have_http_status(:success)
+        expect(response.body).to include("预算")
       end
     end
   end
