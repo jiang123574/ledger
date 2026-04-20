@@ -70,8 +70,8 @@ class BudgetsController < ApplicationController
         name: item.display_name,
         amount: item.amount.to_f,
         spent_amount: item.spent_amount.to_f,
-        formatted_amount: format_currency(item.amount),
-        formatted_spent: format_currency(item.spent_amount),
+        formatted_amount: helpers.format_currency(item.amount),
+        formatted_spent: helpers.format_currency(item.spent_amount),
         currency_symbol: "¥",
         category_id: item.category_id,
         category_name: item.category&.full_name || "",
@@ -84,8 +84,8 @@ class BudgetsController < ApplicationController
       name: budget.name,
       total_amount: total.to_f,
       spent_amount: budget.spent_amount.to_f,
-      formatted_total: format_currency(total),
-      formatted_spent: format_currency(budget.spent_amount),
+      formatted_total: helpers.format_currency(total),
+      formatted_spent: helpers.format_currency(budget.spent_amount),
       currency_symbol: "¥",
       items: items
     }
