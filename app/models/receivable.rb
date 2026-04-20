@@ -30,6 +30,18 @@ class Receivable < ApplicationRecord
     settled_at.present? || remaining_amount.to_d <= 0
   end
 
+  def source_transaction_or_entry
+    source_entry
+  end
+
+  def source_amount
+    source_entry&.amount || original_amount
+  end
+
+  def source_date
+    source_entry&.date || date
+  end
+
   def progress_percentage
     return 0 if original_amount.to_d <= 0
     ((original_amount - remaining_amount) / original_amount * 100).round
