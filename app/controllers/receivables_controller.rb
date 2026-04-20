@@ -7,7 +7,7 @@ class ReceivablesController < ApplicationController
     @settled = Receivable.where.not(settled_at: nil).order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
     @receivables = Receivable.order(date: :desc).includes(:counterparty, :source_entry, source_entry: :account)
     @selected_counterparty_id = params[:counterparty_id].presence
-    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id).includes(:source_entry, source_entry: :account)
+    @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id)
     @unsettled_counterparty_stats = build_counterparty_stats(@unsettled)
     @receivable = Receivable.new(date: Date.today)
     @accounts = Account.visible.order(:name)
@@ -69,9 +69,9 @@ class ReceivablesController < ApplicationController
 
   def destroy
     ActiveRecord::Base.transaction do
+      @receivable.destroy!
       source_entry = find_source_entry
       source_entry&.destroy!
-      @receivable.destroy!
     end
 
     redirect_to receivables_url, notice: "应收款已删除"
@@ -96,7 +96,7 @@ class ReceivablesController < ApplicationController
         account_id: @account_id,
         amount: @settle_amount,
         date: @settlement_date,
-        name: "[报销] #{@receivable.description}",
+        name: "[报销] #{@receivable.description} (#{@receivable.id})",
         kind: "income",
         category_id: reimburse_category_id
       )
@@ -262,7 +262,7 @@ class ReceivablesController < ApplicationController
     Entry.transactions_only
       .with_entryable_transaction
       .where(entryable_transactions: { kind: "income" })
-      .where(name: "[报销] #{@receivable.description}")
+      .where(name: "[报销] #{@receivable.description} (#{@receivable.id})")
   end
 
   def filter_by_counterparty(scope, counterparty_id)
