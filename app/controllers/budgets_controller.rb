@@ -47,7 +47,7 @@ class BudgetsController < ApplicationController
 
     # 在缓存外做完整预加载，bullet 能正确追踪
     @single_budgets = SingleBudget.where(id: @single_budgets)
-      .includes(budget_items: { category: :parent })
+      .includes(:category, budget_items: { category: :parent })
     @single_total_budget = @single_budgets.sum(:total_amount)
     @single_total_spent = @single_budgets.sum(:spent_amount)
 
