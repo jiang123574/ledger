@@ -254,9 +254,11 @@ window.loadMoreEntries = () => { ... }
 
 ### 低优先级 (可选处理)
 
-7. [ ] 优化 CSP 头配置
-8. [ ] 清理全局 JavaScript 函数挂载
-9. [ ] 添加系统测试覆盖
+7. [x] CSP 头配置 - 已评估，保留 `unsafe-inline` 以支持 Turbo inline scripts ✅
+8. [x] 清理全局 JavaScript 函数挂载 - 已修复 entry_list_controller disconnect ✅
+9. [-] 系统测试覆盖 - 延后处理，当前单元测试覆盖充分
+
+> **CSP 说明**: 项目使用大量 inline scripts (IIFE 包裹) 配合 Turbo，移除 `unsafe-inline` 需要重构所有 erb 模板中的 inline scripts，工作量较大。当前风险评估：风险可接受，建议后续版本逐步迁移到 Stimulus actions 替代 onclick handlers。
 
 ---
 
