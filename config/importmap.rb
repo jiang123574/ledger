@@ -59,6 +59,9 @@ pin "@hotwired/turbo-rails", to: "@hotwired--turbo-rails.js" # @8.0.23
 # Stimulus loading helper - inline helper
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 
+# Native title sync — standalone script for Android title bar sync
+pin "native_title_sync", to: "native_title_sync.js"
+
 # Floating UI for positioning - vendored for production reliability
 pin "@floating-ui/utils", to: "@floating-ui--utils.js" # @0.2.11
 pin "@floating-ui/utils/dom", to: "@floating-ui--utils--dom.js" # @0.2.11
