@@ -273,12 +273,13 @@ bundle exec brakeman
 
 ## 文档
 
-- [项目审查报告](./PROJECT_REVIEW.md) - 代码质量、性能、安全、测试全面审查
 - [待办事项](./TODO.md) - 当前活跃的优化任务
 - [已完成任务](./DONE.md) - 历史完成记录
 - [DS 组件库](./app/components/ds/README.md) - Design System 组件文档
 - [AccountDashboardService](./docs/ACCOUNT_DASHBOARD_SERVICE.md) - 账户仪表盘服务文档
 - [拼音选择器](./docs/PINYIN_SELECTOR_GUIDE.md) - 拼音筛选组件指南
+- [API 文档](./docs/API.md) - REST API 和 JSON API 详细说明
+- [架构决策记录](./docs/adr/) - 关键架构决策和设计原则
 
 ## 许可证
 
