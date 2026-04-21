@@ -42,6 +42,7 @@ export default class extends Controller {
   }
 
   disconnect() {
+    window.loadMoreEntries = undefined
     if (this.observer) {
       this.observer.disconnect()
     }
