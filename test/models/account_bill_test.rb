@@ -194,7 +194,6 @@ class AccountBillTest < ActiveSupport::TestCase
 
   test "bill_cycles_with_statement count limits results" do
     travel_to Date.new(2025, 7, 18) do
-      # 创建较早的基准账单，确保有足够的账单周期
       BillStatement.create!(
         account: @credit_card,
         billing_date: Date.new(2025, 6, 16),
@@ -208,6 +207,87 @@ class AccountBillTest < ActiveSupport::TestCase
       cycles_6 = @credit_card.bill_cycles_with_statement(6)
       assert cycles_6.length <= 7, "count=6 should return at most 7 (including unbilled)"
       assert cycles_6.length > cycles_3.length, "count=6 should return more cycles than count=3"
+    end
+  end
+
+  test "unbilled cycle excludes repayment matching previous bill amount" do
+    travel_to Date.new(2026, 4, 18) do
+      BillStatement.create!(
+        account: @credit_card,
+        billing_date: Date.new(2026, 2, 16),
+        statement_amount: 3000.00
+      )
+
+      create_expense_entry(@credit_card, Date.new(2026, 3, 5), -800)
+      create_income_entry(@credit_card, Date.new(2026, 3, 10), 100)
+
+      mar_cycle = @credit_card.bill_cycles_with_statement(6).find { |c| c[:end_date].month == 3 }
+      assert_in_delta 3700.00, mar_cycle[:statement_amount].to_f, 0.005,
+        "03月账单 = 800 - 100 + 3000 = 3700"
+
+      create_expense_entry(@credit_card, Date.new(2026, 4, 20), -500)
+      create_income_entry(@credit_card, Date.new(2026, 4, 25), 3700)
+      create_income_entry(@credit_card, Date.new(2026, 4, 28), 200)
+
+      cycles = @credit_card.bill_cycles_with_statement(6)
+      unbilled = cycles.find { |c| c[:unbilled] }
+      assert unbilled, "Should find unbilled cycle"
+
+      assert_in_delta 300.00, unbilled[:statement_amount].to_f, 0.005,
+        "未出账单预估 = 500消费 - (3700还款排除 + 200其他) = 300，排除3700的还上期账单还款"
+    end
+  end
+
+  test "unbilled cycle with no matching repayment" do
+    travel_to Date.new(2026, 4, 18) do
+      BillStatement.create!(
+        account: @credit_card,
+        billing_date: Date.new(2026, 2, 16),
+        statement_amount: 3000.00
+      )
+
+      create_expense_entry(@credit_card, Date.new(2026, 3, 5), -800)
+      create_income_entry(@credit_card, Date.new(2026, 3, 10), 100)
+
+      mar_cycle = @credit_card.bill_cycles_with_statement(6).find { |c| c[:end_date].month == 3 }
+      assert_in_delta 3700.00, mar_cycle[:statement_amount].to_f, 0.005
+
+      create_expense_entry(@credit_card, Date.new(2026, 4, 20), -500)
+      create_income_entry(@credit_card, Date.new(2026, 4, 25), 2800)
+
+      cycles = @credit_card.bill_cycles_with_statement(6)
+      unbilled = cycles.find { |c| c[:unbilled] }
+      assert unbilled, "Should find unbilled cycle"
+
+      assert_in_delta 500 - 2800, unbilled[:statement_amount].to_f, 0.005,
+        "还款2800不匹配3700，不应排除，预估 = 500 - 2800 = -2300"
+    end
+  end
+
+  test "unbilled cycle ignores negative entries matching prev_amount" do
+    travel_to Date.new(2026, 4, 18) do
+      BillStatement.create!(
+        account: @credit_card,
+        billing_date: Date.new(2026, 2, 16),
+        statement_amount: 3000.00
+      )
+
+      create_expense_entry(@credit_card, Date.new(2026, 3, 5), -800)
+      create_income_entry(@credit_card, Date.new(2026, 3, 10), 100)
+
+      mar_cycle = @credit_card.bill_cycles_with_statement(6).find { |c| c[:end_date].month == 3 }
+      assert_in_delta 3700.00, mar_cycle[:statement_amount].to_f, 0.005
+
+      create_expense_entry(@credit_card, Date.new(2026, 4, 20), -3700)
+      create_income_entry(@credit_card, Date.new(2026, 4, 25), 3700)
+      create_expense_entry(@credit_card, Date.new(2026, 4, 28), -200)
+
+      cycles = @credit_card.bill_cycles_with_statement(6)
+      unbilled = cycles.find { |c| c[:unbilled] }
+      assert unbilled, "Should find unbilled cycle"
+
+      assert_in_delta 3900.00, unbilled[:statement_amount].to_f, 0.005,
+        "消费-3700不应被匹配，还款3700被排除，预估 = 3700 + 200消费 = 3900"
     end
   end
 

@@ -391,8 +391,19 @@ class Account < ApplicationRecord
         prev_amount = stored_for_cycle.statement_amount
         base_found = true
       elsif base_found
-        cycle[:statement_amount] = (summary[:spend_amount] - summary[:repay_amount] + prev_amount).round(2)
-        prev_amount = cycle[:statement_amount]
+        if cycle[:unbilled] && prev_amount
+          matching_repay = transaction_entries
+            .where(date: cycle[:start_date]..cycle[:end_date])
+            .where(amount: prev_amount)
+            .where("amount > 0")
+            .sum(:amount)
+
+          adjusted_repay = summary[:repay_amount] - matching_repay
+          cycle[:statement_amount] = (summary[:spend_amount] - adjusted_repay).round(2)
+        else
+          cycle[:statement_amount] = (summary[:spend_amount] - summary[:repay_amount] + prev_amount).round(2)
+          prev_amount = cycle[:statement_amount]
+        end
       else
         cycle[:statement_amount] = nil
       end
