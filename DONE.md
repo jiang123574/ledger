@@ -438,5 +438,146 @@
 
 ---
 
-**最后更新**: 2026-04-18
+## P1 - 移动端全面优化 ✅ 已完成
+
+### 17. Hover 效果触摸设备兼容
+
+**完成日期**: 2026-04-19
+**PR**: #136
+**优先级**: 高
+
+**完成内容**:
+- [x] CSS 使用 `@media (hover: hover)` 限制 hover 效果仅桌面端生效
+- [x] 320+ 处 hover 类已处理
+- [x] 交互按钮移动端始终可见或有替代触发方式
+
+---
+
+### 18. 表格小屏溢出修复
+
+**完成日期**: 2026-04-19
+**PR**: #136
+**优先级**: 高
+
+**完成内容**:
+- [x] 83/83 个 table 有 overflow-x-auto 包裹
+- [x] shortcuts 页面遗漏已补齐
+
+---
+
+### 19. 模态框移动端适配
+
+**完成日期**: 2026-04-19
+**PR**: #119, #136
+**优先级**: 中
+
+**完成内容**:
+- [x] 64 处 overflow-y-auto + max-h 配置
+- [x] 模态框在 360px 宽度下内容完整可见
+
+---
+
+### 20. Fixed/Sticky 元素层级与重叠
+
+**完成日期**: 2026-04-19
+**PR**: #119, #136
+**优先级**: 中
+
+**层级方案**:
+| 元素 | z-index |
+|------|---------|
+| Mobile Top Header | z-30 |
+| Mobile Sidebar Overlay | z-40 |
+| Mobile Sidebar | z-50 |
+| Mobile Bottom Nav | z-50 |
+| Modals | z-50 |
+| Dropdowns in modals | z-60 |
+
+---
+
+### 21. Turbo Native Strada 桥接适配
+
+**完成日期**: 2026-04-21
+**PR**: #138, #139, #141
+**优先级**: 中
+
+**完成内容**:
+- [x] Web 端 Native Bridge Adapter（PR #138）
+- [x] 导入页面原生文件选择器（PR #139）
+- [x] 报表分享按钮（PR #139）
+- [x] 原生标题同步 Web 端（PR #141）
+- [x] Android 返回键处理（已有 `onBackPressed()`）
+
+---
+
+### 22. 触摸目标尺寸与可访问性
+
+**完成日期**: 2026-04-19
+**PR**: #119, #136
+**优先级**: 中
+
+**完成内容**:
+- [x] modal 按钮 44px min-width/height
+- [x] 表格操作按钮 36px
+
+---
+
+### 24. `overflow-hidden` 改 `overflow-x-auto` 圆角边界
+
+**完成日期**: 2026-04-19
+**PR**: #136
+**优先级**: 低
+
+**完成内容**:
+- [x] 83/83 个 table 容器已使用 overflow-x-auto
+- [x] shortcuts 页面补漏
+
+---
+
+### 26. `@category_parent_map` 只加载一层父级
+
+**完成日期**: 2026-04-19
+**PR**: #137
+**优先级**: 低
+
+**修复**: `Category.where(id: parent_ids)` → `Category.active.index_by(&:id)`，支持任意层级 full_name 构建。
+
+---
+
+### 27. `openEditPlanModal` 参数过多
+
+**完成日期**: 2026-04-21
+**PR**: #140
+**优先级**: 低
+
+**重构**: 14 个位置参数 → data-plan-* 属性 + `openEditPlanModal(this.dataset)` 调用。模板可读性大幅提升，XSS 风险降低。
+
+---
+
+### 28. 数据可视化图表优化
+
+**完成日期**: 2026-04-19
+**优先级**: 中
+
+**已完成图表**:
+- [x] Dashboard 近6个月收支柱状图 (`bar_chart_controller.js`)
+- [x] Dashboard 净资产趋势折线图 (`net_worth_trend_controller.js`)
+- [x] Reports 日历热力图 (`calendar_heatmap_controller.js`)
+- [x] Reports 瀑布图 (`waterfall_chart_controller.js`)
+- [x] Reports 桑基图（已修复数据生成 bug）
+- [x] 删除 Dashboard "最近交易" 和 "预算仪表盘" 区块
+
+---
+
+### 29. Orphaned page-skeleton/page-transition 代码清理
+
+**完成日期**: 2026-04-19
+**PR**: #135
+**优先级**: 低
+
+**变更**: 删除 2 个 controller 文件，移除 4 处 import/register，2 个 importmap pin，~60 行 CSS。
+
+---
+
+**最后更新**: 2026-04-21
 **维护者**: 开发团队
