@@ -243,7 +243,7 @@ window.loadMoreEntries = () => { ... }
 ### 高优先级 (建议立即处理)
 
 1. [x] 移除 `entryable.save(validate: false)` - 添加显式校验 ✅ PR #152
-2. [x] 统一 Entry 验证逻辑 - 转账条目也需要 `name` 校验 ✅ PR #152
+2. [x] Entry 验证逻辑 - 经评估为设计决策，转账 `name` 由服务自动生成，无需修改
 3. [x] 优化 Category 循环检测 - 使用 CTE 查询替代 ✅ PR #152
 
 ### 中优先级 (建议近期处理)
