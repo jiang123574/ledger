@@ -73,12 +73,6 @@
     <%# Tailwind CSS v4 - compiled application.css %>
     <%= stylesheet_link_tag :application, preload: false %>
     <script src="/assets/chart.js.umd.js"></script>
-    <script>
-      // Disable Chart.js touchmove to avoid passive event listener warning
-      if (typeof Chart !== 'undefined') {
-        Chart.defaults.options.events = ['mousemove', 'mouseout', 'click', 'touchstart', 'touchend']
-      }
-    </script>
     <%= javascript_importmap_tags %>
     <script type="module">import "native_title_sync"</script>
   </head>
