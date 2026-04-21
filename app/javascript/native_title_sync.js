@@ -5,30 +5,29 @@
 (function() {
   if (typeof window.LedgerNative === "undefined") return
 
-  var lastTitle = document.title
+  let lastTitle = document.title
+
+  function syncTitle(newTitle) {
+    if (newTitle !== lastTitle) {
+      lastTitle = newTitle
+      try { window.LedgerNative.setTitle(newTitle) } catch(e) {}
+    }
+  }
 
   // MutationObserver 监听 <title> 元素变化
-  var titleEl = document.querySelector("title")
+  const titleEl = document.querySelector("title")
   if (titleEl && window.MutationObserver) {
-    var observer = new MutationObserver(function() {
-      var newTitle = document.title
-      if (newTitle !== lastTitle) {
-        lastTitle = newTitle
-        try { window.LedgerNative.setTitle(newTitle) } catch(e) {}
-      }
+    const observer = new MutationObserver(function() {
+      syncTitle(document.title)
     })
     observer.observe(titleEl, { childList: true })
   }
 
   // Turbo 页面加载后同步标题
   document.addEventListener("turbo:load", function() {
-    var newTitle = document.title
-    if (newTitle !== lastTitle) {
-      lastTitle = newTitle
-      try { window.LedgerNative.setTitle(newTitle) } catch(e) {}
-    }
+    syncTitle(document.title)
   })
 
   // 初始同步
-  try { window.LedgerNative.setTitle(document.title) } catch(e) {}
+  syncTitle(document.title)
 })()
