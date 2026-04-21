@@ -29,7 +29,7 @@
 
 **优先级**: 高
 **预估工期**: 1-2 天
-**状态**: ⏳ 待完成
+**状态**: ✅ 已提交 PR #136（CSS 已在 PR #119 实现）
 
 **问题描述**:
 - 全项目 320+ 处 `hover:` 类使用
@@ -61,7 +61,9 @@
 
 **优先级**: 高
 **预估工期**: 1 天
-**状态**: ⏳ 待完成
+**状态**: ✅ 已提交 PR #136
+
+**验证结果**: 83/83 个 table 有 overflow-x-auto 包裹 ✅
 
 **问题描述**:
 - 全项目 83 处 `<table>` 使用
@@ -93,7 +95,9 @@
 
 **优先级**: 中
 **预估工期**: 1 天
-**状态**: ⏳ 待完成
+**状态**: ✅ 已完成（PR #119 实现，PR #136 验证）
+
+**验证结果**: 64 处 overflow-y-auto + max-h 配置 ✅
 
 **问题描述**:
 - 全项目 198 处 modal/dialog 使用
@@ -127,20 +131,21 @@
 **预估工期**: 0.5 天
 **状态**: ⏳ 待完成
 
-**问题描述**:
-- 全项目 73 处 `fixed`/`sticky` 元素
-- 当前 z-index 层级: header z-30, sidebar z-50, mobile nav z-50, modal z-50
-- 多个 z-50 元素可能导致层级冲突
-- 部分页面的 sticky 表头在小屏遮挡内容
+### 19. Fixed/Sticky 元素层级与重叠
 
-**当前层级**:
+**优先级**: 中
+**预估工期**: 0.5 天
+**状态**: ✅ 已完成（PR #119 实现，PR #136 验证）
+
+**当前层级（已统一）**:
 | 元素 | z-index |
 |------|---------|
 | Mobile Top Header | z-30 |
 | Mobile Sidebar Overlay | z-40 |
 | Mobile Sidebar | z-50 |
 | Mobile Bottom Nav | z-50 |
-| Modal (推测) | z-50 |
+| Modals | z-50 |
+| Dropdowns in modals | z-60 |
 
 **优化方案**:
 1. 统一 z-index 方案: nav 50, sidebar 60, modal 70, toast 80
@@ -158,29 +163,14 @@
 
 **优先级**: 中
 **预估工期**: 2-3 天
-**状态**: ⏳ 待完成
+**状态**: ✅ 已提交 PR #138, #139, #141
 
-**问题描述**:
-- 项目已配置 Turbo Native，但未实现 Strada bridge adapter
-- Android 端无法调用原生能力（相机、文件选择、分享等）
-- 部分 Web 功能在 WebView 中受限
-
-**缺失能力**:
-1. 文件上传（导入功能无法选择本地文件）
-2. 分享功能（无法分享报表）
-3. 原生导航标题同步
-4. 返回键处理
-
-**优化方案**:
-1. 实现 Strada Bridge adapter（Android 端）
-2. Web 端添加 Strada 组件检测和调用
-3. 文件选择器 fallback 到 Web 方案
-4. 处理 Android 返回键（Turbo 历史导航）
-
-**验证清单**:
-- [ ] Android 端文件选择器可用
-- [ ] 返回键正确导航
-- [ ] 原生标题与页面标题同步
+**已完成**:
+- [x] Web 端 Native Bridge Adapter（PR #138）
+- [x] 导入页面原生文件选择器（PR #139）
+- [x] 报表分享按钮（PR #139）
+- [x] 原生标题同步 Web 端（PR #141）
+- [x] Android 返回键处理（已有 `onBackPressed()`）
 
 ---
 
@@ -188,7 +178,9 @@
 
 **优先级**: 中
 **预估工期**: 0.5 天
-**状态**: ⏳ 待完成
+**状态**: ✅ 已完成（PR #119 实现，PR #136 验证）
+
+**验证结果**: modal 按钮 44px min-width/height，表格操作按钮 36px ✅
 
 **问题描述**:
 - Apple 推荐最小触摸目标 44×44px，Android 推荐 48×48dp
@@ -210,7 +202,9 @@
 
 **优先级**: 低
 **来源**: PR #119 code review
-**状态**: ⏳ 待完成
+**状态**: ⏭️ 跳过（当前行为正确，精确化风险大于收益）
+
+**说明**: 选择器虽宽泛但项目中无嵌套 group-hover 冲突，改动引入回归风险高于收益。
 
 **问题**: CSS 选择器 `[class*="hover:bg-"]` 偏宽泛，任何 class 名包含 `hover:bg-` 的元素都会被选中（含组内嵌套的 `group-hover:bg-*`）。当前模板中未出现此类嵌套，风险低但不够精确。
 
@@ -222,7 +216,7 @@
 
 **优先级**: 低
 **来源**: PR #119 code review
-**状态**: ⏳ 待完成
+**状态**: ⏭️ 跳过（该 CSS 规则在代码中不存在）
 
 **问题**: 全局 CSS `button.p-1 { min-width: 44px; min-height: 44px; }` 会覆盖所有 `p-1` 按钮的尺寸，可能影响桌面端紧凑图标的布局。`p-1` 在 Tailwind 中是 padding 4px，意味着 icon-only 按钮也会被强制 44px。
 
@@ -234,7 +228,9 @@
 
 **优先级**: 低
 **来源**: PR #119 code review
-**状态**: ⏳ 待完成
+**状态**: ✅ 已提交 PR #136（shortcuts 页面补漏）
+
+**说明**: 83/83 个 table 容器已使用 overflow-x-auto。PR #136 补齐了最后 1 个遗漏（shortcuts 页面）。
 
 **问题**: 将 `.rounded-lg` + `overflow-hidden` 改为 `overflow-x-auto` 后，横向滚动内容会溢出圆角边界。视觉上有轻微毛刺。
 
@@ -246,7 +242,9 @@
 
 **优先级**: 低
 **来源**: PR #119 code review
-**状态**: ⏳ 待完成
+**状态**: ⏭️ 跳过（`lg:hidden`/`hidden lg:flex` 是 Tailwind 标准响应式模式）
+
+**说明**: 当前模式与 Tailwind 最佳实践一致，用共享 partial 重构的维护收益不足以抵消改动成本。
 
 **问题**: 应收款/应付款页面桌面端和移动端条目渲染逻辑完全独立（`_entry_list.html.erb` vs `_entry_mobile.html.erb`），DOM 结构差异大，维护成本高。后续新增字段需两边同步修改。
 
@@ -258,7 +256,9 @@
 
 **优先级**: 低
 **来源**: PR #127 code review
-**状态**: ⏳ 待完成
+**状态**: ✅ 已提交 PR #137
+
+**修复**: `Category.where(id: parent_ids)` → `Category.active.index_by(&:id)`，支持任意层级 full_name 构建。
 
 **问题**: PlansController 中 `@category_parent_map` 只加载直接父级。`build_full_name_in_memory` 递归查找 parent_map 构建 full_name，如果未来有 level 2+ 的分类（孙级），map 中找不到祖先会返回 nil。
 
@@ -270,7 +270,9 @@
 
 **优先级**: 低
 **来源**: PR #127 code review
-**状态**: ⏳ 待完成
+**状态**: ✅ 已提交 PR #140
+
+**重构**: 14 个位置参数 → data-plan-* 属性 + `openEditPlanModal(this.dataset)` 调用。模板可读性大幅提升，XSS 风险降低。
 
 **问题**: `openEditPlanModal` 已有 14 个参数，随着功能增加会继续膨胀。模板中的 onclick 调用也越来越长，可读性差。
 
@@ -304,7 +306,9 @@
 
 **优先级**: 低
 **来源**: PR #131 Turbo morph 优化
-**状态**: ⏳ 待完成
+**状态**: ✅ 已提交 PR #135
+
+**变更**: 删除 2 个 controller 文件，移除 4 处 import/register，2 个 importmap pin，~60 行 CSS。
 
 **问题**: 禁用 `page-skeleton` 和 `page-transition` 动画后，相关代码仍存在：
 - `app/javascript/controllers/page_skeleton_controller.js` — controller 文件
@@ -336,5 +340,5 @@
 
 ---
 
-**最后更新**: 2026-04-16
+**最后更新**: 2026-04-19
 **维护者**: 开发团队
