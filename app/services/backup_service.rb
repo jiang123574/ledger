@@ -193,6 +193,8 @@ class BackupService
     config.is_a?(Hash) && config.key?("primary") ? config["primary"] : config
   end
 
+  # Security: db_config comes from Rails.configuration, not user input.
+  # Ensure config files (database.yml) are not externally modifiable.
   def self.execute_pg_dump(db_config, backup_file)
     db_name = db_config["database"]
     db_host = db_config["host"] || "localhost"

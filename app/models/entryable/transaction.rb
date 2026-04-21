@@ -7,7 +7,6 @@ class Entryable::Transaction < ApplicationRecord
   self.table_name = "entryable_transactions"
 
   belongs_to :category, class_name: "::Category", optional: true
-  belongs_to :merchant, class_name: "::Merchant", optional: true
 
   has_many :taggings, as: :taggable, class_name: "::Tagging", dependent: :destroy
   has_many :tags, through: :taggings

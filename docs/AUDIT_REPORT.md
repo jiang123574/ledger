@@ -242,15 +242,15 @@ window.loadMoreEntries = () => { ... }
 
 ### 高优先级 (建议立即处理)
 
-1. [ ] 移除 `entryable.save(validate: false)` - 添加显式校验
-2. [ ] 统一 Entry 验证逻辑 - 转账条目也需要 `name` 校验
-3. [ ] 优化 Category 循环检测 - 使用 CTE 查询替代
+1. [x] 移除 `entryable.save(validate: false)` - 添加显式校验 ✅ PR #152
+2. [x] 统一 Entry 验证逻辑 - 转账条目也需要 `name` 校验 ✅ PR #152
+3. [x] 优化 Category 循环检测 - 使用 CTE 查询替代 ✅ PR #152
 
 ### 中优先级 (建议近期处理)
 
-4. [ ] 补充 Merchant 模型或移除关联
-5. [ ] 添加版本历史清理策略
-6. [ ] 确保 BackupService 配置安全
+4. [x] 补充 Merchant 模型或移除关联 ✅ PR #153
+5. [x] 添加版本历史清理策略 ✅ PR #153 (ActivityLogCleanupJob)
+6. [x] 确保 BackupService 配置安全 ✅ PR #153 (已确认风险低)
 
 ### 低优先级 (可选处理)
 
