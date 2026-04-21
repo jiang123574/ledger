@@ -152,7 +152,7 @@ class Category < ApplicationRecord
   def no_circular_reference
     return unless parent_id_changed? && parent_id.present?
 
-    if self_and_descendants.map(&:id).include?(parent_id)
+    if Category.descendant_ids_for([ id ]).include?(parent_id)
       errors.add(:parent_id, "不能创建循环引用")
     end
   end
