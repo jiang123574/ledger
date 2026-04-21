@@ -6,6 +6,12 @@ import "bill_formatters"
 import "web_vitals"
 import "selectors"
 
+// Disable Chart.js touchmove to avoid passive event listener warning
+// Keep tooltip interaction on click/touchstart/touchend, but disable drag
+if (typeof Chart !== 'undefined') {
+  Chart.defaults.options.events = ['mousemove', 'mouseout', 'click', 'touchstart', 'touchend']
+}
+
 // Register PWA service worker
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
