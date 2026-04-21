@@ -85,11 +85,14 @@ class Category < ApplicationRecord
   # 类方法：给定一批 category IDs，获取它们及其所有后代的 IDs（单次递归 CTE 查询）
   def self.descendant_ids_for(category_ids)
     return [] if category_ids.blank?
+    return [] if category_ids.all?(&:blank?)
 
-    # PostgreSQL 递归 CTE
+    ids = category_ids.compact_blank
+    return [] if ids.empty?
+
     sql = <<~SQL
       WITH RECURSIVE cat_tree AS (
-        SELECT id FROM categories WHERE id IN (#{sanitize_sql_array(category_ids)})
+        SELECT id FROM categories WHERE id IN (#{ids.join(',')})
         UNION
         SELECT c.id FROM categories c
         INNER JOIN cat_tree ct ON c.parent_id = ct.id
