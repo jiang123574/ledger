@@ -395,9 +395,10 @@ class Account < ApplicationRecord
           matching_repay = transaction_entries
             .where(date: cycle[:start_date]..cycle[:end_date])
             .where(amount: prev_amount)
-            .pick(Arel.sql("SUM(amount)")) || 0
+            .where("amount > 0")
+            .sum(:amount)
 
-          adjusted_repay = summary[:repay_amount] - matching_repay.to_d
+          adjusted_repay = summary[:repay_amount] - matching_repay
           cycle[:statement_amount] = (summary[:spend_amount] - adjusted_repay).round(2)
         else
           cycle[:statement_amount] = (summary[:spend_amount] - summary[:repay_amount] + prev_amount).round(2)

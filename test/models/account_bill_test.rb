@@ -238,6 +238,59 @@ class AccountBillTest < ActiveSupport::TestCase
     end
   end
 
+  test "unbilled cycle with no matching repayment" do
+    travel_to Date.new(2026, 4, 18) do
+      BillStatement.create!(
+        account: @credit_card,
+        billing_date: Date.new(2026, 2, 16),
+        statement_amount: 3000.00
+      )
+
+      create_expense_entry(@credit_card, Date.new(2026, 3, 5), -800)
+      create_income_entry(@credit_card, Date.new(2026, 3, 10), 100)
+
+      mar_cycle = @credit_card.bill_cycles_with_statement(6).find { |c| c[:end_date].month == 3 }
+      assert_in_delta 3700.00, mar_cycle[:statement_amount].to_f, 0.005
+
+      create_expense_entry(@credit_card, Date.new(2026, 4, 20), -500)
+      create_income_entry(@credit_card, Date.new(2026, 4, 25), 2800)
+
+      cycles = @credit_card.bill_cycles_with_statement(6)
+      unbilled = cycles.find { |c| c[:unbilled] }
+      assert unbilled, "Should find unbilled cycle"
+
+      assert_in_delta 500 - 2800, unbilled[:statement_amount].to_f, 0.005,
+        "还款2800不匹配3700，不应排除，预估 = 500 - 2800 = -2300"
+    end
+  end
+
+  test "unbilled cycle ignores negative entries matching prev_amount" do
+    travel_to Date.new(2026, 4, 18) do
+      BillStatement.create!(
+        account: @credit_card,
+        billing_date: Date.new(2026, 2, 16),
+        statement_amount: 3000.00
+      )
+
+      create_expense_entry(@credit_card, Date.new(2026, 3, 5), -800)
+      create_income_entry(@credit_card, Date.new(2026, 3, 10), 100)
+
+      mar_cycle = @credit_card.bill_cycles_with_statement(6).find { |c| c[:end_date].month == 3 }
+      assert_in_delta 3700.00, mar_cycle[:statement_amount].to_f, 0.005
+
+      create_expense_entry(@credit_card, Date.new(2026, 4, 20), -3700)
+      create_income_entry(@credit_card, Date.new(2026, 4, 25), 3700)
+      create_expense_entry(@credit_card, Date.new(2026, 4, 28), -200)
+
+      cycles = @credit_card.bill_cycles_with_statement(6)
+      unbilled = cycles.find { |c| c[:unbilled] }
+      assert unbilled, "Should find unbilled cycle"
+
+      assert_in_delta 3900.00, unbilled[:statement_amount].to_f, 0.005,
+        "消费-3700不应被匹配，还款3700被排除，预估 = 3700 + 200消费 = 3900"
+    end
+  end
+
   # === 辅助方法 ===
 
   private
