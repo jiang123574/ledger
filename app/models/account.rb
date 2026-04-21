@@ -373,6 +373,14 @@ class Account < ApplicationRecord
     base_found = false
 
     cycles_by_date.each do |cycle|
+      summary = summaries[cycle[:end_date]]
+
+      cycle[:spend_amount] = summary[:spend_amount]
+      cycle[:repay_amount] = summary[:repay_amount]
+      cycle[:balance_due] = summary[:balance_due]
+      cycle[:spend_count] = summary[:spend_count]
+      cycle[:repay_count] = summary[:repay_count]
+
       stored_for_cycle = stored.find do |s|
         s.billing_date.year == cycle[:end_date].year &&
         s.billing_date.month == cycle[:end_date].month
@@ -383,7 +391,6 @@ class Account < ApplicationRecord
         prev_amount = stored_for_cycle.statement_amount
         base_found = true
       elsif base_found
-        summary = summaries[cycle[:end_date]]
         cycle[:statement_amount] = (summary[:spend_amount] - summary[:repay_amount] + prev_amount).round(2)
         prev_amount = cycle[:statement_amount]
       else

@@ -256,25 +256,22 @@ class AccountsController < ApplicationController
     end
 
     count = (params[:count] || 3).to_i.clamp(1, 12)
-    cycles = @account.bill_cycles(count)
+    cycles = @account.bill_cycles_with_statement(count)
 
     bill_data = cycles.map do |cycle|
-      summary = @account.bill_cycle_summary(
-        start_date: cycle[:start_date],
-        end_date: cycle[:end_date]
-      )
-
       {
         label: cycle[:label],
         current: cycle[:current],
         start_date: cycle[:start_date],
         end_date: cycle[:end_date],
         due_date: cycle[:due_date],
-        spend_amount: summary[:spend_amount],
-        repay_amount: summary[:repay_amount],
-        balance_due: summary[:balance_due],
-        spend_count: summary[:spend_count],
-        repay_count: summary[:repay_count]
+        unbilled: cycle[:unbilled],
+        spend_amount: cycle[:spend_amount],
+        repay_amount: cycle[:repay_amount],
+        balance_due: cycle[:balance_due],
+        spend_count: cycle[:spend_count],
+        repay_count: cycle[:repay_count],
+        statement_amount: cycle[:statement_amount]
       }
     end
 
