@@ -28,7 +28,11 @@ module Api
         kind: kind,
         category_id: params[:category_id]
       )
-      entryable.save(validate: false)
+
+      unless entryable.valid?
+        render json: { success: false, errors: entryable.errors.full_messages }, status: :unprocessable_entity
+        return
+      end
 
       entry = Entry.new(
         account_id: params[:account_id],

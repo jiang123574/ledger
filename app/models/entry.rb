@@ -27,8 +27,7 @@ class Entry < ApplicationRecord
   has_many :attachments, dependent: :destroy
   has_many :payables_as_source, class_name: "Payable", foreign_key: :source_entry_id, dependent: :nullify
 
-  validates :date, :name, :amount, :currency, presence: true, unless: -> { transfer_id.present? }
-  validates :date, :amount, :currency, presence: true
+  validates :date, :name, :amount, :currency, presence: true
   validates :date, uniqueness: { scope: [ :account_id, :entryable_type ] }, if: -> { valuation? }
   validates :date, comparison: { greater_than: -> { 30.years.ago.to_date } }
   validates :external_id, uniqueness: { scope: [ :account_id, :source ] },
