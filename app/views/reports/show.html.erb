@@ -602,3 +602,37 @@
     <% end %>
   </main>
 </div>
+
+<style>
+  .settings-nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-secondary);
+    transition: all 150ms ease;
+    white-space: nowrap;
+  }
+  .settings-nav-item:hover {
+    background-color: var(--color-surface-hover);
+    color: var(--color-primary);
+  }
+  .settings-nav-item.active {
+    background-color: var(--color-surface-inset);
+    color: var(--color-primary);
+  }
+  html.dark .settings-nav-item {
+    color: var(--color-secondary-dark, #9ca3af);
+  }
+  html.dark .settings-nav-item:hover {
+    background-color: var(--color-surface-dark-hover, #262626);
+    color: var(--color-primary-dark, #f8f9fa);
+  }
+  html.dark .settings-nav-item.active {
+    background-color: var(--color-surface-dark-inset, #262626);
+    color: var(--color-primary-dark, #f8f9fa);
+  }
+</style>
