@@ -88,7 +88,7 @@ class ReceivablesController < ApplicationController
     redirect_to receivables_path, notice: "报销成功"
   end
 
-def revert
+  def revert
     ActiveRecord::Base.transaction do
       cleanup_reimbursement_transfers
 
