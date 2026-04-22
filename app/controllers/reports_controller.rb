@@ -55,7 +55,7 @@ class ReportsController < ApplicationController
       data[:asset_trend] = compute_asset_trend(balance_data)
       data[:waterfall_data] = compute_waterfall_data(balance_data)
       data[:category_monthly_comparison] = compute_category_monthly_comparison
-      data[:sankey_data] = compute_sankey_data
+      data[:sankey_data] = compute_sankey_data(data[:total_income], data[:total_expense])
       data[:calendar_heatmap_data] = compute_calendar_heatmap_data
     end
 
@@ -366,7 +366,7 @@ class ReportsController < ApplicationController
   end
 
   # 桑基图数据 — 收入来源 -> 分类 -> 支出流向
-  def compute_sankey_data
+  def compute_sankey_data(total_income, total_expense)
     nodes = []
     links = []
 
@@ -431,8 +431,8 @@ class ReportsController < ApplicationController
       }
     end
 
-    if @total_income > 0
-      expense_flow = [ @total_expense, @total_income ].min
+    if total_income > 0
+      expense_flow = [ total_expense, total_income ].min
       links << {
         source: "总收入",
         target: "总支出",
