@@ -1,5 +1,3 @@
-class PayableCreationError < StandardError; end
-
 class PayablesController < ApplicationController
   before_action :set_payable, only: %i[show update destroy settle revert]
   before_action :check_not_settled, only: %i[update destroy]
@@ -23,38 +21,24 @@ class PayablesController < ApplicationController
     @payable = Payable.new(payable_params)
     @payable.remaining_amount = @payable.original_amount
 
-    ActiveRecord::Base.transaction do
-      @payable.save!
-      funding_account_id = params[:funding_account_id].presence
-      create_transfer_from_payable_account(funding_account_id: funding_account_id)
+    if @payable.save
+      redirect_to payables_path, notice: "应付款已创建"
+    else
+      redirect_to payables_path, alert: @payable.errors.full_messages.join(", ")
     end
-
-    redirect_to payables_path, notice: "应付款已创建"
-  rescue ActiveRecord::RecordInvalid => e
-    redirect_to payables_path, alert: e.record.errors.full_messages.join(", ")
-  rescue PayableCreationError => e
-    redirect_to payables_path, alert: e.message
   end
 
   def update
-    ActiveRecord::Base.transaction do
-      @payable.update!(payable_params)
-
-      if @payable.transfer_id.present?
-        Entry.where(transfer_id: @payable.transfer_id).update_all(
-          amount: Arel.sql("CASE WHEN amount < 0 THEN -#{@payable.original_amount} ELSE #{@payable.original_amount} END")
-        )
-      end
+    if @payable.update(payable_params)
+      redirect_to payables_path, notice: "应付款已更新"
+    else
+      redirect_to payables_path, alert: @payable.errors.full_messages.join(", ")
     end
-
-    redirect_to payables_path, notice: "应付款已更新"
-  rescue ActiveRecord::RecordInvalid
-    redirect_to payables_path, alert: @payable.errors.full_messages.join(", ")
   end
 
   def destroy
     ActiveRecord::Base.transaction do
-      cleanup_transfer_entries
+      cleanup_settlement_entries
       @payable.destroy!
     end
 
@@ -74,7 +58,7 @@ class PayablesController < ApplicationController
     end
 
     ActiveRecord::Base.transaction do
-      create_payment_entries
+      create_payment_entry
 
       new_remaining = [ @payable.remaining_amount - @settle_amount, 0 ].max
       @payable.update!(
@@ -121,40 +105,7 @@ class PayablesController < ApplicationController
     )
   end
 
-  def create_transfer_from_payable_account(funding_account_id: nil)
-    payable_account = Account.find_by(name: SystemAccountSyncService::PAYABLE_ACCOUNT_NAME)
-    unless payable_account
-      Rails.logger.warn "应付款系统账户不存在，无法创建转账"
-      raise PayableCreationError, "系统账户'应付款'不存在，请先创建该账户"
-    end
-
-    to_account_id = if funding_account_id.present? && funding_account_id != @payable.account_id.to_s
-                      funding_account_id
-    else
-                      @payable.account_id
-    end
-
-    return if to_account_id == payable_account.id
-
-    transfer = EntryCreationService.create_transfer(
-      from_account_id: payable_account.id,
-      to_account_id: to_account_id,
-      amount: @payable.original_amount.to_d,
-      date: @payable.date,
-      currency: "CNY",
-      note: "创建应付款 #{@payable.description}"
-    )
-
-    @payable.update!(transfer_id: transfer) if transfer
-  end
-
-  def create_payment_entries
-    payable_account = Account.find_by(name: SystemAccountSyncService::PAYABLE_ACCOUNT_NAME)
-    unless payable_account
-      Rails.logger.warn "应付款系统账户不存在，无法创建付款记录"
-      raise PayableCreationError, "系统账户'应付款'不存在，无法付款"
-    end
-
+  def create_payment_entry
     expense_sort_order = Entry.where(account_id: @account_id, date: @settlement_date).maximum(:sort_order) || 0 + 1
     expense_entryable = Entryable::Transaction.create!(kind: "expense")
     expense_entry = Entry.create!(
@@ -170,28 +121,8 @@ class PayablesController < ApplicationController
     expense_entry.lock_attribute!(:date)
     expense_entry.lock_attribute!(:account_id)
 
-    income_sort_order = Entry.where(account_id: payable_account.id, date: @settlement_date).maximum(:sort_order) || 0 + 1
-    income_entryable = Entryable::Transaction.create!(kind: "income")
-    income_entry = Entry.create!(
-      account_id: payable_account.id,
-      date: @settlement_date,
-      name: "付款 #{@payable.description}",
-      amount: @settle_amount,
-      currency: "CNY",
-      entryable: income_entryable,
-      sort_order: income_sort_order
-    )
-
     existing_ids = @payable.settlement_transfer_ids
-    @payable.update!(settlement_transfer_ids: existing_ids + [ expense_entry.id, income_entry.id ])
-  end
-
-  def cleanup_transfer_entries
-    if @payable.transfer_id.present?
-      Entry.where(transfer_id: @payable.transfer_id).destroy_all
-    end
-
-    cleanup_settlement_entries
+    @payable.update!(settlement_transfer_ids: existing_ids + [ expense_entry.id ])
   end
 
   def cleanup_settlement_entries
