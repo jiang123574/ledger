@@ -25,7 +25,7 @@ class ReportsController < ApplicationController
   private
 
   def load_report_data
-    cache_key = "report/#{@report_type}/#{(@month ? "#{@year}-#{@month}" : @year)}/#{Entry.maximum(:updated_at).to_i}"
+    cache_key = "report/#{@report_type}/#{(@month ? "#{@year}-#{@month}" : @year)}"
 
     result = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       compute_report_data
