@@ -1,7 +1,12 @@
 class Payable < ApplicationRecord
+  serialize :settlement_transfer_ids, coder: YAML
+
+  def settlement_transfer_ids
+    super || []
+  end
+
   belongs_to :source_entry, class_name: "Entry", foreign_key: "source_entry_id", optional: true
 
-  # 其他关系
   belongs_to :counterparty, optional: true
   belongs_to :account, optional: true
 
@@ -9,6 +14,8 @@ class Payable < ApplicationRecord
   validates :original_amount, presence: true, numericality: { greater_than: 0 }
   validates :remaining_amount, numericality: { greater_than_or_equal_to: 0 }
   validates :date, presence: true
+
+  validates :transfer_id, format: { with: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i }, allow_nil: true
 
   scope :unsettled, -> { where(settled_at: nil).where("remaining_amount > 0") }
   scope :settled, -> { where.not(settled_at: nil) }
