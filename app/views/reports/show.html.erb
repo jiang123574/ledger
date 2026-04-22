@@ -1,11 +1,13 @@
 <% year_label = @report_type == :yearly ? "#{@year}年" : "#{@year}年#{@month}月" %>
+<% content_for :head do %>
+  <meta name="turbo-cache-control" content="no-preview">
+<% end %>
 <% if @report_type == :monthly %>
   <% current_period = Date.new(@year, @month, 1) %>
   <% prev_period = current_period.prev_month %>
   <% next_period = current_period.next_month %>
 <% end %>
 
-<%= turbo_frame_tag "report-content" do %>
 <div data-controller="report-tabs native-bridge" class="flex flex-col lg:flex-row gap-4 lg:gap-5">
   <!-- ========== 左侧导航栏（仿设置页） ========== -->
   <aside class="lg:w-44 lg:shrink-0">
@@ -116,19 +118,19 @@
     <!-- 时间切换 + 汇总卡片（始终显示） -->
     <div class="flex items-center gap-2">
       <% if @report_type == :yearly %>
-        <%= link_to report_year_path(@year - 1), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_year_path(@year - 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
         <% end %>
         <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年</span>
-        <%= link_to report_year_path(@year + 1), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_year_path(@year + 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
         <% end %>
       <% else %>
-        <%= link_to report_month_path(prev_period.year, prev_period.month), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_month_path(prev_period.year, prev_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
         <% end %>
         <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年<%= @month %>月</span>
-        <%= link_to report_month_path(next_period.year, next_period.month), data: { turbo_frame: "report-content" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_month_path(next_period.year, next_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
         <% end %>
       <% end %>
@@ -600,10 +602,8 @@
     <% end %>
   </main>
 </div>
-<% end %>
 
 <style>
-  /* 复用设置页导航样式 */
   .settings-nav-item {
     display: flex;
     align-items: center;

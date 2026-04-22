@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_20_120358) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_22_092557) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -211,6 +211,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_20_120358) do
     t.index ["account_id", "date", "notes"], name: "idx_entries_account_date_notes"
     t.index ["account_id", "date"], name: "idx_entries_account_date"
     t.index ["account_id", "source", "external_id"], name: "idx_entries_external_unique", unique: true, where: "((external_id IS NOT NULL) AND (source IS NOT NULL))"
+    t.index ["date", "entryable_type", "transfer_id"], name: "idx_entries_report_transactions", where: "(((entryable_type)::text = 'Entryable::Transaction'::text) AND (transfer_id IS NULL))"
     t.index ["date", "entryable_type"], name: "idx_entries_date_type"
     t.index ["entryable_type", "entryable_id"], name: "idx_entries_entryable"
     t.index ["excluded"], name: "idx_entries_excluded", where: "(excluded = true)"

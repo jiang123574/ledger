@@ -25,56 +25,70 @@ class ReportsController < ApplicationController
   private
 
   def load_report_data
-    # 收支统计 - 使用 Entry
+    cache_key = "report/#{@report_type}/#{(@month ? "#{@year}-#{@month}" : @year)}"
+
+    result = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
+      compute_report_data
+    end
+
+    assign_report_variables(result)
+  end
+
+  def compute_report_data
+    data = {}
+
     entries = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
       .where("transfer_id IS NULL")
 
-    @total_income = entries.with_entryable_transaction
+    data[:total_income] = entries.with_entryable_transaction
       .where(entryable_transactions: { kind: "income" }).sum(:amount)
-    @total_expense = entries.with_entryable_transaction
+    data[:total_expense] = entries.with_entryable_transaction
       .where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
-    @net_balance = @total_income - @total_expense
+    data[:net_balance] = data[:total_income] - data[:total_expense]
 
-    # 月度趋势
-    @monthly_trend = load_monthly_trend
+    data[:monthly_trend] = compute_monthly_trend
+    data[:expense_by_category] = compute_category_stats("expense")
+    data[:income_by_category] = compute_category_stats("income")
 
-    # 分类统计
-    @expense_by_category = load_category_stats("expense")
-    @income_by_category = load_category_stats("income")
-
-    # 资产走势（年度视图时加载）
     if @report_type == :yearly
-      @asset_trend = load_asset_trend
+      balance_data = compute_account_balance_data
+      data[:asset_trend] = compute_asset_trend(balance_data)
+      data[:waterfall_data] = compute_waterfall_data(balance_data)
+      data[:category_monthly_comparison] = compute_category_monthly_comparison
+      data[:sankey_data] = compute_sankey_data(data[:total_income], data[:total_expense])
+      data[:calendar_heatmap_data] = compute_calendar_heatmap_data
     end
 
-    # 年度分类月度对比（年度视图时加载）
-    if @report_type == :yearly
-      @category_monthly_comparison = load_category_monthly_comparison
+    if @report_type == :monthly
+      data[:budget_progress] = compute_budget_data
     end
 
-    # 桑基图数据（年度视图）
+    data[:filter_categories] = compute_filter_categories
+    data
+  end
+
+  def assign_report_variables(data)
+    @total_income = data[:total_income]
+    @total_expense = data[:total_expense]
+    @net_balance = data[:net_balance]
+    @monthly_trend = data[:monthly_trend]
+    @expense_by_category = data[:expense_by_category]
+    @income_by_category = data[:income_by_category]
+
     if @report_type == :yearly
-      @sankey_data = load_sankey_data
+      @asset_trend = data[:asset_trend]
+      @waterfall_data = data[:waterfall_data]
+      @category_monthly_comparison = data[:category_monthly_comparison]
+      @sankey_data = data[:sankey_data]
+      @calendar_heatmap_data = data[:calendar_heatmap_data]
     end
 
-    # 日历热力图数据（年度视图）
-    if @report_type == :yearly
-      @calendar_heatmap_data = load_calendar_heatmap_data
+    if @report_type == :monthly
+      @budget_progress = data[:budget_progress]
     end
 
-    # 瀑布图数据（年度视图）
-    if @report_type == :yearly
-      @waterfall_data = load_waterfall_data
-    end
-
-    # 预算进度
-    load_budget_data if @report_type == :monthly
-
-    # 图表数据
+    @filter_categories = data[:filter_categories]
     load_chart_data
-
-    # 分类筛选列表（所有有活动的分类，用于前端多选过滤）
-    @filter_categories = load_filter_categories
   end
 
   def load_chart_data
@@ -93,7 +107,7 @@ class ReportsController < ApplicationController
     end
   end
 
-  def load_monthly_trend
+  def compute_monthly_trend
     if @report_type == :yearly
       stats = Entry.with_entryable_transaction
         .transactions_only
@@ -150,7 +164,7 @@ class ReportsController < ApplicationController
     end
   end
 
-  def load_category_stats(kind)
+  def compute_category_stats(kind)
     amount_expr = kind == "expense" ? "entries.amount * -1" : "entries.amount"
     Entry.with_category
       .transactions_only
@@ -162,11 +176,11 @@ class ReportsController < ApplicationController
       .sum(amount_expr)
   end
 
-  def load_budget_data
-    @budgets = Budget.for_month("#{@year}-#{@month.to_s.rjust(2, '0')}")
-    return @budget_progress = [] if @budgets.empty?
+  def compute_budget_data
+    budgets = Budget.for_month("#{@year}-#{@month.to_s.rjust(2, '0')}")
+    return [] if budgets.empty?
 
-    category_ids = @budgets.pluck(:category_id)
+    category_ids = budgets.pluck(:category_id)
     spent_by_category = Entry.with_entryable_transaction
       .transactions_only
       .non_transfers
@@ -175,7 +189,7 @@ class ReportsController < ApplicationController
       .group("entryable_transactions.category_id")
       .sum("entries.amount * -1")
 
-    @budget_progress = @budgets.map do |budget|
+    budgets.map do |budget|
       spent = spent_by_category[budget.category_id] || 0
       {
         budget: budget,
@@ -185,40 +199,32 @@ class ReportsController < ApplicationController
     end
   end
 
-  # 资产走势图数据 — 基于当前余额反推月度变化
-  def load_asset_trend
-    # 资产类账户类型
+  # 共享的账户余额计算（asset_trend 和 waterfall 共用）
+  def compute_account_balance_data
     asset_types = %w[CASH BANK INVESTMENT]
-    # 负债类账户类型（信用卡余额通常为负数）
     liability_types = %w[CREDIT LOAN DEBT]
 
-    # 计算当前各账户余额
     current_balances = Account.visible.included_in_total
       .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
       .group("accounts.id")
       .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
       .to_h { |id, type, bal| [ id, { type: type, balance: bal.to_d } ] }
 
-    # 没有任何 entry 的账户用 initial_balance
     Account.visible.included_in_total.where.not(id: current_balances.keys)
       .pluck(:id, :type, :initial_balance)
       .each { |id, type, bal| current_balances[id] = { type: type, balance: bal.to_d } }
 
-    # 按类型汇总当前值
-    current_assets = current_balances.select { |_, v| asset_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
-    current_liabilities = current_balances.select { |_, v| liability_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
-
-    # 资产类账户 ID 列表
     asset_account_ids = current_balances.select { |_, v| asset_types.include?(v[:type]) }.keys
     liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
 
-    # 按月计算交易变动
+    current_assets = current_balances.select { |_, v| asset_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
+    current_liabilities = current_balances.select { |_, v| liability_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
+
     monthly_changes = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
       .group("date_trunc('month', date)")
       .group(:account_id)
       .sum(:amount)
 
-    # 按月 + 账户类型汇总变动
     monthly_asset_delta = Hash.new(0)
     monthly_liability_delta = Hash.new(0)
 
@@ -232,25 +238,33 @@ class ReportsController < ApplicationController
       end
     end
 
-    # 年度总变动（用于反推年初值）
     yearly_asset_delta = monthly_asset_delta.values.sum
     yearly_liability_delta = monthly_liability_delta.values.sum
 
-    estimated_start_assets = current_assets - yearly_asset_delta
-    estimated_start_liabilities = current_liabilities - yearly_liability_delta
+    {
+      current_assets: current_assets,
+      current_liabilities: current_liabilities,
+      monthly_asset_delta: monthly_asset_delta,
+      monthly_liability_delta: monthly_liability_delta,
+      yearly_asset_delta: yearly_asset_delta,
+      yearly_liability_delta: yearly_liability_delta,
+      estimated_start_assets: current_assets - yearly_asset_delta,
+      estimated_start_liabilities: current_liabilities - yearly_liability_delta
+    }
+  end
 
-    # 逐月累加（按月份顺序遍历）
+  def compute_asset_trend(balance_data)
     months = []
     cumulative_asset = 0
     cumulative_liability = 0
 
     (1..12).each do |m|
-      cumulative_asset += monthly_asset_delta[m]
-      cumulative_liability += monthly_liability_delta[m]
+      cumulative_asset += balance_data[:monthly_asset_delta][m]
+      cumulative_liability += balance_data[:monthly_liability_delta][m]
 
-      asset_val = estimated_start_assets + cumulative_asset
-      liability_val = estimated_start_liabilities + cumulative_liability
-      net_val = asset_val + liability_val # 信用卡余额为负，所以是加
+      asset_val = balance_data[:estimated_start_assets] + cumulative_asset
+      liability_val = balance_data[:estimated_start_liabilities] + cumulative_liability
+      net_val = asset_val + liability_val
 
       months << {
         label: "#{m}月",
@@ -265,7 +279,7 @@ class ReportsController < ApplicationController
   end
 
   # 年度分类月度对比 — 支出+收入分类按12个月展示，含月度总计
-  def load_category_monthly_comparison
+  def compute_category_monthly_comparison
     # 获取所有有活动的支出和收入类别
     active_categories = Entry.with_entryable_transaction
       .transactions_only
@@ -336,7 +350,7 @@ class ReportsController < ApplicationController
   end
 
   # 筛选器用的分类列表 — 返回所有有活动的分类（含 id/name/kind）
-  def load_filter_categories
+  def compute_filter_categories
     cats = Entry.with_entryable_transaction
       .transactions_only
       .non_transfers
@@ -352,7 +366,7 @@ class ReportsController < ApplicationController
   end
 
   # 桑基图数据 — 收入来源 -> 分类 -> 支出流向
-  def load_sankey_data
+  def compute_sankey_data(total_income, total_expense)
     nodes = []
     links = []
 
@@ -417,8 +431,8 @@ class ReportsController < ApplicationController
       }
     end
 
-    if @total_income > 0
-      expense_flow = [ @total_expense, @total_income ].min
+    if total_income > 0
+      expense_flow = [ total_expense, total_income ].min
       links << {
         source: "总收入",
         target: "总支出",
@@ -448,7 +462,7 @@ class ReportsController < ApplicationController
   end
 
   # 日历热力图数据 — 每日消费金额/频率分布
-  def load_calendar_heatmap_data
+  def compute_calendar_heatmap_data
     daily_data = Entry.with_entryable_transaction
       .transactions_only
       .non_transfers
@@ -479,76 +493,35 @@ class ReportsController < ApplicationController
   end
 
   # 瀑布图数据 — 账户余额变动明细（按月汇总）
-  def load_waterfall_data
+  def compute_waterfall_data(balance_data)
     labels = []
-    data = []
+    waterfall_data = []
     totals = []
 
-    asset_types = %w[CASH BANK INVESTMENT]
-    liability_types = %w[CREDIT LOAN DEBT]
+    estimated_start_net_worth = (balance_data[:current_assets] + balance_data[:current_liabilities]) -
+      (balance_data[:yearly_asset_delta] + balance_data[:yearly_liability_delta])
 
-    current_balances = Account.visible.included_in_total
-      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
-      .group("accounts.id")
-      .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
-      .to_h { |id, type, bal| [ id, { type: type, balance: bal.to_d } ] }
-
-    Account.visible.included_in_total.where.not(id: current_balances.keys)
-      .pluck(:id, :type, :initial_balance)
-      .each { |id, type, bal| current_balances[id] = { type: type, balance: bal.to_d } }
-
-    asset_account_ids = current_balances.select { |_, v| asset_types.include?(v[:type]) }.keys
-    liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
-
-    current_assets = current_balances.select { |_, v| asset_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
-    current_liabilities = current_balances.select { |_, v| liability_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
-
-    monthly_changes = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
-      .group("date_trunc('month', date)")
-      .group(:account_id)
-      .sum(:amount)
-
-    monthly_asset_delta = Hash.new(0)
-    monthly_liability_delta = Hash.new(0)
-
-    monthly_changes.each do |(month_key, account_id), amount|
-      m = month_key.to_date.month rescue nil
-      next unless m
-      if asset_account_ids.include?(account_id)
-        monthly_asset_delta[m] += amount.to_d
-      elsif liability_account_ids.include?(account_id)
-        monthly_liability_delta[m] += amount.to_d
-      end
-    end
-
-    yearly_asset_delta = (1..12).sum { |m| monthly_asset_delta[m] || 0 }
-    yearly_liability_delta = (1..12).sum { |m| monthly_liability_delta[m] || 0 }
-
-    estimated_start_net_worth = (current_assets + current_liabilities) - (yearly_asset_delta + yearly_liability_delta)
-
-    # 期初余额
     labels << "年初"
-    data << 0
-    totals << estimated_start_net_worth.to_f.round(2)
+    waterfall_data << 0
+    totals << estimated_start_net_worth.round(2)
 
     cumulative = 0
     (1..12).each do |m|
-      asset_delta = monthly_asset_delta[m] || 0
-      liability_delta = monthly_liability_delta[m] || 0
+      asset_delta = balance_data[:monthly_asset_delta][m] || 0
+      liability_delta = balance_data[:monthly_liability_delta][m] || 0
       net_delta = asset_delta + liability_delta
 
       cumulative += net_delta
 
       labels << "#{m}月"
-      data << net_delta.to_f.round(2)
-      totals << (estimated_start_net_worth + cumulative).to_f.round(2)
+      waterfall_data << net_delta.round(2)
+      totals << (estimated_start_net_worth + cumulative).round(2)
     end
 
-    # 期末余额（作为汇总条）
     labels << "年末"
-    data << 0
-    totals << (current_assets + current_liabilities).to_f.round(2)
+    waterfall_data << 0
+    totals << (balance_data[:current_assets] + balance_data[:current_liabilities]).round(2)
 
-    { labels: labels, data: data, totals: totals }
+    { labels: labels, data: waterfall_data, totals: totals }
   end
 end

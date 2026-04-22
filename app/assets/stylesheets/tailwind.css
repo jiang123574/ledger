@@ -865,6 +865,52 @@ section:hover,
   }
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.3s ease-out forwards;
+}
+
+.page-enter-animate {
+  animation: page-fade-in 0.15s ease-out both;
+  animation-delay: 0.05s;
+}
+
+@keyframes page-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.page-content-leaving {
+  animation: fade-out-down 0.15s ease-in forwards;
+  will-change: opacity, transform;
+  contain: layout style;
+}
+
+@keyframes fade-out-down {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+#main-content canvas {
+  animation: none !important;
+}
+
 .focus-ring {
   outline: none;
   box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.5);
@@ -915,25 +961,59 @@ body.sidebar-open {
   background-color: var(--color-surface-hover);
 }
 
-tr,
-li,
 .settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-secondary);
+  transition: all 150ms ease;
+  white-space: nowrap;
+  text-decoration: none;
+}
+
+.settings-nav-item:hover {
+  background-color: var(--color-surface-hover);
+  color: var(--color-primary);
+}
+
+.settings-nav-item.active {
+  background-color: var(--color-surface-inset);
+  color: var(--color-primary);
+}
+
+html.dark .settings-nav-item {
+  color: var(--color-secondary-dark, #9ca3af);
+}
+
+html.dark .settings-nav-item:hover {
+  background-color: var(--color-surface-dark-hover, #262626);
+  color: var(--color-primary-dark, #f8f9fa);
+}
+
+html.dark .settings-nav-item.active {
+  background-color: var(--color-surface-dark-inset, #262626);
+  color: var(--color-primary-dark, #f8f9fa);
+}
+
+tr,
+li {
   transition: background-color 150ms ease, box-shadow 150ms ease;
 }
 
 tr:hover,
-li:hover,
-.settings-nav-item:hover {
+li:hover {
   background-color: var(--color-surface-hover);
   box-shadow: 0 4px 10px rgba(11, 11, 11, 0.08);
 }
 
 .dark tr:hover,
 .dark li:hover,
-.dark .settings-nav-item:hover,
 [data-theme="dark"] tr:hover,
-[data-theme="dark"] li:hover,
-[data-theme="dark"] .settings-nav-item:hover {
+[data-theme="dark"] li:hover {
   box-shadow: 0 6px 14px rgba(0, 0, 0, 0.4);
 }
 
