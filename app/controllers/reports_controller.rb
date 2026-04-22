@@ -177,10 +177,10 @@ class ReportsController < ApplicationController
   end
 
   def compute_budget_data
-    @budgets = Budget.for_month("#{@year}-#{@month.to_s.rjust(2, '0')}")
-    return @budget_progress = [] if @budgets.empty?
+    budgets = Budget.for_month("#{@year}-#{@month.to_s.rjust(2, '0')}")
+    return [] if budgets.empty?
 
-    category_ids = @budgets.pluck(:category_id)
+    category_ids = budgets.pluck(:category_id)
     spent_by_category = Entry.with_entryable_transaction
       .transactions_only
       .non_transfers
@@ -189,7 +189,7 @@ class ReportsController < ApplicationController
       .group("entryable_transactions.category_id")
       .sum("entries.amount * -1")
 
-    @budget_progress = @budgets.map do |budget|
+    budgets.map do |budget|
       spent = spent_by_category[budget.category_id] || 0
       {
         budget: budget,
