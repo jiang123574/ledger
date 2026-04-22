@@ -81,8 +81,8 @@
                 <h3 class="font-medium text-sm text-primary dark:text-primary-dark flex-1 min-w-0 truncate"><%= receivable.description %></h3>
                 <span class="text-expense font-medium text-sm shrink-0">待报 <%= format_currency(receivable.remaining_amount) %></span>
               </div>
-              <% if receivable.source_entry.present? %>
-                <p class="text-[10px] text-secondary dark:text-secondary-dark">源交易: <%= receivable.source_entry.account&.name %> @ <%= receivable.source_entry.date&.strftime("%m/%d") %></p>
+              <% if receivable.account.present? %>
+                <p class="text-[10px] text-secondary dark:text-secondary-dark">账户: <%= receivable.account.name %></p>
               <% end %>
               <div class="flex items-center gap-2 text-[11px] text-secondary dark:text-secondary-dark flex-wrap">
                 <span><%= receivable.date&.strftime("%Y-%m-%d") %></span>
@@ -106,9 +106,9 @@
             <div class="hidden lg:flex items-center gap-2">
               <div class="w-44 shrink-0">
                 <h3 class="font-medium text-sm text-primary dark:text-primary-dark truncate"><%= receivable.description %></h3>
-                <% if receivable.source_entry.present? %>
+                <% if receivable.account.present? %>
                   <p class="text-[10px] text-secondary dark:text-secondary-dark mt-0.5">
-                    源交易: <%= receivable.source_entry.account&.name %> @ <%= receivable.source_entry.date&.strftime("%m/%d") %>
+                    账户: <%= receivable.account.name %>
                   </p>
                 <% end %>
               </div>
