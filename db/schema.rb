@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_22_092557) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_22_122231) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -309,11 +309,15 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_092557) do
     t.decimal "original_amount", precision: 10, scale: 2
     t.decimal "remaining_amount", precision: 10, scale: 2
     t.datetime "settled_at"
+    t.text "settlement_transfer_ids"
     t.bigint "source_entry_id"
+    t.string "transfer_id"
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_payables_on_account_id"
     t.index ["counterparty_id"], name: "index_payables_on_counterparty_id"
+    t.index ["settlement_transfer_ids"], name: "index_payables_on_settlement_transfer_ids"
     t.index ["source_entry_id"], name: "index_payables_on_source_entry_id"
+    t.index ["transfer_id"], name: "index_payables_on_transfer_id"
   end
 
   create_table "plans", force: :cascade do |t|

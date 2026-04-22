@@ -1,7 +1,12 @@
 class Payable < ApplicationRecord
+  serialize :settlement_transfer_ids, coder: YAML
+
+  def settlement_transfer_ids
+    super || []
+  end
+
   belongs_to :source_entry, class_name: "Entry", foreign_key: "source_entry_id", optional: true
 
-  # 其他关系
   belongs_to :counterparty, optional: true
   belongs_to :account, optional: true
 
