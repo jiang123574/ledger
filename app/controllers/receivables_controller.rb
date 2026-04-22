@@ -6,8 +6,8 @@ class ReceivablesController < ApplicationController
 
   def index
     @unsettled = Receivable.where(settled_at: nil).order(date: :desc).includes(:counterparty, :account)
-    @settled = Receivable.where.not(settled_at: nil).order(date: :desc).includes(:counterparty, :account)
-    @receivables = Receivable.order(date: :desc).includes(:counterparty, :account)
+    @settled = Receivable.where.not(settled_at: nil).order(date: :desc).includes(:counterparty)
+    @receivables = Receivable.order(date: :desc).includes(:counterparty)
     @selected_counterparty_id = params[:counterparty_id].presence
     @filtered_unsettled = filter_by_counterparty(@unsettled, @selected_counterparty_id)
     @unsettled_counterparty_stats = build_counterparty_stats(@unsettled)
