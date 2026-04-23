@@ -42,7 +42,7 @@ export default class extends Controller {
     this.loadData()
   }
 
-  getTimeRange() {
+getTimeRange() {
     const type = this.periodTypeTarget?.value || 'month'
     const value = this.periodValueTarget?.value || `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, '0')}`
 
@@ -51,12 +51,14 @@ export default class extends Controller {
     if (type === 'custom') {
       start = this.startDateTarget?.value || this.startDateValue
       end = this.endDateTarget?.value || this.endDateValue
+      if (start && end && new Date(start) > new Date(end)) {
+        [start, end] = [end, start]
+      }
     } else if (type === 'year') {
       const year = parseInt(value, 10)
       start = `${year}-01-01`
       end = `${year}-12-31`
     } else if (type === 'month') {
-      // 格式: 2026-04
       const parts = value.split('-')
       const year = parseInt(parts[0])
       const month = parseInt(parts[1])
@@ -64,6 +66,9 @@ export default class extends Controller {
       const lastDay = new Date(year, month, 0).getDate()
       end = `${year}-${String(month).padStart(2, '0')}-${lastDay}`
     }
+
+    return { start, end }
+  }
 
     return { start, end }
   }
@@ -87,9 +92,14 @@ export default class extends Controller {
     let url = `/reports/category_stats?start_date=${start}&end_date=${end}`
     categoryIds.forEach(id => url += `&category_ids[]=${id}`)
 
+    const csrfToken = document.querySelector('[name="csrf-token"]')?.content
+
     try {
       const res = await fetch(url, {
-        headers: { 'Accept': 'application/json' },
+        headers: {
+          'Accept': 'application/json',
+          'X-CSRF-Token': csrfToken
+        },
         credentials: 'same-origin'
       })
       if (!res.ok) {
