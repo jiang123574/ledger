@@ -93,8 +93,8 @@ export default class extends Controller {
             callbacks: {
               label: (context) => {
                 const idx = context.dataIndex
-                const val = data[idx]
-                const total = totals[idx]
+                const val = Number(data[idx])
+                const total = Number(totals[idx])
                 if (idx === 0) {
                   return `期初余额: ¥${total.toFixed(2)}`
                 }
