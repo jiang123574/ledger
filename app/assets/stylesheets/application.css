@@ -923,6 +923,19 @@
   .items-start {
     align-items: flex-start;
   }
+  .lg\:items-start {
+    @media (width >= 64rem) {
+      align-items: flex-start;
+    }
+  }
+  .self-start {
+    align-self: flex-start;
+  }
+  .lg\:self-start {
+    @media (width >= 64rem) {
+      align-self: flex-start;
+    }
+  }
   .items-stretch {
     align-items: stretch;
   }
@@ -2564,6 +2577,11 @@
       display: flex;
     }
   }
+  .lg\:flex-none {
+    @media (width >= 64rem) {
+      flex: none;
+    }
+  }
   .lg\:grid {
     @media (width >= 64rem) {
       display: grid;
@@ -2582,6 +2600,16 @@
   .lg\:h-\[calc\(100vh-8rem\)\] {
     @media (width >= 64rem) {
       height: calc(100vh - 8rem);
+    }
+  }
+  .lg\:h-\[calc\(100vh-6rem\)\] {
+    @media (width >= 64rem) {
+      height: calc(100vh - 6rem);
+    }
+  }
+  .lg\:h-\[calc\(100vh-4rem\)\] {
+    @media (width >= 64rem) {
+      height: calc(100vh - 4rem);
     }
   }
   .lg\:min-h-0 {

@@ -2,7 +2,7 @@
   <meta name="turbo-cache-control" content="no-preview">
 <% end %>
 
-<div class="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-8rem)]" data-account-page>
+<div class="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-4rem)]" data-account-page>
   <!-- 左侧栏 - 账户管理 (移动端: 可折叠，桌面端: 固定) -->
   <div class="lg:w-80 shrink-0 flex flex-col bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">
     <!-- 移动端折叠按钮 -->
@@ -295,7 +295,7 @@
     </div>
 
 <!-- 交易列表 -->
-    <div id="transaction-list" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>"
+    <div id="transaction-list" class="flex-1 overflow-y-auto pb-3 <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>"
          data-controller="entry-list"
          data-entry-list-account-id-value="<%= params[:account_id] %>"
          data-entry-list-page-value="<%= @page %>"
