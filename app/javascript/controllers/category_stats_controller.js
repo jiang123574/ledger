@@ -70,9 +70,6 @@ getTimeRange() {
     return { start, end }
   }
 
-    return { start, end }
-  }
-
   getSelectedCategoryIds() {
     if (!this.hasCategoryCheckboxTarget) return []
     return this.categoryCheckboxTargets
