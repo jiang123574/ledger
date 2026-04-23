@@ -78,7 +78,7 @@
   </head>
 
   <body class="h-full antialiased font-sans" style="background-color: var(--color-surface); color: var(--color-primary);" data-controller="mobile-layout theme">
-    <div class="flex flex-col lg:flex-row min-h-full">
+    <div class="flex flex-col lg:flex-row lg:items-start">
       <%# Desktop Sidebar (hidden on mobile and Turbo Native) %>
       <% unless turbo_native_app? %>
       <%= render "layouts/sidebar" %>
@@ -102,7 +102,7 @@
       <% end %>
 
       <%# Main Content (Turbo Native: no extra padding for headers/nav) %>
-      <main class="flex-1<%= turbo_native_app? ? '' : ' lg:pt-0 pt-[calc(3rem+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] lg:pb-0' %> min-h-screen">
+      <main class="<%= turbo_native_app? ? 'flex-1' : 'lg:self-start flex-1 lg:pt-0 lg:pb-0 lg:min-h-0 pt-[calc(3rem+env(safe-area-inset-top))] pb-[calc(5rem+env(safe-area-inset-bottom))] min-h-screen' %>">
         <div id="main-content" data-controller="page-transition" class="max-w-7xl xl:max-w-[1440px] 2xl:max-w-[1680px] mx-auto px-4 sm:px-6 lg:px-8 xl:px-12 py-6 lg:py-8">
           <% if notice %>
             <div class="mb-4 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-green-700 dark:text-green-400 rounded-lg" role="alert">
