@@ -18,7 +18,6 @@ export default class extends Controller {
   }
 
   connect() {
-    console.log('category-stats controller connected')
     this._charts = {}
     this._debounceTimer = null
 
@@ -243,7 +242,6 @@ getTimeRange() {
   }
 
   refresh() {
-    console.log('category-stats refresh called')
     this.loadData()
   }
 }
