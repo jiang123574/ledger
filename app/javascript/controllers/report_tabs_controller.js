@@ -51,16 +51,16 @@ export default class extends Controller {
         // 延迟触发 Chart.js 的 refresh/resize
         setTimeout(() => {
           window.dispatchEvent(new Event('resize'))
-          // 唤醒 hidden 面板中的 chart controllers（asset-trend-chart / category-comparison）
-          panel.querySelectorAll('[data-controller]').forEach(el => {
-            const identifiers = el.dataset.controller.split(' ')
-            for (const id of identifiers) {
+          // 唤醒 panel 本身及子元素的 controllers
+          const elementsToCheck = [panel, ...panel.querySelectorAll('[data-controller]')]
+          elementsToCheck.forEach(el => {
+            const identifiers = el.dataset.controller?.split(' ') || []
+            identifiers.forEach(id => {
               const ctrl = this.application.getControllerForElementAndIdentifier(el, id)
               if (ctrl && typeof ctrl.refresh === 'function') {
                 ctrl.refresh()
-                break
               }
-            }
+            })
           })
         }, 60)
       }
