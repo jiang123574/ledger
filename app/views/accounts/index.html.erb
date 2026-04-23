@@ -2,6 +2,11 @@
   <meta name="turbo-cache-control" content="no-preview">
 <% end %>
 
+<!--
+  Account page layout:
+  lg:h-[calc(100vh-4rem)] = 视窗高度 - 上下各32px留白
+  与 mainContent 的 py-6 lg:py-8 (32px) 对应，实现上下对称留白
+-->
 <div class="flex flex-col lg:flex-row gap-4 lg:h-[calc(100vh-4rem)]" data-account-page>
   <!-- 左侧栏 - 账户管理 (移动端: 可折叠，桌面端: 固定) -->
   <div class="lg:w-80 shrink-0 flex flex-col bg-container dark:bg-container-dark rounded-lg shadow-sm overflow-hidden">

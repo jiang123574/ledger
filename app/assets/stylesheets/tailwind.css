@@ -11,7 +11,11 @@
   'grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr]',
   'hover:bg-surface-hover',
   'hover:bg-surface-dark-hover',
-  'dark:hover:bg-surface-dark-hover'
+  'dark:hover:bg-surface-dark-hover',
+  /* Account page layout - responsive height for symmetric padding */
+  'lg:h-[calc(100vh-4rem)]',
+  'lg:self-start',
+  'lg:flex-none'
 ];
 
 @custom-variant dark (&:is(.dark *));
