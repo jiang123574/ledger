@@ -132,6 +132,7 @@ Rails.application.routes.draw do
   post "/settings/shortcuts/reset", to: "settings#reset_shortcuts", as: :reset_shortcuts
 
   get "/reports", to: "reports#show", as: :reports
+  get "/reports/category_stats", to: "reports#category_stats", as: :report_category_stats
   get "/reports/:year", to: "reports#show", as: :report_year
   get "/reports/:year/:month", to: "reports#show", as: :report_month
   get "/dashboard", to: "dashboard#show", as: :dashboard

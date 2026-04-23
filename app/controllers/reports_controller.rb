@@ -16,10 +16,21 @@ class ReportsController < ApplicationController
       @report_type = :yearly
     end
 
+    # 预加载所有分类供 helper 使用
+    @categories = Category.all.to_a
+
     load_report_data
 
     # Turbo Frame 请求跳过 layout，只返回 frame 内容
     render :show, layout: false if turbo_frame_request?
+  end
+
+  def category_stats
+    start_date = Date.parse(params[:start_date]) rescue Date.current.beginning_of_year
+    end_date = Date.parse(params[:end_date]) rescue Date.current.end_of_year
+    category_ids = params[:category_ids].presence || []
+
+    render json: compute_category_stats_data(start_date, end_date, category_ids)
   end
 
   private
@@ -523,5 +534,55 @@ class ReportsController < ApplicationController
     totals << (balance_data[:current_assets] + balance_data[:current_liabilities]).round(2)
 
     { labels: labels, data: waterfall_data, totals: totals }
+  end
+
+  def compute_category_stats_data(start_date, end_date, category_ids)
+    # 获取所有有活动的分类
+    all_categories = Category.all.select(:id, :name, :category_type).index_by(&:id)
+
+    # 查询基础数据
+    base_query = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(date: start_date..end_date)
+
+    # 如果指定了分类，则筛选
+    if category_ids.any?
+      base_query = base_query.where(entryable_transactions: { category_id: category_ids })
+    end
+
+    # 查询收入数据
+    income_data = base_query
+      .where(entryable_transactions: { kind: "income" })
+      .group("entryable_transactions.category_id")
+      .sum("entries.amount")
+
+    # 查询支出数据
+    expense_data = base_query
+      .where(entryable_transactions: { kind: "expense" })
+      .group("entryable_transactions.category_id")
+      .sum("entries.amount * -1")
+
+    # 构建返回数据
+    income_items = income_data.map do |cat_id, amount|
+      cat = all_categories[cat_id]
+      { label: cat&.name || "未分类", value: amount.to_f, category_id: cat_id }
+    end.sort_by { |item| -item[:value] }
+
+    expense_items = expense_data.map do |cat_id, amount|
+      cat = all_categories[cat_id]
+      { label: cat&.name || "未分类", value: amount.to_f, category_id: cat_id }
+    end.sort_by { |item| -item[:value] }
+
+    {
+      income: {
+        total: income_items.sum { |i| i[:value] }.round(2),
+        items: income_items
+      },
+      expense: {
+        total: expense_items.sum { |i| i[:value] }.round(2),
+        items: expense_items
+      }
+    }
   end
 end
