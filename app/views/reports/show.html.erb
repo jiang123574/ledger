@@ -950,9 +950,33 @@
     }
   }
 
-  // 监听 checkbox 变化更新计数
+  function getDescendantIds(parentId) {
+    const descendants = [];
+    const checkboxes = document.querySelectorAll('.category-filter-option');
+    checkboxes.forEach(cb => {
+      if (cb.dataset.parentId === String(parentId)) {
+        descendants.push(parseInt(cb.dataset.id, 10));
+        descendants.push(...getDescendantIds(cb.dataset.id));
+      }
+    });
+    return descendants;
+  }
+
+  function toggleDescendants(cb) {
+    const parentId = cb.dataset.id;
+    const descendantIds = getDescendantIds(parentId);
+    descendantIds.forEach(id => {
+      const descCb = document.querySelector(`.category-filter-option[data-id="${id}"]`);
+      if (descCb) descCb.checked = cb.checked;
+    });
+  }
+
+  // 监听 checkbox 变化更新计数，并处理父子联动
   document.querySelectorAll('.category-filter-option').forEach(cb => {
-    cb.addEventListener('change', updateVisibleCount);
+    cb.addEventListener('change', function() {
+      toggleDescendants(this);
+      updateVisibleCount();
+    });
   });
 
   // 初始化按钮计数
