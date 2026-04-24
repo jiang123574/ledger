@@ -745,52 +745,22 @@
   }
 </style>
 
+<% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
+<% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
+<% all_cat_ids = @categories.map(&:id).map(&:to_s) %>
+
 <!-- 分类统计筛选弹窗 -->
-<div id="category-stats-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
-  <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('category-stats-filter-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
-        <button type="button" onclick="document.getElementById('category-stats-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
-          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <input type="text" id="category-stats-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      <div id="category-stats-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
-        <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? } %>
-        <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? } %>
-        <% all_cat_ids = @categories.map(&:id).map(&:to_s) %>
-
-        <!-- 支出分类 -->
-        <% if expense_cats.any? %>
-        <div class="category-type-section border-b border-border dark:border-border-dark">
-          <div class="px-3 py-2 bg-expense/10 dark:bg-expense/20 text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
-          <%= render_category_filter_tree(expense_cats.sort_by(&:name), all_cat_ids) %>
-        </div>
-        <% end %>
-
-        <!-- 收入分类 -->
-        <% if income_cats.any? %>
-        <div class="category-type-section">
-          <div class="px-3 py-2 bg-income/10 dark:bg-income/20 text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
-          <%= render_category_filter_tree(income_cats.sort_by(&:name), all_cat_ids) %>
-        </div>
-        <% end %>
-      </div>
-      <div class="flex justify-between mt-4">
-        <div class="flex gap-2">
-          <button type="button" id="category-stats-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
-          <button type="button" id="category-stats-clear-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
-        </div>
-        <div class="flex gap-3">
-          <button type="button" onclick="document.getElementById('category-stats-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="button" id="confirm-category-stats-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<%= render 'shared/category_filter_modal',
+    modal_id: 'category-stats-filter-modal',
+    title: '选择分类（可多选）',
+    search_input_id: 'category-stats-filter-search',
+    options_container_id: 'category-stats-filter-options',
+    select_all_btn_id: 'category-stats-select-all',
+    clear_all_btn_id: 'category-stats-clear-all',
+    confirm_btn_id: 'confirm-category-stats-filter',
+    expense_categories: expense_cats,
+    income_categories: income_cats,
+    all_category_ids: all_cat_ids %>
 
 <script>
 (function() {
@@ -946,117 +916,45 @@
 </script>
 
 <!-- 支出分类筛选弹窗 -->
-<div id="expense-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
-  <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('expense-filter-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择支出分类</h3>
-        <button type="button" onclick="document.getElementById('expense-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
-          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <input type="text" id="expense-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      <div id="expense-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
-        <% expense_cats_for_filter = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
-        <% expense_all_ids = @categories.select { |c| c.category_type == 'EXPENSE' }.map(&:id).map(&:to_s) %>
-        <% if expense_cats_for_filter.any? %>
-        <div class="category-type-section">
-          <%= render_category_filter_tree(expense_cats_for_filter, expense_all_ids) %>
-        </div>
-        <% end %>
-      </div>
-      <div class="flex justify-between mt-4">
-        <div class="flex gap-2">
-          <button type="button" id="expense-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
-          <button type="button" id="expense-clear-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
-        </div>
-        <div class="flex gap-3">
-          <button type="button" onclick="document.getElementById('expense-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="button" id="confirm-expense-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<%= render 'shared/category_filter_modal',
+    modal_id: 'expense-filter-modal',
+    title: '选择支出分类',
+    search_input_id: 'expense-filter-search',
+    options_container_id: 'expense-filter-options',
+    select_all_btn_id: 'expense-select-all',
+    clear_all_btn_id: 'expense-clear-all',
+    confirm_btn_id: 'confirm-expense-filter',
+    expense_categories: expense_cats,
+    income_categories: nil,
+    all_category_ids: all_cat_ids,
+    show_income_section: false %>
 
 <!-- 收入分类筛选弹窗 -->
-<div id="income-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
-  <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('income-filter-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择收入分类</h3>
-        <button type="button" onclick="document.getElementById('income-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
-          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <input type="text" id="income-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      <div id="income-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
-        <% income_cats_for_filter = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
-        <% income_all_ids = @categories.select { |c| c.category_type == 'INCOME' }.map(&:id).map(&:to_s) %>
-        <% if income_cats_for_filter.any? %>
-        <div class="category-type-section">
-          <%= render_category_filter_tree(income_cats_for_filter, income_all_ids) %>
-        </div>
-        <% end %>
-      </div>
-      <div class="flex justify-between mt-4">
-        <div class="flex gap-2">
-          <button type="button" id="income-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
-          <button type="button" id="income-clear-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
-        </div>
-        <div class="flex gap-3">
-          <button type="button" onclick="document.getElementById('income-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="button" id="confirm-income-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<%= render 'shared/category_filter_modal',
+    modal_id: 'income-filter-modal',
+    title: '选择收入分类',
+    search_input_id: 'income-filter-search',
+    options_container_id: 'income-filter-options',
+    select_all_btn_id: 'income-select-all',
+    clear_all_btn_id: 'income-clear-all',
+    confirm_btn_id: 'confirm-income-filter',
+    expense_categories: nil,
+    income_categories: income_cats,
+    all_category_ids: all_cat_ids,
+    show_expense_section: false %>
 
 <!-- 对比分类筛选弹窗 -->
-<div id="comparison-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
-  <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('comparison-filter-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
-        <button type="button" onclick="document.getElementById('comparison-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
-          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <input type="text" id="comparison-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      <div id="comparison-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
-        <% comparison_expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
-        <% comparison_income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
-        <% comparison_all_ids = @categories.map(&:id).map(&:to_s) %>
-        <% if comparison_expense_cats.any? %>
-        <div class="category-type-section border-b border-border dark:border-border-dark">
-          <div class="px-3 py-2 bg-expense/10 dark:bg-expense/20 text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
-          <%= render_category_filter_tree(comparison_expense_cats, comparison_all_ids) %>
-        </div>
-        <% end %>
-        <% if comparison_income_cats.any? %>
-        <div class="category-type-section">
-          <div class="px-3 py-2 bg-income/10 dark:bg-income/20 text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
-          <%= render_category_filter_tree(comparison_income_cats, comparison_all_ids) %>
-        </div>
-        <% end %>
-      </div>
-      <div class="flex justify-between mt-4">
-        <div class="flex gap-2">
-          <button type="button" id="comparison-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
-          <button type="button" id="comparison-clear-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
-        </div>
-        <div class="flex gap-3">
-          <button type="button" onclick="document.getElementById('comparison-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="button" id="confirm-comparison-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
+<%= render 'shared/category_filter_modal',
+    modal_id: 'comparison-filter-modal',
+    title: '选择分类（可多选）',
+    search_input_id: 'comparison-filter-search',
+    options_container_id: 'comparison-filter-options',
+    select_all_btn_id: 'comparison-select-all',
+    clear_all_btn_id: 'comparison-clear-all',
+    confirm_btn_id: 'confirm-comparison-filter',
+    expense_categories: expense_cats,
+    income_categories: income_cats,
+    all_category_ids: all_cat_ids %>
 
 <script>
 (function() {
