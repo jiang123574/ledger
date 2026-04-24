@@ -4,14 +4,15 @@
 <%#   title: 弹窗标题 %>
 <%#   search_input_id: 搜索输入框 ID %>
 <%#   options_container_id: 选项容器 ID %>
-<%#   select_all_btn_id: 全选按钮 ID %>
-<%#   clear_all_btn_id: 清除按钮 ID %>
+<%#   select_all_btn_id: 全选按钮 ID（可选） %>
+<%#   clear_all_btn_id: 清除按钮 ID（可选） %>
 <%#   confirm_btn_id: 确定按钮 ID %>
 <%#   expense_categories: 支出分类列表（可选） %>
 <%#   income_categories: 收入分类列表（可选） %>
 <%#   all_category_ids: 所有分类 ID 列表 %>
 <%#   show_expense_section: 是否显示支出分类区块（默认 true） %>
 <%#   show_income_section: 是否显示收入分类区块（默认 true） %>
+<%#   show_select_clear_buttons: 是否显示全选/清除按钮（默认 true） %>
 
 <div id="<%= modal_id %>" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
@@ -38,11 +39,13 @@
         </div>
         <% end %>
       </div>
-      <div class="flex justify-between mt-4">
+      <div class="<%= local_assigns[:show_select_clear_buttons] != false ? 'flex justify-between' : 'flex justify-end gap-3' %> mt-4">
+        <% if local_assigns[:show_select_clear_buttons] != false %>
         <div class="flex gap-2">
           <button type="button" id="<%= select_all_btn_id %>" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
           <button type="button" id="<%= clear_all_btn_id %>" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
         </div>
+        <% end %>
         <div class="flex gap-3">
           <button type="button" onclick="document.getElementById('<%= modal_id %>').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
           <button type="button" id="<%= confirm_btn_id %>" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
