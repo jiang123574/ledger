@@ -204,6 +204,9 @@
     </div>
 
     <!-- ====== 面板: 分类统计 ====== -->
+    <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
+    <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
+    <% all_cat_ids = @categories.map(&:id).map(&:to_s) %>
     <div data-report-tabs-target="panel" data-panel-name="category-stats" class="hidden" role="tabpanel" aria-label="分类统计"
          data-controller="category-stats category-filter"
          data-category-filter-storage-key-value="category-stats-selected-ids"
