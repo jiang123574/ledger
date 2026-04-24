@@ -545,12 +545,15 @@ export default class extends Controller {
 | Phase 2.3 | view_mode_controller | ✅ 完成 | 2026-04-24 |
 | Phase 2.2 | account_page_controller | ✅ 完成 | 2026-04-24 |
 | Phase 2.4 | transaction_modal_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.5 | receivable_modal_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.6 | settle_receivable_controller | ✅ 完成 | 2026-04-24 |
+| 通用 | flash_controller | ✅ 完成 | 2026-04-24 |
 
 ### 已完成统计
 
-- 删除 inline JS: ~2500 行
-- 新增 Stimulus controllers: 7 个 (period_picker, category_filter, view_mode, account_modal, account_page, transaction_modal, 以及增强了 category_stats)
-- 改动文件: 15+ 个
+- 删除 inline JS: ~2800 行
+- 新增 Stimulus controllers: 10 个 (period_picker, category_filter, view_mode, account_modal, account_page, transaction_modal, receivable_modal, settle_receivable, flash, 以及增强了 category_stats)
+- 改动文件: 25 个
 
 ### 新增的 Controllers
 
