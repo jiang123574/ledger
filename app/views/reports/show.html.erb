@@ -1073,11 +1073,11 @@
     if (!modal || !openBtn) return;
 
     function getModalCheckboxes() {
-      return modal.querySelectorAll('.category-filter-option');
+      return Array.from(modal.querySelectorAll('.category-filter-option'));
     }
 
     function getHiddenCheckboxes() {
-      return filterGroup ? filterGroup.querySelectorAll('[data-tab-filter]') : [];
+      return filterGroup ? Array.from(filterGroup.querySelectorAll('[data-tab-filter]')) : [];
     }
 
     function updateModalCount() {
@@ -1092,14 +1092,14 @@
     }
 
     function syncToModal() {
-      const hiddenCheckedIds = Array.from(getHiddenCheckboxes()).filter(cb => cb.checked).map(cb => cb.value);
+      const hiddenCheckedIds = getHiddenCheckboxes().filter(cb => cb.checked).map(cb => cb.value);
       getModalCheckboxes().forEach(cb => {
         cb.checked = hiddenCheckedIds.includes(cb.value);
       });
     }
 
     function syncFromModal() {
-      const selectedIds = Array.from(getModalCheckboxes().filter(cb => cb.checked)).map(cb => cb.value);
+      const selectedIds = getModalCheckboxes().filter(cb => cb.checked).map(cb => cb.value);
       getHiddenCheckboxes().forEach(cb => {
         cb.checked = selectedIds.includes(cb.value);
       });
