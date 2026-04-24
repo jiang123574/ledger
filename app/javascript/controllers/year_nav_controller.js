@@ -73,6 +73,6 @@ export default class extends Controller {
     }
 
     // 使用 Turbo 导航
-    window.location.href = href
+    Turbo.visit(href)
   }
 }
