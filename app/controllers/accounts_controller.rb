@@ -318,7 +318,7 @@ class AccountsController < ApplicationController
     entries = @account.transaction_entries
                     .where(date: start_date..end_date)
                     .includes(:entryable, entryable: :category)
-                    .order(date: :desc)
+                    .order(date: :desc, sort_order: :desc)
 
     Entry.preload_transfer_accounts(entries.to_a)
 
@@ -364,7 +364,8 @@ class AccountsController < ApplicationController
         category_name: e.display_category&.name,
         is_repayment: e.amount.positive?,
         is_spend: e.amount.negative?,
-        balance_after: nil
+        balance_after: nil,
+        account_name: e.account&.name || "未知账户"
       }
     end
 
