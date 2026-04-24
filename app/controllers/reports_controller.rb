@@ -6,6 +6,9 @@ class ReportsController < ApplicationController
     @month = params[:month].to_i
     @month = nil unless @month.between?(1, 12)
 
+    # 获取当前面板参数（用于 Turbo Frame 刷新时保持面板状态）
+    @active_panel = params[:panel] || "trend"
+
     if @month.present?
       @start_date = Date.new(@year, @month, 1)
       @end_date = @start_date.end_of_month

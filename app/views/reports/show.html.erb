@@ -16,28 +16,28 @@
 
         <a href="#trend" data-report-tabs-target="navItem" data-panel-id="trend"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item active shrink-0">
+           class="settings-nav-item <%= @active_panel == 'trend' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z"></path></svg>
           <span class="hidden lg:inline">收支趋势</span>
         </a>
 
         <a href="#category-stats" data-report-tabs-target="navItem" data-panel-id="category-stats"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'category-stats' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
           <span class="hidden lg:inline">分类统计</span>
         </a>
 
         <a href="#expense" data-report-tabs-target="navItem" data-panel-id="expense"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'expense' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
           <span class="hidden lg:inline">支出分类</span>
         </a>
 
         <a href="#income" data-report-tabs-target="navItem" data-panel-id="income"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'income' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
           <span class="hidden lg:inline">收入分类</span>
         </a>
@@ -45,7 +45,7 @@
         <% if @report_type == :monthly && @budget_progress&.any? %>
         <a href="#budget" data-report-tabs-target="navItem" data-panel-id="budget"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'budget' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
           <span class="hidden lg:inline">预算进度</span>
         </a>
@@ -54,7 +54,7 @@
         <% if @report_type == :yearly && @asset_trend&.any? %>
         <a href="#assets" data-report-tabs-target="navItem" data-panel-id="assets"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'assets' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
           <span class="hidden lg:inline">资产走势</span>
         </a>
@@ -63,7 +63,7 @@
         <% if @report_type == :yearly && @category_monthly_comparison[:categories]&.any? %>
         <a href="#comparison" data-report-tabs-target="navItem" data-panel-id="comparison"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'comparison' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
           <span class="hidden lg:inline">月度对比</span>
         </a>
@@ -72,7 +72,7 @@
         <% if @report_type == :yearly && @sankey_data&.any? %>
         <a href="#sankey" data-report-tabs-target="navItem" data-panel-id="sankey"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'sankey' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 17h8m0 0V9m0 8l-8-8-4 4-6 6"></path></svg>
           <span class="hidden lg:inline">收支流向</span>
         </a>
@@ -81,7 +81,7 @@
         <% if @report_type == :yearly && @calendar_heatmap_data&.any? %>
         <a href="#heatmap" data-report-tabs-target="navItem" data-panel-id="heatmap"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'heatmap' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
           <span class="hidden lg:inline">消费日历</span>
         </a>
@@ -90,7 +90,7 @@
         <% if @report_type == :yearly && @waterfall_data&.any? %>
         <a href="#waterfall" data-report-tabs-target="navItem" data-panel-id="waterfall"
            data-action="report-tabs#switchPanel"
-           class="settings-nav-item shrink-0">
+           class="settings-nav-item <%= @active_panel == 'waterfall' ? 'active' : '' %> shrink-0">
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3v18h18M7 16v-4m4 4v-8m4 4v-6m4 6v-2"></path></svg>
           <span class="hidden lg:inline">余额变动</span>
         </a>
@@ -100,8 +100,9 @@
     </div>
   </aside>
 
-  <!-- ========== 右侧内容区 ========== -->
-  <main class="flex-1 min-w-0 space-y-4 sm:space-y-6 pb-20 lg:pb-0">
+  <!-- ========== 右侧内容区（Turbo Frame 局部刷新） ========== -->
+  <%= turbo_frame_tag "report-content", class: "flex-1 min-w-0" do %>
+  <main class="space-y-4 sm:space-y-6 pb-20 lg:pb-0" data-controller="year-nav">
     <!-- 页头 -->
     <div class="flex flex-col gap-3 sm:flex-row sm:justify-between sm:items-center sm:gap-4">
       <div>
@@ -122,22 +123,22 @@
       </div>
     </div>
 
-    <!-- 时间切换 + 汇总卡片（始终显示） -->
+    <!-- 时间切换 -->
     <div class="flex items-center gap-2">
       <% if @report_type == :yearly %>
-        <%= link_to report_year_path(@year - 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_year_path(@year - 1), data: { turbo_frame: "report-content", year_nav_target: "prevLink" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
         <% end %>
         <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年</span>
-        <%= link_to report_year_path(@year + 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_year_path(@year + 1), data: { turbo_frame: "report-content", year_nav_target: "nextLink" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
         <% end %>
       <% else %>
-        <%= link_to report_month_path(prev_period.year, prev_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_month_path(prev_period.year, prev_period.month), data: { turbo_frame: "report-content", year_nav_target: "prevLink" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
         <% end %>
         <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年<%= @month %>月</span>
-        <%= link_to report_month_path(next_period.year, next_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_month_path(next_period.year, next_period.month), data: { turbo_frame: "report-content", year_nav_target: "nextLink" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
         <% end %>
       <% end %>
@@ -184,7 +185,7 @@
     </div>
 
     <!-- ====== 面板 1: 收支趋势 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="trend" role="tabpanel" aria-label="收支趋势">
+    <div data-report-tabs-target="panel" data-panel-name="trend" class="<%= @active_panel == 'trend' ? '' : 'hidden' %>" role="tabpanel" aria-label="收支趋势">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="p-4">
           <% has_trend_data = @trend_chart_data[:income].any? { |v| v > 0 } || @trend_chart_data[:expense].any? { |v| v > 0 } %>
@@ -207,7 +208,7 @@
     <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
     <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
     <% all_cat_ids = @categories.map(&:id).map(&:to_s) %>
-    <div data-report-tabs-target="panel" data-panel-name="category-stats" class="hidden" role="tabpanel" aria-label="分类统计"
+    <div data-report-tabs-target="panel" data-panel-name="category-stats" class="<%= @active_panel == 'category-stats' ? '' : 'hidden' %>" role="tabpanel" aria-label="分类统计"
          data-controller="category-stats category-filter"
          data-category-filter-storage-key-value="category-stats-selected-ids"
          data-category-stats-year-value="<%= @year %>"
@@ -391,7 +392,7 @@
     </div>
 
     <!-- ====== 面板 2: 支出分类 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="expense" class="hidden" role="tabpanel" aria-label="支出分类"
+    <div data-report-tabs-target="panel" data-panel-name="expense" class="<%= @active_panel == 'expense' ? '' : 'hidden' %>" role="tabpanel" aria-label="支出分类"
          data-controller="category-filter"
          data-category-filter-modal-selector-value="#expense-filter-modal">
       <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
@@ -456,7 +457,7 @@
     </div>
 
     <!-- ====== 面板 3: 收入分类 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="income" class="hidden" role="tabpanel" aria-label="收入分类"
+    <div data-report-tabs-target="panel" data-panel-name="income" class="<%= @active_panel == 'income' ? '' : 'hidden' %>" role="tabpanel" aria-label="收入分类"
          data-controller="category-filter"
          data-category-filter-modal-selector-value="#income-filter-modal">
       <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
@@ -522,7 +523,7 @@
 
     <!-- ====== 面板 4: 预算进度（仅月度） ====== -->
     <% if @report_type == :monthly && @budget_progress&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="budget" class="hidden" role="tabpanel" aria-label="预算进度">
+    <div data-report-tabs-target="panel" data-panel-name="budget" class="<%= @active_panel == 'budget' ? '' : 'hidden' %>" role="tabpanel" aria-label="预算进度">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">预算进度</h2>
@@ -549,7 +550,7 @@
 
     <!-- ====== 面板 5: 资产走势（仅年度） ====== -->
     <% if @report_type == :yearly && @asset_trend&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="assets" class="hidden" role="tabpanel" aria-label="资产走势">
+    <div data-report-tabs-target="panel" data-panel-name="assets" class="<%= @active_panel == 'assets' ? '' : 'hidden' %>" role="tabpanel" aria-label="资产走势">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">资产走势图</h2>
@@ -584,7 +585,7 @@
 
     <!-- ====== 面板 6: 年度月度对比（仅年度） ====== -->
     <% if @report_type == :yearly && @category_monthly_comparison[:categories]&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden" role="tabpanel" aria-label="分类月度对比"
+    <div data-report-tabs-target="panel" data-panel-name="comparison" class="<%= @active_panel == 'comparison' ? '' : 'hidden' %>" role="tabpanel" aria-label="分类月度对比"
          data-controller="category-filter"
          data-category-filter-modal-selector-value="#comparison-filter-modal">
       <% comparison_cat_ids = @category_monthly_comparison[:categories].keys.map(&:to_s) %>
@@ -702,7 +703,7 @@
 
     <!-- ====== 面板 7: 收支流向桑基图（仅年度） ====== -->
     <% if @report_type == :yearly && @sankey_data&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="sankey" class="hidden" role="tabpanel" aria-label="收支流向">
+    <div data-report-tabs-target="panel" data-panel-name="sankey" class="<%= @active_panel == 'sankey' ? '' : 'hidden' %>" role="tabpanel" aria-label="收支流向">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">收支流向图（桑基图）</h2>
@@ -726,7 +727,7 @@
 
     <!-- ====== 面板 8: 消费日历热力图（仅年度） ====== -->
     <% if @report_type == :yearly && @calendar_heatmap_data&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="heatmap" class="hidden" role="tabpanel" aria-label="消费日历">
+    <div data-report-tabs-target="panel" data-panel-name="heatmap" class="<%= @active_panel == 'heatmap' ? '' : 'hidden' %>" role="tabpanel" aria-label="消费日历">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">消费日历热力图</h2>
@@ -746,7 +747,7 @@
 
     <!-- ====== 面板 9: 净资产瀑布图（仅年度） ====== -->
     <% if @report_type == :yearly && @waterfall_data&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="waterfall" class="hidden" role="tabpanel" aria-label="余额变动">
+    <div data-report-tabs-target="panel" data-panel-name="waterfall" class="<%= @active_panel == 'waterfall' ? '' : 'hidden' %>" role="tabpanel" aria-label="余额变动">
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark">
           <h2 class="text-base font-semibold text-primary dark:text-primary-dark">净资产变动瀑布图</h2>
@@ -765,6 +766,7 @@
     </div>
     <% end %>
   </main>
+  <% end %>
 </div>
 
 <style>

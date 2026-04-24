@@ -548,14 +548,30 @@ export default class extends Controller {
 | Phase 2.5 | receivable_modal_controller | ✅ 完成 | 2026-04-24 |
 | Phase 2.6 | settle_receivable_controller | ✅ 完成 | 2026-04-24 |
 | 通用 | flash_controller | ✅ 完成 | 2026-04-24 |
+| 通用 | year_nav_controller | ✅ 完成 | 2026-04-24 |
 
 ### 已完成统计
 
 - 删除 inline JS: ~2800 行
-- 新增 Stimulus controllers: 10 个 (period_picker, category_filter, view_mode, account_modal, account_page, transaction_modal, receivable_modal, settle_receivable, flash, 以及增强了 category_stats)
-- 改动文件: 25 个
+- 新增 Stimulus controllers: 11 个 (period_picker, category_filter, view_mode, account_modal, account_page, transaction_modal, receivable_modal, settle_receivable, flash, year_nav, 以及增强了 category_stats)
+- 改动文件: 26 个
 
 ### 新增的 Controllers
+
+**通用 year_nav_controller.js**:
+- `updateLinks()` - 根据 URL hash 添加 panel 参数到年份导航链接
+- `addPanelParam(href, panel)` - 将 hash 面板名转换为查询参数
+- 使用 Turbo Frame 局部刷新，避免整页刷新
+- 监听 hash 变化动态更新导航链接
+
+**report_tabs_controller.js 增强**:
+- `onFrameLoad()` - Turbo Frame 刷新后同步面板状态
+- `syncFromDOM()` - 从服务器渲染的 DOM 状态恢复 activePanelValue
+- 支持服务器通过 `panel` 参数渲染特定面板
+
+**服务器端改动**:
+- ReportsController 增加 `@active_panel` 参数处理
+- 视图根据 `@active_panel` 设置面板可见性和导航高亮
 
 **Phase 2.2 account_page_controller.js**:
 - `toggleShowHidden()` - 切换显示隐藏账户
