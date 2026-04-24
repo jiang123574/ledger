@@ -2023,6 +2023,12 @@ function submitAndContinue(event) {
   const form = document.querySelector('#add-transaction-modal form');
   if (!form) return;
   
+  const amountInput = form.querySelector('input[name="transaction[amount]"]');
+  if (!amountInput || !amountInput.value || parseFloat(amountInput.value) <= 0) {
+    showErrorToast('请输入有效金额');
+    return;
+  }
+  
   // 收支模式：同步 account_id
   if (transactionMode === 'category') {
     const incomeHidden = document.getElementById('transaction_account_id_income');
