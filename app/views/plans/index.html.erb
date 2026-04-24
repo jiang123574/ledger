@@ -84,7 +84,7 @@
                           data-plan-completed="<%= plan.installments_completed || 0 %>"
                           data-plan-day="<%= plan.day_of_month %>"
                           data-plan-currency="<%= plan.currency || 'CNY' %>"
-                          data-plan-active="<%= plan.active %>"
+                          data-plan-active="<%= plan.active ? 'true' : 'false' %>"
                           data-plan-category-id="<%= plan.category_id %>"
                           data-plan-category-name="<%= j(plan.category&.name || '') %>"
                           onclick="openEditPlanModal(this.dataset)"
@@ -307,7 +307,8 @@
 
           <!-- Active Status -->
           <div class="flex items-center gap-2">
-            <input type="checkbox" name="plan[active]" id="new-plan-active" checked class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
+            <input type="hidden" name="plan[active]" value="0">
+            <input type="checkbox" name="plan[active]" id="new-plan-active" value="1" checked class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
             <label for="new-plan-active" class="text-sm text-primary dark:text-primary-dark">启用计划</label>
           </div>
         </div>
@@ -470,7 +471,8 @@
 
           <!-- Active Status -->
           <div class="flex items-center gap-2">
-            <input type="checkbox" id="edit-plan-active" name="plan[active]" class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
+            <input type="hidden" name="plan[active]" value="0">
+            <input type="checkbox" id="edit-plan-active" name="plan[active]" value="1" class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
             <label for="edit-plan-active" class="text-sm text-primary dark:text-primary-dark">启用计划</label>
           </div>
         </div>
