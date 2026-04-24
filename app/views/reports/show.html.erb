@@ -205,7 +205,8 @@
 
     <!-- ====== 面板: 分类统计 ====== -->
     <div data-report-tabs-target="panel" data-panel-name="category-stats" class="hidden" role="tabpanel" aria-label="分类统计"
-         data-controller="category-stats"
+         data-controller="category-stats category-filter"
+         data-category-filter-storage-key-value="category-stats-selected-ids"
          data-category-stats-year-value="<%= @year %>"
          data-category-stats-month-value="<%= @month %>"
          data-category-stats-start-date-value="<%= @start_date %>"
@@ -268,8 +269,6 @@
         </div>
         <!-- 分类筛选 -->
         <button type="button" id="open-category-stats-filter"
-                data-controller="category-filter"
-                data-category-filter-storage-key-value="category-stats-selected-ids"
                 data-action="click->category-filter#open"
                 class="h-9 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
@@ -345,6 +344,46 @@
             </div>
           </div>
         </section>
+      </div>
+
+      <!-- 分类统计筛选弹窗 -->
+      <div id="category-stats-filter-modal" data-category-filter-target="modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+        <div class="flex min-h-screen items-center justify-center p-4">
+          <div class="fixed inset-0 bg-black/50" data-action="click->category-filter#close"></div>
+          <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
+              <button type="button" data-action="click->category-filter#close" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+                <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+              </button>
+            </div>
+            <input type="text" id="category-stats-filter-search" data-category-filter-target="searchInput" data-action="input->category-filter#search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <div id="category-stats-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
+              <% if expense_cats.any? %>
+              <div class="category-type-section <%= income_cats.any? ? 'border-b border-border dark:border-border-dark' : '' %>">
+                <div class="px-3 py-2 bg-expense/10 dark:bg-expense/20 text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
+                <%= render_category_filter_tree(expense_cats, all_cat_ids, true) %>
+              </div>
+              <% end %>
+              <% if income_cats.any? %>
+              <div class="category-type-section">
+                <div class="px-3 py-2 bg-income/10 dark:bg-income/20 text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
+                <%= render_category_filter_tree(income_cats, all_cat_ids, true) %>
+              </div>
+              <% end %>
+            </div>
+            <div class="flex justify-between mt-4">
+              <div class="flex gap-2">
+                <button type="button" id="category-stats-select-all" data-category-filter-target="selectAllBtn" data-action="click->category-filter#selectAll" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
+                <button type="button" id="category-stats-clear-all" data-category-filter-target="clearBtn" data-action="click->category-filter#clearAll" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
+              </div>
+              <div class="flex gap-3">
+                <button type="button" data-action="click->category-filter#close" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+                <button type="button" id="confirm-category-stats-filter" data-category-filter-target="confirmBtn" data-action="click->category-filter#confirm" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -753,46 +792,6 @@
 <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
 <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
 <% all_cat_ids = @categories.map(&:id).map(&:to_s) %>
-
-<!-- 分类统计筛选弹窗 -->
-<div id="category-stats-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" data-controller="category-filter" data-category-filter-storage-key-value="category-stats-selected-ids">
-  <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" data-action="click->category-filter#close"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
-        <button type="button" data-action="click->category-filter#close" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
-          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <input type="text" id="category-stats-filter-search" data-category-filter-target="searchInput" data-action="input->category-filter#search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      <div id="category-stats-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
-        <% if expense_cats.any? %>
-        <div class="category-type-section <%= income_cats.any? ? 'border-b border-border dark:border-border-dark' : '' %>">
-          <div class="px-3 py-2 bg-expense/10 dark:bg-expense/20 text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
-          <%= render_category_filter_tree(expense_cats, all_cat_ids, true) %>
-        </div>
-        <% end %>
-        <% if income_cats.any? %>
-        <div class="category-type-section">
-          <div class="px-3 py-2 bg-income/10 dark:bg-income/20 text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
-          <%= render_category_filter_tree(income_cats, all_cat_ids, true) %>
-        </div>
-        <% end %>
-      </div>
-      <div class="flex justify-between mt-4">
-        <div class="flex gap-2">
-          <button type="button" id="category-stats-select-all" data-category-filter-target="selectAllBtn" data-action="click->category-filter#selectAll" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
-          <button type="button" id="category-stats-clear-all" data-category-filter-target="clearBtn" data-action="click->category-filter#clearAll" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
-        </div>
-        <div class="flex gap-3">
-          <button type="button" data-action="click->category-filter#close" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="button" id="confirm-category-stats-filter" data-category-filter-target="confirmBtn" data-action="click->category-filter#confirm" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- 支出分类筛选弹窗 -->
 <%= render 'shared/category_filter_modal',
