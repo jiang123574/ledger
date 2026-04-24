@@ -1712,6 +1712,37 @@ function filterCategoryOptions(query) {
   });
 }
 
+// 父子分类联动
+function getCategoryDescendantIds(parentId) {
+  const descendants = [];
+  const modal = document.getElementById('category-filter-modal');
+  if (!modal) return descendants;
+  modal.querySelectorAll('.category-filter-option').forEach(cb => {
+    if (cb.dataset.parentId === String(parentId)) {
+      descendants.push(parseInt(cb.dataset.id, 10));
+      descendants.push(...getCategoryDescendantIds(cb.dataset.id));
+    }
+  });
+  return descendants;
+}
+
+function toggleCategoryDescendants(cb) {
+  const parentId = cb.dataset.id;
+  const descendantIds = getCategoryDescendantIds(parentId);
+  const modal = document.getElementById('category-filter-modal');
+  if (!modal) return;
+  descendantIds.forEach(id => {
+    const descCb = modal.querySelector(`.category-filter-option[data-id="${id}"]`);
+    if (descCb) descCb.checked = cb.checked;
+  });
+}
+
+document.querySelectorAll('#category-filter-modal .category-filter-option').forEach(cb => {
+  cb.addEventListener('change', function() {
+    toggleCategoryDescendants(this);
+  });
+});
+
 document.getElementById('category-select-all')?.addEventListener('click', function() {
   document.querySelectorAll('#category-filter-modal .category-filter-option').forEach(cb => cb.checked = true);
 });
