@@ -53,6 +53,7 @@ pin "controllers/category_stats_controller", to: "controllers/category_stats_con
 pin "controllers/page_transition_controller", to: "controllers/page_transition_controller.js"
 pin "controllers/period_picker_controller", to: "controllers/period_picker_controller.js"
 pin "controllers/category_filter_controller", to: "controllers/category_filter_controller.js"
+pin "controllers/view_mode_controller", to: "controllers/view_mode_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Hotwired packages - vendored for production reliability

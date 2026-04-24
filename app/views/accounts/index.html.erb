@@ -159,11 +159,16 @@
           <!-- 信用卡：按日期/按账单 切换 -->
           <% current_account = @accounts.find { |a| a.id == params[:account_id].to_i } if params[:account_id].present? %>
           <% if params[:account_id].present? && current_account&.credit_card? %>
-            <span id="view-mode-switch" class="inline-flex items-center rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark p-0.5 text-xs">
-              <button id="mode-date-btn" onclick="switchViewMode('date')" class="px-2.5 py-1 rounded-md transition-smooth <%= params[:view_mode] == 'bill' ? 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' : 'bg-blue-500 text-white font-medium shadow-xs' %>">
+            <span id="view-mode-switch" class="inline-flex items-center rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark p-0.5 text-xs"
+                  data-controller="view-mode"
+                  data-view-mode-bill-wrapper-target="billWrapper"
+                  data-view-mode-transaction-list-target="transactionList"
+                  data-view-mode-summary-bar-target="summaryBar"
+                  data-view-mode-filter-bar-target="filterBar">
+              <button id="mode-date-btn" data-view-mode-target="dateBtn" data-action="click->view-mode#switchTo" data-mode="date" class="px-2.5 py-1 rounded-md transition-smooth <%= params[:view_mode] == 'bill' ? 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' : 'bg-blue-500 text-white font-medium shadow-xs' %>">
                 按日期
               </button>
-              <button id="mode-bill-btn" onclick="switchViewMode('bill')" class="px-2.5 py-1 rounded-md transition-smooth <%= params[:view_mode] == 'bill' ? 'bg-blue-500 text-white font-medium shadow-xs' : 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' %>">
+              <button id="mode-bill-btn" data-view-mode-target="billBtn" data-action="click->view-mode#switchTo" data-mode="bill" class="px-2.5 py-1 rounded-md transition-smooth <%= params[:view_mode] == 'bill' ? 'bg-blue-500 text-white font-medium shadow-xs' : 'text-secondary dark:text-secondary-dark hover:bg-surface-hover' %>">
                 按账单
               </button>
             </span>
@@ -179,7 +184,7 @@
       </div>
       
       <!-- 搜索筛选 -->
-      <div id="filter-bar" class="flex flex-wrap gap-2 items-end <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>">
+      <div id="filter-bar" data-view-mode-target="filterBar" class="flex flex-wrap gap-2 items-end <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>">
         <div class="flex-1 min-w-[140px]">
           <input type="text" id="search-input" placeholder="搜索备注、分类..." value="<%= params[:search] %>" 
                  class="w-full px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
@@ -278,7 +283,7 @@
     </div>
 
     <!-- 汇总信息 -->
-    <div id="summary-bar" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>">
+    <div id="summary-bar" data-view-mode-target="summaryBar" class="px-3 lg:px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>">
       <div class="flex items-center gap-4 text-sm">
         <div class="flex items-center gap-1">
           <span class="text-secondary dark:text-secondary-dark">笔数</span>
@@ -300,7 +305,7 @@
     </div>
 
 <!-- 交易列表 -->
-    <div id="transaction-list" class="flex-1 overflow-y-auto pb-3 <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>"
+    <div id="transaction-list" data-view-mode-target="transactionList" class="flex-1 overflow-y-auto pb-3 <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? 'hidden' : '' %>"
          data-controller="entry-list"
          data-entry-list-account-id-value="<%= params[:account_id] %>"
          data-entry-list-page-value="<%= @page %>"
@@ -517,7 +522,7 @@
         </div>
       <% end %>
     </div>
-  <div id="credit-bill-wrapper" data-controller="bill-statement" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-bill-statement-account-id-value="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
+  <div id="credit-bill-wrapper" data-controller="bill-statement" data-view-mode-target="billWrapper" class="flex-1 overflow-y-auto <%= (params[:account_id].present? && current_account&.credit_card? && params[:view_mode] == 'bill') ? '' : 'hidden' %>" data-bill-statement-account-id-value="<%= params[:account_id].present? && current_account&.credit_card? ? params[:account_id] : '' %>">
   <!-- 期数选择器 -->
   <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
     <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
@@ -2673,48 +2678,7 @@ if (!window.modalSelectorsInitialized) {
 <!-- ========== 信用卡账单区域 ========== -->
 
 <script>
-// 视图模式切换（按日期 / 按账单）
-(function() {
-  let currentViewMode = '<%= params[:view_mode] %>' || 'date';
-  window.currentViewMode = currentViewMode;
-
-  window.switchViewMode = function(mode) {
-    currentViewMode = mode;
-    window.currentViewMode = mode;
-
-    const wrapper = document.getElementById('credit-bill-wrapper');
-    const txList = document.getElementById('transaction-list');
-    const summaryBar = document.getElementById('summary-bar');
-    const filterBar = document.getElementById('filter-bar');
-    const dateBtn = document.getElementById('mode-date-btn');
-    const billBtn = document.getElementById('mode-bill-btn');
-
-    if (mode === 'bill') {
-      if (wrapper) wrapper.classList.remove('hidden');
-      if (txList) txList.classList.add('hidden');
-      if (summaryBar) summaryBar.classList.add('hidden');
-      if (filterBar) filterBar.classList.add('hidden');
-      if (dateBtn) { dateBtn.className = 'px-2.5 py-1 rounded-md transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover'; }
-      if (billBtn) { billBtn.className = 'px-2.5 py-1 rounded-md transition-smooth bg-blue-500 text-white font-medium shadow-xs'; }
-      if (window.initCreditBills) window.initCreditBills();
-    } else {
-      if (wrapper) wrapper.classList.add('hidden');
-      if (txList) txList.classList.remove('hidden');
-      if (summaryBar) summaryBar.classList.remove('hidden');
-      if (filterBar) filterBar.classList.remove('hidden');
-      if (dateBtn) { dateBtn.className = 'px-2.5 py-1 rounded-md transition-smooth bg-blue-500 text-white font-medium shadow-xs'; }
-      if (billBtn) { billBtn.className = 'px-2.5 py-1 rounded-md transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover'; }
-    }
-
-    const params = new URLSearchParams(window.location.search);
-    if (mode === 'bill') {
-      params.set('view_mode', 'bill');
-    } else {
-      params.delete('view_mode');
-    }
-    const newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
-    history.replaceState({ mode: mode }, '', newUrl);
-  };
+// 视图模式切换已迁移到 view_mode_controller.js
 })();
 </script>
 
