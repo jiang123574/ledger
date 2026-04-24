@@ -123,21 +123,21 @@
     </div>
 
     <!-- 时间切换 + 汇总卡片（始终显示） -->
-    <div class="flex items-center gap-2">
+    <div data-controller="year-nav" class="flex items-center gap-2">
       <% if @report_type == :yearly %>
-        <%= link_to report_year_path(@year - 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_year_path(@year - 1), data: { year_nav_target: "prevLink", action: "click->year-nav#navigate" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
         <% end %>
         <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年</span>
-        <%= link_to report_year_path(@year + 1), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_year_path(@year + 1), data: { year_nav_target: "nextLink", action: "click->year-nav#navigate" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
         <% end %>
       <% else %>
-        <%= link_to report_month_path(prev_period.year, prev_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_month_path(prev_period.year, prev_period.month), data: { year_nav_target: "prevLink", action: "click->year-nav#navigate" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-left", size: :md)) %>
         <% end %>
         <span class="px-4 py-2 bg-container dark:bg-container-dark rounded-lg font-medium min-w-[120px] text-center shadow-border-xs dark:shadow-dark-border-xs"><%= @year %>年<%= @month %>月</span>
-        <%= link_to report_month_path(next_period.year, next_period.month), class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
+        <%= link_to report_month_path(next_period.year, next_period.month), data: { year_nav_target: "nextLink", action: "click->year-nav#navigate" }, class: "p-2 rounded-lg hover:bg-surface-inset text-secondary dark:text-secondary-dark hover:text-primary dark:hover:text-primary-dark transition-smooth" do %>
           <%= render(Ds::IconComponent.new(name: "chevron-right", size: :md)) %>
         <% end %>
       <% end %>
