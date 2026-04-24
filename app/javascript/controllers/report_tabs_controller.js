@@ -35,6 +35,11 @@ export default class extends Controller {
     // Turbo Frame 刷新后，同步面板状态
     this.syncFromDOM()
     this.showActive()
+
+    // 恢复 URL hash（frame 导航后 hash 会丢失）
+    if (this.activePanelValue && this.activePanelValue !== 'trend') {
+      history.replaceState(null, '', '#' + this.activePanelValue)
+    }
   }
 
   syncFromDOM() {
