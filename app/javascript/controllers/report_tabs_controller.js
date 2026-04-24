@@ -32,11 +32,14 @@ export default class extends Controller {
   }
 
   onFrameLoad() {
-    // Turbo Frame 刷新后，同步面板状态
-    this.syncFromDOM()
+    const hash = window.location.hash.replace('#', '')
+    if (hash && this.panelTargets.some(p => p.dataset.panelName === hash)) {
+      this.activePanelValue = hash
+    } else {
+      this.syncFromDOM()
+    }
     this.showActive()
 
-    // 恢复 URL hash（frame 导航后 hash 会丢失）
     if (this.activePanelValue && this.activePanelValue !== 'trend') {
       history.replaceState(null, '', '#' + this.activePanelValue)
     }

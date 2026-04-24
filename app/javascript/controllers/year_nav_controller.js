@@ -1,16 +1,17 @@
 import { Controller } from "@hotwired/stimulus"
 
 // 年度/月份导航控制器 - 保留当前面板状态
-// 使用 Turbo Frame 局部刷新，将面板名转换为 panel 参数发送到服务器
+// hash 是用户当前交互状态（最新），URL params 是服务器渲染的初始状态
 export default class extends Controller {
   static targets = ["prevLink", "nextLink"]
 
   connect() {
-    // 初始化时更新链接
-    this.updateLinks()
     // 监听 hash 变化（用户点击左侧导航切换面板）
     this._boundHashChange = () => this.updateLinks()
     window.addEventListener('hashchange', this._boundHashChange)
+
+    // 初始化时更新链接
+    this.updateLinks()
   }
 
   disconnect() {
@@ -21,13 +22,17 @@ export default class extends Controller {
   }
 
   getCurrentPanel() {
-    // 优先从 hash 读取
+    // 优先从 hash 读取（用户当前交互状态，最新）
     const hash = window.location.hash.replace('#', '')
     if (hash) return hash
 
-    // 如果没有 hash，从左侧导航栏的 active 状态读取
-    const activeNavItem = document.querySelector('.settings-nav-item.active')
-    return activeNavItem?.dataset.panelId || 'trend'
+    // 其次从 URL 的 panel 参数读取（服务器渲染的初始状态）
+    const urlParams = new URLSearchParams(window.location.search)
+    const panelParam = urlParams.get('panel')
+    if (panelParam) return panelParam
+
+    // 默认
+    return 'trend'
   }
 
   updateLinks() {
