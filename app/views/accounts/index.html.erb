@@ -994,44 +994,20 @@ function confirmDeleteAccount(id, name) {
 </div>
 
 <!-- 分类多选弹窗 -->
-<div id="category-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
-  <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('category-filter-modal').classList.add('hidden')"></div>
-    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
-      <div class="flex items-center justify-between mb-4">
-        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
-        <button type="button" onclick="document.getElementById('category-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
-          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <input type="text" id="category-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-      <div id="category-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
-        <% 
-        expense_categories = @categories.select { |c| c.category_type == 'EXPENSE' }
-        income_categories = @categories.select { |c| c.category_type == 'INCOME' }
-        %>
-        
-        <% if expense_categories.any? %>
-          <div class="category-type-section border-b border-border dark:border-border-dark">
-            <div class="px-3 py-2 bg-expense-light dark:bg-expense-light text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
-            <%= render_category_filter_tree(expense_categories.select { |c| c.parent_id.nil? }, selected_category_ids) %>
-          </div>
-        <% end %>
-        
-        <% if income_categories.any? %>
-          <div class="category-type-section">
-            <div class="px-3 py-2 bg-income-light dark:bg-income-light text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
-            <%= render_category_filter_tree(income_categories.select { |c| c.parent_id.nil? }, selected_category_ids) %>
-          </div>
-        <% end %>
-      </div>
-      <div class="flex justify-end gap-3 mt-4">
-        <button type="button" onclick="document.getElementById('category-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-        <button type="button" id="confirm-category-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
-      </div>
-    </div>
-  </div>
-</div>
+<% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
+<% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
+<% all_cat_ids = @categories.map(&:id).map(&:to_s) %>
+<%= render 'shared/category_filter_modal',
+    modal_id: 'category-filter-modal',
+    title: '选择分类（可多选）',
+    search_input_id: 'category-filter-search',
+    options_container_id: 'category-filter-options',
+    select_all_btn_id: 'category-select-all',
+    clear_all_btn_id: 'category-clear-all',
+    confirm_btn_id: 'confirm-category-filter',
+    expense_categories: expense_cats,
+    income_categories: income_cats,
+    all_category_ids: selected_category_ids %>
 
 <script>
 (function() {
@@ -1735,6 +1711,45 @@ function filterCategoryOptions(query) {
     }
   });
 }
+
+// 父子分类联动
+function getCategoryDescendantIds(parentId) {
+  const descendants = [];
+  const modal = document.getElementById('category-filter-modal');
+  if (!modal) return descendants;
+  modal.querySelectorAll('.category-filter-option').forEach(cb => {
+    if (cb.dataset.parentId === String(parentId)) {
+      descendants.push(parseInt(cb.dataset.id, 10));
+      descendants.push(...getCategoryDescendantIds(cb.dataset.id));
+    }
+  });
+  return descendants;
+}
+
+function toggleCategoryDescendants(cb) {
+  const parentId = cb.dataset.id;
+  const descendantIds = getCategoryDescendantIds(parentId);
+  const modal = document.getElementById('category-filter-modal');
+  if (!modal) return;
+  descendantIds.forEach(id => {
+    const descCb = modal.querySelector(`.category-filter-option[data-id="${id}"]`);
+    if (descCb) descCb.checked = cb.checked;
+  });
+}
+
+document.querySelectorAll('#category-filter-modal .category-filter-option').forEach(cb => {
+  cb.addEventListener('change', function() {
+    toggleCategoryDescendants(this);
+  });
+});
+
+document.getElementById('category-select-all')?.addEventListener('click', function() {
+  document.querySelectorAll('#category-filter-modal .category-filter-option').forEach(cb => cb.checked = true);
+});
+
+document.getElementById('category-clear-all')?.addEventListener('click', function() {
+  document.querySelectorAll('#category-filter-modal .category-filter-option').forEach(cb => cb.checked = false);
+});
 
 document.getElementById('confirm-category-filter')?.addEventListener('click', function() {
   selectedCategoryIds = Array.from(document.querySelectorAll('.category-filter-option:checked')).map(el => el.value);

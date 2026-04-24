@@ -1,0 +1,53 @@
+<%# 通用分类筛选弹窗 partial %>
+<%# 参数: %>
+<%#   modal_id: 弹窗 ID %>
+<%#   title: 弹窗标题 %>
+<%#   search_input_id: 搜索输入框 ID %>
+<%#   options_container_id: 选项容器 ID %>
+<%#   select_all_btn_id: 全选按钮 ID %>
+<%#   clear_all_btn_id: 清除按钮 ID %>
+<%#   confirm_btn_id: 确定按钮 ID %>
+<%#   expense_categories: 支出分类列表（可选） %>
+<%#   income_categories: 收入分类列表（可选） %>
+<%#   all_category_ids: 所有分类 ID 列表 %>
+<%#   show_expense_section: 是否显示支出分类区块（默认 true） %>
+<%#   show_income_section: 是否显示收入分类区块（默认 true） %>
+
+<div id="<%= modal_id %>" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('<%= modal_id %>').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark"><%= title %></h3>
+        <button type="button" onclick="document.getElementById('<%= modal_id %>').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <input type="text" id="<%= search_input_id %>" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <div id="<%= options_container_id %>" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
+        <% if local_assigns[:show_expense_section] != false && expense_categories&.any? %>
+        <div class="category-type-section <%= income_categories&.any? ? 'border-b border-border dark:border-border-dark' : '' %>">
+          <div class="px-3 py-2 bg-expense/10 dark:bg-expense/20 text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
+          <%= render_category_filter_tree(expense_categories, all_category_ids) %>
+        </div>
+        <% end %>
+        <% if local_assigns[:show_income_section] != false && income_categories&.any? %>
+        <div class="category-type-section">
+          <div class="px-3 py-2 bg-income/10 dark:bg-income/20 text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
+          <%= render_category_filter_tree(income_categories, all_category_ids) %>
+        </div>
+        <% end %>
+      </div>
+      <div class="flex justify-between mt-4">
+        <div class="flex gap-2">
+          <button type="button" id="<%= select_all_btn_id %>" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
+          <button type="button" id="<%= clear_all_btn_id %>" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="document.getElementById('<%= modal_id %>').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="button" id="<%= confirm_btn_id %>" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
