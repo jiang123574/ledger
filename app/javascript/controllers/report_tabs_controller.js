@@ -13,15 +13,36 @@ export default class extends Controller {
     const hash = window.location.hash.replace('#', '')
     if (hash && this.panelTargets.some(p => p.dataset.panelName === hash)) {
       this.activePanelValue = hash
+    } else {
+      // 如果没有 hash，从 DOM 状态恢复（服务器可能已通过 panel 参数设置）
+      this.syncFromDOM()
     }
 
     this.showActive()
+
+    // 监听 Turbo Frame 加载完成事件（frame 刷新后重新同步状态）
+    this._boundFrameLoad = () => this.onFrameLoad()
+    document.addEventListener('turbo:frame-load', this._boundFrameLoad)
 
     // 绑定分类筛选（事件委托）
     this._boundFilterChange = (e) => {
       if (e.target.matches('[data-tab-filter]')) this.onFilterChange(e.target)
     }
     this.element.addEventListener('change', this._boundFilterChange)
+  }
+
+  onFrameLoad() {
+    // Turbo Frame 刷新后，同步面板状态
+    this.syncFromDOM()
+    this.showActive()
+  }
+
+  syncFromDOM() {
+    // 从 DOM 中找出当前可见的面板（服务器渲染的状态）
+    const visiblePanel = this.panelTargets.find(p => !p.classList.contains('hidden'))
+    if (visiblePanel && visiblePanel.dataset.panelName) {
+      this.activePanelValue = visiblePanel.dataset.panelName
+    }
   }
 
   switchPanel(e) {
@@ -111,6 +132,10 @@ export default class extends Controller {
     if (this._boundFilterChange) {
       this.element.removeEventListener('change', this._boundFilterChange)
       this._boundFilterChange = null
+    }
+    if (this._boundFrameLoad) {
+      document.removeEventListener('turbo:frame-load', this._boundFrameLoad)
+      this._boundFrameLoad = null
     }
   }
 }
