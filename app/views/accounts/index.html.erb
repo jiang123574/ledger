@@ -677,7 +677,7 @@
 </script>
 
 <script id="receivables-data" type="application/json">
-  <%= raw @receivables.map { |r| { id: r.id, description: r.description, remaining_amount: r.remaining_amount.to_s } }.to_json %>
+  <%= raw (@unsettled_receivables || []).map { |r| { id: r.id, description: r.description, remaining_amount: r.remaining_amount.to_s } }.to_json %>
 </script>
 
 <!-- 新建交易弹窗 -->
