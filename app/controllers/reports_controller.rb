@@ -109,12 +109,12 @@ class ReportsController < ApplicationController
       expense: @monthly_trend.map { |p| p[:expense] }
     }
 
-    @expense_chart_data = @expense_by_category.first(10).map do |category, amount|
-      { label: category || "未分类", value: amount }
+    @expense_chart_data = @expense_by_category.first(10).map do |(cat_id, cat_name), amount|
+      { id: cat_id, label: cat_name || "未分类", value: amount }
     end
 
-    @income_chart_data = @income_by_category.first(10).map do |category, amount|
-      { label: category || "未分类", value: amount }
+    @income_chart_data = @income_by_category.first(10).map do |(cat_id, cat_name), amount|
+      { id: cat_id, label: cat_name || "未分类", value: amount }
     end
   end
 
@@ -182,7 +182,7 @@ class ReportsController < ApplicationController
       .non_transfers
       .where(entryable_transactions: { kind: kind })
       .where(date: @start_date..@end_date)
-      .group("categories.name")
+      .group("categories.id", "categories.name")
       .order(Arel.sql("SUM(#{amount_expr}) DESC"))
       .sum(amount_expr)
   end

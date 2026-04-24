@@ -345,35 +345,22 @@
 
     <!-- ====== 面板 2: 支出分类 ====== -->
     <div data-report-tabs-target="panel" data-panel-name="expense" class="hidden" role="tabpanel" aria-label="支出分类">
-      <!-- 筛选按钮 + 弹窗 -->
-      <% if @filter_categories[:expense]&.any? %>
-      <div class="relative mb-4" data-controller="filter-popover">
-        <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+      <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
+      <% expense_cat_ids = @categories.select { |c| c.category_type == 'EXPENSE' }.map(&:id).map(&:to_s) %>
+      <% expense_filter_active_ids = @filter_categories[:expense].map { |c| c[:id].to_s } %>
+      <!-- 筛选按钮 -->
+      <div class="relative mb-4">
+        <button type="button" id="open-expense-filter" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           筛选分类
-          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @filter_categories[:expense].size %></span>
+          <span id="expense-filter-count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= expense_filter_active_ids.size %></span>
         </button>
-        <div data-filter-popover-target="panel" class="hidden absolute left-0 mt-2 w-64 max-h-72 bg-container dark:bg-container-dark rounded-xl shadow-lg border border-border dark:border-border-dark z-20 overflow-hidden">
-          <div class="px-3 py-2 border-b border-border dark:border-border-dark flex items-center justify-between">
-            <span class="text-sm font-medium text-primary dark:text-primary-dark">选择分类</span>
-            <div class="flex items-center gap-2">
-              <a href="#" data-filter-group="expense" data-select-all data-action="click->filter-popover#selectAll" class="text-xs text-blue-600 hover:text-blue-700">全选</a>
-              <span class="text-border dark:text-border-dark">/</span>
-              <a href="#" data-filter-group="expense" data-select-all data-action="click->filter-popover#deselectAll" class="text-xs text-blue-600 hover:text-blue-700">清除</a>
-            </div>
-          </div>
-          <div class="p-2 overflow-y-auto max-h-56 space-y-0.5" data-filter-group="expense">
-            <% @filter_categories[:expense].each do |cat| %>
-              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-                <input type="checkbox" value="<%= cat[:id] %>" data-tab-filter checked
-                       class="w-4 h-4 rounded border-border text-expense focus:ring-expense/30">
-                <span class="text-sm text-primary dark:text-primary-dark"><%= cat[:name] %></span>
-              </label>
-            <% end %>
-          </div>
+        <div class="hidden" data-filter-group="expense">
+          <% expense_filter_active_ids.each do |id| %>
+            <input type="checkbox" value="<%= id %>" data-tab-filter checked class="hidden">
+          <% end %>
         </div>
       </div>
-      <% end %>
 
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
@@ -389,7 +376,7 @@
                   <% percentage = total_exp > 0 ? (cat[:value] / total_exp * 100).round(1) : 0 %>
                   <% bar_width = [percentage, 95].min %>
                   <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-default group"
-                       data-category-row data-category-index="<%= idx %>" data-category-id="<%= cat[:label].downcase %>">
+                       data-category-row data-category-index="<%= idx %>" data-category-id="<%= cat[:id] %>">
                     <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-right shrink-0"><%= idx + 1 %></span>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between mb-0.5">
@@ -420,34 +407,22 @@
 
     <!-- ====== 面板 3: 收入分类 ====== -->
     <div data-report-tabs-target="panel" data-panel-name="income" class="hidden" role="tabpanel" aria-label="收入分类">
-      <% if @filter_categories[:income]&.any? %>
-      <div class="relative mb-4" data-controller="filter-popover">
-        <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+      <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
+      <% income_cat_ids = @categories.select { |c| c.category_type == 'INCOME' }.map(&:id).map(&:to_s) %>
+      <% income_filter_active_ids = @filter_categories[:income].map { |c| c[:id].to_s } %>
+      <!-- 筛选按钮 -->
+      <div class="relative mb-4">
+        <button type="button" id="open-income-filter" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           筛选分类
-          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @filter_categories[:income].size %></span>
+          <span id="income-filter-count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= income_filter_active_ids.size %></span>
         </button>
-        <div data-filter-popover-target="panel" class="hidden absolute left-0 mt-2 w-64 max-h-72 bg-container dark:bg-container-dark rounded-xl shadow-lg border border-border dark:border-border-dark z-20 overflow-hidden">
-          <div class="px-3 py-2 border-b border-border dark:border-border-dark flex items-center justify-between">
-            <span class="text-sm font-medium text-primary dark:text-primary-dark">选择分类</span>
-            <div class="flex items-center gap-2">
-              <a href="#" data-filter-group="income" data-select-all data-action="click->filter-popover#selectAll" class="text-xs text-blue-600 hover:text-blue-700">全选</a>
-              <span class="text-border dark:text-border-dark">/</span>
-              <a href="#" data-filter-group="income" data-select-all data-action="click->filter-popover#deselectAll" class="text-xs text-blue-600 hover:text-blue-700">清除</a>
-            </div>
-          </div>
-          <div class="p-2 overflow-y-auto max-h-56 space-y-0.5" data-filter-group="income">
-            <% @filter_categories[:income].each do |cat| %>
-              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-                <input type="checkbox" value="<%= cat[:id] %>" data-tab-filter checked
-                       class="w-4 h-4 rounded border-border text-income focus:ring-income/30">
-                <span class="text-sm text-primary dark:text-primary-dark"><%= cat[:name] %></span>
-              </label>
-            <% end %>
-          </div>
+        <div class="hidden" data-filter-group="income">
+          <% income_filter_active_ids.each do |id| %>
+            <input type="checkbox" value="<%= id %>" data-tab-filter checked class="hidden">
+          <% end %>
         </div>
       </div>
-      <% end %>
 
       <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
         <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
@@ -463,7 +438,7 @@
                   <% percentage = total_inc > 0 ? (cat[:value] / total_inc * 100).round(1) : 0 %>
                   <% bar_width = [percentage, 95].min %>
                   <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-default group"
-                       data-income-row data-category-index="<%= idx %>" data-category-id="<%= cat[:label].downcase %>">
+                       data-income-row data-category-index="<%= idx %>" data-category-id="<%= cat[:id] %>">
                     <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-right shrink-0"><%= idx + 1 %></span>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between mb-0.5">
@@ -557,32 +532,18 @@
     <!-- ====== 面板 6: 年度月度对比（仅年度） ====== -->
     <% if @report_type == :yearly && @category_monthly_comparison[:categories]&.any? %>
     <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden" role="tabpanel" aria-label="分类月度对比">
-      <!-- 筛选按钮 + 弹窗 -->
-      <div class="relative mb-4" data-controller="filter-popover">
-        <button type="button" data-action="click->filter-popover#toggle" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+      <% comparison_cat_ids = @category_monthly_comparison[:categories].keys.map(&:to_s) %>
+      <!-- 筛选按钮 -->
+      <div class="relative mb-4">
+        <button type="button" id="open-comparison-filter" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           筛选分类
-          <span data-filter-popover-target="count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= @category_monthly_comparison[:categories].size %></span>
+          <span id="comparison-filter-count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= comparison_cat_ids.size %></span>
         </button>
-        <div data-filter-popover-target="panel" class="hidden absolute left-0 mt-2 w-64 max-h-72 bg-container dark:bg-container-dark rounded-xl shadow-lg border border-border dark:border-border-dark z-20 overflow-hidden">
-          <div class="px-3 py-2 border-b border-border dark:border-border-dark flex items-center justify-between">
-            <span class="text-sm font-medium text-primary dark:text-primary-dark">选择分类</span>
-            <div class="flex items-center gap-2">
-              <a href="#" data-filter-group="comparison" data-select-all data-action="click->filter-popover#selectAll" class="text-xs text-blue-600 hover:text-blue-700">全选</a>
-              <span class="text-border dark:text-border-dark">/</span>
-              <a href="#" data-filter-group="comparison" data-select-all data-action="click->filter-popover#deselectAll" class="text-xs text-blue-600 hover:text-blue-700">清除</a>
-            </div>
-          </div>
-          <div class="p-2 overflow-y-auto max-h-56 space-y-0.5" data-filter-group="comparison">
-            <% @category_monthly_comparison[:categories].each do |(cat_id, cat_data)| %>
-              <label class="flex items-center gap-2 px-2 py-1.5 rounded-lg cursor-pointer hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-                <input type="checkbox" value="<%= cat_id %>" data-tab-filter data-category-kind="<%= cat_data[:kind] %>" checked
-                       class="w-4 h-4 rounded border-border text-blue-600 focus:ring-blue-500/30">
-                <span class="text-xs px-1.5 py-0.5 rounded <%= cat_data[:kind] == 'income' ? 'bg-income/10 text-income' : 'bg-expense/10 text-expense' %>"><%= cat_data[:kind] == 'income' ? '收' : '支' %></span>
-                <span class="text-sm text-primary dark:text-primary-dark"><%= cat_data[:name] %></span>
-              </label>
-            <% end %>
-          </div>
+        <div class="hidden" data-filter-group="comparison">
+          <% comparison_cat_ids.each do |id| %>
+            <input type="checkbox" value="<%= id %>" data-tab-filter checked class="hidden">
+          <% end %>
         </div>
       </div>
 
@@ -981,6 +942,277 @@
 
   // 初始化按钮计数
   updateButtonCount();
+})();
+
+<!-- 支出分类筛选弹窗 -->
+<div id="expense-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('expense-filter-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择支出分类</h3>
+        <button type="button" onclick="document.getElementById('expense-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <input type="text" id="expense-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <div id="expense-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
+        <% expense_cats_for_filter = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
+        <% expense_all_ids = @categories.select { |c| c.category_type == 'EXPENSE' }.map(&:id).map(&:to_s) %>
+        <% if expense_cats_for_filter.any? %>
+        <div class="category-type-section">
+          <%= render_category_filter_tree(expense_cats_for_filter, expense_all_ids) %>
+        </div>
+        <% end %>
+      </div>
+      <div class="flex justify-between mt-4">
+        <div class="flex gap-2">
+          <button type="button" id="expense-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
+          <button type="button" id="expense-clear-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="document.getElementById('expense-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="button" id="confirm-expense-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 收入分类筛选弹窗 -->
+<div id="income-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('income-filter-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择收入分类</h3>
+        <button type="button" onclick="document.getElementById('income-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <input type="text" id="income-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <div id="income-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
+        <% income_cats_for_filter = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
+        <% income_all_ids = @categories.select { |c| c.category_type == 'INCOME' }.map(&:id).map(&:to_s) %>
+        <% if income_cats_for_filter.any? %>
+        <div class="category-type-section">
+          <%= render_category_filter_tree(income_cats_for_filter, income_all_ids) %>
+        </div>
+        <% end %>
+      </div>
+      <div class="flex justify-between mt-4">
+        <div class="flex gap-2">
+          <button type="button" id="income-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
+          <button type="button" id="income-clear-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="document.getElementById('income-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="button" id="confirm-income-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 对比分类筛选弹窗 -->
+<div id="comparison-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('comparison-filter-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
+        <button type="button" onclick="document.getElementById('comparison-filter-modal').classList.add('hidden')" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <input type="text" id="comparison-filter-search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <div id="comparison-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
+        <% comparison_expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
+        <% comparison_income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
+        <% comparison_all_ids = @categories.map(&:id).map(&:to_s) %>
+        <% if comparison_expense_cats.any? %>
+        <div class="category-type-section border-b border-border dark:border-border-dark">
+          <div class="px-3 py-2 bg-expense/10 dark:bg-expense/20 text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
+          <%= render_category_filter_tree(comparison_expense_cats, comparison_all_ids) %>
+        </div>
+        <% end %>
+        <% if comparison_income_cats.any? %>
+        <div class="category-type-section">
+          <div class="px-3 py-2 bg-income/10 dark:bg-income/20 text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
+          <%= render_category_filter_tree(comparison_income_cats, comparison_all_ids) %>
+        </div>
+        <% end %>
+      </div>
+      <div class="flex justify-between mt-4">
+        <div class="flex gap-2">
+          <button type="button" id="comparison-select-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
+          <button type="button" id="comparison-clear-all" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" onclick="document.getElementById('comparison-filter-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="button" id="confirm-comparison-filter" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function() {
+  function setupCategoryFilterModal(config) {
+    const modal = document.getElementById(config.modalId);
+    const openBtn = document.getElementById(config.openBtnId);
+    const searchInput = document.getElementById(config.searchInputId);
+    const confirmBtn = document.getElementById(config.confirmBtnId);
+    const selectAllBtn = document.getElementById(config.selectAllBtnId);
+    const clearAllBtn = document.getElementById(config.clearAllBtnId);
+    const countSpan = document.getElementById(config.countSpanId);
+    const filterGroup = document.querySelector(`[data-filter-group="${config.filterGroup}"]`);
+
+    if (!modal || !openBtn) return;
+
+    function getModalCheckboxes() {
+      return modal.querySelectorAll('.category-filter-option');
+    }
+
+    function getHiddenCheckboxes() {
+      return filterGroup ? filterGroup.querySelectorAll('[data-tab-filter]') : [];
+    }
+
+    function updateModalCount() {
+      const checked = getModalCheckboxes().filter(cb => cb.checked).length;
+      if (countSpan) countSpan.textContent = checked;
+    }
+
+    function updateButtonCount() {
+      const checked = getHiddenCheckboxes().filter(cb => cb.checked).length;
+      const btnCount = document.getElementById(config.countSpanId);
+      if (btnCount) btnCount.textContent = checked;
+    }
+
+    function syncToModal() {
+      const hiddenCheckedIds = Array.from(getHiddenCheckboxes()).filter(cb => cb.checked).map(cb => cb.value);
+      getModalCheckboxes().forEach(cb => {
+        cb.checked = hiddenCheckedIds.includes(cb.value);
+      });
+    }
+
+    function syncFromModal() {
+      const selectedIds = Array.from(getModalCheckboxes().filter(cb => cb.checked)).map(cb => cb.value);
+      getHiddenCheckboxes().forEach(cb => {
+        cb.checked = selectedIds.includes(cb.value);
+      });
+      // 触发 change 事件，让 report-tabs controller 处理筛选
+      getHiddenCheckboxes().forEach(cb => {
+        cb.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+      updateButtonCount();
+    }
+
+    function getDescendantIds(parentId) {
+      const descendants = [];
+      getModalCheckboxes().forEach(cb => {
+        if (cb.dataset.parentId === String(parentId)) {
+          descendants.push(parseInt(cb.dataset.id, 10));
+          descendants.push(...getDescendantIds(cb.dataset.id));
+        }
+      });
+      return descendants;
+    }
+
+    function toggleDescendants(cb) {
+      const parentId = cb.dataset.id;
+      const descendantIds = getDescendantIds(parentId);
+      descendantIds.forEach(id => {
+        const descCb = modal.querySelector(`.category-filter-option[data-id="${id}"]`);
+        if (descCb) descCb.checked = cb.checked;
+      });
+    }
+
+    openBtn.addEventListener('click', function() {
+      syncToModal();
+      modal.classList.remove('hidden');
+      if (searchInput) {
+        searchInput.value = '';
+        searchInput.focus();
+      }
+      updateModalCount();
+    });
+
+    if (searchInput) {
+      searchInput.addEventListener('input', function(e) {
+        const keyword = e.target.value.toLowerCase().trim();
+        modal.querySelectorAll('.category-filter-item').forEach(item => {
+          const name = (item.dataset.name || '').toLowerCase();
+          const fullName = (item.dataset.full_name || '').toLowerCase();
+          const pinyin = (item.dataset.pinyin || '').toLowerCase();
+          const match = name.includes(keyword) || fullName.includes(keyword) || pinyin.includes(keyword);
+          item.style.display = match ? '' : 'none';
+        });
+      });
+    }
+
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', function() {
+        getModalCheckboxes().forEach(cb => cb.checked = true);
+        updateModalCount();
+      });
+    }
+
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', function() {
+        getModalCheckboxes().forEach(cb => cb.checked = false);
+        updateModalCount();
+      });
+    }
+
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        modal.classList.add('hidden');
+        syncFromModal();
+      });
+    }
+
+    getModalCheckboxes().forEach(cb => {
+      cb.addEventListener('change', function() {
+        toggleDescendants(this);
+        updateModalCount();
+      });
+    });
+  }
+
+  setupCategoryFilterModal({
+    modalId: 'expense-filter-modal',
+    openBtnId: 'open-expense-filter',
+    searchInputId: 'expense-filter-search',
+    confirmBtnId: 'confirm-expense-filter',
+    selectAllBtnId: 'expense-select-all',
+    clearAllBtnId: 'expense-clear-all',
+    countSpanId: 'expense-filter-count',
+    filterGroup: 'expense'
+  });
+
+  setupCategoryFilterModal({
+    modalId: 'income-filter-modal',
+    openBtnId: 'open-income-filter',
+    searchInputId: 'income-filter-search',
+    confirmBtnId: 'confirm-income-filter',
+    selectAllBtnId: 'income-select-all',
+    clearAllBtnId: 'income-clear-all',
+    countSpanId: 'income-filter-count',
+    filterGroup: 'income'
+  });
+
+  setupCategoryFilterModal({
+    modalId: 'comparison-filter-modal',
+    openBtnId: 'open-comparison-filter',
+    searchInputId: 'comparison-filter-search',
+    confirmBtnId: 'confirm-comparison-filter',
+    selectAllBtnId: 'comparison-select-all',
+    clearAllBtnId: 'comparison-clear-all',
+    countSpanId: 'comparison-filter-count',
+    filterGroup: 'comparison'
+  });
 })();
 
 // 分类统计时间选择器功能
