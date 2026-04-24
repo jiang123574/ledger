@@ -1007,8 +1007,7 @@ function confirmDeleteAccount(id, name) {
     confirm_btn_id: 'confirm-category-filter',
     expense_categories: expense_cats,
     income_categories: income_cats,
-    all_category_ids: selected_category_ids,
-    show_select_clear_buttons: false %>
+    all_category_ids: selected_category_ids %>
 
 <script>
 (function() {
@@ -1712,6 +1711,14 @@ function filterCategoryOptions(query) {
     }
   });
 }
+
+document.getElementById('category-select-all')?.addEventListener('click', function() {
+  document.querySelectorAll('#category-filter-modal .category-filter-option').forEach(cb => cb.checked = true);
+});
+
+document.getElementById('category-clear-all')?.addEventListener('click', function() {
+  document.querySelectorAll('#category-filter-modal .category-filter-option').forEach(cb => cb.checked = false);
+});
 
 document.getElementById('confirm-category-filter')?.addEventListener('click', function() {
   selectedCategoryIds = Array.from(document.querySelectorAll('.category-filter-option:checked')).map(el => el.value);
