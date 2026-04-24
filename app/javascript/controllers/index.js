@@ -46,6 +46,7 @@ import CategoryStatsController from "controllers/category_stats_controller"
 import PeriodPickerController from "controllers/period_picker_controller"
 import CategoryFilterController from "controllers/category_filter_controller"
 import ViewModeController from "controllers/view_mode_controller"
+import AccountModalController from "controllers/account_modal_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -91,3 +92,4 @@ application.register("category-stats", CategoryStatsController)
 application.register("period-picker", PeriodPickerController)
 application.register("category-filter", CategoryFilterController)
 application.register("view-mode", ViewModeController)
+application.register("account-modal", AccountModalController)
