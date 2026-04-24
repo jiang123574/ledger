@@ -848,8 +848,14 @@
     const clearAllBtn = document.getElementById(config.clearAllBtnId);
     const countSpan = document.getElementById(config.countSpanId);
     const filterGroup = document.querySelector(`[data-filter-group="${config.filterGroup}"]`);
+    const closeBtn = modal ? modal.querySelector('[data-close-modal]') : null;
+    const overlay = modal ? modal.querySelector('.modal-overlay-bg') : null;
 
     if (!modal || !openBtn) return;
+
+    function closeModal() {
+      modal.classList.add('hidden');
+    }
 
     function getModalCheckboxes() {
       return Array.from(modal.querySelectorAll('.category-filter-option'));
@@ -948,9 +954,17 @@
 
     if (confirmBtn) {
       confirmBtn.addEventListener('click', function() {
-        modal.classList.add('hidden');
+        closeModal();
         syncFromModal();
       });
+    }
+
+    if (closeBtn) {
+      closeBtn.addEventListener('click', closeModal);
+    }
+
+    if (overlay) {
+      overlay.addEventListener('click', closeModal);
     }
 
     getModalCheckboxes().forEach(cb => {

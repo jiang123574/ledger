@@ -21,13 +21,13 @@
   <% stimulus_attrs += " data-category-filter-storage-key-value=\"#{storage_key}\"" %>
 <% end %>
 
-<div id="<%= modal_id %>" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" <%= stimulus_attrs %>>
+<div id="<%= modal_id %>" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" <%= stimulus_attrs.html_safe %>>
   <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#close\"" : "onclick=\"document.getElementById('#{modal_id}').classList.add('hidden')\"" %>></div>
+    <div class="fixed inset-0 bg-black/50 modal-overlay-bg" <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#close\"".html_safe : "data-close-modal".html_safe %>></div>
     <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-lg font-semibold text-primary dark:text-primary-dark"><%= title %></h3>
-        <button type="button" <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#close\"" : "onclick=\"document.getElementById('#{modal_id}').classList.add('hidden')\"" %> class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+        <button type="button" <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#close\"".html_safe : "data-close-modal".html_safe %> class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -52,7 +52,7 @@
           <button type="button" id="<%= clear_all_btn_id %>" <%= local_assigns[:use_stimulus] ? "data-category-filter-target=\"clearBtn\" data-action=\"click->category-filter#clearAll\"" : "" %> class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
         </div>
         <div class="flex gap-3">
-          <button type="button" <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#close\"" : "onclick=\"document.getElementById('#{modal_id}').classList.add('hidden')\"" %> class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="button" <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#close\"".html_safe : "data-close-modal".html_safe %> class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
           <button type="button" id="<%= confirm_btn_id %>" <%= local_assigns[:use_stimulus] ? "data-category-filter-target=\"confirmBtn\" data-action=\"click->category-filter#confirm\"" : "" %> class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
         </div>
       </div>
