@@ -541,16 +541,16 @@ export default class extends Controller {
 | Phase 1 | expense/income/comparison 筛选 | ✅ 完成 | 2026-04-24 |
 | Phase 3 | period_picker_controller | ✅ 完成 | 2026-04-24 |
 | Phase 3 | category_filter_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.1 | account_modal_controller | ✅ 完成 | 2026-04-24 |
 | Phase 2.3 | view_mode_controller | ✅ 完成 | 2026-04-24 |
-| Phase 2.1 | account_modal_controller | 待开始 | - |
 | Phase 2.2 | account_filter_controller | 待开始 | - |
 | Phase 2.4 | transaction_modal_controller | 待开始 | - |
 
 ### 已完成统计
 
-- 删除 inline JS: ~450 行
-- 新增 Stimulus controllers: 3 个
-- 改动文件: 8 个
+- 删除 inline JS: ~2200 行
+- 新增 Stimulus controllers: 5 个 (period_picker, category_filter, view_mode, account_modal, 以及增强了 category_stats)
+- 改动文件: 10+ 个
 
 ---
 
