@@ -559,9 +559,19 @@ export default class extends Controller {
 ### 新增的 Controllers
 
 **通用 year_nav_controller.js**:
-- `updateLinks()` - 根据 URL hash 更新年份导航链接
-- `navigate(event)` - 点击导航时确保 hash 保留
-- 使用 Turbo.visit 进行年份切换，保持当前面板状态
+- `updateLinks()` - 根据 URL hash 添加 panel 参数到年份导航链接
+- `addPanelParam(href, panel)` - 将 hash 面板名转换为查询参数
+- 使用 Turbo Frame 局部刷新，避免整页刷新
+- 监听 hash 变化动态更新导航链接
+
+**report_tabs_controller.js 增强**:
+- `onFrameLoad()` - Turbo Frame 刷新后同步面板状态
+- `syncFromDOM()` - 从服务器渲染的 DOM 状态恢复 activePanelValue
+- 支持服务器通过 `panel` 参数渲染特定面板
+
+**服务器端改动**:
+- ReportsController 增加 `@active_panel` 参数处理
+- 视图根据 `@active_panel` 设置面板可见性和导航高亮
 
 **Phase 2.2 account_page_controller.js**:
 - `toggleShowHidden()` - 切换显示隐藏账户
