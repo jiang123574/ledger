@@ -1,11 +1,11 @@
 <!-- 新建应收款弹窗（共享组件） -->
-<div id="add-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+<div id="add-receivable-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" data-controller="receivable-modal">
   <div class="flex min-h-screen items-center justify-center p-4">
-    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')"></div>
+    <div class="fixed inset-0 bg-black/50" data-action="click->receivable-modal#close"></div>
     <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl w-full max-w-md p-4">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-base font-semibold text-primary dark:text-primary-dark">新建应收款</h3>
-        <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
+        <button type="button" data-action="click->receivable-modal#close" class="p-1 hover:bg-surface dark:hover:bg-surface-dark rounded-lg transition-smooth">
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
@@ -122,7 +122,7 @@
         </div>
 
         <div class="flex justify-end gap-3 mt-5">
-          <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
+          <button type="button" data-action="click->receivable-modal#close" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
           <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
         </div>
       </form>

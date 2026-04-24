@@ -51,6 +51,15 @@ pin "controllers/net_worth_trend_controller", to: "controllers/net_worth_trend_c
 pin "controllers/waterfall_chart_controller", to: "controllers/waterfall_chart_controller.js"
 pin "controllers/category_stats_controller", to: "controllers/category_stats_controller.js"
 pin "controllers/page_transition_controller", to: "controllers/page_transition_controller.js"
+pin "controllers/period_picker_controller", to: "controllers/period_picker_controller.js"
+pin "controllers/category_filter_controller", to: "controllers/category_filter_controller.js"
+pin "controllers/view_mode_controller", to: "controllers/view_mode_controller.js"
+pin "controllers/account_modal_controller", to: "controllers/account_modal_controller.js"
+pin "controllers/account_page_controller", to: "controllers/account_page_controller.js"
+pin "controllers/transaction_modal_controller", to: "controllers/transaction_modal_controller.js"
+pin "controllers/settle_receivable_controller", to: "controllers/settle_receivable_controller.js"
+pin "controllers/receivable_modal_controller", to: "controllers/receivable_modal_controller.js"
+pin "controllers/flash_controller", to: "controllers/flash_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Hotwired packages - vendored for production reliability

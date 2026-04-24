@@ -23,11 +23,25 @@ export default class extends Controller {
 
     this._boundRefresh = () => this.loadData()
     this.element.addEventListener('category-stats:refresh', this._boundRefresh)
+
+    // Listen to period-picker and category-filter change events
+    this._boundPeriodChange = (e) => {
+      this.periodTypeTarget.value = e.detail.type || this.periodTypeTarget.value
+      this.periodValueTarget.value = e.detail.value || this.periodValueTarget.value
+      this.loadData()
+    }
+    this._boundFilterChange = (e) => {
+      this.loadData()
+    }
+    document.addEventListener('period-picker:change', this._boundPeriodChange)
+    document.addEventListener('category-filter:change', this._boundFilterChange)
   }
 
   disconnect() {
     this.destroyCharts()
     this.element.removeEventListener('category-stats:refresh', this._boundRefresh)
+    document.removeEventListener('period-picker:change', this._boundPeriodChange)
+    document.removeEventListener('category-filter:change', this._boundFilterChange)
     if (this._debounceTimer) clearTimeout(this._debounceTimer)
   }
 

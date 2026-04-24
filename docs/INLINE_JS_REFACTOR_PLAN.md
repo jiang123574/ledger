@@ -536,14 +536,48 @@ export default class extends Controller {
 
 | Phase | 任务 | 状态 | 完成日期 |
 |-------|------|------|----------|
-| Phase 1 | reports 时间选择器 | 待开始 | - |
-| Phase 1 | reports 分类筛选弹窗 | 待开始 | - |
-| Phase 3 | period_picker_controller | 待开始 | - |
-| Phase 3 | category_filter_controller | 待开始 | - |
-| Phase 2.1 | account_modal_controller | 待开始 | - |
-| Phase 2.2 | account_filter_controller | 待开始 | - |
-| Phase 2.3 | view_mode_controller | 待开始 | - |
-| Phase 2.4 | transaction_modal_controller | 待开始 | - |
+| Phase 1 | reports 时间选择器 | ✅ 完成 | 2026-04-24 |
+| Phase 1 | reports 分类筛选弹窗 | ✅ 完成 | 2026-04-24 |
+| Phase 1 | expense/income/comparison 筛选 | ✅ 完成 | 2026-04-24 |
+| Phase 3 | period_picker_controller | ✅ 完成 | 2026-04-24 |
+| Phase 3 | category_filter_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.1 | account_modal_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.3 | view_mode_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.2 | account_page_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.4 | transaction_modal_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.5 | receivable_modal_controller | ✅ 完成 | 2026-04-24 |
+| Phase 2.6 | settle_receivable_controller | ✅ 完成 | 2026-04-24 |
+| 通用 | flash_controller | ✅ 完成 | 2026-04-24 |
+
+### 已完成统计
+
+- 删除 inline JS: ~2800 行
+- 新增 Stimulus controllers: 10 个 (period_picker, category_filter, view_mode, account_modal, account_page, transaction_modal, receivable_modal, settle_receivable, flash, 以及增强了 category_stats)
+- 改动文件: 25 个
+
+### 新增的 Controllers
+
+**Phase 2.2 account_page_controller.js**:
+- `toggleShowHidden()` - 切换显示隐藏账户
+- `toggleAccountList()` - 移动端折叠账户列表
+- `filterByAccount(id)` - 筛选指定账户
+- `viewAllTransactions()` - 查看所有交易
+- `clearFilters()` - 清除筛选条件
+- `shiftPeriod(direction)` - 时间导航
+- `togglePeriodPicker()` - 打开/关闭时间选择面板
+- `shiftPickerYear(direction)` - 时间选择器年份切换
+- `applyFilters()` - 应用筛选条件
+- `refreshMainContent(url)` - 局部刷新右侧内容
+
+**Phase 2.4 transaction_modal_controller.js**:
+- `openNewTransactionModal()` - 打开新建交易弹窗
+- `openEditTransactionModal(id)` - 打开编辑交易弹窗（AJAX 加载）
+- `confirmDeleteTransaction(id, name)` - 确认删除交易
+- `toggleTransferMode()` - 切换收支/转账模式
+- `toggleTypeToIncome()` / `toggleTypeToExpense()` - 切换收入/支出类型
+- `swapTransferAccounts()` - 互换转出/转入账户
+- `submitAndContinue(event)` - 保存并继续
+- `initCategorySelector()` / `initAccountSelector()` - 初始化选择器
 
 ---
 
