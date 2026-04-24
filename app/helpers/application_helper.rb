@@ -203,7 +203,7 @@ module ApplicationHelper
                   data: { name: cat.name, full_name: full_name, pinyin: PinYin.abbr(full_name || cat.name).downcase, type: cat.category_type },
                   style: indent) do
         safe_join([
-          check_box_tag("category_ids[]", cat.id, selected_ids.include?(cat.id.to_s), class: "category-filter-option w-4 h-4 rounded border-border dark:border-border-dark"),
+          check_box_tag("category_ids[]", cat.id, selected_ids.include?(cat.id.to_s), class: "category-filter-option w-4 h-4 rounded border-border dark:border-border-dark", data: { id: cat.id, parent_id: cat.parent_id }),
           content_tag(:span, full_name, class: "text-sm text-primary dark:text-primary-dark")
         ])
       end.html_safe +
