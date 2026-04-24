@@ -548,14 +548,20 @@ export default class extends Controller {
 | Phase 2.5 | receivable_modal_controller | ✅ 完成 | 2026-04-24 |
 | Phase 2.6 | settle_receivable_controller | ✅ 完成 | 2026-04-24 |
 | 通用 | flash_controller | ✅ 完成 | 2026-04-24 |
+| 通用 | year_nav_controller | ✅ 完成 | 2026-04-24 |
 
 ### 已完成统计
 
 - 删除 inline JS: ~2800 行
-- 新增 Stimulus controllers: 10 个 (period_picker, category_filter, view_mode, account_modal, account_page, transaction_modal, receivable_modal, settle_receivable, flash, 以及增强了 category_stats)
-- 改动文件: 25 个
+- 新增 Stimulus controllers: 11 个 (period_picker, category_filter, view_mode, account_modal, account_page, transaction_modal, receivable_modal, settle_receivable, flash, year_nav, 以及增强了 category_stats)
+- 改动文件: 26 个
 
 ### 新增的 Controllers
+
+**通用 year_nav_controller.js**:
+- `updateLinks()` - 根据 URL hash 更新年份导航链接
+- `navigate(event)` - 点击导航时确保 hash 保留
+- 使用 Turbo.visit 进行年份切换，保持当前面板状态
 
 **Phase 2.2 account_page_controller.js**:
 - `toggleShowHidden()` - 切换显示隐藏账户
