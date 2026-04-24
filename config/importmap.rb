@@ -58,6 +58,7 @@ pin "controllers/account_modal_controller", to: "controllers/account_modal_contr
 pin "controllers/account_page_controller", to: "controllers/account_page_controller.js"
 pin "controllers/transaction_modal_controller", to: "controllers/transaction_modal_controller.js"
 pin "controllers/settle_receivable_controller", to: "controllers/settle_receivable_controller.js"
+pin "controllers/receivable_modal_controller", to: "controllers/receivable_modal_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Hotwired packages - vendored for production reliability

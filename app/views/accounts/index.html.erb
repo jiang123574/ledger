@@ -672,6 +672,14 @@
   <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 
+<script id="modal-categories-data" type="application/json">
+  <%= raw all_transaction_categories.map { |c| fn = build_full_name_in_memory(c, parent_map); { name: c.name, full_name: fn, pinyin: PinYin.abbr(fn || c.name).downcase } }.to_json %>
+</script>
+
+<script id="receivables-data" type="application/json">
+  <%= raw @receivables.map { |r| { id: r.id, description: r.description, remaining_amount: r.remaining_amount.to_s } }.to_json %>
+</script>
+
 <!-- 新建交易弹窗 -->
 <div id="add-transaction-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" data-transaction-modal-target="newModal" data-controller="transaction-modal">
   <div class="flex min-h-screen items-center justify-center p-4">
@@ -830,7 +838,7 @@
         </button>
       </div>
       
-      <form id="settle-receivable-form">
+      <form id="settle-receivable-form" data-action="submit->settle-receivable#submit">
         <div class="space-y-3">
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">选择应收款 *</label>
@@ -908,201 +916,6 @@
     </div>
   </div>
 </div>
-
-<script type="module">
-import { initSelectorWithData } from 'selectors';
-
-// 防止 turbo:render 导致重复初始化
-if (!window.modalSelectorsInitialized) {
-  window.modalSelectorsInitialized = true;
-
-  // 解析数据源
-  const modalAccountsDataEl = document.getElementById('accounts-data');
-  const modalCategoriesDataEl = document.getElementById('modal-categories-data');
-
-  const modalAccountsData = modalAccountsDataEl ? JSON.parse(modalAccountsDataEl.textContent) : [];
-  const modalCategoriesData = modalCategoriesDataEl ? JSON.parse(modalCategoriesDataEl.textContent) : [];
-
-  // 转换分类数据格式
-  const modalCategoryData = modalCategoriesData.map(function(cat) {
-    return {
-      id: cat.name,
-      name: cat.name,
-      full_name: cat.full_name || cat.name,
-      pinyin: cat.pinyin || ''
-    };
-  });
-
-  // 抽取公共初始化函数
-  function initModalSelectors(modalType) {
-    // 初始化账户选择器
-    initSelectorWithData({
-      searchInputId: `new-${modalType}-account-search`,
-      dropdownId: `new-${modalType}-account-dropdown`,
-      filterInputId: `new-${modalType}-account-filter`,
-      optionsId: `new-${modalType}-account-options`,
-      hiddenInputId: `new-${modalType}-account-id`,
-      dataSource: modalAccountsData,
-      noMatchText: '无匹配账户'
-    });
-    
-    // 初始化分类选择器
-    initSelectorWithData({
-      searchInputId: `new-${modalType}-category-search`,
-      dropdownId: `new-${modalType}-category-dropdown`,
-      filterInputId: `new-${modalType}-category-filter`,
-      optionsId: `new-${modalType}-category-options`,
-      hiddenInputId: `new-${modalType}-category-id`,
-      dataSource: modalCategoryData,
-      emptyOption: { label: '不设置分类', value: '', display: '' },
-      noMatchText: '无匹配分类'
-    });
-    
-    // 初始化资金来源选择器（仅应收款）
-    if (modalType === 'receivable') {
-      initSelectorWithData({
-        searchInputId: 'new-receivable-funding-account-search',
-        dropdownId: 'new-receivable-funding-account-dropdown',
-        filterInputId: 'new-receivable-funding-account-filter',
-        optionsId: 'new-receivable-funding-account-options',
-        hiddenInputId: 'new-receivable-funding-account-id',
-        dataSource: modalAccountsData,
-        noMatchText: '无匹配账户'
-      });
-    }
-  }
-
-  function openNewReceivableModal() {
-    const form = document.getElementById('new-receivable-form');
-    if (form) {
-      form.reset();
-      const dateInput = form.querySelector('input[name="receivable[date]"]');
-      if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
-    }
-    
-    // 重置资金来源字段
-    const fundingAccountIdInput = document.getElementById('new-receivable-funding-account-id');
-    const fundingAccountSearchInput = document.getElementById('new-receivable-funding-account-search');
-    if (fundingAccountIdInput) fundingAccountIdInput.value = '';
-    if (fundingAccountSearchInput) fundingAccountSearchInput.value = '';
-    
-    initModalSelectors('receivable');
-    
-    const modal = document.getElementById('add-receivable-modal');
-    if (modal) modal.classList.remove('hidden');
-  }
-
-  function openSettleReceivableModal() {
-    const form = document.getElementById('settle-receivable-form');
-    if (form) {
-      form.reset();
-      const dateInput = form.querySelector('input[name="settlement_date"]');
-      if (dateInput) dateInput.value = '<%= Date.today.to_s %>';
-    }
-    
-    initSettleReceivableSelectors();
-    
-    const modal = document.getElementById('settle-receivable-modal');
-    if (modal) modal.classList.remove('hidden');
-  }
-
-  function initSettleReceivableSelectors() {
-    const receivablesDataEl = document.getElementById('receivables-data');
-    const receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
-
-    initSelectorWithData({
-      searchInputId: 'settle-receivable-search',
-      dropdownId: 'settle-receivable-dropdown',
-      filterInputId: 'settle-receivable-filter',
-      optionsId: 'settle-receivable-options',
-      hiddenInputId: 'settle-receivable-id',
-      dataSource: receivablesData,
-      noMatchText: '无匹配应收款'
-    });
-
-    initSelectorWithData({
-      searchInputId: 'settle-account-search',
-      dropdownId: 'settle-account-dropdown',
-      filterInputId: 'settle-account-filter',
-      optionsId: 'settle-account-options',
-      hiddenInputId: 'settle-account-id',
-      dataSource: modalAccountsData,
-      noMatchText: '无匹配账户'
-    });
-  }
-
-  window.setFullAmount = function() {
-    const receivableId = document.getElementById('settle-receivable-id').value;
-    if (receivableId) {
-      const receivablesDataEl = document.getElementById('receivables-data');
-      const receivablesData = receivablesDataEl ? JSON.parse(receivablesDataEl.textContent) : [];
-      const receivable = receivablesData.find(function(r) { return r.id == receivableId; });
-      if (receivable) {
-        document.getElementById('settle-amount').value = receivable.remaining_amount;
-      }
-    }
-  };
-
-  document.getElementById('settle-receivable-id').addEventListener('change', function() {
-    window.setFullAmount();
-  });
-
-  document.getElementById('settle-receivable-form').addEventListener('submit', function(e) {
-    e.preventDefault();
-    
-    const receivableId = document.getElementById('settle-receivable-id').value;
-    const amount = document.getElementById('settle-amount').value;
-    const accountId = document.getElementById('settle-account-id').value;
-    const settlementDate = document.getElementById('settle-date').value;
-    const note = document.querySelector('input[name="note"]').value;
-    
-    if (!receivableId || !amount || !accountId || !settlementDate) {
-      alert('请填写必填字段');
-      return;
-    }
-
-    const form = e.target;
-    const submitBtn = form.querySelector('button[type="submit"]');
-    const originalText = submitBtn.textContent;
-    submitBtn.disabled = true;
-    submitBtn.textContent = '提交中...';
-    
-    fetch('/receivables/' + receivableId + '/settle', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]').content,
-        'Accept': 'application/json'
-      },
-      body: JSON.stringify({
-        amount: amount,
-        account_id: accountId,
-        settlement_date: settlementDate,
-        note: note
-      })
-    })
-    .then(function(response) {
-      if (response.ok || response.redirected) {
-        window.location.reload();
-      } else {
-        return response.json().then(function(data) {
-          throw new Error(data.error || '报销失败');
-        });
-      }
-    })
-    .catch(function(error) {
-      console.error('Error:', error);
-      alert(error.message || '报销失败，请重试');
-      submitBtn.disabled = false;
-      submitBtn.textContent = originalText;
-    });
-  });
-
-  // 暴露函数到全局作用域（供快捷键调用）
-  window.openNewReceivableModal = openNewReceivableModal;
-  window.openSettleReceivableModal = openSettleReceivableModal;
-}
-</script>
 
 <!-- ========== 信用卡账单区域 ========== -->
 
