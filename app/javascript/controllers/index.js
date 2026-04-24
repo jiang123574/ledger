@@ -51,6 +51,7 @@ import AccountPageController from "controllers/account_page_controller"
 import TransactionModalController from "controllers/transaction_modal_controller"
 import SettleReceivableController from "controllers/settle_receivable_controller"
 import ReceivableModalController from "controllers/receivable_modal_controller"
+import FlashController from "controllers/flash_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -101,3 +102,4 @@ application.register("account-page", AccountPageController)
 application.register("transaction-modal", TransactionModalController)
 application.register("settle-receivable", SettleReceivableController)
 application.register("receivable-modal", ReceivableModalController)
+application.register("flash", FlashController)
