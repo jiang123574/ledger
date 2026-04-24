@@ -798,6 +798,20 @@
 
 <!-- 支出分类筛选弹窗 -->
 <%= render 'shared/category_filter_modal',
+    modal_id: 'expense-filter-modal',
+    title: '选择支出分类',
+    search_input_id: 'expense-filter-search',
+    options_container_id: 'expense-filter-options',
+    select_all_btn_id: 'expense-select-all',
+    clear_all_btn_id: 'expense-clear-all',
+    confirm_btn_id: 'confirm-expense-filter',
+    expense_categories: expense_cats,
+    income_categories: nil,
+    all_category_ids: all_cat_ids,
+    show_income_section: false %>
+
+<!-- 收入分类筛选弹窗 -->
+<%= render 'shared/category_filter_modal',
     modal_id: 'income-filter-modal',
     title: '选择收入分类',
     search_input_id: 'income-filter-search',
