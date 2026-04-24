@@ -216,7 +216,7 @@
         <% period_type_labels = { 'month' => '按月', 'year' => '按年', 'custom' => '自定义' } %>
         <% selected_period_type = 'month' %>
         <div class="w-24 relative" data-controller="select">
-          <input type="hidden" id="category-stats-period-type" data-category-stats-target="periodType" data-select-target="input" value="<%= selected_period_type %>">
+          <input type="hidden" id="category-stats-period-type" data-category-stats-target="periodType" data-period-picker-target="periodType" data-select-target="input" value="<%= selected_period_type %>" data-action="change->period-picker#onPeriodTypeChange">
           <button type="button" data-select-target="button" data-action="click->select#toggle"
                   class="w-full px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth flex items-center justify-between">
             <span><%= period_type_labels[selected_period_type] %></span>
@@ -232,30 +232,30 @@
             <% end %>
           </div>
         </div>
-        <div id="category-stats-period-nav" data-category-stats-target="periodNav" class="flex items-center gap-1 relative w-[220px]">
-          <input type="hidden" id="category-stats-period-value" value="<%= @year %>-<%= @month || '01' %>" data-category-stats-target="periodValue">
-          <button type="button" onclick="categoryStatsShiftPeriod(-1)" class="px-2.5 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" aria-label="上一期">‹</button>
-          <div id="category-stats-period-display"
+        <div id="category-stats-period-nav" data-controller="period-picker" data-period-picker-target="navWrapper" data-category-stats-target="periodNav" class="flex items-center gap-1 relative w-[220px]" data-action="period-picker:change->category-stats#refresh">
+          <input type="hidden" id="category-stats-period-value" value="<%= @year %>-<%= @month || '01' %>" data-category-stats-target="periodValue" data-period-picker-target="periodValue">
+          <button type="button" data-action="click->period-picker#shiftPeriod" data-direction="-1" class="px-2.5 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" aria-label="上一期">‹</button>
+          <div id="category-stats-period-display" data-period-picker-target="display"
                class="flex-1 min-w-0 px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark flex items-center justify-center cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth font-medium"
-               onclick="toggleCategoryStatsPeriodPicker()">
+               data-action="click->period-picker#toggle">
             <%= @year %>年<%= @month ? "#{@month}月" : '' %>
           </div>
-          <div id="category-stats-picker-panel" class="hidden absolute left-8 top-full mt-1 z-30 bg-white dark:bg-surface-dark border border-border dark:border-border-dark rounded-lg shadow-lg p-2 w-[200px]">
+          <div id="category-stats-picker-panel" data-period-picker-target="panel" class="hidden absolute left-8 top-full mt-1 z-30 bg-white dark:bg-surface-dark border border-border dark:border-border-dark rounded-lg shadow-lg p-2 w-[200px]">
             <div class="flex items-center justify-between mb-2">
-              <button type="button" onclick="categoryStatsShiftPickerYear(-1)" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+              <button type="button" data-action="click->period-picker#shiftPickerYear" data-direction="-1" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
               </button>
-              <span id="category-stats-picker-year-display" class="text-sm font-medium text-primary dark:text-primary-dark"></span>
-              <button type="button" onclick="categoryStatsShiftPickerYear(1)" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+              <span id="category-stats-picker-year-display" data-period-picker-target="yearDisplay" class="text-sm font-medium text-primary dark:text-primary-dark"></span>
+              <button type="button" data-action="click->period-picker#shiftPickerYear" data-direction="1" class="p-1 rounded hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
               </button>
             </div>
-            <div id="category-stats-picker-grid" class="grid grid-cols-4 gap-1">
+            <div id="category-stats-picker-grid" data-period-picker-target="grid" class="grid grid-cols-4 gap-1">
             </div>
           </div>
-          <button type="button" onclick="categoryStatsShiftPeriod(1)" class="px-2.5 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" aria-label="下一期">›</button>
+          <button type="button" data-action="click->period-picker#shiftPeriod" data-direction="1" class="px-2.5 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" aria-label="下一期">›</button>
         </div>
-        <div data-category-stats-target="customDateRange" class="hidden flex items-center gap-2">
+        <div data-category-stats-target="customDateRange" data-period-picker-target="customDateRange" class="hidden flex items-center gap-2">
           <input type="date" data-category-stats-target="startDate" data-action="category-stats#onDateChange"
                  value="<%= @start_date %>"
                  class="px-3 py-1.5 h-9 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500/30">
@@ -266,15 +266,18 @@
         </div>
         <!-- 分类筛选 -->
         <button type="button" id="open-category-stats-filter"
+                data-controller="category-filter"
+                data-category-filter-storage-key-value="category-stats-selected-ids"
+                data-action="click->category-filter#open"
                 class="h-9 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           分类筛选
-          <span id="category-stats-filter-count" class="px-1.5 py-0.5 text-xs rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"><%= @categories.size %></span>
+          <span id="category-stats-filter-count" data-category-filter-target="countBadge" class="px-1.5 py-0.5 text-xs rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"><%= @categories.size %></span>
         </button>
         <!-- 隐藏的 checkbox 供 Stimulus controller 使用 -->
-        <div class="hidden" data-category-stats-target="categoryCheckboxContainer">
+        <div class="hidden" data-category-stats-target="categoryCheckboxContainer" data-category-filter-target="hiddenCheckbox">
           <% @categories.each do |cat| %>
-            <input type="checkbox" value="<%= cat.id %>" data-category-stats-target="categoryCheckbox" checked>
+            <input type="checkbox" value="<%= cat.id %>" data-category-stats-target="categoryCheckbox" data-category-filter-target="hiddenCheckbox" checked>
           <% end %>
         </div>
       </div>
@@ -750,186 +753,46 @@
 <% all_cat_ids = @categories.map(&:id).map(&:to_s) %>
 
 <!-- 分类统计筛选弹窗 -->
-<%= render 'shared/category_filter_modal',
-    modal_id: 'category-stats-filter-modal',
-    title: '选择分类（可多选）',
-    search_input_id: 'category-stats-filter-search',
-    options_container_id: 'category-stats-filter-options',
-    select_all_btn_id: 'category-stats-select-all',
-    clear_all_btn_id: 'category-stats-clear-all',
-    confirm_btn_id: 'confirm-category-stats-filter',
-    expense_categories: expense_cats,
-    income_categories: income_cats,
-    all_category_ids: all_cat_ids %>
-
-<script>
-(function() {
-  const STORAGE_KEY = 'category-stats-selected-ids';
-  const modal = document.getElementById('category-stats-filter-modal');
-  const openBtn = document.getElementById('open-category-stats-filter');
-  const searchInput = document.getElementById('category-stats-filter-search');
-  const confirmBtn = document.getElementById('confirm-category-stats-filter');
-  const selectAllBtn = document.getElementById('category-stats-select-all');
-  const clearAllBtn = document.getElementById('category-stats-clear-all');
-  const countSpan = document.getElementById('category-stats-filter-count');
-  const categoryStatsController = document.querySelector('[data-controller="category-stats"]');
-
-  // 从 localStorage 恢复选中状态
-  function restoreFromStorage() {
-    if (!categoryStatsController) return;
-    const stored = localStorage.getItem(STORAGE_KEY);
-    const hiddenCheckboxes = categoryStatsController.querySelectorAll('[data-category-stats-target="categoryCheckbox"]');
-    
-    if (stored) {
-      const storedIds = JSON.parse(stored);
-      hiddenCheckboxes.forEach(cb => {
-        cb.checked = storedIds.includes(cb.value);
-      });
-      // 恢复后触发数据刷新
-      categoryStatsController.dispatchEvent(new CustomEvent('category-stats:refresh'));
-    }
-    // 如果没有存储记录，保持默认全选状态
-  }
-
-  // 初始化恢复状态
-  restoreFromStorage();
-
-  // 打开弹窗
-  if (openBtn) {
-    openBtn.addEventListener('click', function() {
-      // 从隐藏 checkbox 同步状态到弹窗 checkbox
-      if (categoryStatsController) {
-        const hiddenCheckboxes = categoryStatsController.querySelectorAll('[data-category-stats-target="categoryCheckbox"]');
-        const hiddenCheckedIds = Array.from(hiddenCheckboxes).filter(cb => cb.checked).map(cb => cb.value);
-        document.querySelectorAll('.category-filter-option').forEach(cb => {
-          cb.checked = hiddenCheckedIds.includes(cb.value);
-        });
-      }
-      modal.classList.remove('hidden');
-      searchInput.value = '';
-      searchInput.focus();
-      updateVisibleCount();
-    });
-  }
-
-  // 搜索过滤（支持拼音和层级名称）
-  if (searchInput) {
-    searchInput.addEventListener('input', function(e) {
-      const keyword = e.target.value.toLowerCase().trim();
-      const items = document.querySelectorAll('.category-filter-item');
-      items.forEach(item => {
-        const name = (item.dataset.name || '').toLowerCase();
-        const fullName = (item.dataset.full_name || '').toLowerCase();
-        const pinyin = (item.dataset.pinyin || '').toLowerCase();
-        const match = name.includes(keyword) || fullName.includes(keyword) || pinyin.includes(keyword);
-        item.style.display = match ? '' : 'none';
-      });
-    });
-  }
-
-  // 全选
-  if (selectAllBtn) {
-    selectAllBtn.addEventListener('click', function() {
-      document.querySelectorAll('.category-filter-option').forEach(cb => cb.checked = true);
-      updateVisibleCount();
-    });
-  }
-
-  // 清除
-  if (clearAllBtn) {
-    clearAllBtn.addEventListener('click', function() {
-      document.querySelectorAll('.category-filter-option').forEach(cb => cb.checked = false);
-      updateVisibleCount();
-    });
-  }
-
-  // 确认
-  if (confirmBtn) {
-    confirmBtn.addEventListener('click', function() {
-      modal.classList.add('hidden');
-      // 获取选中的分类ID
-      const selectedIds = Array.from(document.querySelectorAll('.category-filter-option:checked')).map(cb => cb.value);
-      // 保存到 localStorage
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(selectedIds));
-      // 更新 category-stats controller 的隐藏 checkbox 状态
-      if (categoryStatsController) {
-        const hiddenCheckboxes = categoryStatsController.querySelectorAll('[data-category-stats-target="categoryCheckbox"]');
-        hiddenCheckboxes.forEach(cb => {
-          cb.checked = selectedIds.includes(cb.value);
-        });
-        // 触发数据加载 - 通过 dispatch 自定义事件
-        categoryStatsController.dispatchEvent(new CustomEvent('category-stats:refresh'));
-      }
-      updateButtonCount();
-    });
-  }
-
-  function updateVisibleCount() {
-    const checked = document.querySelectorAll('.category-filter-option:checked').length;
-    countSpan.textContent = checked;
-  }
-
-  function updateButtonCount() {
-    // 从隐藏 checkbox 获取实际选中数量
-    if (categoryStatsController) {
-      const hiddenCheckboxes = categoryStatsController.querySelectorAll('[data-category-stats-target="categoryCheckbox"]');
-      const checkedCount = Array.from(hiddenCheckboxes).filter(cb => cb.checked).length;
-      const btnCount = document.getElementById('category-stats-filter-count');
-      if (btnCount) {
-        btnCount.textContent = checkedCount;
-      }
-    }
-  }
-
-  function getDescendantIds(parentId) {
-    const descendants = [];
-    const checkboxes = document.querySelectorAll('.category-filter-option');
-    checkboxes.forEach(cb => {
-      if (cb.dataset.parentId === String(parentId)) {
-        descendants.push(parseInt(cb.dataset.id, 10));
-        descendants.push(...getDescendantIds(cb.dataset.id));
-      }
-    });
-    return descendants;
-  }
-
-  function toggleDescendants(cb) {
-    const parentId = cb.dataset.id;
-    const descendantIds = getDescendantIds(parentId);
-    descendantIds.forEach(id => {
-      const descCb = document.querySelector(`.category-filter-option[data-id="${id}"]`);
-      if (descCb) descCb.checked = cb.checked;
-    });
-  }
-
-  // 监听 checkbox 变化更新计数，并处理父子联动
-  document.querySelectorAll('.category-filter-option').forEach(cb => {
-    cb.addEventListener('change', function() {
-      toggleDescendants(this);
-      updateVisibleCount();
-    });
-  });
-
-  // 初始化按钮计数
-  updateButtonCount();
-})();
-</script>
+<div id="category-stats-filter-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" data-controller="category-filter" data-category-filter-storage-key-value="category-stats-selected-ids">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" data-action="click->category-filter#close"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm lg:max-w-md xl:max-w-lg p-5">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">选择分类（可多选）</h3>
+        <button type="button" data-action="click->category-filter#close" class="p-1 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <input type="text" id="category-stats-filter-search" data-category-filter-target="searchInput" data-action="input->category-filter#search" placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <div id="category-stats-filter-options" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
+        <% if expense_cats.any? %>
+        <div class="category-type-section <%= income_cats.any? ? 'border-b border-border dark:border-border-dark' : '' %>">
+          <div class="px-3 py-2 bg-expense/10 dark:bg-expense/20 text-xs font-medium text-expense uppercase tracking-wide">支出分类</div>
+          <%= render_category_filter_tree(expense_cats, all_cat_ids, true) %>
+        </div>
+        <% end %>
+        <% if income_cats.any? %>
+        <div class="category-type-section">
+          <div class="px-3 py-2 bg-income/10 dark:bg-income/20 text-xs font-medium text-income uppercase tracking-wide">收入分类</div>
+          <%= render_category_filter_tree(income_cats, all_cat_ids, true) %>
+        </div>
+        <% end %>
+      </div>
+      <div class="flex justify-between mt-4">
+        <div class="flex gap-2">
+          <button type="button" id="category-stats-select-all" data-category-filter-target="selectAllBtn" data-action="click->category-filter#selectAll" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
+          <button type="button" id="category-stats-clear-all" data-category-filter-target="clearBtn" data-action="click->category-filter#clearAll" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
+        </div>
+        <div class="flex gap-3">
+          <button type="button" data-action="click->category-filter#close" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+          <button type="button" id="confirm-category-stats-filter" data-category-filter-target="confirmBtn" data-action="click->category-filter#confirm" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- 支出分类筛选弹窗 -->
-<%= render 'shared/category_filter_modal',
-    modal_id: 'expense-filter-modal',
-    title: '选择支出分类',
-    search_input_id: 'expense-filter-search',
-    options_container_id: 'expense-filter-options',
-    select_all_btn_id: 'expense-select-all',
-    clear_all_btn_id: 'expense-clear-all',
-    confirm_btn_id: 'confirm-expense-filter',
-    expense_categories: expense_cats,
-    income_categories: nil,
-    all_category_ids: all_cat_ids,
-    show_income_section: false %>
-
-<!-- 收入分类筛选弹窗 -->
 <%= render 'shared/category_filter_modal',
     modal_id: 'income-filter-modal',
     title: '选择收入分类',

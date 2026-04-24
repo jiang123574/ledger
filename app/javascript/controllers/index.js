@@ -43,6 +43,8 @@ import NetWorthTrendController from "controllers/net_worth_trend_controller"
 import WaterfallChartController from "controllers/waterfall_chart_controller"
 import PageTransitionController from "controllers/page_transition_controller"
 import CategoryStatsController from "controllers/category_stats_controller"
+import PeriodPickerController from "controllers/period_picker_controller"
+import CategoryFilterController from "controllers/category_filter_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -85,3 +87,5 @@ application.register("net-worth-trend", NetWorthTrendController)
 application.register("waterfall-chart", WaterfallChartController)
 application.register("page-transition", PageTransitionController)
 application.register("category-stats", CategoryStatsController)
+application.register("period-picker", PeriodPickerController)
+application.register("category-filter", CategoryFilterController)
