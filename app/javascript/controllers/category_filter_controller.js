@@ -8,7 +8,8 @@ export default class extends Controller {
 
   static values = {
     storageKey: String,
-    filterGroup: String
+    filterGroup: String,
+    modalSelector: String
   }
 
   connect() {
@@ -18,23 +19,76 @@ export default class extends Controller {
     this.updateButtonCount()
   }
 
+  getModal() {
+    if (this.hasModalTarget) {
+      return this.modalTarget
+    }
+    if (this.modalSelectorValue) {
+      return document.querySelector(this.modalSelectorValue)
+    }
+    return null
+  }
+
   open() {
+    const modal = this.getModal()
+    if (!modal) return
     this.syncToModal()
-    this.modalTarget.classList.remove('hidden')
-    if (this.hasSearchInputTarget) {
-      this.searchInputTarget.value = ''
-      this.searchInputTarget.focus()
+    modal.classList.remove('hidden')
+    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') || modal.querySelector('input[type="text"]')
+    if (searchInput) {
+      searchInput.value = ''
+      searchInput.focus()
     }
     this.updateModalCount()
+    this.bindModalEvents(modal)
+  }
+
+  bindModalEvents(modal) {
+    if (modal._boundClose) return
+
+    const closeModal = () => {
+      modal.classList.add('hidden')
+    }
+
+    modal.querySelectorAll('[data-close-modal]').forEach(el => {
+      el.addEventListener('click', closeModal)
+    })
+
+    modal.querySelectorAll('.category-filter-option').forEach(cb => {
+      cb.addEventListener('change', (e) => {
+        this.toggleDescendants(e.target)
+        this.updateModalCount()
+      })
+    })
+
+    const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]') || modal.querySelector('[id$="-select-all"]')
+    if (selectAllBtn) {
+      selectAllBtn.addEventListener('click', () => this.selectAll())
+    }
+
+    const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]') || modal.querySelector('[id$="-clear-all"]')
+    if (clearAllBtn) {
+      clearAllBtn.addEventListener('click', () => this.clearAll())
+    }
+
+    const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') || modal.querySelector('[id^="confirm-"]')
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', () => this.confirm())
+    }
+
+    modal._boundClose = closeModal
   }
 
   close() {
-    this.modalTarget.classList.add('hidden')
+    const modal = this.getModal()
+    if (modal) modal.classList.add('hidden')
   }
 
   search(event) {
+    const modal = this.getModal()
+    if (!modal) return
     const keyword = event.target.value.toLowerCase().trim()
-    this.itemTargets.forEach(item => {
+    modal.querySelectorAll('.category-filter-item').forEach(item => {
       const name = (item.dataset.name || '').toLowerCase()
       const fullName = (item.dataset.fullName || '').toLowerCase()
       const pinyin = (item.dataset.pinyin || '').toLowerCase()
@@ -44,12 +98,16 @@ export default class extends Controller {
   }
 
   selectAll() {
-    this.optionTargets.forEach(cb => cb.checked = true)
+    const modal = this.getModal()
+    if (!modal) return
+    modal.querySelectorAll('.category-filter-option').forEach(cb => cb.checked = true)
     this.updateModalCount()
   }
 
   clearAll() {
-    this.optionTargets.forEach(cb => cb.checked = false)
+    const modal = this.getModal()
+    if (!modal) return
+    modal.querySelectorAll('.category-filter-option').forEach(cb => cb.checked = false)
     this.updateModalCount()
   }
 
@@ -69,17 +127,21 @@ export default class extends Controller {
   }
 
   syncToModal() {
+    const modal = this.getModal()
+    if (!modal) return
     const hiddenCheckedIds = this.hiddenCheckboxTargets
       .filter(cb => cb.checked)
       .map(cb => cb.value)
 
-    this.optionTargets.forEach(cb => {
+    modal.querySelectorAll('.category-filter-option').forEach(cb => {
       cb.checked = hiddenCheckedIds.includes(cb.value)
     })
   }
 
   syncFromModal() {
-    const selectedIds = this.optionTargets
+    const modal = this.getModal()
+    if (!modal) return
+    const selectedIds = Array.from(modal.querySelectorAll('.category-filter-option'))
       .filter(cb => cb.checked)
       .map(cb => cb.value)
 
@@ -93,8 +155,10 @@ export default class extends Controller {
   }
 
   getDescendantIds(parentId) {
+    const modal = this.getModal()
+    if (!modal) return []
     const descendants = []
-    this.optionTargets.forEach(cb => {
+    modal.querySelectorAll('.category-filter-option').forEach(cb => {
       if (cb.dataset.parentId === String(parentId)) {
         descendants.push(parseInt(cb.dataset.id, 10))
         descendants.push(...this.getDescendantIds(cb.dataset.id))
@@ -104,18 +168,22 @@ export default class extends Controller {
   }
 
   toggleDescendants(cb) {
+    const modal = this.getModal()
+    if (!modal) return
     const parentId = cb.dataset.id
     if (!parentId) return
 
     const descendantIds = this.getDescendantIds(parentId)
     descendantIds.forEach(id => {
-      const descCb = this.modalTarget.querySelector(`[data-id="${id}"]`)
+      const descCb = modal.querySelector(`.category-filter-option[data-id="${id}"]`)
       if (descCb) descCb.checked = cb.checked
     })
   }
 
   updateModalCount() {
-    const checked = this.optionTargets.filter(cb => cb.checked).length
+    const modal = this.getModal()
+    if (!modal) return
+    const checked = Array.from(modal.querySelectorAll('.category-filter-option')).filter(cb => cb.checked).length
     if (this.hasCountBadgeTarget) {
       this.countBadgeTarget.textContent = checked
     }
@@ -141,7 +209,9 @@ export default class extends Controller {
   }
 
   saveToStorage() {
-    const selectedIds = this.optionTargets
+    const modal = this.getModal()
+    if (!modal) return
+    const selectedIds = Array.from(modal.querySelectorAll('.category-filter-option'))
       .filter(cb => cb.checked)
       .map(cb => cb.value)
     localStorage.setItem(this.storageKeyValue, JSON.stringify(selectedIds))

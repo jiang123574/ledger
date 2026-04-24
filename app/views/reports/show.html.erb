@@ -391,20 +391,22 @@
     </div>
 
     <!-- ====== 面板 2: 支出分类 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="expense" class="hidden" role="tabpanel" aria-label="支出分类">
+    <div data-report-tabs-target="panel" data-panel-name="expense" class="hidden" role="tabpanel" aria-label="支出分类"
+         data-controller="category-filter"
+         data-category-filter-modal-selector-value="#expense-filter-modal">
       <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
       <% expense_cat_ids = @categories.select { |c| c.category_type == 'EXPENSE' }.map(&:id).map(&:to_s) %>
       <% expense_filter_active_ids = @filter_categories[:expense].map { |c| c[:id].to_s } %>
       <!-- 筛选按钮 -->
       <div class="relative mb-4">
-        <button type="button" id="open-expense-filter" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+        <button type="button" id="open-expense-filter" data-action="click->category-filter#open" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           筛选分类
-          <span id="expense-filter-count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= expense_filter_active_ids.size %></span>
+          <span id="expense-filter-count" data-category-filter-target="countBadge" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= expense_filter_active_ids.size %></span>
         </button>
         <div class="hidden" data-filter-group="expense">
           <% expense_filter_active_ids.each do |id| %>
-            <input type="checkbox" value="<%= id %>" data-tab-filter checked class="hidden">
+            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" checked class="hidden">
           <% end %>
         </div>
       </div>
@@ -453,20 +455,22 @@
     </div>
 
     <!-- ====== 面板 3: 收入分类 ====== -->
-    <div data-report-tabs-target="panel" data-panel-name="income" class="hidden" role="tabpanel" aria-label="收入分类">
+    <div data-report-tabs-target="panel" data-panel-name="income" class="hidden" role="tabpanel" aria-label="收入分类"
+         data-controller="category-filter"
+         data-category-filter-modal-selector-value="#income-filter-modal">
       <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
       <% income_cat_ids = @categories.select { |c| c.category_type == 'INCOME' }.map(&:id).map(&:to_s) %>
       <% income_filter_active_ids = @filter_categories[:income].map { |c| c[:id].to_s } %>
       <!-- 筛选按钮 -->
       <div class="relative mb-4">
-        <button type="button" id="open-income-filter" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+        <button type="button" id="open-income-filter" data-action="click->category-filter#open" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           筛选分类
-          <span id="income-filter-count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= income_filter_active_ids.size %></span>
+          <span id="income-filter-count" data-category-filter-target="countBadge" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= income_filter_active_ids.size %></span>
         </button>
         <div class="hidden" data-filter-group="income">
           <% income_filter_active_ids.each do |id| %>
-            <input type="checkbox" value="<%= id %>" data-tab-filter checked class="hidden">
+            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" checked class="hidden">
           <% end %>
         </div>
       </div>
@@ -578,18 +582,20 @@
 
     <!-- ====== 面板 6: 年度月度对比（仅年度） ====== -->
     <% if @report_type == :yearly && @category_monthly_comparison[:categories]&.any? %>
-    <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden" role="tabpanel" aria-label="分类月度对比">
+    <div data-report-tabs-target="panel" data-panel-name="comparison" class="hidden" role="tabpanel" aria-label="分类月度对比"
+         data-controller="category-filter"
+         data-category-filter-modal-selector-value="#comparison-filter-modal">
       <% comparison_cat_ids = @category_monthly_comparison[:categories].keys.map(&:to_s) %>
       <!-- 筛选按钮 -->
       <div class="relative mb-4">
-        <button type="button" id="open-comparison-filter" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+        <button type="button" id="open-comparison-filter" data-action="click->category-filter#open" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           筛选分类
-          <span id="comparison-filter-count" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= comparison_cat_ids.size %></span>
+          <span id="comparison-filter-count" data-category-filter-target="countBadge" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= comparison_cat_ids.size %></span>
         </button>
         <div class="hidden" data-filter-group="comparison">
           <% comparison_cat_ids.each do |id| %>
-            <input type="checkbox" value="<%= id %>" data-tab-filter checked class="hidden">
+            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" checked class="hidden">
           <% end %>
         </div>
       </div>
@@ -836,424 +842,3 @@
     expense_categories: expense_cats,
     income_categories: income_cats,
     all_category_ids: all_cat_ids %>
-
-<script>
-(function() {
-  function setupCategoryFilterModal(config) {
-    const modal = document.getElementById(config.modalId);
-    const openBtn = document.getElementById(config.openBtnId);
-    const searchInput = document.getElementById(config.searchInputId);
-    const confirmBtn = document.getElementById(config.confirmBtnId);
-    const selectAllBtn = document.getElementById(config.selectAllBtnId);
-    const clearAllBtn = document.getElementById(config.clearAllBtnId);
-    const countSpan = document.getElementById(config.countSpanId);
-    const filterGroup = document.querySelector(`[data-filter-group="${config.filterGroup}"]`);
-    const closeBtn = modal ? modal.querySelector('[data-close-modal]') : null;
-    const overlay = modal ? modal.querySelector('.modal-overlay-bg') : null;
-
-    if (!modal || !openBtn) return;
-
-    function closeModal() {
-      modal.classList.add('hidden');
-    }
-
-    function getModalCheckboxes() {
-      return Array.from(modal.querySelectorAll('.category-filter-option'));
-    }
-
-    function getHiddenCheckboxes() {
-      return filterGroup ? Array.from(filterGroup.querySelectorAll('[data-tab-filter]')) : [];
-    }
-
-    function updateModalCount() {
-      const checked = getModalCheckboxes().filter(cb => cb.checked).length;
-      if (countSpan) countSpan.textContent = checked;
-    }
-
-    function updateButtonCount() {
-      const checked = getHiddenCheckboxes().filter(cb => cb.checked).length;
-      const btnCount = document.getElementById(config.countSpanId);
-      if (btnCount) btnCount.textContent = checked;
-    }
-
-    function syncToModal() {
-      const hiddenCheckedIds = getHiddenCheckboxes().filter(cb => cb.checked).map(cb => cb.value);
-      getModalCheckboxes().forEach(cb => {
-        cb.checked = hiddenCheckedIds.includes(cb.value);
-      });
-    }
-
-    function syncFromModal() {
-      const selectedIds = getModalCheckboxes().filter(cb => cb.checked).map(cb => cb.value);
-      getHiddenCheckboxes().forEach(cb => {
-        cb.checked = selectedIds.includes(cb.value);
-      });
-      // 触发 change 事件，让 report-tabs controller 处理筛选
-      getHiddenCheckboxes().forEach(cb => {
-        cb.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-      updateButtonCount();
-    }
-
-    function getDescendantIds(parentId) {
-      const descendants = [];
-      getModalCheckboxes().forEach(cb => {
-        if (cb.dataset.parentId === String(parentId)) {
-          descendants.push(parseInt(cb.dataset.id, 10));
-          descendants.push(...getDescendantIds(cb.dataset.id));
-        }
-      });
-      return descendants;
-    }
-
-    function toggleDescendants(cb) {
-      const parentId = cb.dataset.id;
-      const descendantIds = getDescendantIds(parentId);
-      descendantIds.forEach(id => {
-        const descCb = modal.querySelector(`.category-filter-option[data-id="${id}"]`);
-        if (descCb) descCb.checked = cb.checked;
-      });
-    }
-
-    openBtn.addEventListener('click', function() {
-      syncToModal();
-      modal.classList.remove('hidden');
-      if (searchInput) {
-        searchInput.value = '';
-        searchInput.focus();
-      }
-      updateModalCount();
-    });
-
-    if (searchInput) {
-      searchInput.addEventListener('input', function(e) {
-        const keyword = e.target.value.toLowerCase().trim();
-        modal.querySelectorAll('.category-filter-item').forEach(item => {
-          const name = (item.dataset.name || '').toLowerCase();
-          const fullName = (item.dataset.full_name || '').toLowerCase();
-          const pinyin = (item.dataset.pinyin || '').toLowerCase();
-          const match = name.includes(keyword) || fullName.includes(keyword) || pinyin.includes(keyword);
-          item.style.display = match ? '' : 'none';
-        });
-      });
-    }
-
-    if (selectAllBtn) {
-      selectAllBtn.addEventListener('click', function() {
-        getModalCheckboxes().forEach(cb => cb.checked = true);
-        updateModalCount();
-      });
-    }
-
-    if (clearAllBtn) {
-      clearAllBtn.addEventListener('click', function() {
-        getModalCheckboxes().forEach(cb => cb.checked = false);
-        updateModalCount();
-      });
-    }
-
-    if (confirmBtn) {
-      confirmBtn.addEventListener('click', function() {
-        closeModal();
-        syncFromModal();
-      });
-    }
-
-    if (closeBtn) {
-      closeBtn.addEventListener('click', closeModal);
-    }
-
-    if (overlay) {
-      overlay.addEventListener('click', closeModal);
-    }
-
-    getModalCheckboxes().forEach(cb => {
-      cb.addEventListener('change', function() {
-        toggleDescendants(this);
-        updateModalCount();
-      });
-    });
-  }
-
-  setupCategoryFilterModal({
-    modalId: 'expense-filter-modal',
-    openBtnId: 'open-expense-filter',
-    searchInputId: 'expense-filter-search',
-    confirmBtnId: 'confirm-expense-filter',
-    selectAllBtnId: 'expense-select-all',
-    clearAllBtnId: 'expense-clear-all',
-    countSpanId: 'expense-filter-count',
-    filterGroup: 'expense'
-  });
-
-  setupCategoryFilterModal({
-    modalId: 'income-filter-modal',
-    openBtnId: 'open-income-filter',
-    searchInputId: 'income-filter-search',
-    confirmBtnId: 'confirm-income-filter',
-    selectAllBtnId: 'income-select-all',
-    clearAllBtnId: 'income-clear-all',
-    countSpanId: 'income-filter-count',
-    filterGroup: 'income'
-  });
-
-  setupCategoryFilterModal({
-    modalId: 'comparison-filter-modal',
-    openBtnId: 'open-comparison-filter',
-    searchInputId: 'comparison-filter-search',
-    confirmBtnId: 'confirm-comparison-filter',
-    selectAllBtnId: 'comparison-select-all',
-    clearAllBtnId: 'comparison-clear-all',
-    countSpanId: 'comparison-filter-count',
-    filterGroup: 'comparison'
-  });
-})();
-</script>
-
-<script>
-(function() {
-  const periodTypeSelect = document.getElementById('category-stats-period-type');
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  const periodDisplay = document.getElementById('category-stats-period-display');
-  const categoryStatsEl = document.querySelector('[data-controller="category-stats"]');
-  const navEl = document.getElementById('category-stats-period-nav');
-
-  let pickerCurrentYear = new Date().getFullYear();
-  let pickerPanelOpen = false;
-
-  // 初始化显示
-  if (periodTypeSelect && periodValueInput && periodDisplay) {
-    categoryStatsUpdatePeriodDisplay();
-  }
-
-  // 类型切换时同步显示并触发数据加载（监听 select controller 的 change）
-  if (periodTypeSelect) {
-    periodTypeSelect.addEventListener('change', function() {
-      const type = this.value;
-      const customEl = document.querySelector('[data-category-stats-target="customDateRange"]');
-      if (navEl) {
-        navEl.style.display = type === 'custom' ? 'none' : '';
-      }
-      if (customEl) {
-        customEl.classList.toggle('hidden', type !== 'custom');
-        customEl.classList.toggle('flex', type === 'custom');
-      }
-      if (type !== 'custom') {
-        const today = new Date();
-        if (type === 'month') {
-          const currentVal = periodValueInput.value;
-          const yearMatch = currentVal.match(/^(\d{4})/);
-          const year = yearMatch ? parseInt(yearMatch[1]) : today.getFullYear();
-          periodValueInput.value = `${year}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-        } else if (type === 'year') {
-          const currentVal = periodValueInput.value;
-          const yearMatch = currentVal.match(/^(\d{4})/);
-          periodValueInput.value = yearMatch ? yearMatch[1] : String(today.getFullYear());
-        }
-        categoryStatsUpdatePeriodDisplay();
-        triggerCategoryStatsRefresh();
-      }
-    });
-  }
-
-  // 点击外部关闭面板
-  document.addEventListener('click', function(e) {
-    const panel = document.getElementById('category-stats-picker-panel');
-    const display = document.getElementById('category-stats-period-display');
-    if (pickerPanelOpen && panel && display && !panel.contains(e.target) && !display.contains(e.target)) {
-      closeCategoryStatsPeriodPicker();
-    }
-  });
-})();
-
-function toggleCategoryStatsPeriodPicker() {
-  const panel = document.getElementById('category-stats-picker-panel');
-  if (!panel) return;
-  
-  if (window.categoryStatsPickerPanelOpen) {
-    closeCategoryStatsPeriodPicker();
-  } else {
-    openCategoryStatsPickerPanel();
-  }
-}
-
-function openCategoryStatsPickerPanel() {
-  const panel = document.getElementById('category-stats-picker-panel');
-  const periodTypeSelect = document.getElementById('category-stats-period-type');
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  
-  if (!panel || !periodTypeSelect) return;
-  
-  const type = periodTypeSelect.value;
-  const currentValue = periodValueInput ? periodValueInput.value : '';
-  
-  if (type === 'month') {
-    const parts = currentValue.split('-');
-    window.categoryStatsPickerYear = parseInt(parts[0]) || new Date().getFullYear();
-    renderCategoryStatsMonthPicker();
-  } else if (type === 'year') {
-    window.categoryStatsPickerYear = parseInt(currentValue) || new Date().getFullYear();
-    renderCategoryStatsYearPicker();
-  }
-  
-  panel.classList.remove('hidden');
-  window.categoryStatsPickerPanelOpen = true;
-}
-
-function closeCategoryStatsPeriodPicker() {
-  const panel = document.getElementById('category-stats-picker-panel');
-  if (panel) {
-    panel.classList.add('hidden');
-  }
-  window.categoryStatsPickerPanelOpen = false;
-}
-
-function categoryStatsShiftPickerYear(direction) {
-  window.categoryStatsPickerYear = (window.categoryStatsPickerYear || new Date().getFullYear()) + direction;
-  const periodTypeSelect = document.getElementById('category-stats-period-type');
-  if (periodTypeSelect.value === 'month') {
-    renderCategoryStatsMonthPicker();
-  } else if (periodTypeSelect.value === 'year') {
-    renderCategoryStatsYearPicker();
-  }
-}
-
-function renderCategoryStatsMonthPicker() {
-  const yearDisplay = document.getElementById('category-stats-picker-year-display');
-  const grid = document.getElementById('category-stats-picker-grid');
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  
-  if (!yearDisplay || !grid) return;
-  
-  yearDisplay.textContent = window.categoryStatsPickerYear + '年';
-  
-  let currentMonth = '';
-  if (periodValueInput && periodValueInput.value) {
-    const match = periodValueInput.value.match(/^(\d{4})-(\d{2})$/);
-    if (match && parseInt(match[1]) === window.categoryStatsPickerYear) {
-      currentMonth = match[2];
-    }
-  }
-  
-  const months = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
-  grid.innerHTML = months.map(function(m, i) {
-    const monthNum = String(i + 1).padStart(2, '0');
-    const isSelected = currentMonth === monthNum;
-    return '<button type="button" onclick="categoryStatsSelectPickerMonth(' + monthNum + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
-      (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">' + m + '</button>';
-  }).join('');
-}
-
-function renderCategoryStatsYearPicker() {
-  const yearDisplay = document.getElementById('category-stats-picker-year-display');
-  const grid = document.getElementById('category-stats-picker-grid');
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  
-  if (!yearDisplay || !grid) return;
-  
-  yearDisplay.textContent = '选择年份';
-  
-  const currentYear = periodValueInput ? parseInt(periodValueInput.value) : new Date().getFullYear();
-  const startYear = window.categoryStatsPickerYear - 4;
-  const years = [];
-  for (let i = 0; i < 9; i++) {
-    years.push(startYear + i);
-  }
-  
-  grid.innerHTML = years.map(function(y) {
-    const isSelected = y === currentYear;
-    return '<button type="button" onclick="categoryStatsSelectPickerYear(' + y + ')" class="px-2 py-1.5 text-xs rounded transition-smooth ' + 
-      (isSelected ? 'bg-blue-500 text-white' : 'hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark') + '">' + y + '</button>';
-  }).join('');
-}
-
-function categoryStatsSelectPickerMonth(month) {
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  if (periodValueInput) {
-    periodValueInput.value = window.categoryStatsPickerYear + '-' + String(month).padStart(2, '0');
-    categoryStatsUpdatePeriodDisplay();
-    closeCategoryStatsPeriodPicker();
-    triggerCategoryStatsRefresh();
-  }
-}
-
-function categoryStatsSelectPickerYear(year) {
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  if (periodValueInput) {
-    periodValueInput.value = String(year);
-    categoryStatsUpdatePeriodDisplay();
-    closeCategoryStatsPeriodPicker();
-    triggerCategoryStatsRefresh();
-  }
-}
-
-function categoryStatsShiftPeriod(direction) {
-  const periodTypeSelect = document.getElementById('category-stats-period-type');
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  if (!periodTypeSelect || !periodValueInput) return;
-
-  const type = periodTypeSelect.value;
-  const value = periodValueInput.value;
-
-  if (type === 'year') {
-    const year = parseInt(value, 10);
-    if (year && year >= 2000 && year <= 2100) {
-      const newYear = year + direction;
-      if (newYear >= 2000 && newYear <= 2100) {
-        periodValueInput.value = String(newYear);
-        categoryStatsUpdatePeriodDisplay();
-        triggerCategoryStatsRefresh();
-      }
-    }
-  } else if (type === 'month') {
-    const match = value.match(/^(\d{4})-(\d{2})$/);
-    if (match) {
-      let year = parseInt(match[1], 10);
-      let month = parseInt(match[2], 10) + direction;
-      if (month < 1) {
-        month = 12;
-        year -= 1;
-      } else if (month > 12) {
-        month = 1;
-        year += 1;
-      }
-      periodValueInput.value = `${year}-${String(month).padStart(2, '0')}`;
-      categoryStatsUpdatePeriodDisplay();
-      triggerCategoryStatsRefresh();
-    }
-  }
-}
-
-function categoryStatsUpdatePeriodDisplay() {
-  const periodTypeSelect = document.getElementById('category-stats-period-type');
-  const periodValueInput = document.getElementById('category-stats-period-value');
-  const display = document.getElementById('category-stats-period-display');
-  if (!periodTypeSelect || !periodValueInput || !display) return;
-
-  const type = periodTypeSelect.value;
-  const value = periodValueInput.value;
-
-  if (type === 'year') {
-    display.textContent = value + '年';
-  } else if (type === 'month') {
-    const match = value.match(/^(\d{4})-(\d{2})$/);
-    if (match) {
-      display.textContent = match[1] + '年' + parseInt(match[2]) + '月';
-    }
-  }
-}
-
-function triggerCategoryStatsRefresh() {
-  const categoryStatsEl = document.querySelector('[data-controller="category-stats"]');
-  if (categoryStatsEl) {
-    categoryStatsEl.dispatchEvent(new CustomEvent('category-stats:refresh'));
-  }
-}
-
-// 导出全局函数供 onclick 使用
-window.categoryStatsShiftPeriod = categoryStatsShiftPeriod;
-window.toggleCategoryStatsPeriodPicker = toggleCategoryStatsPeriodPicker;
-window.categoryStatsShiftPickerYear = categoryStatsShiftPickerYear;
-window.categoryStatsSelectPickerMonth = categoryStatsSelectPickerMonth;
-window.categoryStatsSelectPickerYear = categoryStatsSelectPickerYear;
-</script>
