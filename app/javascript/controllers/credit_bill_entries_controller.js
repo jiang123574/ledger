@@ -39,10 +39,12 @@ export default class extends Controller {
   render(entries) {
     renderEntryCards(this.containerTarget, entries, {
       onEdit: (id) => {
-        if (window.openEditTransactionModal) window.openEditTransactionModal(id)
+        const controller = this.getTransactionModalController()
+        if (controller) controller.openEditTransactionModal({ params: { id } })
       },
       onDelete: (id, name) => {
-        if (window.confirmDeleteTransaction) window.confirmDeleteTransaction(id, name)
+        const controller = this.getTransactionModalController()
+        if (controller) controller.confirmDeleteTransaction({ params: { id, name } })
       },
       emptyMessage: "该期暂无交易记录",
       dragEnabled: this.dragEnabledValue && this.accountIdValue
@@ -212,5 +214,18 @@ export default class extends Controller {
     toast.textContent = message
     document.body.appendChild(toast)
     setTimeout(() => toast.remove(), 2500)
+  }
+
+  getTransactionModalController() {
+    const element = document.querySelector('[data-controller="transaction-modal"]')
+    if (element && window.Stimulus) {
+      return window.Stimulus.getControllerForElementAndIdentifier(element, 'transaction-modal')
+    }
+    return null
+  }
+
+  filterBillEntries(event) {
+    const filter = event.params?.filter || event.currentTarget.dataset.filter || 'all'
+    this.dispatch('filter', { detail: { filter } })
   }
 }

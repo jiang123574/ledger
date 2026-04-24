@@ -18,7 +18,7 @@
         document.documentElement.setAttribute('data-theme', 'light');
       }
     </script>
-    <%= stylesheet_link_tag :application %>
+    <%= stylesheet_link_tag "application", preload_links_header: false %>
     <%= javascript_importmap_tags %>
   </head>
   <body class="h-full antialiased font-sans" style="background-color: var(--color-surface); color: var(--color-primary);">

@@ -29,6 +29,57 @@ export default class extends Controller {
     const interactiveEl = event.target.closest("button, a, input, select, textarea, label")
     if (interactiveEl) return
 
+    // 记录初始位置，用于判断是否是点击还是拖拽
+    this._pendingDragItem = item
+    this._pendingDragStartX = event.clientX
+    this._pendingDragStartY = event.clientY
+    this._pendingDragStartTime = Date.now()
+
+    // 设置延迟启动拖拽（300ms）
+    this._dragStartTimer = setTimeout(() => {
+      this._startDrag(event)
+    }, 300)
+
+    // 绑定临时监听器，用于检测提前移动或释放
+    this._boundPendingMove = this._onPendingPointerMove.bind(this)
+    this._boundPendingUp = this._onPendingPointerUp.bind(this)
+    document.addEventListener("pointermove", this._boundPendingMove, { passive: true })
+    document.addEventListener("pointerup", this._boundPendingUp)
+    document.addEventListener("pointercancel", this._boundPendingUp)
+  }
+
+  _onPendingPointerMove(event) {
+    // 如果移动超过 5px，取消延迟拖拽，当作普通点击
+    const dx = event.clientX - this._pendingDragStartX
+    const dy = event.clientY - this._pendingDragStartY
+    if (Math.abs(dx) > 5 || Math.abs(dy) > 5) {
+      this._cancelPendingDrag()
+    }
+  }
+
+  _onPendingPointerUp(event) {
+    // 在延迟期间释放，取消拖拽，触发点击
+    this._cancelPendingDrag()
+  }
+
+  _cancelPendingDrag() {
+    clearTimeout(this._dragStartTimer)
+    this._dragStartTimer = null
+    this._pendingDragItem = null
+    document.removeEventListener("pointermove", this._boundPendingMove)
+    document.removeEventListener("pointerup", this._boundPendingUp)
+    document.removeEventListener("pointercancel", this._boundPendingUp)
+  }
+
+  _startDrag(event) {
+    // 清理临时监听器
+    document.removeEventListener("pointermove", this._boundPendingMove)
+    document.removeEventListener("pointerup", this._boundPendingUp)
+    document.removeEventListener("pointercancel", this._boundPendingUp)
+
+    const item = this._pendingDragItem
+    if (!item) return
+
     // 避免选中文字
     event.preventDefault()
     item.setPointerCapture(event.pointerId)
@@ -232,7 +283,6 @@ export default class extends Controller {
       const newTxList = doc.getElementById('transaction-list')
       if (newTxList && newTxList.innerHTML) {
         txList.innerHTML = newTxList.innerHTML
-        document.querySelectorAll('#skeleton-loader').forEach(el => el.remove())
         this._rebindLoadMoreObserver()
       }
     })
@@ -260,6 +310,14 @@ export default class extends Controller {
     document.removeEventListener("pointermove", this._boundPointerMove)
     document.removeEventListener("pointerup", this._boundPointerUp)
     document.removeEventListener("pointercancel", this._boundPointerUp)
+
+    // 清理待定拖拽状态
+    clearTimeout(this._dragStartTimer)
+    if (this._boundPendingMove) document.removeEventListener("pointermove", this._boundPendingMove)
+    if (this._boundPendingUp) {
+      document.removeEventListener("pointerup", this._boundPendingUp)
+      document.removeEventListener("pointercancel", this._boundPendingUp)
+    }
 
     if (this.cloneElement) this.cloneElement.remove()
     if (this.draggedElement) this.draggedElement.classList.remove("account-drag-placeholder")

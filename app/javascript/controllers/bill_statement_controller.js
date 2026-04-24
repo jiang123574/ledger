@@ -23,12 +23,6 @@ export default class extends Controller {
     this.currentBillFilter = "all"
 
     // 供外部调用的全局引用（局部刷新后需要）
-    window.loadBillsWithCount = this.loadBillsWithCount.bind(this)
-    window.showStatementInputModal = this.showStatementInputModal.bind(this)
-    window.hideStatementInputModal = this.hideStatementInputModal.bind(this)
-    window.saveStatementAmount = this.saveStatementAmount.bind(this)
-    window.selectBill = this.selectBill.bind(this)
-    window.filterBillEntries = this.filterBillEntries.bind(this)
     window.initCreditBills = this.init.bind(this)
 
     // 确保在 connect 时初始化（不依赖 reinitializePageScripts）
@@ -40,23 +34,30 @@ export default class extends Controller {
 
   disconnect() {
     // 清理全局引用
-    window.loadBillsWithCount = undefined
-    window.showStatementInputModal = undefined
-    window.hideStatementInputModal = undefined
-    window.saveStatementAmount = undefined
-    window.selectBill = undefined
-    window.filterBillEntries = undefined
     window.initCreditBills = undefined
   }
 
   init() {
     if (!this.accountIdValue) return
-    this.loadBillsWithCount(this.currentBillCount)
+    this.loadBillsWithCount({ params: { count: this.currentBillCount } })
   }
 
   // === 账单卡片加载 ===
 
-  loadBillsWithCount(count) {
+  loadBillsWithCount(event) {
+    // 支持两种调用方式：
+    // 1. data-action 调用：event.params?.count
+    // 2. 直接调用：{ params: { count } } 或数字参数
+    let count
+    if (typeof event === 'number') {
+      count = event
+    } else if (event?.params?.count) {
+      count = event.params.count
+    } else if (event?.currentTarget?.dataset?.count) {
+      count = parseInt(event.currentTarget.dataset.count)
+    } else {
+      count = this.currentBillCount
+    }
     this.currentBillCount = count
 
     // 更新计数按钮样式

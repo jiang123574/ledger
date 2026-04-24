@@ -30,19 +30,13 @@ export default class extends Controller {
     this.dragEndHandler = this.handleDragEnd.bind(this)
     this.setupIntersectionObserver()
     this.setupDragAndDrop()
-    window.loadMoreEntries = () => {
-      if (!this.isLoading) {
-        this.loadMore()
-      }
-    }
   }
 
   setupLoadMoreButton() {
-    // Button click is handled via onclick attribute in HTML
+    // Button click is handled via data-action in HTML
   }
 
   disconnect() {
-    window.loadMoreEntries = undefined
     if (this.observer) {
       this.observer.disconnect()
     }

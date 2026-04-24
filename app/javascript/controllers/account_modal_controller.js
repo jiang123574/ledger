@@ -15,7 +15,17 @@ export default class extends Controller {
   }
 
   connect() {
-    this.typeInputTarget?.addEventListener('change', this.toggleCreditCardFields.bind(this))
+    if (this.hasTypeInputTarget) {
+      this.typeInputTarget.addEventListener('change', this.toggleCreditCardFields.bind(this))
+    }
+    // 暴露全局函数供快捷键和按钮使用
+    window.openNewAccountModal = this.openNew.bind(this)
+    window.openEditAccountModal = this.openEdit.bind(this)
+  }
+
+  disconnect() {
+    window.openNewAccountModal = undefined
+    window.openEditAccountModal = undefined
   }
 
   openNew() {
@@ -24,15 +34,26 @@ export default class extends Controller {
     this.modalTarget.classList.remove('hidden')
   }
 
-  openEdit(event) {
-    event.stopPropagation()
-    const btn = event.currentTarget
+  openEdit(btn) {
+    // 支持两种调用方式：event 或 button 元素
+    if (btn?.currentTarget) btn = btn.currentTarget
+    if (!btn?.dataset) {
+      console.error('openEdit called with invalid argument:', btn)
+      return
+    }
+    if (btn.stopPropagation) btn.stopPropagation()
+
     const id = btn.dataset.id
     const name = btn.dataset.name
     const type = btn.dataset.type
     const initialBalance = btn.dataset.initialBalance
     const includeInTotal = btn.dataset.includeInTotal
     const hidden = btn.dataset.hidden
+
+    if (!this.hasModalTarget || !this.hasTitleTarget || !this.hasFormTarget) {
+      console.error('account-modal controller targets not found')
+      return
+    }
 
     this.titleTarget.textContent = '编辑账户'
     this.formTarget.action = '/accounts/' + id
@@ -49,22 +70,24 @@ export default class extends Controller {
       this.methodInputTarget.value = 'patch'
     }
 
-    this.nameInputTarget.value = name
-    this.typeInputTarget.value = type
-    this.initialBalanceInput.value = initialBalance
-    this.includeInTotalCheckboxTarget.checked = includeInTotal == '1'
-    this.hiddenCheckboxTarget.checked = hidden == '1'
+    if (this.hasNameInputTarget) this.nameInputTarget.value = name
+    if (this.hasTypeInputTarget) this.typeInputTarget.value = type
+    if (this.hasInitialBalanceInputTarget) this.initialBalanceInputTarget.value = initialBalance
+    if (this.hasIncludeInTotalCheckboxTarget) this.includeInTotalCheckboxTarget.checked = includeInTotal == '1'
+    if (this.hasHiddenCheckboxTarget) this.hiddenCheckboxTarget.checked = hidden == '1'
 
-    this.creditLimitInputTarget.value = btn.dataset.creditLimit || ''
-    this.billingDayInputTarget.value = btn.dataset.billingDay || ''
-    this.billingDayModeInputTarget.value = btn.dataset.billingDayMode || ''
-    this.dueDayModeInputTarget.value = btn.dataset.dueDayMode || ''
-    this.dueDayInputTarget.value = btn.dataset.dueDay || ''
-    this.dueDayOffsetInputTarget.value = btn.dataset.dueDayOffset || ''
+    if (this.hasCreditLimitInputTarget) this.creditLimitInputTarget.value = btn.dataset.creditLimit || ''
+    if (this.hasBillingDayInputTarget) this.billingDayInputTarget.value = btn.dataset.billingDay || ''
+    if (this.hasBillingDayModeInputTarget) this.billingDayModeInputTarget.value = btn.dataset.billingDayMode || ''
+    if (this.hasDueDayModeInputTarget) this.dueDayModeInputTarget.value = btn.dataset.dueDayMode || ''
+    if (this.hasDueDayInputTarget) this.dueDayInputTarget.value = btn.dataset.dueDay || ''
+    if (this.hasDueDayOffsetInputTarget) this.dueDayOffsetInputTarget.value = btn.dataset.dueDayOffset || ''
 
     this.toggleCreditCardFields()
 
-    this.deleteBtnContainerTarget.innerHTML = `<button type="button" data-action="click->account-modal#confirmDelete" data-id="${id}" data-name="${name}" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-smooth">删除账户</button>`
+    if (this.hasDeleteBtnContainerTarget) {
+      this.deleteBtnContainerTarget.innerHTML = `<button type="button" data-action="click->account-modal#confirmDelete" data-id="${id}" data-name="${name}" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-red-300 text-red-600 dark:border-red-700 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-smooth">删除账户</button>`
+    }
 
     this.modalTarget.classList.remove('hidden')
   }
@@ -75,37 +98,41 @@ export default class extends Controller {
   }
 
   resetForm() {
-    this.titleTarget.textContent = '新建账户'
-    this.formTarget.action = '/accounts'
-    this.formTarget.method = 'post'
+    if (this.hasTitleTarget) this.titleTarget.textContent = '新建账户'
+    if (this.hasFormTarget) {
+      this.formTarget.action = '/accounts'
+      this.formTarget.method = 'post'
+    }
 
     if (this.hasMethodInputTarget) {
       this.methodInputTarget.remove()
     }
 
-    this.nameInputTarget.value = ''
-    this.typeInputTarget.value = ''
-    this.initialBalanceInputTarget.value = ''
-    this.includeInTotalCheckboxTarget.checked = true
-    this.hiddenCheckboxTarget.checked = false
-    this.deleteBtnContainerTarget.innerHTML = ''
+    if (this.hasNameInputTarget) this.nameInputTarget.value = ''
+    if (this.hasTypeInputTarget) this.typeInputTarget.value = ''
+    if (this.hasInitialBalanceInputTarget) this.initialBalanceInputTarget.value = ''
+    if (this.hasIncludeInTotalCheckboxTarget) this.includeInTotalCheckboxTarget.checked = true
+    if (this.hasHiddenCheckboxTarget) this.hiddenCheckboxTarget.checked = false
+    if (this.hasDeleteBtnContainerTarget) this.deleteBtnContainerTarget.innerHTML = ''
 
-    this.creditLimitInputTarget.value = ''
-    this.billingDayInputTarget.value = ''
-    this.billingDayModeInputTarget.value = ''
-    this.dueDayModeInputTarget.value = ''
-    this.dueDayInputTarget.value = ''
-    this.dueDayOffsetInputTarget.value = ''
+    if (this.hasCreditLimitInputTarget) this.creditLimitInputTarget.value = ''
+    if (this.hasBillingDayInputTarget) this.billingDayInputTarget.value = ''
+    if (this.hasBillingDayModeInputTarget) this.billingDayModeInputTarget.value = ''
+    if (this.hasDueDayModeInputTarget) this.dueDayModeInputTarget.value = ''
+    if (this.hasDueDayInputTarget) this.dueDayInputTarget.value = ''
+    if (this.hasDueDayOffsetInputTarget) this.dueDayOffsetInputTarget.value = ''
 
     this.toggleCreditCardFields()
   }
 
   toggleCreditCardFields() {
-    const type = this.typeInputTarget?.value
-    if (type === 'CREDIT') {
-      this.creditCardFieldsTarget.classList.remove('hidden')
-    } else {
-      this.creditCardFieldsTarget.classList.add('hidden')
+    const type = this.hasTypeInputTarget ? this.typeInputTarget.value : ''
+    if (this.hasCreditCardFieldsTarget) {
+      if (type === 'CREDIT') {
+        this.creditCardFieldsTarget.classList.remove('hidden')
+      } else {
+        this.creditCardFieldsTarget.classList.add('hidden')
+      }
     }
   }
 

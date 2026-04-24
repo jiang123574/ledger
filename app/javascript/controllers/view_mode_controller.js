@@ -1,10 +1,7 @@
 import { Controller } from "@hotwired/stimulus"
 
 export default class extends Controller {
-  static targets = [
-    "billWrapper", "transactionList", "summaryBar", "filterBar",
-    "dateBtn", "billBtn"
-  ]
+  static targets = ["dateBtn", "billBtn"]
 
   static values = {
     mode: { type: String, default: "date" }
@@ -21,31 +18,45 @@ export default class extends Controller {
     this.modeValue = mode
     this.updateUI()
     this.updateURL()
-    
+
     if (mode === "bill" && window.initCreditBills) {
       window.initCreditBills()
     }
   }
 
   updateUI() {
+    // 这些元素不在 controller 元素内部，需要用 document.getElementById 查找
+    const billWrapper = document.getElementById('credit-bill-wrapper')
+    const transactionList = document.getElementById('transaction-list')
+    const summaryBar = document.getElementById('summary-bar')
+    const filterBar = document.getElementById('filter-bar')
+
     if (this.modeValue === "bill") {
-      this.billWrapperTarget?.classList.remove("hidden")
-      this.transactionListTarget?.classList.add("hidden")
-      this.summaryBarTarget?.classList.add("hidden")
-      this.filterBarTarget?.classList.add("hidden")
-      this.dateBtnTarget?.classList.remove("bg-blue-500", "text-white", "font-medium", "shadow-xs")
-      this.dateBtnTarget?.classList.add("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
-      this.billBtnTarget?.classList.add("bg-blue-500", "text-white", "font-medium", "shadow-xs")
-      this.billBtnTarget?.classList.remove("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
+      if (billWrapper) billWrapper.classList.remove("hidden")
+      if (transactionList) transactionList.classList.add("hidden")
+      if (summaryBar) summaryBar.classList.add("hidden")
+      if (filterBar) filterBar.classList.add("hidden")
+      if (this.hasDateBtnTarget) {
+        this.dateBtnTarget.classList.remove("bg-blue-500", "text-white", "font-medium", "shadow-xs")
+        this.dateBtnTarget.classList.add("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
+      }
+      if (this.hasBillBtnTarget) {
+        this.billBtnTarget.classList.add("bg-blue-500", "text-white", "font-medium", "shadow-xs")
+        this.billBtnTarget.classList.remove("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
+      }
     } else {
-      this.billWrapperTarget?.classList.add("hidden")
-      this.transactionListTarget?.classList.remove("hidden")
-      this.summaryBarTarget?.classList.remove("hidden")
-      this.filterBarTarget?.classList.remove("hidden")
-      this.dateBtnTarget?.classList.add("bg-blue-500", "text-white", "font-medium", "shadow-xs")
-      this.dateBtnTarget?.classList.remove("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
-      this.billBtnTarget?.classList.remove("bg-blue-500", "text-white", "font-medium", "shadow-xs")
-      this.billBtnTarget?.classList.add("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
+      if (billWrapper) billWrapper.classList.add("hidden")
+      if (transactionList) transactionList.classList.remove("hidden")
+      if (summaryBar) summaryBar.classList.remove("hidden")
+      if (filterBar) filterBar.classList.remove("hidden")
+      if (this.hasDateBtnTarget) {
+        this.dateBtnTarget.classList.add("bg-blue-500", "text-white", "font-medium", "shadow-xs")
+        this.dateBtnTarget.classList.remove("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
+      }
+      if (this.hasBillBtnTarget) {
+        this.billBtnTarget.classList.remove("bg-blue-500", "text-white", "font-medium", "shadow-xs")
+        this.billBtnTarget.classList.add("text-secondary", "dark:text-secondary-dark", "hover:bg-surface-hover")
+      }
     }
   }
 

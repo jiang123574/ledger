@@ -399,10 +399,11 @@
       <% expense_filter_active_ids = @filter_categories[:expense].map { |c| c[:id].to_s } %>
       <!-- 筛选按钮 -->
       <div class="relative mb-4">
-        <button type="button" id="open-expense-filter" data-action="click->category-filter#open" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+        <button type="button" id="open-expense-filter" data-action="click->category-filter#open"
+                class="h-9 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-          筛选分类
-          <span id="expense-filter-count" data-category-filter-target="countBadge" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= expense_filter_active_ids.size %></span>
+          分类筛选
+          <span id="expense-filter-count" data-category-filter-target="countBadge" class="px-1.5 py-0.5 text-xs rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"><%= expense_filter_active_ids.size %></span>
         </button>
         <div class="hidden" data-filter-group="expense">
           <% expense_filter_active_ids.each do |id| %>
@@ -463,10 +464,11 @@
       <% income_filter_active_ids = @filter_categories[:income].map { |c| c[:id].to_s } %>
       <!-- 筛选按钮 -->
       <div class="relative mb-4">
-        <button type="button" id="open-income-filter" data-action="click->category-filter#open" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+        <button type="button" id="open-income-filter" data-action="click->category-filter#open"
+                class="h-9 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-          筛选分类
-          <span id="income-filter-count" data-category-filter-target="countBadge" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= income_filter_active_ids.size %></span>
+          分类筛选
+          <span id="income-filter-count" data-category-filter-target="countBadge" class="px-1.5 py-0.5 text-xs rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"><%= income_filter_active_ids.size %></span>
         </button>
         <div class="hidden" data-filter-group="income">
           <% income_filter_active_ids.each do |id| %>
@@ -588,10 +590,11 @@
       <% comparison_cat_ids = @category_monthly_comparison[:categories].keys.map(&:to_s) %>
       <!-- 筛选按钮 -->
       <div class="relative mb-4">
-        <button type="button" id="open-comparison-filter" data-action="click->category-filter#open" class="inline-flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
+        <button type="button" id="open-comparison-filter" data-action="click->category-filter#open"
+                class="h-9 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-          筛选分类
-          <span id="comparison-filter-count" data-category-filter-target="countBadge" class="ml-0.5 px-1.5 py-0.5 text-xs rounded-full bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark"><%= comparison_cat_ids.size %></span>
+          分类筛选
+          <span id="comparison-filter-count" data-category-filter-target="countBadge" class="px-1.5 py-0.5 text-xs rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"><%= comparison_cat_ids.size %></span>
         </button>
         <div class="hidden" data-filter-group="comparison">
           <% comparison_cat_ids.each do |id| %>
