@@ -232,7 +232,7 @@ export default class extends Controller {
       const newTxList = doc.getElementById('transaction-list')
       if (newTxList && newTxList.innerHTML) {
         txList.innerHTML = newTxList.innerHTML
-        // 重新绑定 IntersectionObserver（用于滚动加载更多）
+        document.querySelectorAll('#skeleton-loader').forEach(el => el.remove())
         this._rebindLoadMoreObserver()
       }
     })
