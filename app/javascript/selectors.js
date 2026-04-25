@@ -20,6 +20,7 @@ function initSelectorWithData(config) {
   var optionsContainer = document.getElementById(config.optionsId);
   var hiddenInput = document.getElementById(config.hiddenInputId);
   var dataSource = config.dataSource || [];
+  var onSelect = config.onSelect;  // 选择后的回调函数
 
   if (!searchInput || !dropdown || !optionsContainer) return;
 
@@ -90,6 +91,14 @@ function initSelectorWithData(config) {
         searchInput.value = this.dataset.display || '';
         if (filterInput) filterInput.value = '';
         dropdown.classList.add('hidden');
+        // 调用回调，传递选中的 value 和原始数据项
+        if (onSelect) {
+          var selectedValue = this.dataset.value || '';
+          var selectedItem = dataSource.find(function(item) {
+            return String(item[valueKey]) === selectedValue;
+          });
+          onSelect(selectedValue, selectedItem);
+        }
       });
     });
   }
