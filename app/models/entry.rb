@@ -15,6 +15,9 @@ class Entry < ApplicationRecord
   after_update :log_update_activity
   after_destroy :log_destroy_activity
 
+  # 预算统计更新 - 交易创建或删除后自动更新相关预算
+  after_commit :update_budget_statistics, on: %i[create destroy]
+
   delegated_type :entryable, types: Entryable::TYPES, dependent: :destroy
   accepts_nested_attributes_for :entryable, update_only: true
 
@@ -387,6 +390,15 @@ class Entry < ApplicationRecord
 
   def transfer_accounts_cache
     @transfer_accounts_cache ||= {}
+  end
+
+  def update_budget_statistics
+    return unless transaction?
+    return unless entryable.kind == "expense"
+    return unless entryable.category_id.present?
+    return if transfer_id.present?
+
+    BudgetItem.refresh_for_category(entryable.category_id)
   end
 
   def log_create_activity

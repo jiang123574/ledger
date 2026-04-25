@@ -87,7 +87,7 @@ class Category < ApplicationRecord
     return [] if category_ids.blank?
     return [] if category_ids.all?(&:blank?)
 
-    ids = category_ids.compact_blank
+    ids = category_ids.compact_blank.map(&:to_i).select { |id| id > 0 }
     return [] if ids.empty?
 
     sql = <<~SQL
@@ -98,6 +98,27 @@ class Category < ApplicationRecord
         INNER JOIN cat_tree ct ON c.parent_id = ct.id
       )
       SELECT id FROM cat_tree
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
+  end
+
+  # 类方法：给定一批 category IDs，获取它们及其所有祖先的 IDs（单次递归 CTE 查询）
+  def self.ancestor_ids_for(category_ids)
+    return [] if category_ids.blank?
+    return [] if category_ids.all?(&:blank?)
+
+    ids = category_ids.compact_blank.map(&:to_i).select { |id| id > 0 }
+    return [] if ids.empty?
+
+    sql = <<~SQL
+      WITH RECURSIVE cat_tree AS (
+        SELECT id, parent_id FROM categories WHERE id IN (#{ids.join(',')})
+        UNION
+        SELECT c.id, c.parent_id FROM categories c
+        INNER JOIN cat_tree ct ON c.id = ct.parent_id
+      )
+      SELECT id FROM cat_tree WHERE id NOT IN (#{ids.join(',')})
     SQL
 
     ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
