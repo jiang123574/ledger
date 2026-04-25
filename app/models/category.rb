@@ -103,6 +103,27 @@ class Category < ApplicationRecord
     ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
   end
 
+  # 类方法：给定一批 category IDs，获取它们及其所有祖先的 IDs（单次递归 CTE 查询）
+  def self.ancestor_ids_for(category_ids)
+    return [] if category_ids.blank?
+    return [] if category_ids.all?(&:blank?)
+
+    ids = category_ids.compact_blank
+    return [] if ids.empty?
+
+    sql = <<~SQL
+      WITH RECURSIVE cat_tree AS (
+        SELECT id, parent_id FROM categories WHERE id IN (#{ids.join(',')})
+        UNION
+        SELECT c.id, c.parent_id FROM categories c
+        INNER JOIN cat_tree ct ON c.id = ct.parent_id
+      )
+      SELECT id FROM cat_tree WHERE id NOT IN (#{ids.join(',')})
+    SQL
+
+    ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
+  end
+
   # 交易统计
   def transactions_count
     @transactions_count ||= entries.count

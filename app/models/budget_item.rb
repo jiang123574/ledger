@@ -38,6 +38,7 @@ class BudgetItem < ApplicationRecord
     end_date = single_budget.end_date || Date.current
 
     category_ids = Category.descendant_ids_for([ category.id ])
+    category_ids << category.id
 
     net_spent = Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
       .where(entryable_type: "Entryable::Transaction")
@@ -47,5 +48,24 @@ class BudgetItem < ApplicationRecord
       .abs
 
     update(spent_amount: net_spent)
+  end
+
+  class << self
+    def refresh_for_category(category_id)
+      return if category_id.blank?
+
+      all_related_ids = [ category_id ] + Category.ancestor_ids_for([ category_id ]) + Category.descendant_ids_for([ category_id ])
+
+      affected_items = BudgetItem.joins(:single_budget)
+        .where(category_id: all_related_ids)
+        .where(single_budgets: { status: %w[active planning] })
+
+      affected_items.each(&:recalculate_spent_amount)
+
+      affected_single_budget_ids = affected_items.pluck(:single_budget_id).uniq
+      SingleBudget.where(id: affected_single_budget_ids).each(&:recalculate_spent_amount)
+
+      CacheBuster.bump(:budgets)
+    end
   end
 end

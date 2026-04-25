@@ -132,6 +132,11 @@ class TransactionsController < ApplicationController
   def update_entry
     attrs = transaction_params
 
+    old_category_id = nil
+    if @entry.entryable.is_a?(Entryable::Transaction) && attrs[:category_id].present?
+      old_category_id = @entry.entryable.category_id
+    end
+
     @entry.date = attrs[:date] if attrs[:date].present?
     @entry.name = attrs[:note] if attrs[:note].present?
     @entry.notes = attrs[:note] if attrs[:note].present?
@@ -202,6 +207,11 @@ class TransactionsController < ApplicationController
       end
 
       @entry.save!
+    end
+
+    if old_category_id.present? && old_category_id.to_s != attrs[:category_id].to_s
+      BudgetItem.refresh_for_category(old_category_id)
+      BudgetItem.refresh_for_category(attrs[:category_id])
     end
   end
 
