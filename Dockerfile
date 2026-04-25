@@ -104,7 +104,7 @@ RUN rm -rf .git .github .vscode .idea && \
     rm -rf bin/dev bin/setup && \
     rm -rf script/ && \
     rm -rf node_modules && \
-    find lib/tasks -name "*.rake" ! -name "import_pixiu.rake" -delete && \
+    find lib/tasks -name "*.rake" ! -name "import_pixiu.rake" ! -name "budgets.rake" -delete && \
     find . -name "*.swp" -delete && \
     find . -name "*.swo" -delete && \
     find . -name "*~" -delete && \
