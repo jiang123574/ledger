@@ -699,11 +699,7 @@
           <div id="category-field-wrapper" data-transaction-modal-target="categoryFieldWrapper">
             <div class="flex items-center justify-between mb-1.5">
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark" id="category-field-label">分类 *</label>
-              <div class="flex items-center gap-2">
-                <button type="button" id="toggle-type-income" data-action="click->transaction-modal#toggleTypeToIncome" class="text-xs px-2 py-0.5 rounded transition-smooth text-secondary dark:text-secondary-dark hover:bg-surface-hover">收入</button>
-                <button type="button" id="toggle-type-expense" data-action="click->transaction-modal#toggleTypeToExpense" class="text-xs px-2 py-0.5 rounded transition-smooth bg-expense/10 text-expense font-medium">支出</button>
-                <button type="button" id="toggle-transfer-btn" data-action="click->transaction-modal#toggleTransferMode" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
-              </div>
+              <button type="button" id="toggle-transfer-btn" data-action="click->transaction-modal#toggleTransferMode" class="text-xs text-blue-600 dark:text-blue-400 hover:underline">转账</button>
             </div>
             <input type="hidden" name="transaction[category_id]" id="new_transaction_category_id" value="">
             <div class="relative">
@@ -765,7 +761,7 @@
           <!-- 3. 账户（收支模式） -->
           <div id="account-field-wrapper" data-transaction-modal-target="accountFieldWrapper">
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
-            <input type="hidden" name="transaction[account_id_income]" id="transaction_account_id_income" value="">
+            <input type="hidden" name="transaction[account_id]" id="transaction_account_id_income" value="">
             <div class="relative">
               <input type="text" id="account-search-input-income" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer" placeholder="选择账户" autocomplete="off" readonly>
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>

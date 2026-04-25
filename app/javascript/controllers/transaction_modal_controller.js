@@ -14,7 +14,6 @@ export default class extends Controller {
     "transferTargetDropdown", "transferTargetFilterInput", "transferTargetOptions",
     "fundingAccountField", "fundingAccountHidden", "fundingAccountSearchInput",
     "fundingAccountDropdown", "fundingAccountFilterInput", "fundingAccountOptions",
-    "typeToggleIncome", "typeToggleExpense", "typeToggleTransfer",
     "typeHiddenInput", "amountInput", "dateInput", "noteInput"
   ]
 
@@ -37,6 +36,22 @@ export default class extends Controller {
 
     this.initNewModalSelectors()
     this.initFundingAccountSelector()
+    this.setupFormSubmitSync()
+  }
+
+  setupFormSubmitSync() {
+    const form = document.querySelector('#add-transaction-modal form')
+    if (!form) return
+    form.addEventListener('submit', (e) => {
+      // 收支模式下，同步 account_id_income 到 account_id
+      if (this.transactionMode === 'category') {
+        const incomeHidden = document.getElementById('transaction_account_id_income')
+        const accountHidden = document.getElementById('transaction_account_id')
+        if (incomeHidden && accountHidden) {
+          accountHidden.value = incomeHidden.value
+        }
+      }
+    })
   }
 
   disconnect() {
@@ -148,17 +163,28 @@ export default class extends Controller {
   }
 
   initCategorySelector() {
-    const filtered = this.getFilteredCategories()
     initSelectorWithData({
       searchInputId: 'category-search-input',
       dropdownId: 'category-dropdown',
       filterInputId: 'category-filter-input',
       optionsId: 'category-options',
       hiddenInputId: 'new_transaction_category_id',
-      dataSource: filtered,
+      dataSource: this.allCategories,  // 显示所有分类
       noMatchText: '无匹配分类',
-      enableLevelIndent: true
-    })
+      enableLevelIndent: true,
+      onSelect: (value, item) => {
+        if (item && item.type) {
+          this.currentType = item.type;
+          const typeInput = document.getElementById('transaction-type-input');
+          if (typeInput) typeInput.value = item.type;
+          // funding-account-field 只在支出时显示
+          const fundingField = document.getElementById('funding-account-field');
+          if (fundingField) {
+            fundingField.classList.toggle('hidden', item.type !== 'EXPENSE');
+          }
+        }
+      }
+    });
   }
 
   initAccountSelector() {
@@ -209,10 +235,7 @@ export default class extends Controller {
   }
 
   getFilteredCategories() {
-    if (this.currentType === 'INCOME') {
-      return this.allCategories.filter(c => c.type === 'INCOME')
-    }
-    return this.allCategories.filter(c => c.type === 'EXPENSE')
+    return this.allCategories  // 显示所有分类，不再过滤
   }
 
   toggleTransferMode() {
@@ -288,53 +311,6 @@ export default class extends Controller {
       if (hiddenInput) hiddenInput.value = account.id
       if (searchInput) searchInput.value = account.name
     }
-  }
-
-  toggleTypeToIncome() {
-    this.currentType = 'INCOME'
-    const typeInput = document.getElementById('transaction-type-input')
-    if (typeInput) typeInput.value = 'INCOME'
-    this.updateTypeToggleUI()
-    this.initCategorySelector()
-    const fundingField = document.getElementById('funding-account-field')
-    if (fundingField) fundingField.classList.add('hidden')
-    this.clearCategorySelection()
-  }
-
-  toggleTypeToExpense() {
-    this.currentType = 'EXPENSE'
-    const typeInput = document.getElementById('transaction-type-input')
-    if (typeInput) typeInput.value = 'EXPENSE'
-    this.updateTypeToggleUI()
-    this.initCategorySelector()
-    const fundingField = document.getElementById('funding-account-field')
-    if (fundingField) fundingField.classList.remove('hidden')
-    this.clearCategorySelection()
-  }
-
-  updateTypeToggleUI() {
-    const incomeBtn = document.getElementById('toggle-type-income')
-    const expenseBtn = document.getElementById('toggle-type-expense')
-    if (incomeBtn && expenseBtn) {
-      if (this.currentType === 'INCOME') {
-        incomeBtn.classList.add('bg-income/10', 'text-income', 'font-medium')
-        incomeBtn.classList.remove('text-secondary', 'hover:bg-surface-hover')
-        expenseBtn.classList.remove('bg-expense/10', 'text-expense', 'font-medium')
-        expenseBtn.classList.add('text-secondary', 'hover:bg-surface-hover')
-      } else {
-        expenseBtn.classList.add('bg-expense/10', 'text-expense', 'font-medium')
-        expenseBtn.classList.remove('text-secondary', 'hover:bg-surface-hover')
-        incomeBtn.classList.remove('bg-income/10', 'text-income', 'font-medium')
-        incomeBtn.classList.add('text-secondary', 'hover:bg-surface-hover')
-      }
-    }
-  }
-
-  clearCategorySelection() {
-    const hiddenInput = document.getElementById('new_transaction_category_id')
-    const searchInput = document.getElementById('category-search-input')
-    if (hiddenInput) hiddenInput.value = ''
-    if (searchInput) searchInput.value = ''
   }
 
   closeNewModal() {
