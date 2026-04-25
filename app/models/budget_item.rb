@@ -37,8 +37,7 @@ class BudgetItem < ApplicationRecord
     start_date = single_budget.start_date
     end_date = single_budget.end_date || Date.current
 
-    category_ids = Category.descendant_ids_for([ category.id ])
-    category_ids << category.id
+    category_ids = Category.descendant_ids_for([ category.id ]) | [ category.id ]
 
     net_spent = Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
       .where(entryable_type: "Entryable::Transaction")
@@ -54,7 +53,7 @@ class BudgetItem < ApplicationRecord
     def refresh_for_category(category_id)
       return if category_id.blank?
 
-      all_related_ids = [ category_id ] + Category.ancestor_ids_for([ category_id ]) + Category.descendant_ids_for([ category_id ])
+      all_related_ids = ([ category_id ] + Category.ancestor_ids_for([ category_id ]) + Category.descendant_ids_for([ category_id ])).uniq
 
       affected_items = BudgetItem.joins(:single_budget)
         .where(category_id: all_related_ids)

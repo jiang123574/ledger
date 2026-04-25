@@ -209,7 +209,7 @@ class TransactionsController < ApplicationController
       @entry.save!
     end
 
-    if old_category_id.present? && old_category_id.to_s != attrs[:category_id].to_s
+    if old_category_id.present? && old_category_id.to_i != attrs[:category_id].to_i
       BudgetItem.refresh_for_category(old_category_id)
       BudgetItem.refresh_for_category(attrs[:category_id])
     end

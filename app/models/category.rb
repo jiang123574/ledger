@@ -87,7 +87,7 @@ class Category < ApplicationRecord
     return [] if category_ids.blank?
     return [] if category_ids.all?(&:blank?)
 
-    ids = category_ids.compact_blank
+    ids = category_ids.compact_blank.map(&:to_i).select { |id| id > 0 }
     return [] if ids.empty?
 
     sql = <<~SQL
@@ -108,7 +108,7 @@ class Category < ApplicationRecord
     return [] if category_ids.blank?
     return [] if category_ids.all?(&:blank?)
 
-    ids = category_ids.compact_blank
+    ids = category_ids.compact_blank.map(&:to_i).select { |id| id > 0 }
     return [] if ids.empty?
 
     sql = <<~SQL
