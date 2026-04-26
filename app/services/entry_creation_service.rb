@@ -84,7 +84,6 @@ class EntryCreationService
     source_account = Account.find(funding_account_id)
     destination_account = Account.find(destination_account_id)
 
-    transfer_out = nil
     transfer_in = nil
     expense_entry = nil
 
@@ -103,7 +102,7 @@ class EntryCreationService
       sort_order_in = next_sort_order(destination_account.id, date)
 
       # 资金来源转账：转出
-      transfer_out = Entry.create!(
+      Entry.create!(
         account_id: source_account.id,
         date: date,
         name: transfer_note,

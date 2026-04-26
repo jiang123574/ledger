@@ -76,7 +76,6 @@ module EntryableActions
   def entry_to_render_data(entry)
     entry_type = entry.display_entry_type
     is_transfer = entry_type == "TRANSFER"
-    current_account_filter = params[:account_id].to_s
     is_inflow = is_transfer && entry.amount.positive?
     flow_type = entry.display_flow_type
 

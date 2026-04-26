@@ -369,7 +369,6 @@ export default class extends Controller {
         return response.json()
       })
       .then(data => {
-        console.log('submitAndContinue response:', data)
         if (data.success) {
           this.showSuccessToast(data.message || '交易已创建，请继续录入')
           const amountInput = form.querySelector('input[name="transaction[amount]"]')
@@ -378,14 +377,9 @@ export default class extends Controller {
           if (noteInput) noteInput.value = ''
           // 如果返回了 entry 数据，插入到列表顶部
           if (data.entry) {
-            console.log('calling insertEntryToList with data.entry:', data.entry)
             this.insertEntryToList(data.entry)
           } else if (data.entries && data.entries.length > 0) {
-            // 多条 entry（带资金来源转账场景）
-            console.log('calling insertEntriesToList with data.entries:', data.entries)
             this.insertEntriesToList(data.entries)
-          } else {
-            console.log('no entry in response data')
           }
         } else {
           this.showErrorToast(data.error || '保存失败')
@@ -426,12 +420,9 @@ export default class extends Controller {
   }
 
   insertEntryToList(entry) {
-    console.log('insertEntryToList called with entry:', entry)
     const container = document.querySelector('#transactions-container')
-    console.log('container found:', container)
     if (!container || !entry) return
 
-    // 使用 entry_card_renderer 创建卡片
     const cardFragment = createEntryCard(entry, {
       onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
       onDelete: (id, name) => {
@@ -441,9 +432,7 @@ export default class extends Controller {
         }
       }
     })
-    console.log('cardFragment created:', cardFragment)
 
-    // 插入到列表顶部
     container.insertBefore(cardFragment, container.firstChild)
 
     // 添加高亮动画效果
