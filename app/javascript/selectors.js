@@ -109,11 +109,51 @@ function initSelectorWithData(config) {
     bindOptionEvents();
   }
 
-  searchInput.addEventListener('click', function() {
+  var focusOpenedAt = 0; // 记录 focus 打开的时间
+  var isOpening = false; // 标记正在打开中
+
+  // 焦点进入自动打开下拉并激活搜索
+  searchInput.addEventListener('focus', function() {
+    if (dropdown.classList.contains('hidden')) {
+      isOpening = true;
+      dropdown.classList.remove('hidden');
+      updateOptions();
+      focusOpenedAt = Date.now();
+      if (filterInput) filterInput.focus();
+      // 延迟重置标记，确保 click 事件已处理
+      setTimeout(function() { isOpening = false; }, 150);
+    }
+  });
+
+  // 点击 toggle 下拉（但防止 focus 刚打开后立即关闭）
+  searchInput.addEventListener('click', function(e) {
+    // 如果 focus 刚打开下拉（< 100ms），跳过这次 click
+    if (focusOpenedAt > 0 && Date.now() - focusOpenedAt < 100) {
+      focusOpenedAt = 0;
+      return;
+    }
     dropdown.classList.toggle('hidden');
     if (!dropdown.classList.contains('hidden')) {
       updateOptions();
       if (filterInput) filterInput.focus();
+    }
+  });
+
+  // 键盘输入直接激活搜索
+  searchInput.addEventListener('keydown', function(e) {
+    // 忽略功能键（Tab、Enter、Esc、方向键等）
+    if (e.key.length > 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // 如果下拉未打开，打开并将按键传递到搜索框
+    if (dropdown.classList.contains('hidden')) {
+      dropdown.classList.remove('hidden');
+      updateOptions();
+      if (filterInput) {
+        filterInput.focus();
+        filterInput.value = e.key;
+        updateOptions(); // 立即筛选
+      }
+      e.preventDefault();
     }
   });
 
@@ -131,6 +171,8 @@ function initSelectorWithData(config) {
   }
 
   document.addEventListener('click', function(e) {
+    // 如果正在打开中，跳过关闭检查
+    if (isOpening) return;
     if (!dropdown.contains(e.target) && e.target !== searchInput) {
       dropdown.classList.add('hidden');
     }
