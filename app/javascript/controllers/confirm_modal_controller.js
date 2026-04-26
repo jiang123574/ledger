@@ -11,7 +11,7 @@ export default class extends Controller {
     content: String,
     confirmText: { type: String, default: "确认" },
     cancelText: { type: String, default: "取消" },
-    confirmClass: { type: String, default: "bg-gray-800 text-white hover:bg-gray-700" },
+    confirmClass: { type: String, default: "bg-expense text-white hover:bg-expense-dark" },
     danger: { type: Boolean, default: false }
   }
 
