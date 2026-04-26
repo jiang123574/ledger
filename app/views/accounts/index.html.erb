@@ -820,6 +820,27 @@
   </div>
 </div>
 
+<!-- 删除确认弹窗 -->
+<div id="delete-confirm-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" data-controller="transaction-modal">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" data-action="click->transaction-modal#closeDeleteModal"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-sm p-5 z-10">
+      <div class="flex items-center justify-between mb-4">
+        <h3 class="text-lg font-semibold text-primary dark:text-primary-dark">确认删除</h3>
+        <button type="button" data-action="click->transaction-modal#closeDeleteModal" class="inline-flex items-center justify-center p-2 hover:bg-surface-hover dark:hover:bg-surface-dark-hover rounded-lg transition-smooth">
+          <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <p class="text-sm text-secondary dark:text-secondary-dark mb-6">确定删除 <span id="delete-entry-name" class="font-medium text-primary dark:text-primary-dark"></span> 吗？此操作不可撤销。</p>
+      <input type="hidden" id="delete-entry-id" value="">
+      <div class="flex justify-end gap-3">
+        <button type="button" data-action="click->transaction-modal#closeDeleteModal" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
+        <button type="button" data-action="click->transaction-modal#executeDelete" class="px-4 py-2 text-sm font-medium rounded-lg bg-expense text-white hover:bg-expense-hover transition-smooth">删除</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <%= render 'shared/receivable_form_modal', counterparties: @counterparties %>
 
 <!-- 报销应收款弹窗 -->

@@ -115,7 +115,28 @@ export default class extends Controller {
   confirmDeleteTransaction(event) {
     const id = event.params?.id || event.currentTarget.dataset.id
     const name = event.params?.name || event.currentTarget.dataset.name || '这笔交易'
-    if (!window.confirm(`确定删除${name}吗？`)) return
+
+    // 显示删除确认弹窗
+    const modal = document.getElementById('delete-confirm-modal')
+    const nameEl = document.getElementById('delete-entry-name')
+    const idEl = document.getElementById('delete-entry-id')
+
+    if (modal && nameEl && idEl) {
+      nameEl.textContent = name
+      idEl.value = id
+      modal.classList.remove('hidden')
+    }
+  }
+
+  closeDeleteModal() {
+    const modal = document.getElementById('delete-confirm-modal')
+    if (modal) modal.classList.add('hidden')
+  }
+
+  executeDelete() {
+    const idEl = document.getElementById('delete-entry-id')
+    const id = idEl?.value
+    if (!id) return
 
     const form = document.createElement('form')
     form.method = 'POST'
@@ -145,6 +166,7 @@ export default class extends Controller {
       form.appendChild(input)
     })
 
+    this.closeDeleteModal()
     document.body.appendChild(form)
     form.submit()
   }
