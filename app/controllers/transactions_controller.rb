@@ -52,7 +52,10 @@ class TransactionsController < ApplicationController
   def destroy
     @entry&.destroy
     expire_entries_cache
-    redirect_to accounts_path(filter_params), notice: "交易已删除"
+    respond_to do |format|
+      format.html { redirect_to accounts_path(filter_params), notice: "交易已删除" }
+      format.json { render json: { success: true, message: "交易已删除" } }
+    end
   end
 
   def bulk_destroy
