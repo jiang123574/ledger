@@ -1,5 +1,6 @@
 class Payable < ApplicationRecord
   include ProgressCalculable
+  include Settlementable
 
   serialize :settlement_transfer_ids, coder: YAML
 
@@ -46,9 +47,7 @@ class Payable < ApplicationRecord
     source_entry&.date || date
   end
 
-  def settled?
-    settled_at.present? || remaining_amount.to_d <= 0
-  end
+  # settled? 由 Settlementable concern 提供
 
   def status
     return "已完成" if settled?

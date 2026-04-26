@@ -91,6 +91,26 @@ class Entry < ApplicationRecord
       .where(entryable_transactions: { kind: "income" })
   }
 
+  # 月度统计 scope - 用于报表和仪表盘
+  scope :group_by_month, -> {
+    group(Arel.sql("date_trunc('month', entries.date)"))
+  }
+
+  scope :select_month_stats, -> {
+    select(Arel.sql("date_trunc('month', entries.date) as month_date, SUM(amount) as total"))
+  }
+
+  # 按月份和类型分组统计
+  scope :monthly_stats_by_kind, -> {
+    with_entryable_transaction
+      .group(Arel.sql("date_trunc('month', entries.date)"), "entryable_transactions.kind")
+      .select(Arel.sql("
+        date_trunc('month', entries.date) as month_date,
+        entryable_transactions.kind as kind,
+        SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END) as total
+      "))
+  }
+
   def transaction?
     entryable_type == "Entryable::Transaction"
   end

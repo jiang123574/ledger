@@ -1,5 +1,6 @@
 class Receivable < ApplicationRecord
   include ProgressCalculable
+  include Settlementable
 
   serialize :reimbursement_transfer_ids, coder: YAML
 
@@ -38,9 +39,7 @@ class Receivable < ApplicationRecord
     original_amount.to_d - remaining_amount.to_d
   end
 
-  def settled?
-    settled_at.present? || remaining_amount.to_d <= 0
-  end
+  # settled? 由 Settlementable concern 提供
 
   def source_transaction_or_entry
     source_entry

@@ -61,14 +61,28 @@ class Category < ApplicationRecord
     parent ? "#{parent.full_name(separator: separator)}#{separator}#{name}" : name
   end
 
-  # 所有祖先
+  # 所有祖先（使用 CTE 批量查询，避免递归 N+1）
+  # 返回顺序：从父分类向上到根分类
   def ancestors
-    parent ? [ parent ] + parent.ancestors : []
+    ancestor_ids = Category.ancestor_ids_for([ id ])
+    # 按 parent_id 关系排序：父分类在前，祖父分类在后
+    categories = Category.where(id: ancestor_ids).to_a
+    # 构建正确的顺序
+    result = []
+    current = parent
+    while current && categories.include?(current)
+      result << current
+      current = current.parent
+    end
+    result
   end
 
-  # 所有后代（实例方法，递归加载）
+  # 所有后代（使用 CTE 批量查询，避免递归 N+1）
   def descendants
-    children.flat_map { |child| [ child ] + child.descendants }
+    descendant_ids = Category.descendant_ids_for([ id ])
+    # 排除自己，只返回后代
+    descendant_ids.delete(id)
+    Category.where(id: descendant_ids).order(:id).to_a
   end
 
   # 自己和所有后代
