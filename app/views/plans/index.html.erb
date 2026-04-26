@@ -91,7 +91,16 @@
                           class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
                     <%= t('common.edit') %>
                   </button>
-                  <%= button_to t('common.delete'), plan_path(plan), method: :delete, onclick: "if(!confirm('确定删除此计划？')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
+                  <%= button_to t('common.delete'), plan_path(plan), method: :delete,
+                    data: {
+                      controller: "confirm-submit",
+                      action: "click->confirm-submit#confirm",
+                      confirm_submit_title_value: "确认删除",
+                      confirm_submit_content_value: "确定删除此计划吗？",
+                      confirm_submit_confirm_text_value: "删除",
+                      confirm_submit_danger_value: true
+                    },
+                    class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
                 </div>
               </div>
             </div>
@@ -124,7 +133,16 @@
                 </div>
                 <div class="flex items-center gap-2">
                   <%= button_to t('plans.activate', default: '启用'), plan_path(plan, plan: { active: true }), method: :patch, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
-                  <%= button_to t('common.delete'), plan_path(plan), method: :delete, onclick: "if(!confirm('确定删除此计划？')) return false", class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
+                  <%= button_to t('common.delete'), plan_path(plan), method: :delete,
+                    data: {
+                      controller: "confirm-submit",
+                      action: "click->confirm-submit#confirm",
+                      confirm_submit_title_value: "确认删除",
+                      confirm_submit_content_value: "确定删除此计划吗？",
+                      confirm_submit_confirm_text_value: "删除",
+                      confirm_submit_danger_value: true
+                    },
+                    class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
                 </div>
               </div>
             </div>

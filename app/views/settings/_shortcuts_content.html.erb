@@ -1,8 +1,14 @@
 <section class="bg-container dark:bg-container-dark rounded-lg shadow-border-xs dark:shadow-dark-border-xs card-hover">
   <div class="p-4 border-b border-border dark:border-border-dark flex items-center justify-between">
     <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">键盘快捷键</h2>
-    <%= button_to "恢复默认", reset_shortcuts_path, method: :post, 
-        onclick: "if(!confirm('确定恢复默认快捷键？')) return false",
+    <%= button_to "恢复默认", reset_shortcuts_path, method: :post,
+        data: {
+          controller: "confirm-submit",
+          action: "click->confirm-submit#confirm",
+          confirm_submit_title_value: "确认恢复",
+          confirm_submit_content_value: "确定恢复默认快捷键吗？",
+          confirm_submit_confirm_text_value: "恢复"
+        },
         class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
   </div>
   

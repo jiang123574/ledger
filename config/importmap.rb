@@ -61,6 +61,9 @@ pin "controllers/settle_receivable_controller", to: "controllers/settle_receivab
 pin "controllers/receivable_modal_controller", to: "controllers/receivable_modal_controller.js"
 pin "controllers/flash_controller", to: "controllers/flash_controller.js"
 pin "controllers/year_nav_controller", to: "controllers/year_nav_controller.js"
+pin "controllers/confirm_modal_controller", to: "controllers/confirm_modal_controller.js"
+pin "controllers/confirm_submit_controller", to: "controllers/confirm_submit_controller.js"
+pin "controllers/confirm_delete_controller", to: "controllers/confirm_delete_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Hotwired packages - vendored for production reliability

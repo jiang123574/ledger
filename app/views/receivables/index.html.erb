@@ -95,7 +95,14 @@
               <div class="flex items-center gap-2">
                 <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern min-h-[36px]">报销</button>
                 <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth btn-modern min-h-[36px]">编辑</button>
-                <button type="button" onclick="if(confirm('确定删除此报销记录？')) { document.getElementById('delete-receivable-form-<%= receivable.id %>').submit(); }" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft transition-smooth btn-modern min-h-[36px]">删除</button>
+                <button type="button"
+                  data-controller="confirm-delete"
+                  data-action="click->confirm-delete#confirm"
+                  data-confirm-delete-form-id-value="delete-receivable-form-<%= receivable.id %>"
+                  data-confirm-delete-title-value="确认删除"
+                  data-confirm-delete-content-value="确定删除此报销记录吗？"
+                  data-confirm-delete-confirm-text-value="删除"
+                  class="px-3 py-1.5 text-xs font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft transition-smooth btn-modern min-h-[36px]">删除</button>
                 <form id="delete-receivable-form-<%= receivable.id %>" method="post" action="/receivables/<%= receivable.id %>" style="display:none">
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                   <input type="hidden" name="_method" value="delete">
@@ -124,7 +131,14 @@
               <div class="flex items-center gap-1 shrink-0">
                 <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-2 py-1 text-xs font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">报销</button>
                 <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">编辑</button>
-                <button type="button" onclick="if(confirm('确定删除此报销记录？')) { document.getElementById('delete-receivable-form-<%= receivable.id %>').submit(); }" class="px-2 py-1 text-xs font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">删除</button>
+                <button type="button"
+                  data-controller="confirm-delete"
+                  data-action="click->confirm-delete#confirm"
+                  data-confirm-delete-form-id-value="delete-receivable-form-<%= receivable.id %>"
+                  data-confirm-delete-title-value="确认删除"
+                  data-confirm-delete-content-value="确定删除此报销记录吗？"
+                  data-confirm-delete-confirm-text-value="删除"
+                  class="px-2 py-1 text-xs font-medium rounded-lg border border-expense-soft text-expense hover:bg-expense-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">删除</button>
                 <form id="delete-receivable-form-<%= receivable.id %>" method="post" action="/receivables/<%= receivable.id %>" style="display:none">
                   <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                   <input type="hidden" name="_method" value="delete">
@@ -171,7 +185,15 @@
                 <span class="text-income">已报¥<%= format_currency(reimbursed, unit: "") %></span>
               </div>
               <div class="flex items-center gap-1 shrink-0">
-                <%= button_to "撤销", revert_receivable_path(receivable), method: :post, onclick: "if(!confirm('确定撤销此报销？撤销后可重新报销')) return false", class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
+                <%= button_to "撤销", revert_receivable_path(receivable), method: :post,
+                  data: {
+                    controller: "confirm-submit",
+                    action: "click->confirm-submit#confirm",
+                    confirm_submit_title_value: "确认撤销",
+                    confirm_submit_content_value: "确定撤销此报销？撤销后可重新报销。",
+                    confirm_submit_confirm_text_value: "撤销"
+                  },
+                  class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern" %>
               </div>
             </div>
           </div>
