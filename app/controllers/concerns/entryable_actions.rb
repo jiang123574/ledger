@@ -81,21 +81,13 @@ module EntryableActions
     flow_type = entry.display_flow_type
 
     display_type = if is_transfer
-      if current_account_filter.blank?
-        "转账"
-      else
-        is_inflow ? "转入" : "转出"
-      end
+      is_inflow ? "转入" : "转出"
     else
       entry.display_type_label
     end
 
     display_amount_type = if is_transfer
-      if current_account_filter.blank?
-        "TRANSFER"
-      else
-        is_inflow ? "INCOME" : "EXPENSE"
-      end
+      is_inflow ? "INCOME" : "EXPENSE"
     else
       flow_type
     end
