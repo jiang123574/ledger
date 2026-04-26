@@ -7,3 +7,4 @@ Rails.application.config.assets.version = "1.0"
 Rails.application.config.assets.paths << Rails.root.join("app/assets/fonts")
 Rails.application.config.assets.paths << Rails.root.join("app/javascript")
 Rails.application.config.assets.paths << Rails.root.join("vendor/assets/javascripts")
+Rails.application.config.assets.paths << Rails.root.join("vendor/javascript")

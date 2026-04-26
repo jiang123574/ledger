@@ -7,7 +7,6 @@ class ApplicationController < ActionController::Base
   stale_when_importmap_changes
 
   # ============ 安全头 ============
-  before_action :set_csp_nonce
   before_action :set_security_headers
 
   # ============ Session-based Auth 全站保护 ============
@@ -28,18 +27,6 @@ class ApplicationController < ActionController::Base
     request.user_agent.to_s.include?("Turbo Native")
   end
   helper_method :turbo_native_app?
-
-  # CSP nonce 生成（使用 Rails 内置机制）
-  def set_csp_nonce
-    # Rails 内置 nonce 生成器会自动处理
-    # 不需要手动生成，Rails 会为每个请求生成唯一 nonce
-  end
-
-  # 提供给视图使用的 nonce（使用 Rails 内置方法）
-  def csp_nonce
-    request.content_security_policy_nonce
-  end
-  helper_method :csp_nonce
 
   def set_security_headers
     response.headers["X-Content-Type-Options"] = "nosniff"

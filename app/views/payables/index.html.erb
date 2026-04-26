@@ -508,7 +508,7 @@
 <script id="payable-categories-data" type="application/json">
   <%= raw @expense_categories.map { |c| full_name = c.full_name; { name: c.name, full_name: full_name, pinyin: PinYin.abbr(full_name).downcase } }.to_json %>
 </script>
-<script type="module" nonce="<%= csp_nonce %>">
+<script type="module">
 import { initSelectorWithData } from 'selectors';
 function openNewPayableModal() {
   const form = document.getElementById('new-payable-form');

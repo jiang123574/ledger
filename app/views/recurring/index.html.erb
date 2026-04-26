@@ -230,7 +230,7 @@
   </div>
 </div>
 
-<script nonce="<%= csp_nonce %>">
+<script>
   function openEditRecurringModal(id, type, amount, frequency, nextDate, accountId, categoryId, note) {
     const form = document.getElementById('edit-recurring-form')
     form.action = '/recurring/' + id

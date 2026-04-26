@@ -513,7 +513,7 @@
   <%= raw @categories.map { |c| { id: c.id, name: c.name, full_name: build_full_name_in_memory(c, @category_parent_map), level: c.level || 0, parent_id: c.parent_id, type: (c.category_type || c.type), pinyin: PinYin.abbr(build_full_name_in_memory(c, @category_parent_map)).downcase } }.to_json %>
 </script>
 
-<script nonce="<%= csp_nonce %>">
+<script>
   function setInputDisabled(id, disabled) {
     const input = document.getElementById(id)
     if (input) input.disabled = disabled

@@ -234,7 +234,7 @@
   <%= raw @categories_json %>
 </script>
 
-<script nonce="<%= csp_nonce %>">
+<script>
   window.authToken = '<%= form_authenticity_token %>';
   
   function escapeHtml(str) {
@@ -776,7 +776,7 @@
   </div>
 </div>
 
-<script nonce="<%= csp_nonce %>">
+<script>
   // 初始化分类选择器（在 DOM 元素之后）
   initCategorySelector('new-item-category-search', 'new-item-category-dropdown', 'new-item-category-filter', 'new-item-category-options', 'new-item-category-id');
   initCategorySelector('edit-item-category-search', 'edit-item-category-dropdown', 'edit-item-category-filter', 'edit-item-category-options', 'edit-item-category-id');

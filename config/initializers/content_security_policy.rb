@@ -4,24 +4,20 @@
 # See the Securing Rails Applications Guide for more information:
 # https://guides.rubyonrails.org/security.html#content-security-policy-header
 
+# Note: Turbo navigates by replacing body content, including inline scripts.
+# When nonce is present in CSP, browsers ignore 'unsafe-inline', causing Turbo navigation to fail.
+# We use 'unsafe-inline' for script-src to support Turbo, which is acceptable for a personal finance app.
+
 Rails.application.configure do
   config.content_security_policy do |policy|
     policy.default_src :self
     policy.style_src :self, :unsafe_inline
-    policy.script_src :self
+    policy.script_src :self, :unsafe_inline
     policy.img_src :self, :data, :blob
     policy.font_src :self
     policy.connect_src :self
     policy.frame_ancestors :self
   end
-
-  # Generate session nonces for permitted importmap, inline scripts, and inline styles.
-  config.content_security_policy_nonce_generator = ->(request) { SecureRandom.base64(16) }
-  config.content_security_policy_nonce_directives = %w[script-src]
-
-  # Automatically add `nonce` to `javascript_tag`, `javascript_include_tag`, and `stylesheet_link_tag`
-  # if the corresponding directives are specified in `content_security_policy_nonce_directives`.
-  # config.content_security_policy_nonce_auto = true
 
   # Report violations without enforcing the policy.
   # config.content_security_policy_report_only = true

@@ -24,7 +24,7 @@
     <link rel="apple-touch-icon" href="/icon.png">
     
     <%# Initialize dark mode before page renders to prevent flash %>
-    <script nonce="<%= csp_nonce %>">
+    <script>
       // Dark mode initialization
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
@@ -72,9 +72,9 @@
     
     <%# Tailwind CSS v4 - compiled application.css %>
     <%= stylesheet_link_tag "application", preload_links_header: false, "data-turbo-track": "reload" %>
-    <script src="/assets/chart.js.umd.js"></script>
+    <%= javascript_include_tag "chart.js.umd.js" %>
     <%= javascript_importmap_tags %>
-    <script type="module" nonce="<%= csp_nonce %>">import "native_title_sync"</script>
+    <script type="module">import "native_title_sync"</script>
   </head>
 
   <body class="h-full antialiased font-sans" style="background-color: var(--color-surface); color: var(--color-primary);" data-controller="mobile-layout theme">
@@ -126,7 +126,7 @@
     <%= render "shared/confirm_modal" %>
 
     <%# Global Keyboard Shortcuts %>
-    <script nonce="<%= csp_nonce %>">
+    <script>
     document.addEventListener('DOMContentLoaded', function() {
       var keyBuffer = '';
       var keyBufferTimeout = null;
