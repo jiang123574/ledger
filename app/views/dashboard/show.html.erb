@@ -78,27 +78,27 @@
     <% end %>
 
     <%= render(Ds::CardComponent.new) do %>
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.balance") %></p>
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+        <div class="flex-1">
+          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.balance") %></p>
           <% balance_info = format_balance(@total_income - @total_expense) %>
-          <p class="text-2xl font-semibold mt-1 <%= balance_info[:css_class] %>">
+          <p class="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-1 <%= balance_info[:css_class] %>">
             <%= balance_info[:amount] %>
           </p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
         </div>
       </div>
     <% end %>
 
     <%= render(Ds::CardComponent.new) do %>
-      <div class="flex items-start justify-between">
-        <div>
-          <p class="text-sm font-medium text-secondary dark:text-secondary-dark">总资产</p>
-          <p class="text-2xl font-semibold text-primary dark:text-primary-dark mt-1"><%= format_currency(@total_assets) %></p>
+      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
+        <div class="flex-1">
+          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">总资产</p>
+          <p class="text-lg sm:text-2xl font-semibold text-primary dark:text-primary-dark mt-0.5 sm:mt-1"><%= format_currency(@total_assets) %></p>
         </div>
-        <div class="w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg flex items-center justify-center">
+        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
           <%= render(Ds::IconComponent.new(name: "wallet", size: :md, color: :primary)) %>
         </div>
       </div>
