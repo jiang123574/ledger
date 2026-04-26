@@ -1,4 +1,6 @@
 class Receivable < ApplicationRecord
+  include ProgressCalculable
+
   serialize :reimbursement_transfer_ids, coder: YAML
 
   def reimbursement_transfer_ids
@@ -26,6 +28,16 @@ class Receivable < ApplicationRecord
 
   after_commit :sync_system_accounts
 
+  # ProgressCalculable 配置
+  def progress_total
+    original_amount
+  end
+
+  # 已报销金额 = 原始金额 - 剩余金额
+  def progress_current
+    original_amount.to_d - remaining_amount.to_d
+  end
+
   def settled?
     settled_at.present? || remaining_amount.to_d <= 0
   end
@@ -40,11 +52,6 @@ class Receivable < ApplicationRecord
 
   def source_date
     source_entry&.date || date
-  end
-
-  def progress_percentage
-    return 0 if original_amount.to_d <= 0
-    ((original_amount - remaining_amount) / original_amount * 100).round
   end
 
   def status

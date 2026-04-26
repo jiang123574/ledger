@@ -43,8 +43,9 @@ class ReceivablesController < ApplicationController
 
       # 更新创建应收款时的转账金额
       if @receivable.transfer_id.present?
+        amount_value = @receivable.original_amount
         Entry.where(transfer_id: @receivable.transfer_id).update_all(
-          amount: Arel.sql("CASE WHEN amount < 0 THEN -#{@receivable.original_amount} ELSE #{@receivable.original_amount} END")
+          amount: sanitize_sql_for_assignment([ "CASE WHEN amount < 0 THEN -? ELSE ? END", amount_value, amount_value ])
         )
       end
     end

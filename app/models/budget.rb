@@ -1,4 +1,6 @@
 class Budget < ApplicationRecord
+  include ProgressCalculable
+
   belongs_to :category, class_name: "Category", optional: true
 
   validates :month, presence: true
@@ -36,27 +38,29 @@ class Budget < ApplicationRecord
     spent_amount
   end
 
-  def progress_percentage
-    return 0 if amount.to_d <= 0
-    (spent_amount.to_d / amount.to_d * 100).round(1)
-  end
+  # ProgressCalculable 默认使用 amount 作为 total，spent_amount 作为 current
+  # 以下方法由 concern 提供，不再需要重复定义：
+  # - progress_percentage
+  # - progress_remaining (作为 remaining_amount 的别名)
+  # - progress_exceeded? (作为 overspent? 的别名)
+  # - progress_near_limit? (作为 near_limit? 的别名)
+  # - progress_color (作为 status_color 的基础)
 
+  # 保留业务语义方法名（包装 concern 方法）
   def remaining_amount
-    amount.to_d - spent_amount.to_d
+    progress_remaining
   end
 
   def overspent?
-    remaining_amount < 0
+    progress_exceeded?
   end
 
   def near_limit?
-    progress_percentage >= 80 && progress_percentage < 100
+    progress_near_limit?
   end
 
   def status_color
-    return "red" if overspent?
-    return "yellow" if near_limit?
-    "blue"
+    progress_color
   end
 
   def status_text

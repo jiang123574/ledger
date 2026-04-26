@@ -1,4 +1,6 @@
 class Payable < ApplicationRecord
+  include ProgressCalculable
+
   serialize :settlement_transfer_ids, coder: YAML
 
   def settlement_transfer_ids
@@ -24,6 +26,16 @@ class Payable < ApplicationRecord
 
   after_commit :sync_system_accounts
 
+  # ProgressCalculable 配置
+  def progress_total
+    original_amount
+  end
+
+  # 已付款金额 = 原始金额 - 剩余金额
+  def progress_current
+    original_amount.to_d - remaining_amount.to_d
+  end
+
   # 获取源交易的金额
   def source_amount
     source_entry&.amount || original_amount
@@ -36,11 +48,6 @@ class Payable < ApplicationRecord
 
   def settled?
     settled_at.present? || remaining_amount.to_d <= 0
-  end
-
-  def progress_percentage
-    return 0 if original_amount.to_d <= 0
-    ((original_amount - remaining_amount) / original_amount * 100).round
   end
 
   def status
