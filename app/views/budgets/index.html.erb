@@ -82,12 +82,12 @@
             </button>
             <button
               type="button"
-              data-controller="confirm-delete"
-              data-action="click->confirm-delete#confirm"
-              data-confirm-delete-form-id-value="delete-budget-form"
-              data-confirm-delete-title-value="确认删除"
-              data-confirm-delete-content-value="确定删除此预算吗？"
-              data-confirm-delete-confirm-text-value="删除"
+              data-controller="confirm-form"
+              data-action="click->confirm-form#confirm"
+              data-confirm-form-form-id-value="delete-budget-form"
+              data-confirm-form-title-value="确认删除"
+              data-confirm-form-content-value="确定删除此预算吗？"
+              data-confirm-form-confirm-text-value="删除"
               class="p-2 rounded-lg border border-border dark:border-border-dark bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth"
               title="删除">
               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
@@ -189,12 +189,12 @@
                               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                             </button>
                             <form action="/single_budgets/<%= @selected_budget.id %>/budget_items/<%= item.id %>" method="post" style="display:inline"
-                              data-controller="confirm-submit"
-                              data-action="submit->confirm-submit#confirm"
-                              data-confirm-submit-title-value="确认删除"
-                              data-confirm-submit-content-value="确定删除此项目吗？"
-                              data-confirm-submit-confirm-text-value="删除"
-                              data-confirm-submit-danger-value="true">
+                              data-controller="confirm-form"
+                              data-action="submit->confirm-form#confirm"
+                              data-confirm-form-title-value="确认删除"
+                              data-confirm-form-content-value="确定删除此项目吗？"
+                              data-confirm-form-confirm-text-value="删除"
+                              data-confirm-form-danger-value="true">
                               <input type="hidden" name="authenticity_token" value="<%= form_authenticity_token %>">
                               <input type="hidden" name="_method" value="delete">
                               <button type="submit" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth" title="删除">
@@ -234,7 +234,7 @@
   <%= raw @categories_json %>
 </script>
 
-<script>
+<script nonce="<%= csp_nonce %>">
   window.authToken = '<%= form_authenticity_token %>';
   
   function escapeHtml(str) {
@@ -776,7 +776,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="<%= csp_nonce %>">
   // 初始化分类选择器（在 DOM 元素之后）
   initCategorySelector('new-item-category-search', 'new-item-category-dropdown', 'new-item-category-filter', 'new-item-category-options', 'new-item-category-id');
   initCategorySelector('edit-item-category-search', 'edit-item-category-dropdown', 'edit-item-category-filter', 'edit-item-category-options', 'edit-item-category-id');

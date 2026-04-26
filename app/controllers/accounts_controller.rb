@@ -52,9 +52,10 @@ class AccountsController < ApplicationController
     period_type = params[:period_type].presence || "month"
     period_value = params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
 
-    @entries = build_entries_query(period_type, period_value)
+    query_service = AccountEntriesQueryService.new(params)
+    @entries = query_service.build
 
-    filter_cache_key = build_filter_cache_key
+    filter_cache_key = query_service.cache_key
 
     @total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
       @entries.count
@@ -142,12 +143,11 @@ class AccountsController < ApplicationController
 
   def entries
     ev = CacheBuster.version(:entries)
-    period_type = params[:period_type].presence || "month"
-    period_value = params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
 
-    entries_query = build_entries_query(period_type, period_value)
+    query_service = AccountEntriesQueryService.new(params)
+    entries_query = query_service.build
 
-    filter_cache_key = build_filter_cache_key
+    filter_cache_key = query_service.cache_key
     total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
       entries_query.count
     end
@@ -569,54 +569,5 @@ class AccountsController < ApplicationController
       :billing_day_mode, :due_day_mode, :due_day_offset,
       :include_in_total, :hidden, :sort_order
     )
-  end
-
-  def build_filter_cache_key
-    sort_direction = params[:sort_direction]&.downcase || "desc"
-    sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
-    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}_#{sort_direction}"
-  end
-
-  def build_entries_query(period_type, period_value)
-    entries = Entry.where(entryable_type: [ "Entryable::Transaction" ])
-
-    if params[:account_id].present?
-      entries = entries.where(account_id: params[:account_id])
-    else
-      entries = entries.where("transfer_id IS NULL OR amount < 0")
-    end
-
-    if params[:type].present?
-      kind = params[:type].downcase
-      entries = entries.with_entryable_transaction
-                        .where(entryable_transactions: { kind: kind })
-    end
-
-    if params[:category_ids].present?
-      category_ids = Array(params[:category_ids]).reject(&:blank?)
-      if category_ids.any?
-        entries = entries.with_entryable_transaction
-                          .where(entryable_transactions: { category_id: category_ids })
-      end
-    end
-
-    # 使用 PeriodFilterable
-    range = PeriodFilterable.resolve_period(period_type, period_value)
-    entries = entries.by_date_range(range.first, range.last) if range
-
-    if params[:search].present?
-      search_term = "%#{params[:search].to_s.gsub(/[%_]/) { |char| "\\#{char}" }}%"
-      entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
-    end
-
-    # 支持排序方向参数 (asc 或 desc)，默认 desc (倒序)
-    sort_direction = params[:sort_direction]&.downcase || "desc"
-    sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
-
-    if sort_direction == "asc"
-      entries.chronological
-    else
-      entries.reverse_chronological
-    end
   end
 end

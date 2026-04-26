@@ -191,13 +191,13 @@
 
 ## JSON API
 
-### 外部 API (`/api/external`)
+### 外部 API (`/api/v1/external`)
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | `/api/external/health` | 健康检查 |
-| GET | `/api/external/context` | 获取上下文信息 |
-| POST | `/api/external/transactions` | 创建交易（外部调用） |
+| GET | `/api/v1/external/health` | 健康检查 |
+| GET | `/api/v1/external/context` | 获取上下文信息 |
+| POST | `/api/v1/external/transactions` | 创建交易（外部调用） |
 
 ### 内部 API (`/api`)
 

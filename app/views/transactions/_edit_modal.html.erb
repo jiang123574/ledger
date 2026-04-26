@@ -162,7 +162,7 @@
   </div>
 <% end %>
 
-<script>
+<script nonce="<%= csp_nonce %>">
 (function() {
   var allAccounts = <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>;
   var allCategories = <%= raw @categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id, category_type: c.category_type || c.type } }.to_json %>;

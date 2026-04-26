@@ -163,7 +163,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="<%= csp_nonce %>">
 const expenseCategoryOptions = <%= raw expense_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
 const incomeCategoryOptions = <%= raw income_transaction_categories.map { |c| { id: c.id, name: c.name } }.to_json %>;
 const transactionTypeInput = document.getElementById('transaction-type-input');

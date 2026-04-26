@@ -93,9 +93,9 @@ app/
 
 ## API 端点
 
-- `GET /api/external/health` - 健康检查
-- `GET /api/external/context` - 获取上下文
-- `POST /api/external/transactions` - 创建交易
+- `GET /api/v1/external/health` - 健康检查
+- `GET /api/v1/external/context` - 获取上下文
+- `POST /api/v1/external/transactions` - 创建交易
 - `GET /api/currency/rates` - 汇率信息
 
 ## 测试
@@ -214,9 +214,9 @@ app/
 
 | 端点 | 方法 | 说明 |
 |------|------|------|
-| `/api/external/health` | GET | 健康检查 |
-| `/api/external/context` | GET | 获取上下文 |
-| `/api/external/transactions` | POST | 创建交易 |
+| `/api/v1/external/health` | GET | 健康检查 |
+| `/api/v1/external/context` | GET | 获取上下文 |
+| `/api/v1/external/transactions` | POST | 创建交易 |
 | `/api/currency/rates` | GET | 汇率信息 |
 
 ## 认证

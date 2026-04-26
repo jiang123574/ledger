@@ -48,8 +48,8 @@
                 </button>
                 <%= button_to t("common.delete"), recurring_path(r), method: :delete,
                   data: {
-                    controller: "confirm-submit",
-                    action: "click->confirm-submit#confirm",
+                    controller: "confirm-form",
+                    action: "click->confirm-form#confirm",
                     confirm_submit_title_value: "确认删除",
                     confirm_submit_content_value: "确定删除此周期交易吗？",
                     confirm_submit_confirm_text_value: "删除",
@@ -230,7 +230,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="<%= csp_nonce %>">
   function openEditRecurringModal(id, type, amount, frequency, nextDate, accountId, categoryId, note) {
     const form = document.getElementById('edit-recurring-form')
     form.action = '/recurring/' + id

@@ -24,7 +24,7 @@
     <link rel="apple-touch-icon" href="/icon.png">
     
     <%# Initialize dark mode before page renders to prevent flash %>
-    <script>
+    <script nonce="<%= csp_nonce %>">
       // Dark mode initialization
       if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
         document.documentElement.classList.add('dark');
@@ -126,7 +126,7 @@
     <%= render "shared/confirm_modal" %>
 
     <%# Global Keyboard Shortcuts %>
-    <script>
+    <script nonce="<%= csp_nonce %>">
     document.addEventListener('DOMContentLoaded', function() {
       var keyBuffer = '';
       var keyBufferTimeout = null;

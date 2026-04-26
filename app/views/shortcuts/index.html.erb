@@ -3,8 +3,8 @@
     <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">快捷键设置</h1>
     <%= link_to "恢复默认", reset_shortcuts_path, method: :post,
       data: {
-        controller: "confirm-submit",
-        action: "click->confirm-submit#confirm",
+        controller: "confirm-form",
+        action: "click->confirm-form#confirm",
         confirm_submit_title_value: "确认恢复",
         confirm_submit_content_value: "确定恢复默认快捷键吗？",
         confirm_submit_confirm_text_value: "恢复"

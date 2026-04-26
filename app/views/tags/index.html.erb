@@ -63,8 +63,8 @@
               <%= button_to tag_path(tag),
                   method: :delete,
                   data: {
-                    controller: "confirm-submit",
-                    action: "click->confirm-submit#confirm",
+                    controller: "confirm-form",
+                    action: "click->confirm-form#confirm",
                     confirm_submit_title_value: "确认删除",
                     confirm_submit_content_value: "确定删除此标签？关联的交易将取消关联。",
                     confirm_submit_confirm_text_value: "删除",
@@ -132,7 +132,7 @@
   </div>
 </div>
 
-<script>
+<script nonce="<%= csp_nonce %>">
   // 颜色选择器预览
   document.addEventListener('DOMContentLoaded', () => {
     const colorInput = document.querySelector('input[type="color"]')

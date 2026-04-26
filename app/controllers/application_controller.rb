@@ -8,6 +8,7 @@ class ApplicationController < ActionController::Base
 
   # ============ 安全头 ============
   before_action :set_security_headers
+  before_action :set_csp_nonce
 
   # ============ Session-based Auth 全站保护 ============
   # 个人记账工具部署在公网，必须有访问控制
@@ -17,7 +18,7 @@ class ApplicationController < ActionController::Base
   # 放开的端点：
   # - /up（健康检查）
   # - /manifest / /manifest.json（PWA）
-  # - /api/external/*（使用独立 API Key 认证）
+  # - /api/v1/external/*（使用独立 API Key 认证）
   # - /login（登录页面）
   before_action :require_login
 
@@ -28,6 +29,17 @@ class ApplicationController < ActionController::Base
   end
   helper_method :turbo_native_app?
 
+  # CSP nonce 生成
+  def set_csp_nonce
+    @csp_nonce = SecureRandom.base64(16)
+  end
+
+  # 提供给视图使用的 nonce
+  def csp_nonce
+    @csp_nonce
+  end
+  helper_method :csp_nonce
+
   def set_security_headers
     response.headers["X-Content-Type-Options"] = "nosniff"
     # Turbo Native Android WebView 需要在 iframe 中加载，不能限制同源
@@ -37,7 +49,14 @@ class ApplicationController < ActionController::Base
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()"
     # Turbo Native 不设置 CSP，避免 importmap/inline script 被阻止
     unless turbo_native_app?
-      response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+      response.headers["Content-Security-Policy"] =
+        "default-src 'self'; " +
+        "style-src 'self' 'unsafe-inline'; " +
+        "script-src 'self' 'nonce-#{@csp_nonce}'; " +
+        "img-src 'self' data: blob:; " +
+        "font-src 'self'; " +
+        "connect-src 'self'; " +
+        "frame-ancestors 'self'"
     end
   end
 
@@ -66,7 +85,7 @@ class ApplicationController < ActionController::Base
   def skip_auth_for_path?
     request.path == "/up" ||
       request.path.start_with?("/manifest") ||
-      request.path.start_with?("/api/external/") ||
+      request.path.start_with?("/api/v1/external/") ||
       request.path == login_path
   end
 end

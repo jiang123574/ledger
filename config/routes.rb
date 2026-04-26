@@ -138,10 +138,10 @@ Rails.application.routes.draw do
   get "/dashboard", to: "dashboard#show", as: :dashboard
 
   namespace :api do
-    namespace :external do
-      get :health
-      get :context
-      post :transactions
+    namespace :v1 do
+      get "external/health", to: "external#health"
+      get "external/context", to: "external#context"
+      post "external/transactions", to: "external#transactions"
     end
     get "currency/rates", to: "currency#rates"
     post "vitals", to: "vitals#create"
