@@ -96,7 +96,7 @@ class TransactionsController < ApplicationController
   def create_with_funding_transfer
     attrs = transaction_params
 
-    expense_entry = EntryCreationService.create_with_funding_transfer(
+    entries = EntryCreationService.create_with_funding_transfer(
       funding_account_id: params[:funding_account_id],
       destination_account_id: attrs[:account_id],
       amount: attrs[:amount].to_d,
@@ -107,7 +107,8 @@ class TransactionsController < ApplicationController
     )
 
     expire_entries_cache
-    handle_successful_save("交易已创建（已自动补记资金来源转账）", expense_entry)
+    # 带资金来源转账返回 [转入entry, 支出entry] 两条记录
+    handle_successful_save_with_entries("交易已创建（已自动补记资金来源转账）", entries)
   rescue ActiveRecord::RecordInvalid => e
     handle_save_error(e.record)
   rescue ActiveRecord::RecordNotFound

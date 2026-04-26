@@ -150,7 +150,7 @@ class EntryCreationService
       )
     end
 
-    # 返回支出 entry（用于前端显示）
-    expense_entry
+    # 返回转入 entry 和支出 entry（用于前端显示，两条记录）
+    [ transfer_in, expense_entry ]
   end
 end

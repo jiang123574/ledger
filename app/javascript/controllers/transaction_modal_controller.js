@@ -380,6 +380,10 @@ export default class extends Controller {
           if (data.entry) {
             console.log('calling insertEntryToList with data.entry:', data.entry)
             this.insertEntryToList(data.entry)
+          } else if (data.entries && data.entries.length > 0) {
+            // 多条 entry（带资金来源转账场景）
+            console.log('calling insertEntriesToList with data.entries:', data.entries)
+            this.insertEntriesToList(data.entries)
           } else {
             console.log('no entry in response data')
           }
@@ -457,5 +461,15 @@ export default class extends Controller {
         mobileRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
       }, 2000)
     }
+  }
+
+  // 插入多条 entry 到列表顶部（用于带资金来源转账场景）
+  insertEntriesToList(entries) {
+    if (!entries || entries.length === 0) return
+
+    // 按顺序插入（第一条在最上面，后面的依次排在下面）
+    entries.forEach(entry => {
+      this.insertEntryToList(entry)
+    })
   }
 }
