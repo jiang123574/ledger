@@ -109,11 +109,39 @@ function initSelectorWithData(config) {
     bindOptionEvents();
   }
 
+  // 点击 toggle 下拉
   searchInput.addEventListener('click', function() {
     dropdown.classList.toggle('hidden');
     if (!dropdown.classList.contains('hidden')) {
       updateOptions();
       if (filterInput) filterInput.focus();
+    }
+  });
+
+  // 焦点进入自动打开下拉并激活搜索
+  searchInput.addEventListener('focus', function() {
+    if (dropdown.classList.contains('hidden')) {
+      dropdown.classList.remove('hidden');
+      updateOptions();
+      if (filterInput) filterInput.focus();
+    }
+  });
+
+  // 键盘输入直接激活搜索
+  searchInput.addEventListener('keydown', function(e) {
+    // 忽略功能键（Tab、Enter、Esc、方向键等）
+    if (e.key.length > 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+
+    // 如果下拉未打开，打开并将按键传递到搜索框
+    if (dropdown.classList.contains('hidden')) {
+      dropdown.classList.remove('hidden');
+      updateOptions();
+      if (filterInput) {
+        filterInput.focus();
+        filterInput.value = e.key;
+        updateOptions(); // 立即筛选
+      }
+      e.preventDefault();
     }
   });
 
