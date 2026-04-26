@@ -29,14 +29,15 @@ class ApplicationController < ActionController::Base
   end
   helper_method :turbo_native_app?
 
-  # CSP nonce 生成
+  # CSP nonce 生成（使用 Rails 内置机制）
   def set_csp_nonce
-    @csp_nonce = SecureRandom.base64(16)
+    # Rails 内置 nonce 生成器会自动处理
+    # 不需要手动生成，Rails 会为每个请求生成唯一 nonce
   end
 
-  # 提供给视图使用的 nonce
+  # 提供给视图使用的 nonce（使用 Rails 内置方法）
   def csp_nonce
-    @csp_nonce
+    request.content_security_policy_nonce
   end
   helper_method :csp_nonce
 
@@ -48,15 +49,8 @@ class ApplicationController < ActionController::Base
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()"
     # Turbo Native 不设置 CSP，避免 importmap/inline script 被阻止
-    unless turbo_native_app?
-      response.headers["Content-Security-Policy"] =
-        "default-src 'self'; " +
-        "style-src 'self' 'unsafe-inline'; " +
-        "script-src 'self' 'nonce-#{@csp_nonce}'; " +
-        "img-src 'self' data: blob:; " +
-        "font-src 'self'; " +
-        "connect-src 'self'; " +
-        "frame-ancestors 'self'"
+    if turbo_native_app?
+      response.headers["Content-Security-Policy"] = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob:;"
     end
   end
 
