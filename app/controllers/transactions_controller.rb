@@ -79,13 +79,12 @@ class TransactionsController < ApplicationController
   end
 
   def create_transfer_entry(from_account_id, to_account_id, amount, date, currency, note)
-    entries = EntryCreationService.create_transfer(
+    transfer_id = EntryCreationService.create_transfer(
       from_account_id: from_account_id, to_account_id: to_account_id,
       amount: amount, date: date, currency: currency, note: note
     )
     expire_entries_cache
-    # 转账返回两个 entry，取第一个（转出方）
-    entry = entries&.first
+    entry = Entry.find_by(transfer_id: transfer_id, account_id: from_account_id)
     handle_successful_save("转账已创建", entry)
   rescue ActiveRecord::RecordInvalid => e
     handle_save_error(e.record)

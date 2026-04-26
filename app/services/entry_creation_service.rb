@@ -49,11 +49,8 @@ class EntryCreationService
     sort_order_out = next_sort_order(from_account_id, date)
     sort_order_in = next_sort_order(to_account_id, date)
 
-    entry_out = nil
-    entry_in = nil
-
     Entry.transaction do
-      entry_out = Entry.create!(
+      Entry.create!(
         account_id: from_account_id,
         date: date,
         name: transfer_note,
@@ -65,7 +62,7 @@ class EntryCreationService
         sort_order: sort_order_out
       )
 
-      entry_in = Entry.create!(
+      Entry.create!(
         account_id: to_account_id,
         date: date,
         name: transfer_note,
@@ -78,7 +75,7 @@ class EntryCreationService
       )
     end
 
-    [ entry_out, entry_in ]
+    transfer_id
   end
 
   # 创建带资金来源转账的支出（先从资金来源账户转账到消费账户，再创建支出）
