@@ -195,6 +195,7 @@ module ApplicationHelper
       full_name = build_full_name_in_memory(cat, parent_map)
 
       content_tag(:label, class: "flex items-center gap-2 py-1.5 px-3 cursor-pointer category-filter-item hover:bg-surface-hover dark:hover:bg-surface-dark-hover border-b border-border dark:border-border-dark last:border-b-0",
+                  style: indent,
                   data: { name: cat.name, full_name: full_name, pinyin: PinYin.abbr(full_name || cat.name).downcase, type: cat.category_type }) do
         checkbox_attrs = { class: "category-filter-option w-4 h-4 rounded border-border dark:border-border-dark", data: { id: cat.id, parent_id: cat.parent_id } }
         if use_stimulus
