@@ -10,6 +10,9 @@
 # Ignore bundler local gems (like node_modules).
 /vendor/bundle
 
+# Ignore vendor assets (compiled/generated)
+/vendor/assets
+
 # Ignore all environment files except .env.example.
 /.env
 /.env.local
