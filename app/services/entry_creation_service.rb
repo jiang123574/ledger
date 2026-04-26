@@ -16,13 +16,14 @@ class EntryCreationService
     kind = type.downcase
     sort_order = next_sort_order(account_id, date)
 
+    entry = nil
     Entry.transaction do
       entryable = Entryable::Transaction.create!(
         kind: kind,
         category_id: category_id
       )
 
-      Entry.create!(
+      entry = Entry.create!(
         account_id: account_id,
         date: date,
         name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
@@ -33,6 +34,7 @@ class EntryCreationService
         sort_order: sort_order
       )
     end
+    entry
   end
 
   # 创建转账 Entry 对（转出 + 转入）
@@ -48,7 +50,7 @@ class EntryCreationService
     sort_order_in = next_sort_order(to_account_id, date)
 
     Entry.transaction do
-      entry_out = Entry.create!(
+      Entry.create!(
         account_id: from_account_id,
         date: date,
         name: transfer_note,
@@ -60,7 +62,7 @@ class EntryCreationService
         sort_order: sort_order_out
       )
 
-      entry_in = Entry.create!(
+      Entry.create!(
         account_id: to_account_id,
         date: date,
         name: transfer_note,
@@ -81,6 +83,9 @@ class EntryCreationService
                                          amount:, date:, currency: "CNY", note: nil, category_id: nil)
     source_account = Account.find(funding_account_id)
     destination_account = Account.find(destination_account_id)
+
+    transfer_in = nil
+    expense_entry = nil
 
     Entry.transaction do
       transfer_id = SecureRandom.uuid
@@ -110,7 +115,7 @@ class EntryCreationService
       )
 
       # 资金来源转账：转入
-      Entry.create!(
+      transfer_in = Entry.create!(
         account_id: destination_account.id,
         date: date,
         name: transfer_note,
@@ -129,7 +134,7 @@ class EntryCreationService
         category_id: category_id
       )
 
-      Entry.create!(
+      expense_entry = Entry.create!(
         account_id: destination_account.id,
         date: date,
         name: note.presence || "支出 #{amount}",
@@ -140,5 +145,8 @@ class EntryCreationService
         sort_order: sort_order_expense
       )
     end
+
+    # 返回转入 entry 和支出 entry（用于前端显示，两条记录）
+    [ transfer_in, expense_entry ]
   end
 end

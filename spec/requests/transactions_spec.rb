@@ -218,7 +218,115 @@ RSpec.describe "Transactions", type: :request do
       end
     end
 
-    context "with continue parameter" do
+    context "with continue_entry parameter (JSON)" do
+      it "returns entry data for expense" do
+        post "/transactions", params: {
+          transaction: {
+            type: "EXPENSE",
+            amount: 100,
+            date: Date.current,
+            account_id: account.id,
+            note: "Test expense"
+          },
+          continue_entry: "1"
+        }, as: :json
+
+        expect(response).to have_http_status(:success)
+        json = JSON.parse(response.body)
+        expect(json["success"]).to be true
+        expect(json["message"]).to include("请继续录入")
+        expect(json["entry"]).to be_present
+        expect(json["entry"]["id"]).to be_present
+        expect(json["entry"]["display_name"]).to eq("Test expense")
+        expect(json["entry"]["display_type"]).to eq("支出")
+        expect(json["entry"]["display_amount_type"]).to eq("EXPENSE")
+        expect(json["entry"]["account_name"]).to eq(account.name)
+      end
+
+      it "returns entry data for income" do
+        post "/transactions", params: {
+          transaction: {
+            type: "INCOME",
+            amount: 500,
+            date: Date.current,
+            account_id: account.id,
+            note: "工资"
+          },
+          continue_entry: "1"
+        }, as: :json
+
+        expect(response).to have_http_status(:success)
+        json = JSON.parse(response.body)
+        expect(json["entry"]["display_type"]).to eq("收入")
+        expect(json["entry"]["display_amount_type"]).to eq("INCOME")
+      end
+
+      it "returns entry data for transfer (outgoing side)" do
+        post "/transactions", params: {
+          transaction: {
+            type: "TRANSFER",
+            amount: 200,
+            date: Date.current,
+            account_id: account.id,
+            target_account_id: another_account.id,
+            note: "转账测试"
+          },
+          continue_entry: "1"
+        }, as: :json
+
+        expect(response).to have_http_status(:success)
+        json = JSON.parse(response.body)
+        expect(json["entry"]).to be_present
+        expect(json["entry"]["display_type"]).to eq("转出")
+        expect(json["entry"]["display_amount_type"]).to eq("EXPENSE")
+        expect(json["entry"]["transfer_from"]).to eq(account.name)
+        expect(json["entry"]["transfer_to"]).to eq(another_account.name)
+      end
+
+      it "returns entries data for funding transfer" do
+        funding_account = create(:account, name: "Funding Account")
+
+        post "/transactions", params: {
+          transaction: {
+            type: "EXPENSE",
+            amount: 300,
+            date: Date.current,
+            account_id: account.id,
+            category_id: category.id,
+            note: "购物"
+          },
+          funding_account_id: funding_account.id,
+          continue_entry: "1"
+        }, as: :json
+
+        expect(response).to have_http_status(:success)
+        json = JSON.parse(response.body)
+        expect(json["success"]).to be true
+        expect(json["entries"]).to be_present
+        expect(json["entries"].length).to eq(2)
+        expect(json["entries"][0]["display_type"]).to eq("转入")
+        expect(json["entries"][1]["display_type"]).to eq("支出")
+      end
+
+      it "returns entry without transfer fields for non-transfer" do
+        post "/transactions", params: {
+          transaction: {
+            type: "EXPENSE",
+            amount: 100,
+            date: Date.current,
+            account_id: account.id,
+            note: "普通支出"
+          },
+          continue_entry: "1"
+        }, as: :json
+
+        json = JSON.parse(response.body)
+        expect(json["entry"]["transfer_from"]).to be_nil
+        expect(json["entry"]["transfer_to"]).to be_nil
+      end
+    end
+
+    context "with continue parameter (HTML)" do
       it "redirects to new transaction form when continue is set" do
         post "/transactions", params: {
           transaction: {
