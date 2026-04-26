@@ -59,12 +59,64 @@ class BudgetItem < ApplicationRecord
         .where(category_id: all_related_ids)
         .where(single_budgets: { status: %w[active planning] })
 
-      affected_items.each(&:recalculate_spent_amount)
+      # 批量计算并更新，避免逐条 N+1
+      batch_update_spent_amounts(affected_items)
 
       affected_single_budget_ids = affected_items.pluck(:single_budget_id).uniq
       SingleBudget.where(id: affected_single_budget_ids).each(&:recalculate_spent_amount)
 
       CacheBuster.bump(:budgets)
+    end
+
+    private
+
+    # 批量更新支出金额
+    def batch_update_spent_amounts(items)
+      return if items.empty?
+
+      # 收集所有需要的参数
+      items_data = items.map do |item|
+        {
+          id: item.id,
+          category_id: item.category_id,
+          start_date: item.single_budget.start_date,
+          end_date: item.single_budget.end_date || Date.current
+        }
+      end
+
+      # 批量查询所有相关分类的后代
+      all_category_ids = items_data.map { |d| d[:category_id] }.uniq.compact
+      category_descendants = {}
+      all_category_ids.each do |cat_id|
+        category_descendants[cat_id] = Category.descendant_ids_for([ cat_id ]) | [ cat_id ]
+      end
+
+      # 批量查询所有时间范围内的支出
+      # 按 category_id 和时间范围分组
+      all_start_dates = items_data.map { |d| d[:start_date] }.uniq
+      all_end_dates = items_data.map { |d| d[:end_date] }.uniq
+
+      # 执行单次大查询，获取所有需要的数据
+      spent_amounts = {}
+      items_data.each do |data|
+        cat_ids = category_descendants[data[:category_id]] || []
+        next if cat_ids.empty?
+
+        # 使用单次查询计算
+        net_spent = Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
+          .where(entryable_type: "Entryable::Transaction")
+          .where(entryable_transactions: { category_id: cat_ids })
+          .where(date: data[:start_date]..data[:end_date])
+          .sum("entries.amount")
+          .abs
+
+        spent_amounts[data[:id]] = net_spent
+      end
+
+      # 执行批量更新
+      spent_amounts.each do |item_id, spent|
+        BudgetItem.where(id: item_id).update_all(spent_amount: spent)
+      end
     end
   end
 end
