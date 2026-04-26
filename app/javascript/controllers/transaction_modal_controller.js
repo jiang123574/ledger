@@ -174,8 +174,7 @@ export default class extends Controller {
           }
         }
       })
-      .catch(error => {
-        console.error('Delete error:', error)
+      .catch(() => {
         this.showErrorToast('网络错误，请重试')
         if (deleteBtn) {
           deleteBtn.textContent = originalText
