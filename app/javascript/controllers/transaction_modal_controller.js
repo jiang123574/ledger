@@ -131,6 +131,13 @@ export default class extends Controller {
   closeDeleteModal() {
     const modal = document.getElementById('delete-confirm-modal')
     if (modal) modal.classList.add('hidden')
+
+    // 恢复删除按钮状态
+    const deleteBtn = modal?.querySelector('button[data-action="click->transaction-modal#executeDelete"]')
+    if (deleteBtn) {
+      deleteBtn.textContent = '删除'
+      deleteBtn.disabled = false
+    }
   }
 
   executeDelete() {
@@ -138,37 +145,74 @@ export default class extends Controller {
     const id = idEl?.value
     if (!id) return
 
-    const form = document.createElement('form')
-    form.method = 'POST'
-    form.action = `/transactions/${id}`
-
-    const methodInput = document.createElement('input')
-    methodInput.type = 'hidden'
-    methodInput.name = '_method'
-    methodInput.value = 'delete'
-    form.appendChild(methodInput)
-
-    const token = document.querySelector('meta[name="csrf-token"]')?.content
-    if (token) {
-      const csrfInput = document.createElement('input')
-      csrfInput.type = 'hidden'
-      csrfInput.name = 'authenticity_token'
-      csrfInput.value = token
-      form.appendChild(csrfInput)
+    const deleteBtn = document.querySelector('#delete-confirm-modal button[data-action="click->transaction-modal#executeDelete"]')
+    const originalText = deleteBtn?.textContent
+    if (deleteBtn) {
+      deleteBtn.textContent = '删除中...'
+      deleteBtn.disabled = true
     }
 
-    new URLSearchParams(window.location.search).forEach((value, key) => {
-      if (!value) return
-      const input = document.createElement('input')
-      input.type = 'hidden'
-      input.name = key
-      input.value = value
-      form.appendChild(input)
+    fetch(`/transactions/${id}.json`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          this.closeDeleteModal()
+          this.removeEntryFromList(id)
+          this.showSuccessToast(data.message || '交易已删除')
+        } else {
+          this.showErrorToast(data.error || '删除失败')
+          if (deleteBtn) {
+            deleteBtn.textContent = originalText
+            deleteBtn.disabled = false
+          }
+        }
+      })
+      .catch(error => {
+        console.error('Delete error:', error)
+        this.showErrorToast('网络错误，请重试')
+        if (deleteBtn) {
+          deleteBtn.textContent = originalText
+          deleteBtn.disabled = false
+        }
+      })
+  }
+
+  removeEntryFromList(id) {
+    const container = document.querySelector('#transactions-container')
+    if (!container) return
+
+    // 收集要删除的元素
+    const elementsToRemove = []
+
+    // 桌面端行
+    const desktopRow = container.querySelector(`[data-entry-id="${id}"]`)
+    if (desktopRow) elementsToRemove.push(desktopRow)
+
+    // 移动端卡片
+    const mobileRow = container.querySelector(`[data-mobile-entry-id="${id}"]`)
+    if (mobileRow) elementsToRemove.push(mobileRow)
+
+    // 添加动画类
+    elementsToRemove.forEach(el => {
+      el.style.transition = 'opacity 0.2s, height 0.3s, padding 0.3s, margin 0.3s'
+      el.style.opacity = '0'
+      el.style.height = '0'
+      el.style.padding = '0'
+      el.style.margin = '0'
+      el.style.overflow = 'hidden'
     })
 
-    this.closeDeleteModal()
-    document.body.appendChild(form)
-    form.submit()
+    // 动画结束后移除元素
+    setTimeout(() => {
+      elementsToRemove.forEach(el => el.remove())
+    }, 300)
   }
 
   initNewModalSelectors() {
