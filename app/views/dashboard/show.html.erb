@@ -82,7 +82,7 @@
         <div class="flex-1">
           <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.balance") %></p>
           <% balance_info = format_balance(@total_income - @total_expense) %>
-          <p class="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-1 <%= balance_info[:css_class] %>">
+          <p class="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-1 <%= balance_info[:css_class] %> whitespace-nowrap">
             <%= balance_info[:amount] %>
           </p>
         </div>
