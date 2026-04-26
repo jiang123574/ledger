@@ -11,7 +11,7 @@ export default class extends Controller {
     content: String,
     confirmText: { type: String, default: "确认" },
     cancelText: { type: String, default: "取消" },
-    confirmClass: { type: String, default: "bg-expense text-white hover:bg-expense-dark" },
+    confirmClass: { type: String, default: "bg-red-600 text-white hover:bg-red-700" },
     danger: { type: Boolean, default: false }
   }
 
@@ -47,7 +47,7 @@ export default class extends Controller {
         // 更新按钮样式
         this.confirmBtnTarget.className = `px-4 py-2 text-sm font-medium rounded-lg transition-smooth ${confirmClass}`
         if (danger) {
-          this.confirmBtnTarget.className = "px-4 py-2 text-sm font-medium rounded-lg bg-expense text-white hover:bg-expense-dark transition-smooth"
+          this.confirmBtnTarget.className = "px-4 py-2 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-smooth"
         }
       }
       if (this.hasCancelBtnTarget) this.cancelBtnTarget.textContent = cancelText
