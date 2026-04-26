@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { initSelectorWithData } from "selectors"
+import { createEntryCard } from "entry_card_renderer"
 
 export default class extends Controller {
   static targets = [
@@ -374,6 +375,10 @@ export default class extends Controller {
           const noteInput = form.querySelector('input[name="transaction[note]"]')
           if (amountInput) amountInput.value = ''
           if (noteInput) noteInput.value = ''
+          // 如果返回了 entry 数据，插入到列表顶部
+          if (data.entry) {
+            this.insertEntryToList(data.entry)
+          }
         } else {
           this.showErrorToast(data.error || '保存失败')
         }
@@ -410,5 +415,40 @@ export default class extends Controller {
       toast.style.transition = 'opacity 0.3s'
       setTimeout(() => toast.remove(), 300)
     }, 3000)
+  }
+
+  insertEntryToList(entry) {
+    const container = document.querySelector('#entries-container .divide-y')
+    if (!container || !entry) return
+
+    // 使用 entry_card_renderer 创建卡片
+    const cardFragment = createEntryCard(entry, {
+      onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
+      onDelete: (id, name) => {
+        if (window.confirm(`确定删除${name}吗？`)) {
+          // 简化删除逻辑，刷新页面
+          window.location.reload()
+        }
+      }
+    })
+
+    // 插入到列表顶部
+    container.insertBefore(cardFragment, container.firstChild)
+
+    // 添加高亮动画效果
+    const desktopRow = container.querySelector(`[data-entry-id="${entry.id}"]`)
+    const mobileRow = container.querySelector(`[data-mobile-entry-id="${entry.id}"]`)
+    if (desktopRow) {
+      desktopRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
+      setTimeout(() => {
+        desktopRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+      }, 2000)
+    }
+    if (mobileRow) {
+      mobileRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
+      setTimeout(() => {
+        mobileRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+      }, 2000)
+    }
   }
 }

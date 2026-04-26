@@ -68,23 +68,25 @@ class TransactionsController < ApplicationController
   private
 
   def create_regular_entry(type, account_id, amount, date, currency, note, category_id)
-    EntryCreationService.create_regular(
+    entry = EntryCreationService.create_regular(
       type: type, account_id: account_id, amount: amount,
       date: date, currency: currency, note: note, category_id: category_id
     )
     expire_entries_cache
-    handle_successful_save("交易已创建")
+    handle_successful_save("交易已创建", entry)
   rescue ActiveRecord::RecordInvalid => e
     handle_save_error(e.record)
   end
 
   def create_transfer_entry(from_account_id, to_account_id, amount, date, currency, note)
-    EntryCreationService.create_transfer(
+    entries = EntryCreationService.create_transfer(
       from_account_id: from_account_id, to_account_id: to_account_id,
       amount: amount, date: date, currency: currency, note: note
     )
     expire_entries_cache
-    handle_successful_save("转账已创建")
+    # 转账返回两个 entry，取第一个（转出方）
+    entry = entries&.first
+    handle_successful_save("转账已创建", entry)
   rescue ActiveRecord::RecordInvalid => e
     handle_save_error(e.record)
   rescue ActiveRecord::RecordNotFound
@@ -105,6 +107,7 @@ class TransactionsController < ApplicationController
     )
 
     expire_entries_cache
+    # 带资金来源转账场景复杂，不返回 entry 数据
     handle_successful_save("交易已创建（已自动补记资金来源转账）")
   rescue ActiveRecord::RecordInvalid => e
     handle_save_error(e.record)
