@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_22_122231) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_26_132107) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -248,6 +248,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_122231) do
     t.integer "merchant_id"
     t.jsonb "tags", default: []
     t.datetime "updated_at", null: false
+    t.index ["category_id", "kind"], name: "idx_entryable_transactions_category_kind"
     t.index ["category_id"], name: "idx_trans_category"
     t.index ["merchant_id"], name: "idx_trans_merchant"
     t.index ["tags"], name: "idx_trans_tags_gin", using: :gin
@@ -315,6 +316,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_122231) do
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_payables_on_account_id"
     t.index ["counterparty_id"], name: "index_payables_on_counterparty_id"
+    t.index ["settled_at", "date"], name: "idx_payables_settled_date"
     t.index ["settlement_transfer_ids"], name: "index_payables_on_settlement_transfer_ids"
     t.index ["source_entry_id"], name: "index_payables_on_source_entry_id"
     t.index ["transfer_id"], name: "index_payables_on_transfer_id"
@@ -358,6 +360,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_22_122231) do
     t.index ["account_id"], name: "index_receivables_on_account_id"
     t.index ["counterparty_id"], name: "index_receivables_on_counterparty_id"
     t.index ["reimbursement_transfer_ids"], name: "index_receivables_on_reimbursement_transfer_ids"
+    t.index ["settled_at", "date"], name: "idx_receivables_settled_date"
     t.index ["source_entry_id"], name: "index_receivables_on_source_entry_id"
     t.index ["transfer_id"], name: "index_receivables_on_transfer_id"
   end

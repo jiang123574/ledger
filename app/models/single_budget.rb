@@ -1,4 +1,6 @@
 class SingleBudget < ApplicationRecord
+  include ProgressCalculable
+
   STATUSES = %w[planning active completed cancelled].freeze
 
   has_many :budget_items, dependent: :destroy
@@ -11,6 +13,11 @@ class SingleBudget < ApplicationRecord
   validates :status, presence: true, inclusion: { in: STATUSES }
 
   before_save :calculate_total_from_items, if: :budget_items_changed?
+
+  # ProgressCalculable 配置：使用 total_amount 作为总量
+  def progress_total
+    total_amount
+  end
 
   def calculate_total_from_items
     self.total_amount = budget_items.sum(:amount)
@@ -49,21 +56,17 @@ class SingleBudget < ApplicationRecord
     end
   end
 
+  # 保留业务语义方法名（包装 concern 方法）
   def remaining_amount
-    total_amount.to_d - spent_amount.to_d
-  end
-
-  def progress_percentage
-    return 0 if total_amount.to_d <= 0
-    (spent_amount.to_d / total_amount.to_d * 100).round(1)
+    progress_remaining
   end
 
   def overspent?
-    remaining_amount < 0
+    progress_exceeded?
   end
 
   def near_limit?
-    progress_percentage >= 80 && progress_percentage < 100
+    progress_near_limit?
   end
 
   def status_color
