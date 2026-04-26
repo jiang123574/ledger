@@ -101,8 +101,16 @@ module EntryableActions
     end
 
     account_name = entry.account&.name || "未知账户"
-    transfer_from = is_transfer && entry.amount < 0 ? account_name : nil
-    transfer_to = is_transfer && entry.amount > 0 ? account_name : nil
+
+    # 对于转账记录，使用正确的对方账户方法
+    transfer_from = nil
+    transfer_to = nil
+    if is_transfer
+      source_account = entry.source_account_for_transfer
+      target_account = entry.target_account_for_display
+      transfer_from = source_account&.name
+      transfer_to = target_account&.name
+    end
 
     {
       id: entry.id,
