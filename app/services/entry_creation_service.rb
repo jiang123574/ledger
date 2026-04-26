@@ -87,6 +87,10 @@ class EntryCreationService
     source_account = Account.find(funding_account_id)
     destination_account = Account.find(destination_account_id)
 
+    transfer_out = nil
+    transfer_in = nil
+    expense_entry = nil
+
     Entry.transaction do
       transfer_id = SecureRandom.uuid
       transfer_note = [
@@ -102,7 +106,7 @@ class EntryCreationService
       sort_order_in = next_sort_order(destination_account.id, date)
 
       # 资金来源转账：转出
-      Entry.create!(
+      transfer_out = Entry.create!(
         account_id: source_account.id,
         date: date,
         name: transfer_note,
@@ -115,7 +119,7 @@ class EntryCreationService
       )
 
       # 资金来源转账：转入
-      Entry.create!(
+      transfer_in = Entry.create!(
         account_id: destination_account.id,
         date: date,
         name: transfer_note,
@@ -134,7 +138,7 @@ class EntryCreationService
         category_id: category_id
       )
 
-      Entry.create!(
+      expense_entry = Entry.create!(
         account_id: destination_account.id,
         date: date,
         name: note.presence || "支出 #{amount}",
@@ -145,5 +149,8 @@ class EntryCreationService
         sort_order: sort_order_expense
       )
     end
+
+    # 返回支出 entry（用于前端显示）
+    expense_entry
   end
 end
