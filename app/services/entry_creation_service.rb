@@ -81,9 +81,6 @@ class EntryCreationService
     [ entry_out, entry_in ]
   end
 
-    transfer_id
-  end
-
   # 创建带资金来源转账的支出（先从资金来源账户转账到消费账户，再创建支出）
   def self.create_with_funding_transfer(funding_account_id:, destination_account_id:,
                                          amount:, date:, currency: "CNY", note: nil, category_id: nil)
