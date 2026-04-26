@@ -418,7 +418,7 @@ export default class extends Controller {
   }
 
   insertEntryToList(entry) {
-    const container = document.querySelector('#entries-container .divide-y')
+    const container = document.querySelector('#transactions-container')
     if (!container || !entry) return
 
     // 使用 entry_card_renderer 创建卡片
