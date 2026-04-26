@@ -16,13 +16,14 @@ class EntryCreationService
     kind = type.downcase
     sort_order = next_sort_order(account_id, date)
 
+    entry = nil
     Entry.transaction do
       entryable = Entryable::Transaction.create!(
         kind: kind,
         category_id: category_id
       )
 
-      Entry.create!(
+      entry = Entry.create!(
         account_id: account_id,
         date: date,
         name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
@@ -33,6 +34,7 @@ class EntryCreationService
         sort_order: sort_order
       )
     end
+    entry
   end
 
   # 创建转账 Entry 对（转出 + 转入）
@@ -46,6 +48,9 @@ class EntryCreationService
     # 获取两个账户的下一个 sort_order
     sort_order_out = next_sort_order(from_account_id, date)
     sort_order_in = next_sort_order(to_account_id, date)
+
+    entry_out = nil
+    entry_in = nil
 
     Entry.transaction do
       entry_out = Entry.create!(
@@ -72,6 +77,9 @@ class EntryCreationService
         sort_order: sort_order_in
       )
     end
+
+    [ entry_out, entry_in ]
+  end
 
     transfer_id
   end
