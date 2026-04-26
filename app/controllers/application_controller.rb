@@ -7,8 +7,8 @@ class ApplicationController < ActionController::Base
   stale_when_importmap_changes
 
   # ============ 安全头 ============
-  before_action :set_security_headers
   before_action :set_csp_nonce
+  before_action :set_security_headers
 
   # ============ Session-based Auth 全站保护 ============
   # 个人记账工具部署在公网，必须有访问控制
