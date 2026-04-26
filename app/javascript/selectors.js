@@ -110,14 +110,18 @@ function initSelectorWithData(config) {
   }
 
   var focusOpenedAt = 0; // 记录 focus 打开的时间
+  var isOpening = false; // 标记正在打开中
 
   // 焦点进入自动打开下拉并激活搜索
   searchInput.addEventListener('focus', function() {
     if (dropdown.classList.contains('hidden')) {
+      isOpening = true;
       dropdown.classList.remove('hidden');
       updateOptions();
-      focusOpenedAt = Date.now(); // 记录打开时间
+      focusOpenedAt = Date.now();
       if (filterInput) filterInput.focus();
+      // 延迟重置标记，确保 click 事件已处理
+      setTimeout(function() { isOpening = false; }, 150);
     }
   });
 
@@ -167,6 +171,8 @@ function initSelectorWithData(config) {
   }
 
   document.addEventListener('click', function(e) {
+    // 如果正在打开中，跳过关闭检查
+    if (isOpening) return;
     if (!dropdown.contains(e.target) && e.target !== searchInput) {
       dropdown.classList.add('hidden');
     }
