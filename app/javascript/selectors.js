@@ -109,19 +109,27 @@ function initSelectorWithData(config) {
     bindOptionEvents();
   }
 
-  // 点击 toggle 下拉
-  searchInput.addEventListener('click', function() {
-    dropdown.classList.toggle('hidden');
-    if (!dropdown.classList.contains('hidden')) {
-      updateOptions();
-      if (filterInput) filterInput.focus();
-    }
-  });
+  var focusOpenedAt = 0; // 记录 focus 打开的时间
 
   // 焦点进入自动打开下拉并激活搜索
   searchInput.addEventListener('focus', function() {
     if (dropdown.classList.contains('hidden')) {
       dropdown.classList.remove('hidden');
+      updateOptions();
+      focusOpenedAt = Date.now(); // 记录打开时间
+      if (filterInput) filterInput.focus();
+    }
+  });
+
+  // 点击 toggle 下拉（但防止 focus 刚打开后立即关闭）
+  searchInput.addEventListener('click', function(e) {
+    // 如果 focus 刚打开下拉（< 100ms），跳过这次 click
+    if (focusOpenedAt > 0 && Date.now() - focusOpenedAt < 100) {
+      focusOpenedAt = 0;
+      return;
+    }
+    dropdown.classList.toggle('hidden');
+    if (!dropdown.classList.contains('hidden')) {
       updateOptions();
       if (filterInput) filterInput.focus();
     }
