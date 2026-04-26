@@ -141,28 +141,37 @@ export default class extends Controller {
     const id = btn.dataset.id
     const name = btn.dataset.name
 
-    if (!window.confirm(`确定要删除账户 "${name}" 吗？\n\n若该账户仍有关联交易/应收/应付记录，将无法删除。`)) return
+    // 使用通用确认弹窗替代浏览器原生 confirm
+    window.showConfirmDialog({
+      title: "确认删除",
+      content: `确定要删除账户 <strong>"${name}"</strong> 吗？<br><br><span class="text-sm">若该账户仍有关联交易/应收/应付记录，将无法删除。</span>`,
+      confirmText: "删除",
+      cancelText: "取消",
+      danger: true
+    }).then(confirmed => {
+      if (!confirmed) return
 
-    const form = document.createElement('form')
-    form.method = 'POST'
-    form.action = '/accounts/' + id
+      const form = document.createElement('form')
+      form.method = 'POST'
+      form.action = '/accounts/' + id
 
-    const methodInput = document.createElement('input')
-    methodInput.type = 'hidden'
-    methodInput.name = '_method'
-    methodInput.value = 'delete'
-    form.appendChild(methodInput)
+      const methodInput = document.createElement('input')
+      methodInput.type = 'hidden'
+      methodInput.name = '_method'
+      methodInput.value = 'delete'
+      form.appendChild(methodInput)
 
-    const token = document.querySelector('meta[name="csrf-token"]')?.content
-    if (token) {
-      const csrfInput = document.createElement('input')
-      csrfInput.type = 'hidden'
-      csrfInput.name = 'authenticity_token'
-      csrfInput.value = token
-      form.appendChild(csrfInput)
-    }
+      const token = document.querySelector('meta[name="csrf-token"]')?.content
+      if (token) {
+        const csrfInput = document.createElement('input')
+        csrfInput.type = 'hidden'
+        csrfInput.name = 'authenticity_token'
+        csrfInput.value = token
+        form.appendChild(csrfInput)
+      }
 
-    document.body.appendChild(form)
-    form.submit()
+      document.body.appendChild(form)
+      form.submit()
+    })
   }
 }

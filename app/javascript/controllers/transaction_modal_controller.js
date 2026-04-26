@@ -491,10 +491,38 @@ export default class extends Controller {
     const cardFragment = createEntryCard(entry, {
       onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
       onDelete: (id, name) => {
-        if (window.confirm(`确定删除${name}吗？`)) {
-          // 简化删除逻辑，刷新页面
-          window.location.reload()
-        }
+        // 使用通用确认弹窗替代浏览器原生 confirm
+        window.showConfirmDialog({
+          title: "确认删除",
+          content: `确定删除 <strong>${name}</strong> 吗？此操作不可撤销。`,
+          confirmText: "删除",
+          cancelText: "取消",
+          danger: true
+        }).then(confirmed => {
+          if (confirmed) {
+            // 使用 AJAX 删除，避免刷新页面
+            fetch(`/transactions/${id}.json`, {
+              method: 'DELETE',
+              headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  this.removeEntryFromList(id)
+                  this.showSuccessToast(data.message || '交易已删除')
+                } else {
+                  this.showErrorToast(data.error || '删除失败')
+                }
+              })
+              .catch(() => {
+                this.showErrorToast('网络错误，请重试')
+              })
+          }
+        })
       }
     })
 

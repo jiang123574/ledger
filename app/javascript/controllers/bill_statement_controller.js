@@ -260,7 +260,7 @@ export default class extends Controller {
     const amount = amountEl?.value
 
     if (!billingDate || !amount) {
-      alert("请填写账单日期和金额")
+      this.showErrorToast("请填写账单日期和金额")
       return
     }
 
@@ -276,11 +276,36 @@ export default class extends Controller {
       .then(data => {
         if (data.success) {
           this.hideStatementInputModal()
+          this.showSuccessToast("账单已保存")
           this.loadBillsWithCount(this.currentBillCount)
         } else {
-          alert(data.error || "保存失败")
+          this.showErrorToast(data.error || "保存失败")
         }
       })
+  }
+
+  showSuccessToast(message) {
+    const toast = document.createElement('div')
+    toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50'
+    toast.textContent = message
+    document.body.appendChild(toast)
+    setTimeout(() => {
+      toast.style.opacity = '0'
+      toast.style.transition = 'opacity 0.3s'
+      setTimeout(() => toast.remove(), 300)
+    }, 2000)
+  }
+
+  showErrorToast(message) {
+    const toast = document.createElement('div')
+    toast.className = 'fixed top-4 right-4 bg-red-500 text-white px-4 py-2 rounded-lg shadow-lg z-50'
+    toast.textContent = message
+    document.body.appendChild(toast)
+    setTimeout(() => {
+      toast.style.opacity = '0'
+      toast.style.transition = 'opacity 0.3s'
+      setTimeout(() => toast.remove(), 300)
+    }, 3000)
   }
 
   // === 工具方法 ===

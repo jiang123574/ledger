@@ -46,7 +46,16 @@
                 <button onclick="openEditRecurringModal(<%= r.id %>, '<%= r.transaction_type %>', '<%= r.amount %>', '<%= r.frequency %>', '<%= r.next_date&.strftime('%Y-%m-%d') %>', '<%= r.account_id %>', '<%= r.category_id %>', '<%= j(r.note || '') %>')" class="text-primary dark:text-primary-dark hover:text-secondary dark:hover:text-secondary-dark">
                   <%= t("common.edit") %>
                 </button>
-                <%= button_to t("common.delete"), recurring_path(r), method: :delete, onclick: "if(!confirm('确定删除此周期交易？')) return false", class: "text-red-600 hover:text-red-800" %>
+                <%= button_to t("common.delete"), recurring_path(r), method: :delete,
+                  data: {
+                    controller: "confirm-submit",
+                    action: "click->confirm-submit#confirm",
+                    confirm_submit_title_value: "确认删除",
+                    confirm_submit_content_value: "确定删除此周期交易吗？",
+                    confirm_submit_confirm_text_value: "删除",
+                    confirm_submit_danger_value: true
+                  },
+                  class: "text-red-600 hover:text-red-800" %>
               </div>
             </td>
           </tr>

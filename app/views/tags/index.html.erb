@@ -60,9 +60,16 @@
                   title="编辑">
                 <%= render(Ds::IconComponent.new(name: "pencil", size: :sm)) %>
               </button>
-              <%= button_to tag_path(tag), 
+              <%= button_to tag_path(tag),
                   method: :delete,
-                  onclick: "if(!confirm('确定删除此标签？关联的交易将取消关联。')) return false",
+                  data: {
+                    controller: "confirm-submit",
+                    action: "click->confirm-submit#confirm",
+                    confirm_submit_title_value: "确认删除",
+                    confirm_submit_content_value: "确定删除此标签？关联的交易将取消关联。",
+                    confirm_submit_confirm_text_value: "删除",
+                    confirm_submit_danger_value: true
+                  },
                   class: "p-2 rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern",
                   title: "删除" do %>
                 <%= render(Ds::IconComponent.new(name: "trash-2", size: :sm)) %>
