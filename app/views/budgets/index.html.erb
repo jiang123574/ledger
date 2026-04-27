@@ -676,7 +676,9 @@
   </div>
 </div>
 
-<script>
+<script type="module">
+  import { initSelectorWithData } from 'selectors';
+
   // 初始化分类选择器（在 DOM 元素之后）
   var expenseCategories = [];
   var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
@@ -684,7 +686,7 @@
     expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
   }
 
-  window.initSelectorWithData({
+  initSelectorWithData({
     searchInputId: 'new-item-category-search',
     dropdownId: 'new-item-category-dropdown',
     optionsId: 'new-item-category-options',
@@ -693,7 +695,7 @@
     noMatchText: '无匹配分类',
     enableLevelIndent: true
   });
-  window.initSelectorWithData({
+  initSelectorWithData({
     searchInputId: 'edit-item-category-search',
     dropdownId: 'edit-item-category-dropdown',
     optionsId: 'edit-item-category-options',
