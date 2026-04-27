@@ -192,6 +192,14 @@ FactoryBot.define do
     status { 'planning' }
   end
 
+  factory :one_time_budget do
+    sequence(:name) { |n| "One Time Budget #{n}" }
+    amount { 1000 }
+    start_date { Date.current }
+    end_date { 30.days.from_now }
+    status { 'planning' }
+  end
+
   factory :budget_item do
     association :single_budget
     association :category, factory: :category

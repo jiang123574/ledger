@@ -72,7 +72,7 @@
     
     <%# Tailwind CSS v4 - compiled application.css %>
     <%= stylesheet_link_tag "application", preload_links_header: false, "data-turbo-track": "reload" %>
-    <script src="/assets/chart.js.umd.js"></script>
+    <%= javascript_include_tag "chart.js.umd.js" %>
     <%= javascript_importmap_tags %>
     <script type="module">import "native_title_sync"</script>
   </head>

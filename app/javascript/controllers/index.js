@@ -54,8 +54,7 @@ import ReceivableModalController from "controllers/receivable_modal_controller"
 import FlashController from "controllers/flash_controller"
 import YearNavController from "controllers/year_nav_controller"
 import ConfirmModalController from "controllers/confirm_modal_controller"
-import ConfirmSubmitController from "controllers/confirm_submit_controller"
-import ConfirmDeleteController from "controllers/confirm_delete_controller"
+import ConfirmFormController from "controllers/confirm_form_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -109,5 +108,4 @@ application.register("receivable-modal", ReceivableModalController)
 application.register("flash", FlashController)
 application.register("year-nav", YearNavController)
 application.register("confirm-modal", ConfirmModalController)
-application.register("confirm-submit", ConfirmSubmitController)
-application.register("confirm-delete", ConfirmDeleteController)
+application.register("confirm-form", ConfirmFormController)

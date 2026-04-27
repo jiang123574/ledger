@@ -1,8 +1,9 @@
 module Api
-  class ExternalController < ApplicationController
-    skip_before_action :verify_authenticity_token
+  module V1
+    class ExternalController < ApplicationController
+      skip_before_action :verify_authenticity_token
 
-    before_action :verify_api_key
+      before_action :verify_api_key
 
     def health
       render json: { status: "ok", timestamp: Time.current }
@@ -67,6 +68,7 @@ module Api
 
     def transaction_params
       params.permit(:date, :type, :amount, :category, :category_id, :note, :account_id, :transaction_type)
+    end
     end
   end
 end

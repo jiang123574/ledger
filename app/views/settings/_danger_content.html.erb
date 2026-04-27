@@ -22,12 +22,12 @@
             <%= f.submit "清除数据", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-red-600 text-white hover:bg-red-700 transition-smooth btn-modern",
                 data: {
                   loading_button_target: "button",
-                  controller: "confirm-submit",
-                  action: "click->confirm-submit#confirm",
-                  confirm_submit_title_value: "确认清除",
-                  confirm_submit_content_value: "确定要清除所有数据吗？此操作不可恢复！",
-                  confirm_submit_confirm_text_value: "清除",
-                  confirm_submit_danger_value: true
+                  controller: "confirm-form",
+                  action: "click->confirm-form#confirm",
+                  confirm_form_title_value: "确认清除",
+                  confirm_form_content_value: "确定要清除所有数据吗？此操作不可恢复！",
+                  confirm_form_confirm_text_value: "清除",
+                  confirm_form_danger_value: true
                 } %>
           </div>
         <% end %>

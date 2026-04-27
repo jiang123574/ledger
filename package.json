@@ -1,6 +1,11 @@
 {
   "name": "app",
   "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage"
+  },
   "dependencies": {
     "@floating-ui/core": "^1.7.5",
     "@floating-ui/dom": "^1.6.0",
@@ -11,5 +16,10 @@
     "@tailwindcss/cli": "^4.2.2",
     "chart.js": "^4.5.1",
     "tailwindcss": "^4.2.2"
+  },
+  "devDependencies": {
+    "vitest": "^2.1.0",
+    "jsdom": "^24.0.0",
+    "@vitest/coverage-v8": "^2.1.0"
   }
 }

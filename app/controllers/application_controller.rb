@@ -17,7 +17,7 @@ class ApplicationController < ActionController::Base
   # 放开的端点：
   # - /up（健康检查）
   # - /manifest / /manifest.json（PWA）
-  # - /api/external/*（使用独立 API Key 认证）
+  # - /api/v1/external/*（使用独立 API Key 认证）
   # - /login（登录页面）
   before_action :require_login
 
@@ -36,8 +36,8 @@ class ApplicationController < ActionController::Base
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=(), payment=(), usb=(), serial=(), bluetooth=()"
     # Turbo Native 不设置 CSP，避免 importmap/inline script 被阻止
-    unless turbo_native_app?
-      response.headers["Content-Security-Policy"] = "default-src 'self'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'"
+    if turbo_native_app?
+      response.headers["Content-Security-Policy"] = "default-src 'self' 'unsafe-inline' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'unsafe-eval'; img-src 'self' data: blob:;"
     end
   end
 
@@ -66,7 +66,7 @@ class ApplicationController < ActionController::Base
   def skip_auth_for_path?
     request.path == "/up" ||
       request.path.start_with?("/manifest") ||
-      request.path.start_with?("/api/external/") ||
+      request.path.start_with?("/api/v1/external/") ||
       request.path == login_path
   end
 end

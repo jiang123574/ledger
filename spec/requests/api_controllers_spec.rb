@@ -26,7 +26,7 @@ RSpec.describe "API Controllers", type: :request do
     end
   end
 
-  describe "Api::ExternalController" do
+  describe "Api::V1::ExternalController" do
     before do
       ENV["EXTERNAL_API_KEY"] = "test_api_key_123"
     end
@@ -35,9 +35,9 @@ RSpec.describe "API Controllers", type: :request do
       ENV["EXTERNAL_API_KEY"] = nil
     end
 
-    describe "GET /api/external/health" do
+    describe "GET /api/v1/external/health" do
       it "returns ok status with valid API key" do
-        get api_external_health_path, headers: { "X-API-Key" => "test_api_key_123" }
+        get api_v1_external_health_path, headers: { "X-API-Key" => "test_api_key_123" }
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json["status"]).to eq("ok")
@@ -45,21 +45,21 @@ RSpec.describe "API Controllers", type: :request do
       end
 
       it "rejects requests without API key" do
-        get api_external_health_path
+        get api_v1_external_health_path
         expect(response).to have_http_status(:unauthorized)
       end
 
       it "rejects requests with wrong API key" do
-        get api_external_health_path, headers: { "X-API-Key" => "wrong_key" }
+        get api_v1_external_health_path, headers: { "X-API-Key" => "wrong_key" }
         expect(response).to have_http_status(:unauthorized)
       end
     end
 
-    describe "GET /api/external/context" do
+    describe "GET /api/v1/external/context" do
       it "returns accounts and categories" do
         create(:account)
         create(:category)
-        get api_external_context_path, headers: { "X-API-Key" => "test_api_key_123" }
+        get api_v1_external_context_path, headers: { "X-API-Key" => "test_api_key_123" }
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json["accounts"]).to be_an(Array)
@@ -67,12 +67,12 @@ RSpec.describe "API Controllers", type: :request do
       end
 
       it "rejects unauthorized requests" do
-        get api_external_context_path
+        get api_v1_external_context_path
         expect(response).to have_http_status(:unauthorized)
       end
     end
 
-    describe "POST /api/external/transactions" do
+    describe "POST /api/v1/external/transactions" do
       let(:account) { create(:account) }
       let(:category) { create(:category, :expense) }
 
@@ -85,7 +85,7 @@ RSpec.describe "API Controllers", type: :request do
           note: "API test",
           date: Date.current.to_s
         }
-        post api_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
+        post api_v1_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
 
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
@@ -103,7 +103,7 @@ RSpec.describe "API Controllers", type: :request do
           note: "Income test",
           date: Date.current.to_s
         }
-        post api_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
+        post api_v1_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
 
         expect(response).to have_http_status(:created)
         json = JSON.parse(response.body)
@@ -112,7 +112,7 @@ RSpec.describe "API Controllers", type: :request do
 
       it "returns errors for invalid entry" do
         params = { type: "expense", amount: 50.0 }
-        post api_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
+        post api_v1_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
 
         expect(response).to have_http_status(:unprocessable_entity)
         json = JSON.parse(response.body)
@@ -120,7 +120,7 @@ RSpec.describe "API Controllers", type: :request do
       end
 
       it "rejects unauthorized requests" do
-        post api_external_transactions_path, params: { type: "expense", amount: 50 }
+        post api_v1_external_transactions_path, params: { type: "expense", amount: 50 }
         expect(response).to have_http_status(:unauthorized)
       end
     end
@@ -129,7 +129,7 @@ RSpec.describe "API Controllers", type: :request do
       before { ENV["EXTERNAL_API_KEY"] = nil }
 
       it "returns forbidden for health" do
-        get api_external_health_path
+        get api_v1_external_health_path
         expect(response).to have_http_status(:forbidden)
         json = JSON.parse(response.body)
         expect(json["error"]).to eq("API Key not configured")

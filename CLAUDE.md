@@ -14,6 +14,10 @@ bin/rails server -b 0.0.0.0 -p 3000  # Bind to 0.0.0.0 for mobile/Android access
 # Or use foreman for Tailwind watch + Rails server:
 bin/dev
 ```
+### ci没过处理方法
+如果ci没过，要评估测试方法是否可以准确评估代码，如果测试方法过时，要更新测试
+
+
 
 ### Database
 ```bash
@@ -133,7 +137,7 @@ Business logic in `app/services/`:
 
 ## External API
 
-`/api/external` endpoints for external integrations. Requires `EXTERNAL_API_KEY` env var. See `docs/API.md` for full endpoint list.
+`/api/v1/external` endpoints for external integrations. Requires `EXTERNAL_API_KEY` env var. See `docs/API.md` for full endpoint list.
 
 ## Ruby Version
 
