@@ -65,14 +65,17 @@ class Category < ApplicationRecord
   # 返回顺序：从父分类向上到根分类
   def ancestors
     ancestor_ids = Category.ancestor_ids_for([ id ])
-    # 按 parent_id 关系排序：父分类在前，祖父分类在后
+    return [] if ancestor_ids.empty?
+
+    # 预加载所有祖先，按 parent_id 关系构建正确的顺序
     categories = Category.where(id: ancestor_ids).to_a
-    # 构建正确的顺序
+    categories_map = categories.index_by(&:id)
+
     result = []
-    current = parent
-    while current && categories.include?(current)
-      result << current
-      current = current.parent
+    current_id = parent_id
+    while current_id && categories_map[current_id]
+      result << categories_map[current_id]
+      current_id = categories_map[current_id].parent_id
     end
     result
   end

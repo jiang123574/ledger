@@ -68,8 +68,10 @@ class DashboardController < ApplicationController
 
     @expenses_by_category = expenses_data.map { |e| [ e.category_id, e.category_name, e.total_amount ] }
 
-    @budgets = Budget.for_month(@month)
-    @total_budget = @budgets.sum(:amount)
+    @budgets = Budget.for_month(@month).to_a
+    @total_budget = @budgets.sum(&:amount)
+    # 预加载 spent_amount，消除 N+1
+    Budget.preload_spent_amounts(@budgets)
 
     # total_spent 也纳入缓存
     @total_spent = Rails.cache.fetch("dashboard/total_spent/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
