@@ -16,7 +16,6 @@ function escapeHtml(str) {
 function initSelectorWithData(config) {
   var searchInput = document.getElementById(config.searchInputId);
   var dropdown = document.getElementById(config.dropdownId);
-  var filterInput = document.getElementById(config.filterInputId);
   var optionsContainer = document.getElementById(config.optionsId);
   var hiddenInput = document.getElementById(config.hiddenInputId);
   var dataSource = config.dataSource || [];
@@ -38,8 +37,6 @@ function initSelectorWithData(config) {
   var enableLevelIndent = !!config.enableLevelIndent;
   var levelIndentBase = config.levelIndentBase || 12;
   var levelIndentSize = config.levelIndentSize || 16;
-  var clearFilterPlaceholderOnFocus = !!config.clearFilterPlaceholderOnFocus;
-  var filterPlaceholder = config.filterPlaceholder || '搜索...';
 
   function renderOptions(filterText) {
     var query = (filterText || '').toLowerCase();
@@ -86,97 +83,106 @@ function initSelectorWithData(config) {
 
   function bindOptionEvents() {
     optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
-      option.addEventListener('click', function() {
-        if (hiddenInput) hiddenInput.value = this.dataset.value || '';
-        searchInput.value = this.dataset.display || '';
-        if (filterInput) filterInput.value = '';
-        dropdown.classList.add('hidden');
-        // 调用回调，传递选中的 value 和原始数据项
-        if (onSelect) {
-          var selectedValue = this.dataset.value || '';
-          var selectedItem = dataSource.find(function(item) {
-            return String(item[valueKey]) === selectedValue;
-          });
-          onSelect(selectedValue, selectedItem);
+      option.addEventListener('mousedown', function(e) {
+        pendingOption = this;
+        isSelecting = true;
+        e.preventDefault();
+      });
+
+      option.addEventListener('mouseup', function(e) {
+        if (pendingOption === this) {
+          if (hiddenInput) hiddenInput.value = this.dataset.value || '';
+          searchInput.value = this.dataset.display || '';
+          dropdown.classList.add('hidden');
+          if (onSelect) {
+            var selectedValue = this.dataset.value || '';
+            var selectedItem = dataSource.find(function(item) {
+              return String(item[valueKey]) === selectedValue;
+            });
+            onSelect(selectedValue, selectedItem);
+          }
+        }
+        pendingOption = null;
+        setTimeout(function() { isSelecting = false; }, 50);
+      });
+
+      option.addEventListener('click', function(e) {
+        if (e.detail === 0) {
+          if (hiddenInput) hiddenInput.value = this.dataset.value || '';
+          searchInput.value = this.dataset.display || '';
+          dropdown.classList.add('hidden');
+          if (onSelect) {
+            var selectedValue = this.dataset.value || '';
+            var selectedItem = dataSource.find(function(item) {
+              return String(item[valueKey]) === selectedValue;
+            });
+            onSelect(selectedValue, selectedItem);
+          }
         }
       });
     });
   }
 
-  function updateOptions() {
-    var filterText = filterInput ? filterInput.value : '';
-    optionsContainer.innerHTML = renderOptions(filterText);
+  var pendingOption = null;
+  var isSelecting = false;
+
+  // 移除 readonly 属性，让输入框可编辑
+  searchInput.removeAttribute('readonly');
+
+  function openDropdown() {
+    if (!dropdown.classList.contains('hidden')) return;
+    dropdown.classList.remove('hidden');
+    // 打开时显示所有选项，不筛选
+    optionsContainer.innerHTML = renderOptions('');
     bindOptionEvents();
   }
 
-  var focusOpenedAt = 0; // 记录 focus 打开的时间
-  var isOpening = false; // 标记正在打开中
+  // 输入时筛选选项
+  searchInput.addEventListener('input', function(e) {
+    var query = (searchInput.value || '').toLowerCase();
+    // 确保下拉打开
+    if (dropdown.classList.contains('hidden')) {
+      dropdown.classList.remove('hidden');
+    }
+    optionsContainer.innerHTML = renderOptions(query);
+    bindOptionEvents();
+  });
 
-  // 焦点进入自动打开下拉并激活搜索
+  // 焦点进入时打开下拉
   searchInput.addEventListener('focus', function() {
-    if (dropdown.classList.contains('hidden')) {
-      isOpening = true;
-      dropdown.classList.remove('hidden');
-      updateOptions();
-      focusOpenedAt = Date.now();
-      if (filterInput) filterInput.focus();
-      // 延迟重置标记，确保 click 事件已处理
-      setTimeout(function() { isOpening = false; }, 150);
-    }
+    openDropdown();
   });
 
-  // 点击 toggle 下拉（但防止 focus 刚打开后立即关闭）
-  searchInput.addEventListener('click', function(e) {
-    // 如果 focus 刚打开下拉（< 100ms），跳过这次 click
-    if (focusOpenedAt > 0 && Date.now() - focusOpenedAt < 100) {
-      focusOpenedAt = 0;
-      return;
-    }
-    dropdown.classList.toggle('hidden');
-    if (!dropdown.classList.contains('hidden')) {
-      updateOptions();
-      if (filterInput) filterInput.focus();
-    }
+  // 点击时也打开下拉（处理已有焦点时的点击）
+  searchInput.addEventListener('click', function() {
+    openDropdown();
   });
 
-  // 键盘输入直接激活搜索
-  searchInput.addEventListener('keydown', function(e) {
-    // 忽略功能键（Tab、Enter、Esc、方向键等）
-    if (e.key.length > 1 || e.ctrlKey || e.metaKey || e.altKey) return;
+  // 点击时不做任何事情（不会 toggle 关闭）
+  // 点击只用于定位光标位置
 
-    // 如果下拉未打开，打开并将按键传递到搜索框
-    if (dropdown.classList.contains('hidden')) {
-      dropdown.classList.remove('hidden');
-      updateOptions();
-      if (filterInput) {
-        filterInput.focus();
-        filterInput.value = e.key;
-        updateOptions(); // 立即筛选
-      }
-      e.preventDefault();
-    }
-  });
-
-  if (filterInput) {
-    filterInput.placeholder = filterPlaceholder;
-    if (clearFilterPlaceholderOnFocus) {
-      filterInput.addEventListener('focus', function() {
-        this.placeholder = '';
-      });
-      filterInput.addEventListener('blur', function() {
-        this.placeholder = filterPlaceholder;
-      });
-    }
-    filterInput.addEventListener('input', updateOptions);
-  }
-
+  // 点击外部关闭下拉
   document.addEventListener('click', function(e) {
-    // 如果正在打开中，跳过关闭检查
-    if (isOpening) return;
+    if (isSelecting) return;
     if (!dropdown.contains(e.target) && e.target !== searchInput) {
       dropdown.classList.add('hidden');
+      restoreSearchInputValue();
     }
   });
+
+  // 关闭下拉时恢复 searchInput 的显示值
+  function restoreSearchInputValue() {
+    if (hiddenInput && hiddenInput.value) {
+      var selectedItem = dataSource.find(function(item) {
+        return String(item[valueKey]) === String(hiddenInput.value);
+      });
+      if (selectedItem) {
+        searchInput.value = selectedItem[fullNameKey] || selectedItem[nameKey] || '';
+      }
+    } else if (!hiddenInput || !hiddenInput.value) {
+      searchInput.value = '';
+    }
+  }
 }
 
 // Generic selector initializer with XSS-safe rendering
@@ -184,14 +190,11 @@ function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId
   initSelectorWithData({
     searchInputId: searchInputId,
     dropdownId: dropdownId,
-    filterInputId: filterInputId,
     optionsId: optionsId,
     hiddenInputId: hiddenInputId,
     dataSource: dataSource || [],
     noMatchText: '无匹配项',
-    enableLevelIndent: true,
-    clearFilterPlaceholderOnFocus: true,
-    filterPlaceholder: placeholder || '搜索...'
+    enableLevelIndent: true
   });
 }
 
@@ -212,10 +215,8 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
 // Category selector - used across multiple views
 function initCategorySelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, categoriesData, placeholder) {
   var categories = categoriesData || [];
-  // If categoriesData is not provided, try to get from script tag
   if (!categoriesData) {
     var expenseDataEl = document.getElementById('expense-categories-data');
-    var incomeDataEl = document.getElementById('income-categories-data');
     if (expenseDataEl && expenseDataEl.textContent) {
       try {
         categories = JSON.parse(expenseDataEl.textContent);
@@ -228,14 +229,12 @@ function initCategorySelector(searchInputId, dropdownId, filterInputId, optionsI
 }
 
 // Export for use in views (both global and ES6 module)
-// Global exports (for inline scripts that haven't been migrated yet)
 window.escapeHtml = escapeHtml;
 window.initAccountSelector = initAccountSelector;
 window.initCategorySelector = initCategorySelector;
 window.initGenericSelector = initGenericSelector;
 window.initSelectorWithData = initSelectorWithData;
 
-// ES6 exports (for module imports)
 export {
   escapeHtml,
   initSelectorWithData,

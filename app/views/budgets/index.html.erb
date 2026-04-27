@@ -457,19 +457,25 @@
     expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
   }
 
-  function initCategorySelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId) {
+  function initCategorySelector(searchInputId, dropdownId, optionsId, hiddenInputId) {
     var searchInput = document.getElementById(searchInputId);
     var dropdown = document.getElementById(dropdownId);
-    var filterInput = document.getElementById(filterInputId);
     var optionsContainer = document.getElementById(optionsId);
     var hiddenInput = document.getElementById(hiddenInputId);
 
     if (!searchInput || !dropdown || !optionsContainer) return;
 
+    // 防止重复初始化
+    if (searchInput.dataset.selectorBound === 'true') return;
+    searchInput.dataset.selectorBound = 'true';
+
+    // 移除 readonly 属性
+    searchInput.removeAttribute('readonly');
+
     function renderOptions(filterText) {
+      var query = (filterText || '').toLowerCase();
       var filtered = expenseCategories.filter(function(cat) {
-        if (!filterText) return true;
-        var query = filterText.toLowerCase();
+        if (!query) return true;
         if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
         if (cat.name && cat.name.toLowerCase().includes(query)) return true;
         if (cat.pinyin && cat.pinyin.includes(query)) return true;
@@ -483,55 +489,91 @@
       return filtered.map(function(cat) {
         var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
         var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        // 使用 escapeHtml 防止 XSS
         var escapedName = escapeHtml(cat.full_name);
-        return '<div class="category-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-id="' + cat.id + '" data-name="' + escapedName + '">' +
+        return '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-value="' + cat.id + '" data-display="' + escapedName + '">' +
                  escapedName +
                '</div>';
       }).join('');
     }
 
-    function updateOptions() {
-      var filterText = filterInput ? filterInput.value : '';
-      optionsContainer.innerHTML = renderOptions(filterText);
+    function bindOptionEvents() {
+      optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
+        option.addEventListener('mousedown', function(e) {
+          pendingOption = this;
+          isSelecting = true;
+          e.preventDefault();
+        });
 
-      optionsContainer.querySelectorAll('.category-option').forEach(function(option) {
-        option.addEventListener('click', function() {
-          var id = this.dataset.id;
-          var name = this.dataset.name;
-          if (hiddenInput) hiddenInput.value = id;
-          if (searchInput) searchInput.value = name;
-          if (dropdown) dropdown.classList.add('hidden');
-          if (filterInput) filterInput.value = '';
+        option.addEventListener('mouseup', function(e) {
+          if (pendingOption === this) {
+            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
+            searchInput.value = this.dataset.display || '';
+            dropdown.classList.add('hidden');
+          }
+          pendingOption = null;
+          setTimeout(function() { isSelecting = false; }, 50);
+        });
+
+        option.addEventListener('click', function(e) {
+          if (e.detail === 0) {
+            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
+            searchInput.value = this.dataset.display || '';
+            dropdown.classList.add('hidden');
+          }
         });
       });
     }
 
-    if (searchInput) {
-      searchInput.addEventListener('click', function() {
-        dropdown.classList.toggle('hidden');
-        if (!dropdown.classList.contains('hidden')) {
-          updateOptions();
-          if (filterInput) filterInput.focus();
+    var pendingOption = null;
+    var isSelecting = false;
+
+    function openDropdown() {
+      if (!dropdown.classList.contains('hidden')) return;
+      dropdown.classList.remove('hidden');
+      optionsContainer.innerHTML = renderOptions('');
+      bindOptionEvents();
+    }
+
+    // 输入时筛选选项
+    searchInput.addEventListener('input', function(e) {
+      var query = (searchInput.value || '').toLowerCase();
+      if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+      }
+      optionsContainer.innerHTML = renderOptions(query);
+      bindOptionEvents();
+    });
+
+    // 焦点进入时打开下拉
+    searchInput.addEventListener('focus', function() {
+      openDropdown();
+    });
+
+    // 点击时也打开下拉（处理已有焦点时的点击）
+    searchInput.addEventListener('click', function() {
+      openDropdown();
+    });
+
+    // 关闭下拉时恢复 searchInput 的显示值
+    function restoreSearchInputValue() {
+      if (hiddenInput && hiddenInput.value) {
+        var selectedItem = expenseCategories.find(function(item) {
+          return String(item.id) === String(hiddenInput.value);
+        });
+        if (selectedItem) {
+          searchInput.value = selectedItem.full_name || selectedItem.name || '';
         }
-      });
+      } else if (!hiddenInput || !hiddenInput.value) {
+        searchInput.value = '';
+      }
     }
 
-    if (filterInput) {
-      filterInput.addEventListener('focus', function() {
-        this.placeholder = '';
-      });
-      filterInput.addEventListener('blur', function() {
-        this.placeholder = '搜索分类...';
-      });
-      filterInput.addEventListener('input', function() {
-        updateOptions();
-      });
-    }
-
+    // 点击外部关闭下拉
     document.addEventListener('click', function(e) {
-      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+      if (isSelecting) return;
+      if (!dropdown.contains(e.target) && e.target !== searchInput) {
         dropdown.classList.add('hidden');
+        restoreSearchInputValue();
       }
     });
   }
@@ -677,21 +719,14 @@
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
             <input type="hidden" name="budget_item[category_id]" id="new-item-category-id" value="">
             <div class="relative">
-              <input type="text" id="new-item-category-search" 
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择分类"
-                     autocomplete="off"
-                     readonly>
+              <input type="text" id="new-item-category-search"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                     placeholder="搜索分类..."
+                     autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
               <div id="new-item-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="new-item-category-filter" 
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索分类..."
-                         autocomplete="off">
-                </div>
                 <div id="new-item-category-options" class="py-1"></div>
               </div>
             </div>
@@ -736,21 +771,14 @@
             <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1.5">分类 *</label>
             <input type="hidden" name="budget_item[category_id]" id="edit-item-category-id" value="">
             <div class="relative">
-              <input type="text" id="edit-item-category-search" 
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择分类"
-                     autocomplete="off"
-                     readonly>
+              <input type="text" id="edit-item-category-search"
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                     placeholder="搜索分类..."
+                     autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
               <div id="edit-item-category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="edit-item-category-filter" 
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索分类..."
-                         autocomplete="off">
-                </div>
                 <div id="edit-item-category-options" class="py-1"></div>
               </div>
             </div>
@@ -778,8 +806,8 @@
 
 <script>
   // 初始化分类选择器（在 DOM 元素之后）
-  initCategorySelector('new-item-category-search', 'new-item-category-dropdown', 'new-item-category-filter', 'new-item-category-options', 'new-item-category-id');
-  initCategorySelector('edit-item-category-search', 'edit-item-category-dropdown', 'edit-item-category-filter', 'edit-item-category-options', 'edit-item-category-id');
+  initCategorySelector('new-item-category-search', 'new-item-category-dropdown', 'new-item-category-options', 'new-item-category-id');
+  initCategorySelector('edit-item-category-search', 'edit-item-category-dropdown', 'edit-item-category-options', 'edit-item-category-id');
 
   // 事件委托：处理动态生成的预算项目删除表单
   document.addEventListener('submit', function(e) {

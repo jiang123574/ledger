@@ -60,29 +60,30 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'settle-receivable-search',
       dropdownId: 'settle-receivable-dropdown',
-      filterInputId: 'settle-receivable-filter',
       optionsId: 'settle-receivable-options',
       hiddenInputId: 'settle-receivable-id',
       dataSource: this.allReceivables,
-      noMatchText: '无匹配应收款'
+      nameKey: 'description',
+      fullNameKey: 'description',
+      noMatchText: '无匹配应收款',
+      onSelect: (selectedValue, selectedItem) => {
+        // 选择应收款后自动填充金额
+        if (selectedItem) {
+          const amountInput = document.getElementById('settle-amount')
+          if (amountInput) amountInput.value = selectedItem.remaining_amount
+        }
+      }
     })
 
     // 账户选择器
     initSelectorWithData({
       searchInputId: 'settle-account-search',
       dropdownId: 'settle-account-dropdown',
-      filterInputId: 'settle-account-filter',
       optionsId: 'settle-account-options',
       hiddenInputId: 'settle-account-id',
       dataSource: this.allAccounts,
       noMatchText: '无匹配账户'
     })
-
-    // 监听应收款选择变化，自动填充金额
-    const receivableIdInput = document.getElementById('settle-receivable-id')
-    if (receivableIdInput) {
-      receivableIdInput.addEventListener('change', () => this.setFullAmount())
-    }
   }
 
   setFullAmount() {
