@@ -397,7 +397,7 @@
 
     var form = this;
     var formData = new FormData(form);
-    
+
     // 强制覆盖 FormData 中的值（FormData 读取的是 HTML 属性，不是 JS 更新的 value）
     formData.set('transaction[account_id]', document.getElementById('transaction_account_id')?.value || '');
     formData.set('transaction[target_account_id]', document.getElementById('transaction_target_account_id')?.value || '');
@@ -407,20 +407,54 @@
     formData.set('transaction[note]', form.querySelector('[name="entry[notes]"]')?.value || '');
     formData.set('transaction[currency]', 'CNY');
 
+    // 调试：打印请求详情
+    console.log('=== 提交编辑表单 ===');
+    console.log('URL:', form.action);
+    console.log('FormData:', Object.fromEntries(formData.entries()));
+
     fetch(form.action, {
       method: 'PATCH',
       body: formData,
       headers: {
-        'Accept': 'text/html',
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest',
         'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content
       }
     })
     .then(function(res) {
-      document.getElementById('edit-transaction-modal').classList.add('hidden');
-      if (res.redirected) { window.location.href = res.url; }
-      else { window.location.reload(); }
+      console.log('=== 响应状态 ===');
+      console.log('Status:', res.status, res.statusText);
+      console.log('Headers:', Object.fromEntries(res.headers.entries()));
+      return res.text().then(function(text) {
+        console.log('=== 响应内容 ===');
+        console.log('Raw response:', text);
+        try {
+          var data = JSON.parse(text);
+          console.log('Parsed JSON:', data);
+          if (data.success) {
+            console.log('✅ 保存成功');
+            document.getElementById('edit-transaction-modal').classList.add('hidden');
+            // 不刷新，只显示 toast
+            var toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50';
+            toast.textContent = data.message || '交易已更新';
+            document.body.appendChild(toast);
+            setTimeout(function() { toast.remove(); }, 2000);
+          } else {
+            console.log('❌ 保存失败:', data.error);
+            alert('保存失败: ' + (data.error || '未知错误'));
+          }
+        } catch(e) {
+          console.log('解析 JSON 失败:', e);
+          console.log('可能是 HTML 响应或重定向');
+          alert('响应格式错误，请查看控制台');
+        }
+      });
     })
-    .catch(function(err) { console.error('Error saving transaction:', err); });
+    .catch(function(err) {
+      console.log('=== Fetch 错误 ===');
+      console.error('Error saving transaction:', err);
+    });
   });
 })();
 </script>
