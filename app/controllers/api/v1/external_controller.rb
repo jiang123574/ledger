@@ -69,6 +69,6 @@ module Api
     def transaction_params
       params.permit(:date, :type, :amount, :category, :category_id, :note, :account_id, :transaction_type)
     end
-  end
+    end
   end
 end

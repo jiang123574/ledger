@@ -23,13 +23,13 @@ RSpec.describe BudgetBatchCalculator do
       end
 
       it 'calculates total spent amount for the month' do
-        result = described_class.calculate_spent_amounts([budget])
+        result = described_class.calculate_spent_amounts([ budget ])
         expect(result[budget.id]).to eq 150
       end
 
       it 'returns 0 for budget with no matching entries' do
         budget_no_entries = create(:budget, month: '2020-01', amount: 500)
-        result = described_class.calculate_spent_amounts([budget_no_entries])
+        result = described_class.calculate_spent_amounts([ budget_no_entries ])
         expect(result[budget_no_entries.id]).to eq 0
       end
     end
@@ -46,7 +46,7 @@ RSpec.describe BudgetBatchCalculator do
       end
 
       it 'calculates spent amount for specific category only' do
-        result = described_class.calculate_spent_amounts([budget])
+        result = described_class.calculate_spent_amounts([ budget ])
         expect(result[budget.id]).to eq 100
       end
     end
@@ -62,7 +62,7 @@ RSpec.describe BudgetBatchCalculator do
       end
 
       it 'calculates amounts for all budgets correctly' do
-        result = described_class.calculate_spent_amounts([total_budget, category_budget])
+        result = described_class.calculate_spent_amounts([ total_budget, category_budget ])
         expect(result[total_budget.id]).to eq 300
         expect(result[category_budget.id]).to eq 200
       end
@@ -76,7 +76,7 @@ RSpec.describe BudgetBatchCalculator do
       end
 
       it 'calculates spent amount correctly' do
-        result = described_class.calculate_spent_amounts([budget])
+        result = described_class.calculate_spent_amounts([ budget ])
         expect(result[budget.id]).to eq 100
       end
     end
@@ -91,12 +91,12 @@ RSpec.describe BudgetBatchCalculator do
     end
 
     it 'assigns calculated spent_amount to budget objects' do
-      budgets = described_class.assign_spent_amounts([budget])
+      budgets = described_class.assign_spent_amounts([ budget ])
       expect(budgets.first.spent_amount).to eq 150
     end
 
     it 'returns the budgets array' do
-      budgets = described_class.assign_spent_amounts([budget])
+      budgets = described_class.assign_spent_amounts([ budget ])
       expect(budgets).to be_an(Array)
       expect(budgets.first).to eq budget
     end

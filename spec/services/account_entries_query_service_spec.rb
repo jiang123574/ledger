@@ -60,7 +60,7 @@ RSpec.describe AccountEntriesQueryService do
 
     context 'with category_ids filter' do
       let(:other_category) { create(:category, :expense) }
-      let(:params) { { category_ids: [category.id] } }
+      let(:params) { { category_ids: [ category.id ] } }
 
       before do
         create(:entry, :expense, account: account, date: Date.current,
@@ -128,7 +128,7 @@ RSpec.describe AccountEntriesQueryService do
         type: 'expense',
         period_type: 'month',
         period_value: '2026-04',
-        category_ids: [2, 3],
+        category_ids: [ 2, 3 ],
         sort_direction: 'desc'
       }
     end
