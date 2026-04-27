@@ -3,6 +3,9 @@
 class TransactionsController < ApplicationController
   include EntryableActions
 
+  # JSON API 请求跳过 CSRF 验证（使用 session auth 保护）
+  skip_before_action :verify_authenticity_token, only: [ :create, :update, :destroy ], if: -> { request.format.json? }
+
   before_action :set_entry, only: [ :edit, :update, :destroy ]
   before_action :load_lookups, only: [ :edit, :create, :update ]
 
