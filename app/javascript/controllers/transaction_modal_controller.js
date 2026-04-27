@@ -232,7 +232,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'category-search-input',
       dropdownId: 'category-dropdown',
-      filterInputId: 'category-filter-input',
       optionsId: 'category-options',
       hiddenInputId: 'new_transaction_category_id',
       dataSource: this.allCategories,  // 显示所有分类
@@ -257,7 +256,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'account-search-input-income',
       dropdownId: 'account-dropdown-income',
-      filterInputId: 'account-filter-input-income',
       optionsId: 'account-options-income',
       hiddenInputId: 'transaction_account_id_income',
       dataSource: this.allAccounts,
@@ -269,7 +267,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'account-search-input',
       dropdownId: 'account-dropdown',
-      filterInputId: 'account-filter-input',
       optionsId: 'account-options',
       hiddenInputId: 'transaction_account_id',
       dataSource: this.allAccounts,
@@ -279,7 +276,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'target-account-search-input',
       dropdownId: 'target-account-dropdown',
-      filterInputId: 'target-account-filter-input',
       optionsId: 'target-account-options',
       hiddenInputId: 'target_account_id',
       dataSource: this.allAccounts,
@@ -291,7 +287,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'funding-account-search-input',
       dropdownId: 'funding-account-dropdown',
-      filterInputId: 'funding-account-filter-input',
       optionsId: 'funding-account-options',
       hiddenInputId: 'funding_account_id',
       dataSource: this.allAccounts,

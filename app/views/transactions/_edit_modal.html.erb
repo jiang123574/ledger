@@ -27,21 +27,14 @@
       </div>
       <div class="relative">
         <input type="text" id="edit-category-search-input"
-               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-               placeholder="选择分类"
+               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+               placeholder="搜索分类..."
                autocomplete="off"
-               readonly
                value="<%= @entry.display_category&.full_name || '' %>">
         <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
         <div id="edit-category-dropdown" class="hidden absolute z-60 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-          <div class="p-2 border-b border-border dark:border-border-dark">
-            <input type="text" id="edit-category-filter-input"
-                   class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                   placeholder="搜索分类..."
-                   autocomplete="off">
-          </div>
           <div id="edit-category-options" class="py-1"></div>
         </div>
       </div>
@@ -56,21 +49,14 @@
       <input type="hidden" id="edit_account_id" value="<%= @entry.source_account_id_for_transfer %>">
       <div class="relative">
         <input type="text" id="edit-account-search-input"
-               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-               placeholder="选择转出账户"
+               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+               placeholder="搜索转出账户..."
                autocomplete="off"
-               readonly
                value="<%= @entry.source_account_for_transfer&.name || '' %>">
         <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
         <div id="edit-account-dropdown" class="hidden absolute z-60 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-          <div class="p-2 border-b border-border dark:border-border-dark">
-            <input type="text" id="edit-account-filter-input"
-                   class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                   placeholder="搜索账户..."
-                   autocomplete="off">
-          </div>
           <div id="edit-account-options" class="py-1"></div>
         </div>
       </div>
@@ -80,21 +66,14 @@
         <input type="hidden" id="edit_target_account_id" value="<%= @entry.target_account_id_for_display %>">
         <div class="relative">
           <input type="text" id="edit-target-account-search-input"
-                 class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                 placeholder="选择转入账户"
+                 class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                 placeholder="搜索转入账户..."
                  autocomplete="off"
-                 readonly
                  value="<%= @entry.target_account_for_display&.name || '' %>">
           <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
           </svg>
           <div id="edit-target-account-dropdown" class="hidden absolute z-60 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-            <div class="p-2 border-b border-border dark:border-border-dark">
-              <input type="text" id="edit-target-account-filter-input"
-                     class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                     placeholder="搜索账户..."
-                     autocomplete="off">
-            </div>
             <div id="edit-target-account-options" class="py-1"></div>
           </div>
         </div>
@@ -123,21 +102,14 @@
       <input type="hidden" id="edit_account_id_income" value="<%= @entry.account_id %>">
       <div class="relative">
         <input type="text" id="edit-account-search-input-income"
-               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-               placeholder="选择账户"
+               class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+               placeholder="搜索账户..."
                autocomplete="off"
-               readonly
                value="<%= @entry.account&.name || '' %>">
         <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
         </svg>
         <div id="edit-account-dropdown-income" class="hidden absolute z-60 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-          <div class="p-2 border-b border-border dark:border-border-dark">
-            <input type="text" id="edit-account-filter-input-income"
-                   class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                   placeholder="搜索账户..."
-                   autocomplete="off">
-          </div>
           <div id="edit-account-options-income" class="py-1"></div>
         </div>
       </div>
@@ -192,11 +164,13 @@
   function initSelector(config) {
     var searchInput = document.getElementById(config.searchInputId);
     var dropdown = document.getElementById(config.dropdownId);
-    var filterInput = document.getElementById(config.filterInputId);
     var optionsContainer = document.getElementById(config.optionsId);
     var hiddenInput = document.getElementById(config.hiddenInputId);
     var onSelect = config.onSelect;  // 选择后的回调函数
     if (!searchInput || !dropdown || !optionsContainer) return;
+
+    // 移除 readonly，让输入框可编辑
+    searchInput.removeAttribute('readonly');
 
     function renderOptions(filterText, items) {
       var filtered = items.filter(function(item) {
@@ -216,24 +190,46 @@
       }).join('');
     }
 
-    function updateOptions() {
-      var filterText = filterInput ? filterInput.value : '';
-      optionsContainer.innerHTML = renderOptions(filterText, config.items);
+    function bindOptionEvents() {
       optionsContainer.querySelectorAll('.' + config.itemClass).forEach(function(option) {
-        option.addEventListener('click', function() {
-          if (hiddenInput) hiddenInput.value = this.dataset.id;
-          if (searchInput) searchInput.value = this.dataset.name;
-          dropdown.classList.add('hidden');
-          if (filterInput) filterInput.value = '';
-          // 调用回调，传递选中的 id 和原始数据项
-          if (onSelect) {
-            var selectedId = this.dataset.id;
-            var selectedItem = config.items.find(function(item) { return String(item.id) === selectedId; });
-            onSelect(selectedId, selectedItem);
+        option.addEventListener('mousedown', function(e) {
+          pendingOption = this;
+          isSelecting = true;
+          e.preventDefault();
+        });
+
+        option.addEventListener('mouseup', function(e) {
+          if (pendingOption === this) {
+            if (hiddenInput) hiddenInput.value = this.dataset.id;
+            if (searchInput) searchInput.value = this.dataset.name;
+            dropdown.classList.add('hidden');
+            if (onSelect) {
+              var selectedId = this.dataset.id;
+              var selectedItem = config.items.find(function(item) { return String(item.id) === selectedId; });
+              onSelect(selectedId, selectedItem);
+            }
+          }
+          pendingOption = null;
+          setTimeout(function() { isSelecting = false; }, 50);
+        });
+
+        option.addEventListener('click', function(e) {
+          if (e.detail === 0) {
+            if (hiddenInput) hiddenInput.value = this.dataset.id;
+            if (searchInput) searchInput.value = this.dataset.name;
+            dropdown.classList.add('hidden');
+            if (onSelect) {
+              var selectedId = this.dataset.id;
+              var selectedItem = config.items.find(function(item) { return String(item.id) === selectedId; });
+              onSelect(selectedId, selectedItem);
+            }
           }
         });
       });
     }
+
+    var pendingOption = null;
+    var isSelecting = false;
 
     // 移除旧监听器
     var newSearchInput = searchInput.cloneNode(true);
@@ -241,19 +237,48 @@
     searchInput = newSearchInput;
     dropdown.classList.add('hidden');
 
+    // 输入时筛选
+    searchInput.addEventListener('input', function(e) {
+      var query = searchInput.value || '';
+      if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+      }
+      optionsContainer.innerHTML = renderOptions(query, config.items);
+      bindOptionEvents();
+    });
+
+    // focus 时打开显示所有
+    searchInput.addEventListener('focus', function(e) {
+      if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        optionsContainer.innerHTML = renderOptions('', config.items);
+        bindOptionEvents();
+      }
+    });
+
+    // 点击时也打开（处理已有焦点时的点击）
     searchInput.addEventListener('click', function(e) {
-      e.stopPropagation();
-      dropdown.classList.toggle('hidden');
-      if (!dropdown.classList.contains('hidden')) { updateOptions(); if (filterInput) filterInput.focus(); }
+      if (dropdown.classList.contains('hidden')) {
+        dropdown.classList.remove('hidden');
+        optionsContainer.innerHTML = renderOptions('', config.items);
+        bindOptionEvents();
+      }
     });
-    if (filterInput) {
-      filterInput.addEventListener('input', function() { updateOptions(); });
-    }
+
+    // 点击外部关闭
     document.addEventListener('click', function(e) {
-      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) dropdown.classList.add('hidden');
+      if (isSelecting) return;
+      if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+        dropdown.classList.add('hidden');
+        // 恢复显示值
+        if (hiddenInput && hiddenInput.value) {
+          var item = config.items.find(function(i) { return String(i.id) === hiddenInput.value; });
+          if (item) searchInput.value = item.full_name || item.name || '';
+        } else {
+          searchInput.value = '';
+        }
+      }
     });
-    // 初始渲染
-    updateOptions();
   }
 
   function getFilteredCategories() {
@@ -263,12 +288,12 @@
   // 初始化转账模式下的账户选择器
   initSelector({
     searchInputId: 'edit-account-search-input', dropdownId: 'edit-account-dropdown',
-    filterInputId: 'edit-account-filter-input', optionsId: 'edit-account-options',
+    optionsId: 'edit-account-options',
     hiddenInputId: 'edit_account_id', items: allAccounts, itemClass: 'edit-account-opt'
   });
   initSelector({
     searchInputId: 'edit-target-account-search-input', dropdownId: 'edit-target-account-dropdown',
-    filterInputId: 'edit-target-account-filter-input', optionsId: 'edit-target-account-options',
+    optionsId: 'edit-target-account-options',
     hiddenInputId: 'edit_target_account_id', items: allAccounts, itemClass: 'edit-target-account-opt'
   });
 
@@ -276,7 +301,7 @@
   if (currentType !== 'TRANSFER') {
     initSelector({
       searchInputId: 'edit-category-search-input', dropdownId: 'edit-category-dropdown',
-      filterInputId: 'edit-category-filter-input', optionsId: 'edit-category-options',
+      optionsId: 'edit-category-options',
       hiddenInputId: 'edit_category_id', items: allCategories, itemClass: 'edit-category-opt',
       onSelect: function(value, item) {
         if (item && item.category_type) {
@@ -288,7 +313,7 @@
     });
     initSelector({
       searchInputId: 'edit-account-search-input-income', dropdownId: 'edit-account-dropdown-income',
-      filterInputId: 'edit-account-filter-input-income', optionsId: 'edit-account-options-income',
+      optionsId: 'edit-account-options-income',
       hiddenInputId: 'edit_account_id_income', items: allAccounts, itemClass: 'edit-account-opt-income'
     });
   }
@@ -303,12 +328,12 @@
       // 重新初始化转账账户选择器（DOM 被重新显示）
       initSelector({
         searchInputId: 'edit-account-search-input', dropdownId: 'edit-account-dropdown',
-        filterInputId: 'edit-account-filter-input', optionsId: 'edit-account-options',
+        optionsId: 'edit-account-options',
         hiddenInputId: 'edit_account_id', items: allAccounts, itemClass: 'edit-account-opt'
       });
       initSelector({
         searchInputId: 'edit-target-account-search-input', dropdownId: 'edit-target-account-dropdown',
-        filterInputId: 'edit-target-account-filter-input', optionsId: 'edit-target-account-options',
+        optionsId: 'edit-target-account-options',
         hiddenInputId: 'edit_target_account_id', items: allAccounts, itemClass: 'edit-target-account-opt'
       });
       document.getElementById('edit-transaction-type').value = currentType;
@@ -329,7 +354,7 @@
       // 重新初始化收支选择器（显示所有分类）
       initSelector({
         searchInputId: 'edit-category-search-input', dropdownId: 'edit-category-dropdown',
-        filterInputId: 'edit-category-filter-input', optionsId: 'edit-category-options',
+        optionsId: 'edit-category-options',
         hiddenInputId: 'edit_category_id', items: allCategories, itemClass: 'edit-category-opt',
         onSelect: function(value, item) {
           if (item && item.category_type) {
@@ -341,7 +366,7 @@
       });
       initSelector({
         searchInputId: 'edit-account-search-input-income', dropdownId: 'edit-account-dropdown-income',
-        filterInputId: 'edit-account-filter-input-income', optionsId: 'edit-account-options-income',
+        optionsId: 'edit-account-options-income',
         hiddenInputId: 'edit_account_id_income', items: allAccounts, itemClass: 'edit-account-opt-income'
       });
       document.getElementById('edit-transaction-type').value = '';

@@ -677,7 +677,7 @@
 </script>
 
 <script id="receivables-data" type="application/json">
-  <%= raw (@unsettled_receivables || []).map { |r| { id: r.id, description: r.description, remaining_amount: r.remaining_amount.to_s } }.to_json %>
+  <%= raw (@unsettled_receivables || []).map { |r| { id: r.id, description: r.description, remaining_amount: r.remaining_amount.to_s, pinyin: PinYin.abbr(r.description || '').downcase } }.to_json %>
 </script>
 
 <!-- 新建交易弹窗 -->
@@ -703,12 +703,9 @@
             </div>
             <input type="hidden" name="transaction[category_id]" id="new_transaction_category_id" value="">
             <div class="relative">
-              <input type="text" id="category-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer" placeholder="选择分类" autocomplete="off" readonly>
+              <input type="text" id="category-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索分类..." autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               <div id="category-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="category-filter-input" class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索分类..." autocomplete="off">
-                </div>
                 <div id="category-options" class="py-1"></div>
               </div>
             </div>
@@ -721,12 +718,9 @@
             </div>
             <input type="hidden" name="transaction[account_id]" id="transaction_account_id" value="">
             <div class="relative">
-              <input type="text" id="account-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer" placeholder="选择转出账户" autocomplete="off" readonly>
+              <input type="text" id="account-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索转出账户..." autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               <div id="account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="account-filter-input" class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索账户..." autocomplete="off">
-                </div>
                 <div id="account-options" class="py-1"></div>
               </div>
             </div>
@@ -735,12 +729,9 @@
               <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">转入账户 *</label>
               <input type="hidden" name="transaction[target_account_id]" id="target_account_id" value="">
               <div class="relative">
-                <input type="text" id="target-account-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer" placeholder="选择转入账户" autocomplete="off" readonly>
+                <input type="text" id="target-account-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索转入账户..." autocomplete="off">
                 <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                 <div id="target-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                  <div class="p-2 border-b border-border dark:border-border-dark">
-                    <input type="text" id="target-account-filter-input" class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索账户..." autocomplete="off">
-                  </div>
                   <div id="target-account-options" class="py-1"></div>
                 </div>
               </div>
@@ -763,12 +754,9 @@
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">账户 *</label>
             <input type="hidden" name="transaction[account_id_income]" id="transaction_account_id_income" value="">
             <div class="relative">
-              <input type="text" id="account-search-input-income" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer" placeholder="选择账户" autocomplete="off" readonly>
+              <input type="text" id="account-search-input-income" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索账户..." autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               <div id="account-dropdown-income" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="account-filter-input-income" class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索账户..." autocomplete="off">
-                </div>
                 <div id="account-options-income" class="py-1"></div>
               </div>
             </div>
@@ -783,12 +771,9 @@
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">实际资金来源（可选）</label>
             <input type="hidden" name="funding_account_id" id="funding_account_id" value="">
             <div class="relative">
-              <input type="text" id="funding-account-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer" placeholder="不补记资金来源" autocomplete="off" readonly>
+              <input type="text" id="funding-account-search-input" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="不补记资金来源" autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
               <div id="funding-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-surface-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="funding-account-filter-input" class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="搜索账户..." autocomplete="off">
-                </div>
                 <div id="funding-account-options" class="py-1"></div>
               </div>
             </div>
@@ -862,20 +847,13 @@
             <input type="hidden" name="receivable_id" id="settle-receivable-id" value="">
             <div class="relative">
               <input type="text" id="settle-receivable-search"
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择应收款"
-                     autocomplete="off"
-                     readonly>
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                     placeholder="搜索应收款..."
+                     autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
               <div id="settle-receivable-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="settle-receivable-filter"
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索应收款..."
-                         autocomplete="off">
-                </div>
                 <div id="settle-receivable-options" class="py-1"></div>
               </div>
             </div>
@@ -900,20 +878,13 @@
             <input type="hidden" name="account_id" id="settle-account-id" value="">
             <div class="relative">
               <input type="text" id="settle-account-search"
-                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 cursor-pointer"
-                     placeholder="选择账户"
-                     autocomplete="off"
-                     readonly>
+                     class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
+                     placeholder="搜索账户..."
+                     autocomplete="off">
               <svg class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-secondary dark:text-secondary-dark pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
               </svg>
               <div id="settle-account-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-60 overflow-y-auto">
-                <div class="p-2 border-b border-border dark:border-border-dark">
-                  <input type="text" id="settle-account-filter"
-                         class="w-full px-2 py-1 text-sm rounded border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500"
-                         placeholder="搜索账户..."
-                         autocomplete="off">
-                </div>
                 <div id="settle-account-options" class="py-1"></div>
               </div>
             </div>

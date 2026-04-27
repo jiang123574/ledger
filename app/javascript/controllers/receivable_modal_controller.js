@@ -68,7 +68,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'new-receivable-account-search',
       dropdownId: 'new-receivable-account-dropdown',
-      filterInputId: 'new-receivable-account-filter',
       optionsId: 'new-receivable-account-options',
       hiddenInputId: 'new-receivable-account-id',
       dataSource: this.allAccounts,
@@ -79,7 +78,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'new-receivable-category-search',
       dropdownId: 'new-receivable-category-dropdown',
-      filterInputId: 'new-receivable-category-filter',
       optionsId: 'new-receivable-category-options',
       hiddenInputId: 'new-receivable-category-id',
       dataSource: this.categoryData,
@@ -91,7 +89,6 @@ export default class extends Controller {
     initSelectorWithData({
       searchInputId: 'new-receivable-funding-account-search',
       dropdownId: 'new-receivable-funding-account-dropdown',
-      filterInputId: 'new-receivable-funding-account-filter',
       optionsId: 'new-receivable-funding-account-options',
       hiddenInputId: 'new-receivable-funding-account-id',
       dataSource: this.allAccounts,
