@@ -65,6 +65,10 @@ pin "controllers/confirm_modal_controller", to: "controllers/confirm_modal_contr
 pin "controllers/confirm_form_controller", to: "controllers/confirm_form_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
+# Unified chart controllers
+pin "controllers/line_chart_controller", to: "controllers/line_chart_controller.js"
+pin "controllers/mini_line_chart_controller", to: "controllers/mini_line_chart_controller.js"
+
 # Hotwired packages - vendored for production reliability
 pin "@hotwired/stimulus", to: "@hotwired--stimulus.js" # @3.2.2
 pin "@hotwired/turbo", to: "@hotwired--turbo.js" # @8.0.23
