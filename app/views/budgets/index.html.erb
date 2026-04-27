@@ -450,135 +450,6 @@
     }
   });
 
-  // 分类选择器逻辑（带拼音搜索）
-  var expenseCategories = [];
-  var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
-  if (expenseCategoriesDataEl) {
-    expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
-  }
-
-  function initCategorySelector(searchInputId, dropdownId, optionsId, hiddenInputId) {
-    var searchInput = document.getElementById(searchInputId);
-    var dropdown = document.getElementById(dropdownId);
-    var optionsContainer = document.getElementById(optionsId);
-    var hiddenInput = document.getElementById(hiddenInputId);
-
-    if (!searchInput || !dropdown || !optionsContainer) return;
-
-    // 防止重复初始化
-    if (searchInput.dataset.selectorBound === 'true') return;
-    searchInput.dataset.selectorBound = 'true';
-
-    // 移除 readonly 属性
-    searchInput.removeAttribute('readonly');
-
-    function renderOptions(filterText) {
-      var query = (filterText || '').toLowerCase();
-      var filtered = expenseCategories.filter(function(cat) {
-        if (!query) return true;
-        if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
-        if (cat.name && cat.name.toLowerCase().includes(query)) return true;
-        if (cat.pinyin && cat.pinyin.includes(query)) return true;
-        return false;
-      });
-
-      if (filtered.length === 0) {
-        return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
-      }
-
-      return filtered.map(function(cat) {
-        var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
-        var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        var escapedName = escapeHtml(cat.full_name);
-        return '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-value="' + cat.id + '" data-display="' + escapedName + '">' +
-                 escapedName +
-               '</div>';
-      }).join('');
-    }
-
-    function bindOptionEvents() {
-      optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
-        option.addEventListener('mousedown', function(e) {
-          pendingOption = this;
-          isSelecting = true;
-          e.preventDefault();
-        });
-
-        option.addEventListener('mouseup', function(e) {
-          if (pendingOption === this) {
-            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
-            searchInput.value = this.dataset.display || '';
-            dropdown.classList.add('hidden');
-          }
-          pendingOption = null;
-          setTimeout(function() { isSelecting = false; }, 50);
-        });
-
-        option.addEventListener('click', function(e) {
-          if (e.detail === 0) {
-            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
-            searchInput.value = this.dataset.display || '';
-            dropdown.classList.add('hidden');
-          }
-        });
-      });
-    }
-
-    var pendingOption = null;
-    var isSelecting = false;
-
-    function openDropdown() {
-      if (!dropdown.classList.contains('hidden')) return;
-      dropdown.classList.remove('hidden');
-      optionsContainer.innerHTML = renderOptions('');
-      bindOptionEvents();
-    }
-
-    // 输入时筛选选项
-    searchInput.addEventListener('input', function(e) {
-      var query = (searchInput.value || '').toLowerCase();
-      if (dropdown.classList.contains('hidden')) {
-        dropdown.classList.remove('hidden');
-      }
-      optionsContainer.innerHTML = renderOptions(query);
-      bindOptionEvents();
-    });
-
-    // 焦点进入时打开下拉
-    searchInput.addEventListener('focus', function() {
-      openDropdown();
-    });
-
-    // 点击时也打开下拉（处理已有焦点时的点击）
-    searchInput.addEventListener('click', function() {
-      openDropdown();
-    });
-
-    // 关闭下拉时恢复 searchInput 的显示值
-    function restoreSearchInputValue() {
-      if (hiddenInput && hiddenInput.value) {
-        var selectedItem = expenseCategories.find(function(item) {
-          return String(item.id) === String(hiddenInput.value);
-        });
-        if (selectedItem) {
-          searchInput.value = selectedItem.full_name || selectedItem.name || '';
-        }
-      } else if (!hiddenInput || !hiddenInput.value) {
-        searchInput.value = '';
-      }
-    }
-
-    // 点击外部关闭下拉
-    document.addEventListener('click', function(e) {
-      if (isSelecting) return;
-      if (!dropdown.contains(e.target) && e.target !== searchInput) {
-        dropdown.classList.add('hidden');
-        restoreSearchInputValue();
-      }
-    });
-  }
-</script>
-
 <!-- 新建预算弹窗 -->
 <div id="new-budget-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
   <div class="flex min-h-screen items-center justify-center p-4">
@@ -806,8 +677,30 @@
 
 <script>
   // 初始化分类选择器（在 DOM 元素之后）
-  initCategorySelector('new-item-category-search', 'new-item-category-dropdown', 'new-item-category-options', 'new-item-category-id');
-  initCategorySelector('edit-item-category-search', 'edit-item-category-dropdown', 'edit-item-category-options', 'edit-item-category-id');
+  var expenseCategories = [];
+  var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
+  if (expenseCategoriesDataEl) {
+    expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
+  }
+
+  window.initSelectorWithData({
+    searchInputId: 'new-item-category-search',
+    dropdownId: 'new-item-category-dropdown',
+    optionsId: 'new-item-category-options',
+    hiddenInputId: 'new-item-category-id',
+    dataSource: expenseCategories,
+    noMatchText: '无匹配分类',
+    enableLevelIndent: true
+  });
+  window.initSelectorWithData({
+    searchInputId: 'edit-item-category-search',
+    dropdownId: 'edit-item-category-dropdown',
+    optionsId: 'edit-item-category-options',
+    hiddenInputId: 'edit-item-category-id',
+    dataSource: expenseCategories,
+    noMatchText: '无匹配分类',
+    enableLevelIndent: true
+  });
 
   // 事件委托：处理动态生成的预算项目删除表单
   document.addEventListener('submit', function(e) {

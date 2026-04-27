@@ -186,6 +186,7 @@ function initSelectorWithData(config) {
 }
 
 // Generic selector initializer with XSS-safe rendering
+// Note: filterInputId parameter is deprecated and ignored - filtering is done directly on searchInput
 function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, dataSource, placeholder) {
   initSelectorWithData({
     searchInputId: searchInputId,
@@ -199,6 +200,7 @@ function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId
 }
 
 // Account selector - used across multiple views
+// Note: filterInputId parameter is deprecated and ignored
 function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, placeholder) {
   var accountsDataEl = document.getElementById('accounts-data');
   var allAccounts = [];
