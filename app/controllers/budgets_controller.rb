@@ -8,6 +8,8 @@ class BudgetsController < ApplicationController
     @budgets = Rails.cache.fetch("budgets/monthly/#{@month}/#{sv}", expires_in: CacheConfig::MODERATE) do
       Budget.for_month(@month).includes(:category).to_a
     end
+    # 预加载 spent_amount，消除 N+1
+    Budget.preload_spent_amounts(@budgets)
     @total_budget = @budgets.sum(:amount)
 
     start_date = Date.parse("#{@month}-01")
