@@ -452,8 +452,10 @@ class Entry < ApplicationRecord
     # 找到另一条相同 transfer_id 的 Entry（不包括自己）
     pair_entry = Entry.where(transfer_id: transfer_id).where.not(id: id).first
     if pair_entry
-      # 直接删除，不触发回调（避免循环）
-      pair_entry.delete
+      # 先断开关联，防止回调循环
+      pair_entry.update_column(:transfer_id, nil)
+      # 使用 destroy 确保关联数据正确清理（entryable、attachments、child_entries 等）
+      pair_entry.destroy
     end
   end
 end
