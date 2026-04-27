@@ -84,33 +84,38 @@ class BudgetItem < ApplicationRecord
         }
       end
 
-      # 批量查询所有相关分类的后代
+      # 批量查询所有相关分类的后代（单次 CTE）
       all_category_ids = items_data.map { |d| d[:category_id] }.uniq.compact
-      category_descendants = {}
-      all_category_ids.each do |cat_id|
-        category_descendants[cat_id] = Category.descendant_ids_for([ cat_id ]) | [ cat_id ]
-      end
+      category_descendants = Category.batch_descendants_map(all_category_ids)
 
-      # 批量查询所有时间范围内的支出
-      # 按 category_id 和时间范围分组
-      all_start_dates = items_data.map { |d| d[:start_date] }.uniq
-      all_end_dates = items_data.map { |d| d[:end_date] }.uniq
+      # 收集所有唯一的日期范围
+      date_ranges = items_data.map { |d| [ d[:start_date], d[:end_date] ] }.uniq
 
-      # 执行单次大查询，获取所有需要的数据
+      # 批量查询：按日期范围和分类组合查询
+      # 构建一次性查询获取所有数据
       spent_amounts = {}
-      items_data.each do |data|
-        cat_ids = category_descendants[data[:category_id]] || []
-        next if cat_ids.empty?
 
-        # 使用单次查询计算
-        net_spent = Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
+      date_ranges.each do |(start_date, end_date)|
+        # 该日期范围内的所有相关分类
+        items_in_range = items_data.select { |d| d[:start_date] == start_date && d[:end_date] == end_date }
+        cat_ids_for_range = items_in_range.flat_map { |d| category_descendants[d[:category_id]] || [] }.uniq.compact
+
+        next if cat_ids_for_range.empty?
+
+        # 单次查询获取该日期范围内所有分类的支出
+        results = Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
           .where(entryable_type: "Entryable::Transaction")
-          .where(entryable_transactions: { category_id: cat_ids })
-          .where(date: data[:start_date]..data[:end_date])
+          .where(entryable_transactions: { category_id: cat_ids_for_range })
+          .where(date: start_date..end_date)
+          .group("entryable_transactions.category_id")
           .sum("entries.amount")
-          .abs
 
-        spent_amounts[data[:id]] = net_spent
+        # 按 category_id 分配支出给对应的 budget_item
+        items_in_range.each do |data|
+          cat_ids = category_descendants[data[:category_id]] || []
+          net_spent = cat_ids.sum { |cid| results[cid].abs rescue 0 }
+          spent_amounts[data[:id]] = net_spent
+        end
       end
 
       # 执行批量更新

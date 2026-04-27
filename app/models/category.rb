@@ -141,6 +141,29 @@ class Category < ApplicationRecord
     ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
   end
 
+  # 类方法：批量获取多个分类及其所有后代 ID 的映射（单次 CTE）
+  # 返回: { category_id => [category_id, descendant_ids...] }
+  def self.batch_descendants_map(category_ids)
+    return {} if category_ids.blank?
+
+    ids = category_ids.compact_blank.map(&:to_i).select { |id| id > 0 }
+    return {} if ids.empty?
+
+    sql = <<~SQL
+      WITH RECURSIVE cat_tree AS (
+        SELECT id, parent_id, id as root_id FROM categories WHERE id IN (#{ids.join(',')})
+        UNION
+        SELECT c.id, c.parent_id, ct.root_id FROM categories c
+        INNER JOIN cat_tree ct ON c.parent_id = ct.id
+      )
+      SELECT id, root_id FROM cat_tree
+    SQL
+
+    results = ActiveRecord::Base.connection.execute(sql)
+    results.group_by { |row| row["root_id"] }
+           .transform_values { |rows| rows.map { |r| r["id"].to_i } }
+  end
+
   # 交易统计
   def transactions_count
     @transactions_count ||= entries.count
