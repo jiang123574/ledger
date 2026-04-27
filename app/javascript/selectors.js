@@ -37,6 +37,9 @@ function initSelectorWithData(config) {
   var enableLevelIndent = !!config.enableLevelIndent;
   var levelIndentBase = config.levelIndentBase || 12;
   var levelIndentSize = config.levelIndentSize || 16;
+  var groupByKey = config.groupByKey;  // 分组字段名（如 'type'）
+  var groupLabels = config.groupLabels || {};  // 分组标题映射（如 { 'INCOME': '收入', 'EXPENSE': '支出' }）
+  var groupColors = config.groupColors || {};  // 分组标题颜色类（如 { 'INCOME': 'text-income', 'EXPENSE': 'text-expense' }）
 
   function renderOptions(filterText) {
     var query = (filterText || '').toLowerCase();
@@ -65,7 +68,20 @@ function initSelectorWithData(config) {
       return rows.join('');
     }
 
+    var lastGroup = null;
     filtered.forEach(function(item) {
+      // 分组标题（如果启用分组）
+      if (groupByKey) {
+        var currentGroup = item[groupByKey];
+        if (currentGroup !== lastGroup) {
+          if (lastGroup !== null) rows.push('<div class="border-t border-border dark:border-border-dark my-1"></div>');
+          var groupLabel = groupLabels[currentGroup] || currentGroup || '';
+          var groupColor = groupColors[currentGroup] || 'text-secondary dark:text-secondary-dark';
+          rows.push('<div class="px-3 py-1 text-xs font-medium ' + groupColor + ' uppercase tracking-wide">' + escapeHtml(groupLabel) + '</div>');
+          lastGroup = currentGroup;
+        }
+      }
+
       var value = item[valueKey] == null ? '' : String(item[valueKey]);
       var display = item[fullNameKey] || item[nameKey] || '';
       var selected = hiddenInput && String(hiddenInput.value) === value ? 'bg-blue-50 dark:bg-blue-900/20' : '';

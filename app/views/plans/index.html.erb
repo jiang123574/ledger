@@ -650,290 +650,65 @@
     document.getElementById('edit-plan-modal').classList.remove('hidden')
   }
 
-  // HTML 转义函数，防止 XSS
-  function escapeHtml(str) {
-    if (!str) return '';
-    return String(str)
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#39;');
-  }
-
-  // 账户选择器逻辑（带拼音搜索）
+  // 账户选择器
   var allAccounts = [];
   var accountsDataEl = document.getElementById('accounts-data');
   if (accountsDataEl) {
     allAccounts = JSON.parse(accountsDataEl.textContent);
   }
 
-  function initAccountSelector(searchInputId, dropdownId, optionsId, hiddenInputId) {
-    var searchInput = document.getElementById(searchInputId);
-    var dropdown = document.getElementById(dropdownId);
-    var optionsContainer = document.getElementById(optionsId);
-    var hiddenInput = document.getElementById(hiddenInputId);
+  window.initSelectorWithData({
+    searchInputId: 'new-plan-account-search',
+    dropdownId: 'new-plan-account-dropdown',
+    optionsId: 'new-plan-account-options',
+    hiddenInputId: 'new-plan-account-id',
+    dataSource: allAccounts,
+    nameKey: 'name',
+    fullNameKey: 'name',
+    noMatchText: '无匹配账户'
+  });
 
-    if (!searchInput || !dropdown || !optionsContainer) return;
+  window.initSelectorWithData({
+    searchInputId: 'edit-plan-account-search',
+    dropdownId: 'edit-plan-account-dropdown',
+    optionsId: 'edit-plan-account-options',
+    hiddenInputId: 'edit-plan-account-id',
+    dataSource: allAccounts,
+    nameKey: 'name',
+    fullNameKey: 'name',
+    noMatchText: '无匹配账户'
+  });
 
-    // 防止重复初始化
-    if (searchInput.dataset.selectorBound === 'true') return;
-    searchInput.dataset.selectorBound = 'true';
-
-    // 移除 readonly 属性
-    searchInput.removeAttribute('readonly');
-
-    function renderOptions(filterText) {
-      var query = (filterText || '').toLowerCase();
-      var filtered = allAccounts.filter(function(acc) {
-        if (!query) return true;
-        if (acc.name && acc.name.toLowerCase().includes(query)) return true;
-        if (acc.pinyin && acc.pinyin.includes(query)) return true;
-        return false;
-      });
-
-      if (filtered.length === 0) {
-        return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配账户</div>';
-      }
-
-      return filtered.map(function(acc) {
-        var selected = hiddenInput && hiddenInput.value == acc.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        var escapedName = escapeHtml(acc.name);
-        return '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' + selected + '" data-value="' + acc.id + '" data-display="' + escapedName + '">' +
-                 escapedName +
-               '</div>';
-      }).join('');
-    }
-
-    function bindOptionEvents() {
-      optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
-        option.addEventListener('mousedown', function(e) {
-          pendingOption = this;
-          isSelecting = true;
-          e.preventDefault();
-        });
-
-        option.addEventListener('mouseup', function(e) {
-          if (pendingOption === this) {
-            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
-            searchInput.value = this.dataset.display || '';
-            dropdown.classList.add('hidden');
-          }
-          pendingOption = null;
-          setTimeout(function() { isSelecting = false; }, 50);
-        });
-
-        option.addEventListener('click', function(e) {
-          if (e.detail === 0) {
-            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
-            searchInput.value = this.dataset.display || '';
-            dropdown.classList.add('hidden');
-          }
-        });
-      });
-    }
-
-    var pendingOption = null;
-    var isSelecting = false;
-
-    function openDropdown() {
-      if (!dropdown.classList.contains('hidden')) return;
-      dropdown.classList.remove('hidden');
-      optionsContainer.innerHTML = renderOptions('');
-      bindOptionEvents();
-    }
-
-    // 输入时筛选选项
-    searchInput.addEventListener('input', function(e) {
-      var query = (searchInput.value || '').toLowerCase();
-      if (dropdown.classList.contains('hidden')) {
-        dropdown.classList.remove('hidden');
-      }
-      optionsContainer.innerHTML = renderOptions(query);
-      bindOptionEvents();
-    });
-
-    // 焦点进入时打开下拉
-    searchInput.addEventListener('focus', function() {
-      openDropdown();
-    });
-
-    // 点击时也打开下拉（处理已有焦点时的点击）
-    searchInput.addEventListener('click', function() {
-      openDropdown();
-    });
-
-    // 关闭下拉时恢复 searchInput 的显示值
-    function restoreSearchInputValue() {
-      if (hiddenInput && hiddenInput.value) {
-        var selectedItem = allAccounts.find(function(item) {
-          return String(item.id) === String(hiddenInput.value);
-        });
-        if (selectedItem) {
-          searchInput.value = selectedItem.name || '';
-        }
-      } else if (!hiddenInput || !hiddenInput.value) {
-        searchInput.value = '';
-      }
-    }
-
-    // 点击外部关闭下拉
-    document.addEventListener('click', function(e) {
-      if (isSelecting) return;
-      if (!dropdown.contains(e.target) && e.target !== searchInput) {
-        dropdown.classList.add('hidden');
-        restoreSearchInputValue();
-      }
-    });
-  }
-
-  // 初始化账户选择器
-  initAccountSelector('new-plan-account-search', 'new-plan-account-dropdown', 'new-plan-account-options', 'new-plan-account-id');
-  initAccountSelector('edit-plan-account-search', 'edit-plan-account-dropdown', 'edit-plan-account-options', 'edit-plan-account-id');
-
-  // 分类选择器逻辑（带拼音搜索，分组显示）
+  // 分类选择器（带分组显示）
   var allCategories = [];
   var categoriesDataEl = document.getElementById('categories-data');
   if (categoriesDataEl) {
     allCategories = JSON.parse(categoriesDataEl.textContent);
   }
 
-  function initCategorySelector(searchInputId, dropdownId, optionsId, hiddenInputId) {
-    var searchInput = document.getElementById(searchInputId);
-    var dropdown = document.getElementById(dropdownId);
-    var optionsContainer = document.getElementById(optionsId);
-    var hiddenInput = document.getElementById(hiddenInputId);
+  window.initSelectorWithData({
+    searchInputId: 'new-plan-category-search',
+    dropdownId: 'new-plan-category-dropdown',
+    optionsId: 'new-plan-category-options',
+    hiddenInputId: 'new-plan-category-id',
+    dataSource: allCategories,
+    noMatchText: '无匹配分类',
+    enableLevelIndent: true,
+    groupByKey: 'type',
+    groupLabels: { 'INCOME': '收入', 'EXPENSE': '支出' },
+    groupColors: { 'INCOME': 'text-income', 'EXPENSE': 'text-expense' }
+  });
 
-    if (!searchInput || !dropdown || !optionsContainer) return;
-
-    // 防止重复初始化
-    if (searchInput.dataset.selectorBound === 'true') return;
-    searchInput.dataset.selectorBound = 'true';
-
-    // 移除 readonly 属性
-    searchInput.removeAttribute('readonly');
-
-    function renderOptions(filterText) {
-      var query = (filterText || '').toLowerCase();
-      var filtered = allCategories.filter(function(cat) {
-        if (!query) return true;
-        if (cat.full_name && cat.full_name.toLowerCase().includes(query)) return true;
-        if (cat.name && cat.name.toLowerCase().includes(query)) return true;
-        if (cat.pinyin && cat.pinyin.includes(query)) return true;
-        return false;
-      });
-
-      if (filtered.length === 0) {
-        return '<div class="px-3 py-2 text-sm text-secondary dark:text-secondary-dark">无匹配分类</div>';
-      }
-
-      var html = '';
-      var lastType = null;
-
-      filtered.forEach(function(cat) {
-        // 分组标题
-        if (cat.type !== lastType) {
-          if (lastType !== null) html += '<div class="border-t border-border dark:border-border-dark my-1"></div>';
-          var sectionLabel = cat.type === 'INCOME' ? '收入' : '支出';
-          var sectionColor = cat.type === 'INCOME' ? 'text-income' : 'text-expense';
-          html += '<div class="px-3 py-1 text-xs font-medium ' + sectionColor + ' uppercase tracking-wide">' + sectionLabel + '</div>';
-          lastType = cat.type;
-        }
-
-        var indent = 'padding-left: ' + (cat.level * 16 + 12) + 'px';
-        var selected = hiddenInput && hiddenInput.value == cat.id ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-        var escapedName = escapeHtml(cat.full_name);
-        html += '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-primary dark:text-primary-dark ' + selected + '" style="' + indent + '" data-value="' + cat.id + '" data-display="' + escapedName + '" data-type="' + cat.type + '">' +
-                 escapedName +
-               '</div>';
-      });
-
-      return html;
-    }
-
-    function bindOptionEvents() {
-      optionsContainer.querySelectorAll('.selector-option').forEach(function(option) {
-        option.addEventListener('mousedown', function(e) {
-          pendingOption = this;
-          isSelecting = true;
-          e.preventDefault();
-        });
-
-        option.addEventListener('mouseup', function(e) {
-          if (pendingOption === this) {
-            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
-            searchInput.value = this.dataset.display || '';
-            dropdown.classList.add('hidden');
-          }
-          pendingOption = null;
-          setTimeout(function() { isSelecting = false; }, 50);
-        });
-
-        option.addEventListener('click', function(e) {
-          if (e.detail === 0) {
-            if (hiddenInput) hiddenInput.value = this.dataset.value || '';
-            searchInput.value = this.dataset.display || '';
-            dropdown.classList.add('hidden');
-          }
-        });
-      });
-    }
-
-    var pendingOption = null;
-    var isSelecting = false;
-
-    function openDropdown() {
-      if (!dropdown.classList.contains('hidden')) return;
-      dropdown.classList.remove('hidden');
-      optionsContainer.innerHTML = renderOptions('');
-      bindOptionEvents();
-    }
-
-    // 输入时筛选选项
-    searchInput.addEventListener('input', function(e) {
-      var query = (searchInput.value || '').toLowerCase();
-      if (dropdown.classList.contains('hidden')) {
-        dropdown.classList.remove('hidden');
-      }
-      optionsContainer.innerHTML = renderOptions(query);
-      bindOptionEvents();
-    });
-
-    // 焦点进入时打开下拉
-    searchInput.addEventListener('focus', function() {
-      openDropdown();
-    });
-
-    // 点击时也打开下拉（处理已有焦点时的点击）
-    searchInput.addEventListener('click', function() {
-      openDropdown();
-    });
-
-    // 关闭下拉时恢复 searchInput 的显示值
-    function restoreSearchInputValue() {
-      if (hiddenInput && hiddenInput.value) {
-        var selectedItem = allCategories.find(function(item) {
-          return String(item.id) === String(hiddenInput.value);
-        });
-        if (selectedItem) {
-          searchInput.value = selectedItem.full_name || selectedItem.name || '';
-        }
-      } else if (!hiddenInput || !hiddenInput.value) {
-        searchInput.value = '';
-      }
-    }
-
-    // 点击外部关闭下拉
-    document.addEventListener('click', function(e) {
-      if (isSelecting) return;
-      if (!dropdown.contains(e.target) && e.target !== searchInput) {
-        dropdown.classList.add('hidden');
-        restoreSearchInputValue();
-      }
-    });
-  }
-
-  // 初始化分类选择器
-  initCategorySelector('new-plan-category-search', 'new-plan-category-dropdown', 'new-plan-category-options', 'new-plan-category-id');
-  initCategorySelector('edit-plan-category-search', 'edit-plan-category-dropdown', 'edit-plan-category-options', 'edit-plan-category-id');
+  window.initSelectorWithData({
+    searchInputId: 'edit-plan-category-search',
+    dropdownId: 'edit-plan-category-dropdown',
+    optionsId: 'edit-plan-category-options',
+    hiddenInputId: 'edit-plan-category-id',
+    dataSource: allCategories,
+    noMatchText: '无匹配分类',
+    enableLevelIndent: true,
+    groupByKey: 'type',
+    groupLabels: { 'INCOME': '收入', 'EXPENSE': '支出' },
+    groupColors: { 'INCOME': 'text-income', 'EXPENSE': 'text-expense' }
+  });
 </script>
