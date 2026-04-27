@@ -55,6 +55,11 @@ import FlashController from "controllers/flash_controller"
 import YearNavController from "controllers/year_nav_controller"
 import ConfirmModalController from "controllers/confirm_modal_controller"
 import ConfirmFormController from "controllers/confirm_form_controller"
+import HapticController from "controllers/haptic_controller"
+
+// New unified controllers
+import LineChartController from "controllers/line_chart_controller"
+import MiniLineChartController from "controllers/mini_line_chart_controller"
 
 // Register controllers
 application.register("alert--dismissible", AlertController)
@@ -109,3 +114,8 @@ application.register("flash", FlashController)
 application.register("year-nav", YearNavController)
 application.register("confirm-modal", ConfirmModalController)
 application.register("confirm-form", ConfirmFormController)
+application.register("haptic", HapticController)
+
+// Unified chart controllers
+application.register("line-chart", LineChartController)
+application.register("mini-line-chart", MiniLineChartController)
