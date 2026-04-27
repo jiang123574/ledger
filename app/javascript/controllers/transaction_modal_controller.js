@@ -44,12 +44,16 @@ export default class extends Controller {
     const form = document.querySelector('#add-transaction-modal form')
     if (!form) return
     form.addEventListener('submit', (e) => {
-      // 收支模式下，同步 account_id_income 到 account_id
-      if (this.transactionMode === 'category') {
-        const incomeHidden = document.getElementById('transaction_account_id_income')
-        const accountHidden = document.getElementById('transaction_account_id')
-        if (incomeHidden && accountHidden) {
-          accountHidden.value = incomeHidden.value
+      const sourceHidden = document.getElementById('transaction_account_id')
+      const incomeHidden = document.getElementById('transaction_account_id_income')
+      const typeInput = document.getElementById('transaction-type-input')
+      const actualType = typeInput?.value || 'EXPENSE'
+
+      // 只有在 type 不是 TRANSFER 时才同步
+      // 防止在转账模式下错误清空源账户值
+      if (actualType !== 'TRANSFER') {
+        if (incomeHidden && sourceHidden) {
+          sourceHidden.value = incomeHidden.value
         }
       }
     })
@@ -305,7 +309,13 @@ export default class extends Controller {
       window.transactionMode = 'transfer'
       this.showTransferFields()
       this.hideCategoryFields()
-      this.initTransferSelectors()
+      // 清空收支模式的账户值，防止混淆
+      const incomeHidden = document.getElementById('transaction_account_id_income')
+      if (incomeHidden) incomeHidden.value = ''
+      const incomeSearch = document.getElementById('account-search-input-income')
+      if (incomeSearch) incomeSearch.value = ''
+      // 强制重新初始化转账选择器
+      this.forceInitTransferSelectors()
       const typeInput = document.getElementById('transaction-type-input')
       if (typeInput) typeInput.value = 'TRANSFER'
     } else {
@@ -313,11 +323,25 @@ export default class extends Controller {
       window.transactionMode = 'category'
       this.hideTransferFields()
       this.showCategoryFields()
+      // 清空转账账户值
+      const sourceHidden = document.getElementById('transaction_account_id')
+      if (sourceHidden) sourceHidden.value = ''
+      const targetHidden = document.getElementById('target_account_id')
+      if (targetHidden) targetHidden.value = ''
       this.initCategorySelector()
       this.initAccountSelector()
       const typeInput = document.getElementById('transaction-type-input')
       if (typeInput) typeInput.value = this.currentType
     }
+  }
+
+  // 强制重新初始化转账选择器（绕过 selectorBound 检查）
+  forceInitTransferSelectors() {
+    const sourceSearch = document.getElementById('account-search-input')
+    const targetSearch = document.getElementById('target-account-search-input')
+    if (sourceSearch) sourceSearch.dataset.selectorBound = 'false'
+    if (targetSearch) targetSearch.dataset.selectorBound = 'false'
+    this.initTransferSelectors()
   }
 
   showTransferFields() {
@@ -394,11 +418,15 @@ export default class extends Controller {
       return
     }
 
-    if (this.transactionMode === 'category') {
-      const incomeHidden = document.getElementById('transaction_account_id_income')
-      const transferHidden = document.getElementById('transaction_account_id')
-      if (incomeHidden && transferHidden) {
-        transferHidden.value = incomeHidden.value
+    const sourceHidden = document.getElementById('transaction_account_id')
+    const incomeHidden = document.getElementById('transaction_account_id_income')
+    const typeInput = document.getElementById('transaction-type-input')
+    const actualType = typeInput?.value || 'EXPENSE'
+
+    // 只有在 type 不是 TRANSFER 时才同步
+    if (actualType !== 'TRANSFER') {
+      if (incomeHidden && sourceHidden) {
+        sourceHidden.value = incomeHidden.value
       }
     }
 

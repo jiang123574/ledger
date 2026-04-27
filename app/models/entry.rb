@@ -18,6 +18,9 @@ class Entry < ApplicationRecord
   # 预算统计更新 - 交易创建或删除后自动更新相关预算
   after_commit :update_budget_statistics, on: %i[create destroy]
 
+  # 转账交易删除时同步删除关联的另一条
+  before_destroy :destroy_transfer_pair
+
   delegated_type :entryable, types: Entryable::TYPES, dependent: :destroy
   accepts_nested_attributes_for :entryable, update_only: true
 
@@ -440,5 +443,19 @@ class Entry < ApplicationRecord
       self,
       description: "删除交易: #{name} #{amount}元"
     )
+  end
+
+  # 转账交易删除时同步删除关联的另一条
+  def destroy_transfer_pair
+    return unless transfer_id.present?
+
+    # 找到另一条相同 transfer_id 的 Entry（不包括自己）
+    pair_entry = Entry.where(transfer_id: transfer_id).where.not(id: id).first
+    if pair_entry
+      # 先断开关联，防止回调循环
+      pair_entry.update_column(:transfer_id, nil)
+      # 使用 destroy 确保关联数据正确清理（entryable、attachments、child_entries 等）
+      pair_entry.destroy
+    end
   end
 end
