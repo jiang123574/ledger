@@ -73,14 +73,116 @@ app/
 
 ## 环境变量
 
+### 数据库配置
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `DB_HOST` | 数据库主机地址 | `localhost` |
+| `DB_USERNAME` | 数据库用户名 | `postgres` |
+| `DB_PASSWORD` | 数据库密码 | 空 |
+| `DATABASE_URL` | 完整数据库连接 URL（可选） | - |
+
+### 认证配置
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `AUTH_USER` | 登录用户名 | 未设置时跳过认证 |
+| `AUTH_PASSWORD` | 登录密码 | 未设置时跳过认证 |
+
+**说明**：
+- 同时设置 `AUTH_USER` 和 `AUTH_PASSWORD` 才启用认证
+- 未设置时，应用无需登录即可访问（适用于内网部署）
+- 登录页面：`/login`，登出：`/logout`
+
+### SSL/HTTPS 配置
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `NO_SSL` | 禁用 SSL 强制（内网部署） | `false` |
+
+**使用场景**：
+
+**1. 生产环境 + 反向代理（推荐）**
+```bash
+# Nginx/Caddy/Traefik 提供 SSL，Rails 只处理 HTTP
+# 不设置 NO_SSL，保持默认
+RAILS_MASTER_KEY=xxx
+AUTH_USER=admin
+AUTH_PASSWORD=secret
+```
+
+**2. 内网直连部署**
+```bash
+# 无反向代理，直接 HTTP 服务
+NO_SSL=true
+AUTH_USER=admin
+AUTH_PASSWORD=secret
+
+# 启动命令
+bin/rails server -e production -p 4000 -b 0.0.0.0
+```
+
+**警告**：`NO_SSL=true` 会禁用 HTTPS 强制和安全 Cookie，仅适用于可信内网环境。
+
+### API 配置
+
+| 变量 | 说明 | 默认值 |
+|------|------|--------|
+| `EXTERNAL_API_KEY` | 外部 API 访问密钥 | 未设置时禁用外部 API |
+| `RAILS_MASTER_KEY` | Rails 加密密钥 | 生产环境必需 |
+| `RAILS_LOG_LEVEL` | 日志级别 | `info` |
+
+### WebDAV 备份配置
+
 | 变量 | 说明 |
 |------|------|
-| DB_HOST | 数据库主机 |
-| DB_USERNAME | 数据库用户名 |
-| DB_PASSWORD | 数据库密码 |
-| AUTH_USER | 登录用户名（可选，未设置时跳过认证） |
-| AUTH_PASSWORD | 登录密码（可选，未设置时跳过认证） |
-| EXTERNAL_API_KEY | 外部 API 密钥 |
+| `WEBDAV_URL` | WebDAV 服务地址 |
+| `WEBDAV_USERNAME` | WebDAV 用户名 |
+| `WEBDAV_PASSWORD` | WebDAV 密码 |
+
+### 完整配置示例
+
+**docker-compose.yml**：
+```yaml
+services:
+  web:
+    image: ledger:latest
+    environment:
+      - RAILS_MASTER_KEY=your_master_key
+      - DB_HOST=db
+      - DB_USERNAME=postgres
+      - DB_PASSWORD=postgres
+      - AUTH_USER=admin
+      - AUTH_PASSWORD=your_password
+      - NO_SSL=true  # 内网部署时添加
+    ports:
+      - "4000:3000"
+    depends_on:
+      - db
+
+  db:
+    image: postgres:16
+    environment:
+      - POSTGRES_PASSWORD=postgres
+```
+
+**.env 文件**：
+```bash
+# 数据库
+DB_HOST=localhost
+DB_USERNAME=postgres
+DB_PASSWORD=
+
+# 认证
+AUTH_USER=admin
+AUTH_PASSWORD=secret
+
+# 内网部署（可选）
+NO_SSL=true
+
+# API（可选）
+EXTERNAL_API_KEY=your_api_key
+```
 
 ## 认证
 
@@ -224,18 +326,6 @@ app/
 - 设置 `AUTH_USER` 和 `AUTH_PASSWORD` 后启用 Session 登录
 - 未设置时跳过认证（适用于内网或本地开发）
 - 登录页：`/login`，登出：`/logout`
-
-## 环境变量
-
-| 变量 | 说明 | 必需 |
-|------|------|------|
-| `DB_HOST` | 数据库主机 | 生产环境 |
-| `DB_USERNAME` | 数据库用户名 | 生产环境 |
-| `DB_PASSWORD` | 数据库密码 | 生产环境 |
-| `AUTH_USER` | 登录用户名 | 可选 |
-| `AUTH_PASSWORD` | 登录密码 | 可选 |
-| `EXTERNAL_API_KEY` | 外部 API 密钥 | 可选 |
-| `RAILS_MASTER_KEY` | Rails 主密钥 | 生产环境 |
 
 ## 测试
 
