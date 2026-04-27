@@ -8,104 +8,36 @@ class AccountsController < ApplicationController
     # 仅在系统账户缺失时兜底同步；常规联动由 Receivable/Payable 的 after_commit 负责
     SystemAccountSyncService.sync_all! if system_accounts_sync_needed?
 
-    av = CacheBuster.version(:accounts)
-    ev = CacheBuster.version(:entries)
+    # 使用服务对象封装数据加载
+    service = AccountsIndexService.new(
+      params,
+      { accounts: CacheBuster.version(:accounts), entries: CacheBuster.version(:entries) }
+    )
 
-    @accounts = Rails.cache.fetch("accounts_list/#{params[:show_hidden]}/#{av}", expires_in: CacheConfig::TEN_MINUTES) do
-      if params[:show_hidden] == "true"
-        Account.order(:sort_order, :name).to_a
-      else
-        Account.visible.order(:sort_order, :name).to_a
-      end
-    end
+    @accounts = service.load_accounts
     @accounts_map = @accounts.index_by(&:id)
-
-    # 预计算所有账户余额，避免视图中 N+1 查询
-    @account_balances = Rails.cache.fetch("account_balances/#{ev}", expires_in: CacheConfig::SHORT) do
-      account_ids = @accounts.map(&:id)
-      results = Entry.where(account_id: account_ids, entryable_type: "Entryable::Transaction")
-                       .group(:account_id)
-                       .sum(:amount)
-      Account.where(id: account_ids).pluck(:id, :initial_balance).each_with_object({}) do |(id, ib), hash|
-        hash[id] = ib.to_d + (results[id] || 0)
-      end
-    end
-
-    @total_assets = Rails.cache.fetch("total_assets/#{ev}", expires_in: CacheConfig::SHORT) do
-      Account.total_assets
-    end
-
-    @categories = Rails.cache.fetch("categories_active/#{av}", expires_in: CacheConfig::LONG) do
-      Category.active.by_sort_order.to_a
-    end
-
-    @expense_categories = Rails.cache.fetch("expense_categories_active/#{av}", expires_in: CacheConfig::LONG) do
-      Category.expense.active.by_sort_order.to_a
-    end
-
-    @counterparties = Rails.cache.fetch("counterparties_list/#{av}", expires_in: CacheConfig::LONG) do
-      Counterparty.order(:name).to_a
-    end
-
-    @unsettled_receivables = Receivable.where(settled_at: nil).order(date: :desc).limit(50)
+    @account_balances = service.load_account_balances(@accounts)
+    @total_assets = service.load_total_assets
+    @categories = service.load_categories
+    @expense_categories = service.load_expense_categories
+    @counterparties = service.load_counterparties
+    @unsettled_receivables = service.load_unsettled_receivables
 
     period_type = params[:period_type].presence || "month"
     period_value = params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
 
+    entries_query = service.build_entries_query
     query_service = AccountEntriesQueryService.new(params)
-    @entries = query_service.build
-
     filter_cache_key = query_service.cache_key
 
-    @total_count = Rails.cache.fetch("entries_count/#{filter_cache_key}/#{ev}", expires_in: CacheConfig::FAST) do
-      @entries.count
-    end
+    @total_count = service.load_total_count(entries_query, filter_cache_key)
 
     @page = [ [ params[:page].to_i, 1 ].max, 1000 ].min
     @per_page = [ [ params[:per_page].to_i, 15 ].max, 200 ].min
 
-    entries_cache_key = "entries_list/#{filter_cache_key}/#{@page}/#{@per_page}/#{ev}"
-    # 缓存 ID+balance 而非完整 ActiveRecord 对象：
-    # - 余额计算（运行余额逐行求和）是 O(n) 开销，值得缓存
-    # - Marshal 序列化会丢失 includes 预加载信息，缓存对象后仍需重新查询
-    # - 因此只缓存轻量的 ID 列表 + 余额映射，每次请求重新查询对象 + 预加载关联
-    cached_data = Rails.cache.fetch(entries_cache_key, expires_in: CacheConfig::MEDIUM) do
-      result = AccountStatsService.entries_with_balance(
-        @entries, page: @page, per_page: @per_page, account_id: params[:account_id].presence
-      )
-      # 缓存只存 ID 和 balance，不缓存 ActiveRecord 对象（序列化会丢失预加载）
-      result.map { |entry, balance| [ entry.id, balance ] }
-    end
+    @entries_with_balance = service.load_entries_with_balance(entries_query, @page, @per_page)
 
-    # 重新查询并预加载（每次请求都执行，确保预加载信息完整）
-    entry_ids = cached_data.map(&:first)
-    balance_map = cached_data.to_h
-    @entries_with_balance = if entry_ids.empty?
-      []
-    else
-      entries = Entry.where(id: entry_ids)
-        .includes(:entryable, entryable: :category)
-        .to_a
-      # 按照缓存的entry_ids顺序重新排序，保持倒序顺序
-      # 优化：从 O(n²) 优化为 O(n) 通过预计算索引映射
-      entry_id_to_index = entry_ids.each_with_index.to_h
-      entries.sort_by! { |e| entry_id_to_index[e.id] || Float::INFINITY }
-      AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
-      entries.map { |e| [ e, balance_map[e.id] ] }
-    end
-
-    category_ids = params[:category_ids]&.map(&:to_i)&.select { |id| id > 0 } || []
-    stats_cache_key = "stats/#{params[:account_id] || 'all'}/#{period_type}/#{period_value}/#{params[:type]}/#{category_ids.empty? ? 'no_cat' : category_ids.sort.join(',')}/#{ev}"
-    stats_data = Rails.cache.fetch(stats_cache_key, expires_in: CacheConfig::SHORT) do
-      AccountStatsService.entry_stats(
-        account_id: params[:account_id].presence,
-        period_type: period_type,
-        period_value: period_value,
-        filter_type: params[:type].presence,
-        category_ids: category_ids
-      )
-    end
-
+    stats_data = service.load_stats(period_type, period_value)
     @account_balance = stats_data[:account_balance]
     @total_income = stats_data[:total_income]
     @total_expense = stats_data[:total_expense]
