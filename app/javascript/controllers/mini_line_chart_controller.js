@@ -77,10 +77,11 @@ export default class extends Controller {
 
     const linePath = linePoints.map((p, i) => `${i === 0 ? "M" : "L"} ${p.x} ${p.y}`).join(" ")
 
-    // 渐变定义
+    // 渐变定义 - 使用唯一 ID 避免多实例冲突
+    const gradientId = `gradient-${this.element.id || Math.random().toString(36).substr(2, 9)}`
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs")
     defs.innerHTML = `
-      <linearGradient id="lineGradient" x1="0" y1="0" x2="0" y2="1">
+      <linearGradient id="${gradientId}" x1="0" y1="0" x2="0" y2="1">
         <stop offset="0%" stop-color="${this.strokeColorValue}" />
         <stop offset="100%" stop-color="${this.strokeColorValue}" stop-opacity="0" />
       </linearGradient>
@@ -109,7 +110,7 @@ export default class extends Controller {
     const area = document.createElementNS("http://www.w3.org/2000/svg", "path")
     const areaPath = linePath + ` L ${linePoints[linePoints.length - 1]?.x || 0} ${padding.top + chartHeight} L ${linePoints[0]?.x || 0} ${padding.top + chartHeight} Z`
     area.setAttribute("d", areaPath)
-    area.setAttribute("fill", "url(#lineGradient)")
+    area.setAttribute("fill", `url(#${gradientId})`)
     area.setAttribute("opacity", "0.3")
     chart.appendChild(area)
 

@@ -89,3 +89,4 @@ pin "@floating-ui/dom", to: "@floating-ui--dom.js" # @1.7.6
 # Chart.js - loaded via UMD script tag
 pin "@kurkle/color", to: "@kurkle--color.js" # @0.3.4
 pin "@rails/actioncable/src", to: "@rails--actioncable--src.js" # @8.1.300
+
