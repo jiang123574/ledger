@@ -18,9 +18,11 @@ export default class extends Controller {
 
     try {
       const response = await fetch(this.element.href, {
+        method: "POST",
         credentials: "same-origin",
         headers: {
           Accept: "application/json",
+          "Content-Type": "application/json",
           "X-CSRF-Token": csrfToken
         }
       })

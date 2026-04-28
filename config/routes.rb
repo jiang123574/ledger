@@ -97,7 +97,7 @@ Rails.application.routes.draw do
   resources :backups, only: [ :index, :create, :destroy ] do
     collection do
       post :webdav_connect
-      get :webdav_test
+      post :webdav_test
       post :enable_auto_backup
       post :disable_auto_backup
     end
