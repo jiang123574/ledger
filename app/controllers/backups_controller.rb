@@ -84,7 +84,15 @@ class BackupsController < ApplicationController
 
   def webdav_test
     result = BackupService.test_webdav_connection
-    render json: result
+
+    respond_to do |format|
+      format.turbo_stream do
+        message = result[:success] ? "✓ 连接成功" : "✗ #{result[:error]}"
+        css_class = result[:success] ? "text-sm text-green-600 dark:text-green-400" : "text-sm text-red-600 dark:text-red-400"
+        render turbo_stream: turbo_stream.update("webdav-test-result", "<span class=\"#{css_class}\">#{message}</span>".html_safe)
+      end
+      format.json { render json: result }
+    end
   end
 
   def webdav_upload

@@ -49,22 +49,22 @@
 
     <% if @webdav_configured %>
       <div class="space-y-4">
-        <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/20 rounded-lg p-4" data-controller="webdav-test">
-            <div class="flex items-center gap-3">
-              <div class="text-green-500 text-2xl">✓</div>
-              <div>
-                <div class="font-medium text-green-800 dark:text-green-200">已连接</div>
-                <div class="text-sm text-green-600 dark:text-green-400"><%= @webdav_config[:url] %></div>
-              </div>
-            </div>
-            <div class="flex gap-2 items-center">
-              <%= link_to "测试连接", webdav_test_backups_path, data: { action: "click->webdav-test#test" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
-              <span data-webdav-test-target="result"></span>
-              <button onclick="document.getElementById('webdav-edit-form').classList.toggle('hidden')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
-                修改配置
-              </button>
+        <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+          <div class="flex items-center gap-3">
+            <div class="text-green-500 text-2xl">✓</div>
+            <div>
+              <div class="font-medium text-green-800 dark:text-green-200">已连接</div>
+              <div class="text-sm text-green-600 dark:text-green-400"><%= @webdav_config[:url] %></div>
             </div>
           </div>
+          <div class="flex gap-2 items-center">
+            <%= button_to "测试连接", webdav_test_backups_path, method: :post, data: { turbo_stream: true }, form: { id: "webdav-test-form" }, class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
+            <span id="webdav-test-result"></span>
+            <button onclick="document.getElementById('webdav-edit-form').classList.toggle('hidden')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+              修改配置
+            </button>
+          </div>
+        </div>
 
         <!-- 修改配置表单 -->
         <div id="webdav-edit-form" class="hidden border rounded-lg p-4">
