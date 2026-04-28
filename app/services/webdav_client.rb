@@ -22,7 +22,8 @@ class WebdavClient
   end
 
   def test_connection
-    uri = build_uri("")
+    # 测试服务器连接（使用根 URL，不包含目录）
+    uri = URI.parse(@url)
     request = Net::HTTP::Propfind.new(uri)
     request.basic_auth(@username, @password)
     request["Depth"] = "0"
@@ -30,6 +31,8 @@ class WebdavClient
     response = execute_request(uri, request)
 
     if response.code.to_i < 400
+      # 服务器连接成功，确保目录存在
+      ensure_directory
       { success: true, message: "连接成功" }
     else
       { success: false, error: "连接失败: #{response.code} #{response.message}" }
