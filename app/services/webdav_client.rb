@@ -39,14 +39,16 @@ class WebdavClient
   end
 
   def upload(file_path, filename)
-    remote_path = "#{@directory}/#{filename}".gsub("//", "/")
-    uri = build_uri(remote_path)
+    file_size = File.size(file_path)
+
+    uri = build_uri(filename)
 
     ensure_directory
 
     request = Net::HTTP::Put.new(uri)
     request.basic_auth(@username, @password)
     request.content_type = "application/octet-stream"
+    request["Content-Length"] = file_size.to_s
     request.body_stream = File.open(file_path, "rb")
 
     response = execute_request(uri, request)
@@ -61,8 +63,7 @@ class WebdavClient
   end
 
   def download(filename, local_path)
-    remote_path = "#{@directory}/#{filename}".gsub("//", "/")
-    uri = build_uri(remote_path)
+    uri = build_uri(filename)
 
     request = Net::HTTP::Get.new(uri)
     request.basic_auth(@username, @password)
@@ -98,8 +99,7 @@ class WebdavClient
   end
 
   def delete(filename)
-    remote_path = "#{@directory}/#{filename}".gsub("//", "/")
-    uri = build_uri(remote_path)
+    uri = build_uri(filename)
 
     request = Net::HTTP::Delete.new(uri)
     request.basic_auth(@username, @password)
@@ -147,13 +147,20 @@ class WebdavClient
   def ensure_directory
     return if @directory == "/" || @directory.empty?
 
+    # 尝试创建目标目录（父目录需已存在）
     uri = build_uri("")
     request = Net::HTTP::Mkcol.new(uri)
     request.basic_auth(@username, @password)
 
-    execute_request(uri, request)
-  rescue StandardError
-    nil
+    begin
+      response = execute_request(uri, request)
+      # 201 Created = 新建成功, 409 Conflict = 已存在或其他冲突
+      if response.code.to_i == 201
+        Rails.logger.info("WebDAV directory created: #{@directory}")
+      end
+    rescue StandardError => e
+      Rails.logger.debug("WebDAV directory creation skipped: #{e.message}")
+    end
   end
 
   def parse_propfind_response(xml_body)
