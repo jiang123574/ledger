@@ -106,10 +106,15 @@ class OperationLog < ApplicationRecord
 
     # 记录撤销操作
     def log_revert(item, request: nil, description: nil)
+      data = {
+        reverted_at: Time.current,
+        item_status: item.respond_to?(:status) ? item.status : nil
+      }
+
       create!(
         item: item,
         action: "revert",
-        changeset: { reverted_to: item.attributes_before_revert }.to_json,
+        changeset: data.to_json,
         description: description || "撤销 #{item.class.model_name.human} 操作",
         **extract_request_info(request)
       )
