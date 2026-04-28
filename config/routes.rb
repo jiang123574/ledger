@@ -108,6 +108,7 @@ Rails.application.routes.draw do
     end
   end
   get "/webdav/download", to: "backups#webdav_download", as: :webdav_download_backups
+  post "/webdav/delete", to: "backups#webdav_delete", as: :webdav_delete_backup
 
   # Settings routes
   get "/settings", to: "settings#show", as: :settings

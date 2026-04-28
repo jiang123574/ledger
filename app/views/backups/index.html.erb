@@ -103,7 +103,13 @@
               <% @webdav_backups.each do |backup| %>
                 <div class="flex justify-between items-center text-sm">
                   <span class="text-primary dark:text-primary-dark"><%= backup[:name] %></span>
-                  <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
+                  <div class="flex gap-1">
+                    <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
+                    <%= button_to "删除", webdav_delete_backup_path(filename: backup[:name]),
+                        method: :post,
+                        form: { data: { turbo_confirm: "确定要删除云端备份吗？\n\n#{backup[:name]}" } },
+                        class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition-smooth" %>
+                  </div>
                 </div>
               <% end %>
             </div>
@@ -148,22 +154,58 @@
   <!-- Auto Backup -->
   <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4">自动备份</h2>
-    
+
+    <% auto_backup_config = BackupConfig.auto_backup_config %>
+
     <% if @auto_backup_enabled %>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="text-green-500 text-2xl">🔄</div>
-          <div>
-            <div class="font-medium text-green-800">自动备份已启用</div>
-            <div class="text-sm text-secondary dark:text-secondary-dark">每日自动备份，保留最近 10 个</div>
+      <div class="space-y-4">
+        <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
+          <div class="flex items-center gap-3">
+            <div class="text-green-500 text-2xl">🔄</div>
+            <div>
+              <div class="font-medium text-green-800 dark:text-green-200">自动备份已启用</div>
+              <div class="text-sm text-secondary dark:text-secondary-dark">
+                每日自动备份，保留最近 <%= auto_backup_config['retention_count'] || 10 %> 个
+                <% if auto_backup_config['webdav_sync'] && @webdav_configured %>
+                  · 自动上传到云端
+                <% end %>
+              </div>
+            </div>
           </div>
+          <%= button_to "禁用", disable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50 transition-smooth" %>
         </div>
-        <%= button_to "禁用", disable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-red-100 text-red-600 hover:bg-red-200 transition-smooth btn-modern" %>
+
+        <% if @webdav_configured %>
+          <div class="border border-border dark:border-border-dark rounded-lg p-4">
+            <h3 class="font-medium mb-3 text-primary dark:text-primary-dark">同步设置</h3>
+            <%= form_with url: enable_auto_backup_backups_path, method: :post, local: true do |f| %>
+              <div class="flex items-center gap-4">
+                <label class="flex items-center gap-2">
+                  <%= f.check_box :webdav_sync, checked: auto_backup_config['webdav_sync'], class: "w-4 h-4 rounded border-border dark:border-border-dark" %>
+                  <span class="text-sm text-primary dark:text-primary-dark">自动同步到 WebDAV 云端</span>
+                </label>
+                <%= f.hidden_field :frequency, value: auto_backup_config['frequency'] || 'daily' %>
+                <%= f.hidden_field :retention, value: auto_backup_config['retention_count'] || 10 %>
+                <%= f.submit "更新设置", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
+              </div>
+            <% end %>
+          </div>
+        <% end %>
       </div>
     <% else %>
       <div class="text-center py-4">
         <p class="text-secondary dark:text-secondary-dark mb-4">启用自动备份，每日自动创建数据备份</p>
-        <%= button_to "启用自动备份", enable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth btn-modern" %>
+        <% if @webdav_configured %>
+          <%= form_with url: enable_auto_backup_backups_path, method: :post, local: true, class: "space-y-3" do |f| %>
+            <label class="flex items-center gap-2 justify-center">
+              <%= f.check_box :webdav_sync, class: "w-4 h-4 rounded border-border dark:border-border-dark" %>
+              <span class="text-sm text-primary dark:text-primary-dark">同时上传到 WebDAV 云端</span>
+            </label>
+            <%= f.submit "启用自动备份", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth" %>
+          <% end %>
+        <% else %>
+          <%= button_to "启用自动备份", enable_auto_backup_backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth" %>
+        <% end %>
       </div>
     <% end %>
   </div>
@@ -216,19 +258,21 @@
                 <% end %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <%= link_to "下载", download_backup_path(backup[:id]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
-                <%= button_to "恢复", restore_backup_path(backup[:id]),
-                    method: :post,
-                    form: { data: { turbo_confirm: "确定要从备份恢复数据吗？\n\n文件：#{backup[:name]}\n\n⚠️ 警告：当前数据将被完全覆盖，此操作不可逆！" } },
-                    class: "px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 transition-smooth ml-1 inline-block" %>
-                <% if @webdav_configured && backup[:webdav_url].blank? %>
-                  <%= button_to "上传", webdav_upload_backup_path(backup[:id]), method: :post, class: "px-2 py-1 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth ml-1 inline-block" %>
-                <% end %>
-                <%= button_to "删除", backup_path(backup[:id]),
-                    method: :delete,
-                    form: { data: { turbo_confirm: "确定要删除此备份吗？\n\n#{backup[:name]}" } },
-                    class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-smooth ml-1 inline-block" %>
-              </td>
+                  <div class="flex gap-1 justify-end">
+                    <%= link_to "下载", download_backup_path(backup[:id]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
+                    <%= button_to "恢复", restore_backup_path(backup[:id]),
+                        method: :post,
+                        form: { data: { turbo_confirm: "确定要从备份恢复数据吗？\n\n文件：#{backup[:name]}\n\n⚠️ 警告：当前数据将被完全覆盖，此操作不可逆！" } },
+                        class: "px-2 py-1 text-xs font-medium rounded-lg bg-orange-100 text-orange-700 hover:bg-orange-200 transition-smooth" %>
+                    <% if @webdav_configured && backup[:webdav_url].blank? %>
+                      <%= button_to "上传", webdav_upload_backup_path(backup[:id]), method: :post, class: "px-2 py-1 text-xs font-medium rounded-lg bg-green-600 text-white hover:bg-green-700 transition-smooth" %>
+                    <% end %>
+                    <%= button_to "删除", backup_path(backup[:id]),
+                        method: :delete,
+                        form: { data: { turbo_confirm: "确定要删除此备份吗？\n\n#{backup[:name]}" } },
+                        class: "px-2 py-1 text-xs font-medium rounded-lg bg-red-100 text-red-700 hover:bg-red-200 transition-smooth" %>
+                  </div>
+                </td>
             </tr>
           <% end %>
         </tbody>

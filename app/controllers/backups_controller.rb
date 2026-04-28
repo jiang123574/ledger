@@ -102,6 +102,17 @@ class BackupsController < ApplicationController
     end
   end
 
+  def webdav_delete
+    safe_filename = File.basename(params[:filename].to_s)
+    result = BackupService.delete_from_webdav(safe_filename)
+
+    if result[:success]
+      redirect_to backups_path, notice: "云端备份已删除"
+    else
+      redirect_to backups_path, alert: result[:error]
+    end
+  end
+
   # Auto Backup
   def enable_auto_backup
     result = BackupService.enable_auto_backup(
