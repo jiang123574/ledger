@@ -27,11 +27,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :versions, only: [ :index, :show ] do
-    member do
-      post :revert
-    end
-  end
+  resources :versions, only: [ :index, :show ]
 
   resources :accounts do
     member do

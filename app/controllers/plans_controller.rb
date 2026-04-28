@@ -1,4 +1,6 @@
 class PlansController < ApplicationController
+  include OperationLoggable
+
   before_action :set_plan, only: %i[update destroy execute]
 
   def index
@@ -69,6 +71,10 @@ class PlansController < ApplicationController
     transaction = @plan.generate_transaction!
 
     if transaction
+      # 记录执行操作
+      OperationLog.log_execute(@plan, result: transaction, request: request,
+                                description: "执行计划 #{@plan.name}")
+
       redirect_to transaction_path(transaction), notice: t("plans.executed")
     else
       redirect_to plans_path, alert: t("plans.execute_failed")

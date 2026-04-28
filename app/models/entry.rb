@@ -425,21 +425,21 @@ class Entry < ApplicationRecord
   end
 
   def log_create_activity
-    ActivityLog.log_create(
+    OperationLog.log_create(
       self,
       description: "创建交易: #{name} #{amount}元"
     )
   end
 
   def log_update_activity
-    ActivityLog.log_update(
+    OperationLog.log_update(
       self,
       description: "更新交易: #{name}"
     )
   end
 
   def log_destroy_activity
-    ActivityLog.log_destroy(
+    OperationLog.log_destroy(
       self,
       description: "删除交易: #{name} #{amount}元"
     )
