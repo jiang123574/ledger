@@ -14,9 +14,15 @@ export default class extends Controller {
     this.resultTarget.className = "text-sm text-secondary dark:text-secondary-dark"
     this.resultTarget.style.display = "inline"
 
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
+
     try {
       const response = await fetch(this.element.href, {
-        headers: { Accept: "application/json" }
+        credentials: "same-origin",
+        headers: {
+          Accept: "application/json",
+          "X-CSRF-Token": csrfToken
+        }
       })
       const data = await response.json()
 
