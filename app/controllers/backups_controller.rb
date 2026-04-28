@@ -24,7 +24,8 @@ class BackupsController < ApplicationController
     record = BackupRecord.find(params[:id])
 
     unless File.exist?(record.file_path)
-      redirect_to backups_path, alert: "备份文件不存在"
+      record.destroy
+      redirect_to backups_path, alert: "备份文件已不存在，记录已清理"
       return
     end
 
@@ -35,6 +36,13 @@ class BackupsController < ApplicationController
 
   def restore
     record = BackupRecord.find(params[:id])
+
+    unless File.exist?(record.file_path)
+      record.destroy
+      redirect_to backups_path, alert: "备份文件已不存在，记录已清理"
+      return
+    end
+
     result = BackupService.restore_backup(record.file_path)
 
     if result[:success]
@@ -81,6 +89,13 @@ class BackupsController < ApplicationController
 
   def webdav_upload
     record = BackupRecord.find(params[:id])
+
+    unless File.exist?(record.file_path)
+      record.destroy
+      redirect_to backups_path, alert: "备份文件已不存在，记录已清理"
+      return
+    end
+
     result = BackupService.upload_to_webdav(record.file_path, record.filename)
 
     if result[:success]
