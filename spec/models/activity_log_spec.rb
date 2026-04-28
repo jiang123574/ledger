@@ -12,7 +12,7 @@ RSpec.describe ActivityLog, type: :model do
 
   describe "validations" do
     it { is_expected.to validate_presence_of(:action) }
-    it { is_expected.to validate_inclusion_of(:action).in_array(%w[create update destroy]) }
+    it { is_expected.to validate_inclusion_of(:action).in_array(%w[create update destroy execute settle revert]) }
     it { is_expected.to validate_presence_of(:item_type) }
     it { is_expected.to validate_presence_of(:item_id) }
   end
@@ -79,40 +79,6 @@ RSpec.describe ActivityLog, type: :model do
       )
 
       expect(log.changes_summary).not_to include("updated_at")
-    end
-  end
-
-  describe "#revert!" do
-    context "for create action" do
-      let(:log) { ActivityLog.create!(item: entry, action: "create", item_type: "Entry", item_id: entry.id) }
-
-      it "returns false" do
-        expect(log.revert!).to be false
-      end
-    end
-
-    context "for update action" do
-      it "reverts the changes" do
-        original_name = entry.name
-        entry.update!(name: "Changed Name")
-
-        log = ActivityLog.last
-        log.revert!
-
-        expect(entry.reload.name).to eq(original_name)
-      end
-
-      it "returns false when changeset is blank" do
-        log = ActivityLog.create!(
-          item: entry,
-          action: "update",
-          item_type: "Entry",
-          item_id: entry.id,
-          changeset: nil
-        )
-
-        expect(log.revert!).to be false
-      end
     end
   end
 

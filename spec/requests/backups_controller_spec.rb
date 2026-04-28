@@ -54,7 +54,11 @@ RSpec.describe BackupsController, type: :request do
     end
 
     it "shows existing backups" do
-      create(:backup_record, filename: "recent_backup.sql")
+      file_path = backup_dir.join("recent_backup.sql")
+      FileUtils.mkdir_p(backup_dir)
+      File.write(file_path, "DATA")
+
+      create(:backup_record, filename: "recent_backup.sql", file_path: file_path.to_s)
       get backups_path
       expect(response.body).to include("recent_backup.sql")
     end
@@ -153,7 +157,7 @@ RSpec.describe BackupsController, type: :request do
 
       get download_backup_path(record)
       expect(response).to redirect_to(backups_path)
-      expect(flash[:alert]).to eq("备份文件不存在")
+      expect(flash[:alert]).to eq("备份文件已不存在，记录已清理")
     end
   end
 
@@ -287,9 +291,9 @@ RSpec.describe BackupsController, type: :request do
     end
   end
 
-  describe "GET /backups/webdav_test" do
+  describe "POST /backups/webdav_test" do
     it "returns json with failure when not configured" do
-      get webdav_test_backups_path
+      post webdav_test_backups_path, headers: { Accept: "application/json" }
       json = JSON.parse(response.body)
       expect(json["success"]).to be false
       expect(json["error"]).to eq("WebDAV 未配置")
@@ -302,7 +306,7 @@ RSpec.describe BackupsController, type: :request do
       allow(BackupConfig).to receive(:build_webdav_client).and_return(webdav_client)
       allow(webdav_client).to receive(:test_connection).and_return({ success: true, message: "OK" })
 
-      get webdav_test_backups_path
+      post webdav_test_backups_path, headers: { Accept: "application/json" }
       json = JSON.parse(response.body)
       expect(json["success"]).to be true
     end
@@ -314,7 +318,7 @@ RSpec.describe BackupsController, type: :request do
       allow(BackupConfig).to receive(:build_webdav_client).and_return(webdav_client)
       allow(webdav_client).to receive(:test_connection).and_return({ success: false, error: "timeout" })
 
-      get webdav_test_backups_path
+      post webdav_test_backups_path, headers: { Accept: "application/json" }
       json = JSON.parse(response.body)
       expect(json["success"]).to be false
       expect(json["error"]).to eq("timeout")
@@ -338,7 +342,7 @@ RSpec.describe BackupsController, type: :request do
     end
 
     it "passes webdav_sync parameter as true" do
-      post enable_auto_backup_backups_path, params: { webdav_sync: "true" }
+      post enable_auto_backup_backups_path, params: { webdav_sync: "1" }
       config = BackupConfig.auto_backup_config
       expect(config["webdav_sync"]).to be true
     end
