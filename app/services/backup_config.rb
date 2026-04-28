@@ -28,10 +28,21 @@ class BackupConfig
 
   def self.configure_webdav(url:, username:, password:, directory: "/")
     merged = config
+
+    # 如果密码为空，保留原有密码（支持修改配置时只改 URL/用户名）
+    existing_password = merged.dig("webdav", "password")
+    final_password = if password.present?
+      encrypt_password(password)
+    elsif existing_password.present?
+      existing_password
+    else
+      nil
+    end
+
     merged["webdav"] = {
       "url" => url.chomp("/"),
       "username" => username,
-      "password" => encrypt_password(password),
+      "password" => final_password,
       "directory" => directory
     }
     save(merged)

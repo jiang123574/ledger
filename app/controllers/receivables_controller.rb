@@ -1,6 +1,8 @@
 class ReceivableCreationError < StandardError; end
 
 class ReceivablesController < ApplicationController
+  include OperationLoggable
+
   before_action :set_receivable, only: %i[show update destroy settle revert]
   before_action :check_not_settled, only: %i[update destroy]
 
@@ -77,6 +79,8 @@ class ReceivablesController < ApplicationController
       return
     end
 
+    account = Account.find(@account_id)
+
     ActiveRecord::Base.transaction do
       create_transfer_from_receivable_account
 
@@ -85,6 +89,10 @@ class ReceivablesController < ApplicationController
         remaining_amount: new_remaining,
         settled_at: new_remaining <= 0 ? @settlement_date : nil
       )
+
+      # 记录结算操作
+      log_settle(@receivable, amount: @settle_amount, account: account,
+                 description: "报销 #{@receivable.description} ¥#{@settle_amount}")
     end
 
     redirect_to receivables_path, notice: "报销成功"
@@ -98,6 +106,9 @@ class ReceivablesController < ApplicationController
         remaining_amount: @receivable.original_amount,
         settled_at: nil
       )
+
+      # 记录撤销操作
+      log_revert(@receivable, description: "撤销报销 #{@receivable.description}")
     end
 
     redirect_to receivables_path, notice: "报销已撤销"

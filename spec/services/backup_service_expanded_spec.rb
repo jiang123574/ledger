@@ -250,14 +250,22 @@ RSpec.describe BackupService do
   # list_backups
   # ========================
   describe ".list_backups" do
+    let(:backup_dir) { BackupService::BACKUP_DIR }
+
+    before { FileUtils.mkdir_p(backup_dir) }
+    after { FileUtils.rm_rf(backup_dir) }
+
     it "returns all relevant keys for each backup" do
-      record = create(:backup_record, filename: "full.sql", file_path: "/tmp/full.sql", file_size: 2048, backup_type: "auto", status: "completed")
+      file = backup_dir.join("full.sql")
+      File.write(file, "DATA")
+
+      record = create(:backup_record, filename: "full.sql", file_path: file.to_s, file_size: 2048, backup_type: "auto", status: "completed")
 
       result = BackupService.list_backups
       backup = result.first
       expect(backup[:id]).to eq(record.id)
       expect(backup[:name]).to eq("full.sql")
-      expect(backup[:path]).to eq("/tmp/full.sql")
+      expect(backup[:path]).to eq(file.to_s)
       expect(backup[:size]).to eq(2048)
       expect(backup[:type]).to eq("auto")
       expect(backup[:status]).to eq("completed")
@@ -270,18 +278,31 @@ RSpec.describe BackupService do
     end
 
     it "defaults to limit of 20" do
-      25.times { create(:backup_record) }
+      25.times do |i|
+        file = backup_dir.join("backup_#{i}.sql")
+        File.write(file, "DATA")
+        create(:backup_record, filename: "backup_#{i}.sql", file_path: file.to_s)
+      end
       expect(BackupService.list_backups.size).to eq(20)
     end
 
     it "accepts custom limit" do
-      10.times { create(:backup_record) }
+      10.times do |i|
+        file = backup_dir.join("backup_#{i}.sql")
+        File.write(file, "DATA")
+        create(:backup_record, filename: "backup_#{i}.sql", file_path: file.to_s)
+      end
       expect(BackupService.list_backups(limit: 5).size).to eq(5)
     end
 
     it "orders by created_at descending" do
-      old = create(:backup_record, filename: "old.sql", created_at: 2.days.ago)
-      new_rec = create(:backup_record, filename: "new.sql", created_at: 1.hour.ago)
+      old_file = backup_dir.join("old.sql")
+      new_file = backup_dir.join("new.sql")
+      File.write(old_file, "OLD")
+      File.write(new_file, "NEW")
+
+      create(:backup_record, filename: "old.sql", file_path: old_file.to_s, created_at: 2.days.ago)
+      create(:backup_record, filename: "new.sql", file_path: new_file.to_s, created_at: 1.hour.ago)
 
       result = BackupService.list_backups
       expect(result.first[:name]).to eq("new.sql")

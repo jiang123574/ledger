@@ -1,7 +1,7 @@
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="mb-6">
-    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">操作记录</h1>
-    <p class="mt-1 text-sm text-secondary dark:text-secondary-dark">查看所有操作历史并支持回滚</p>
+    <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">操作日志</h1>
+    <p class="mt-1 text-sm text-secondary dark:text-secondary-dark">查看所有用户操作历史</p>
   </div>
 
   <!-- 筛选器 -->
@@ -11,11 +11,15 @@
         <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1">模型类型</label>
         <select name="item_type" class="rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark px-3 py-2 text-sm">
           <option value="">全部</option>
-          <option value="Entry" <%= 'selected' if params[:item_type] == 'Entry' %>>Entry</option>
-          <option value="Account" <%= 'selected' if params[:item_type] == 'Account' %>>Account</option>
+          <option value="Entry" <%= 'selected' if params[:item_type] == 'Entry' %>>交易</option>
+          <option value="Receivable" <%= 'selected' if params[:item_type] == 'Receivable' %>>应收款</option>
+          <option value="Payable" <%= 'selected' if params[:item_type] == 'Payable' %>>应付款</option>
+          <option value="Plan" <%= 'selected' if params[:item_type] == 'Plan' %>>计划</option>
+          <option value="RecurringTransaction" <%= 'selected' if params[:item_type] == 'RecurringTransaction' %>>周期交易</option>
+          <option value="Budget" <%= 'selected' if params[:item_type] == 'Budget' %>>预算</option>
         </select>
       </div>
-      
+
       <div>
         <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1">操作类型</label>
         <select name="action_type" class="rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark px-3 py-2 text-sm">
@@ -23,9 +27,12 @@
           <option value="create" <%= 'selected' if params[:action_type] == 'create' %>>创建</option>
           <option value="update" <%= 'selected' if params[:action_type] == 'update' %>>更新</option>
           <option value="destroy" <%= 'selected' if params[:action_type] == 'destroy' %>>删除</option>
+          <option value="settle" <%= 'selected' if params[:action_type] == 'settle' %>>结算</option>
+          <option value="revert" <%= 'selected' if params[:action_type] == 'revert' %>>撤销</option>
+          <option value="execute" <%= 'selected' if params[:action_type] == 'execute' %>>执行</option>
         </select>
       </div>
-      
+
       <div class="flex items-end">
         <button type="submit" class="px-4 py-2 bg-inverse text-white rounded-lg text-sm font-medium hover:bg-inverse-hover">
           筛选
@@ -37,7 +44,7 @@
     </form>
   </div>
 
-  <!-- 操作记录列表 -->
+  <!-- 操作日志列表 -->
   <div class="bg-surface dark:bg-surface-dark rounded-lg shadow-sm overflow-x-auto">
     <table class="min-w-full divide-y divide-border dark:divide-border-dark">
       <thead class="bg-surface-inset dark:bg-surface-dark-inset">
@@ -46,11 +53,12 @@
           <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">操作</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">模型</th>
           <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">详情</th>
+          <th class="px-6 py-3 text-left text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">请求信息</th>
           <th class="px-6 py-3 text-right text-xs font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">操作</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-border dark:divide-border-dark">
-        <% @activity_logs.each do |log| %>
+        <% @operation_logs.each do |log| %>
           <tr class="hover:bg-surface-hover dark:hover:bg-surface-dark-hover">
             <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark">
               <%= log.created_at.strftime('%Y-%m-%d %H:%M:%S') %>
@@ -60,33 +68,38 @@
                  when 'create' then 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                  when 'update' then 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                  when 'destroy' then 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                 when 'settle' then 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200'
+                 when 'revert' then 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                 when 'execute' then 'bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200'
+                 else 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200'
                  end %>
               <span class="px-2 py-1 text-xs font-medium rounded <%= action_class %>">
-                <%= { 'create' => '创建', 'update' => '更新', 'destroy' => '删除' }[log.action] %>
+                <%= { 'create' => '创建', 'update' => '更新', 'destroy' => '删除',
+                      'settle' => '结算', 'revert' => '撤销', 'execute' => '执行',
+                      'import' => '导入', 'export' => '导出', 'backup' => '备份', 'restore' => '恢复' }[log.action] || log.action %>
               </span>
             </td>
             <td class="px-6 py-4 whitespace-nowrap text-sm text-primary dark:text-primary-dark">
               <%= log.item_type %>
-              <% if log.item_id %>
+              <% if log.item_id && log.item_id > 0 %>
                 <span class="text-secondary dark:text-secondary-dark">#<%= log.item_id %></span>
               <% end %>
             </td>
             <td class="px-6 py-4 text-sm text-secondary dark:text-secondary-dark max-w-md truncate">
               <%= log.description %>
-              <% if log.action == 'update' %>
+              <% if log.action.in?(['update', 'settle', 'execute']) %>
                 <div class="text-xs text-secondary dark:text-secondary-dark mt-1">
                   <%= log.changes_summary %>
                 </div>
               <% end %>
             </td>
-            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-              <%= link_to '详情', version_path(log), class: 'text-blue-600 dark:text-blue-400 hover:underline mr-3' %>
-              <% if log.action != 'create' %>
-                <%= link_to '回滚', revert_version_path(log), 
-                    method: :post,
-                    data: { confirm: '确定要回滚此操作吗？' },
-                    class: 'text-red-600 dark:text-red-400 hover:underline' %>
+            <td class="px-6 py-4 whitespace-nowrap text-xs text-secondary dark:text-secondary-dark">
+              <% if log.request_path %>
+                <span class="font-mono"><%= log.request_method %> <%= log.request_path %></span>
               <% end %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+              <%= link_to '详情', version_path(log), class: 'text-blue-600 dark:text-blue-400 hover:underline' %>
             </td>
           </tr>
         <% end %>
@@ -96,6 +109,6 @@
 
   <!-- 分页 -->
   <div class="mt-6">
-    <%= paginate @activity_logs if @activity_logs.respond_to?(:total_pages) %>
+    <%= paginate @operation_logs if @operation_logs.respond_to?(:total_pages) %>
   </div>
 </div>

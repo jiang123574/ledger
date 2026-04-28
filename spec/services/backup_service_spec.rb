@@ -22,8 +22,13 @@ RSpec.describe BackupService do
     end
 
     it "returns backup records ordered by created_at desc" do
-      create(:backup_record, filename: "old_backup.sql", created_at: 2.days.ago)
-      create(:backup_record, filename: "new_backup.sql", created_at: 1.hour.ago)
+      old_file = backup_dir.join("old_backup.sql")
+      new_file = backup_dir.join("new_backup.sql")
+      File.write(old_file, "OLD DATA")
+      File.write(new_file, "NEW DATA")
+
+      create(:backup_record, filename: "old_backup.sql", file_path: old_file.to_s, created_at: 2.days.ago)
+      create(:backup_record, filename: "new_backup.sql", file_path: new_file.to_s, created_at: 1.hour.ago)
 
       result = BackupService.list_backups
       expect(result.first[:name]).to eq("new_backup.sql")
@@ -31,15 +36,23 @@ RSpec.describe BackupService do
     end
 
     it "respects limit parameter" do
-      5.times { |i| create(:backup_record, filename: "backup_#{i}.sql") }
+      5.times do |i|
+        file = backup_dir.join("backup_#{i}.sql")
+        File.write(file, "DATA #{i}")
+        create(:backup_record, filename: "backup_#{i}.sql", file_path: file.to_s)
+      end
 
       result = BackupService.list_backups(limit: 3)
       expect(result.size).to eq(3)
     end
 
     it "includes backup details" do
+      file = backup_dir.join("test.sql")
+      File.write(file, "TEST DATA")
+
       record = create(:backup_record,
         filename: "test.sql",
+        file_path: file.to_s,
         file_size: 1024,
         backup_type: "manual",
         status: "completed"

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_26_132107) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_28_021431) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -68,22 +68,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_26_132107) do
     t.string "variation_digest", null: false
     t.index ["blob_id", "variation_digest"], name: "index_active_storage_variant_records_uniqueness", unique: true
     t.index ["blob_id"], name: "index_active_storage_variant_records_on_blob_id"
-  end
-
-  create_table "activity_logs", force: :cascade do |t|
-    t.string "action", null: false
-    t.json "changeset"
-    t.datetime "created_at", null: false
-    t.text "description"
-    t.string "ip_address"
-    t.bigint "item_id", null: false
-    t.string "item_type", null: false
-    t.datetime "updated_at", null: false
-    t.string "whodunnit"
-    t.index ["action"], name: "index_activity_logs_on_action"
-    t.index ["created_at"], name: "index_activity_logs_on_created_at"
-    t.index ["item_type", "item_id"], name: "index_activity_logs_on_item"
-    t.index ["item_type", "item_id"], name: "index_activity_logs_on_item_type_and_item_id"
   end
 
   create_table "attachments", force: :cascade do |t|
@@ -296,6 +280,28 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_26_132107) do
     t.string "status", limit: 20, default: "active"
     t.datetime "updated_at", null: false
     t.index ["category_id"], name: "index_one_time_budgets_on_category_id"
+  end
+
+  create_table "operation_logs", force: :cascade do |t|
+    t.string "action", null: false
+    t.json "changeset"
+    t.datetime "created_at", null: false
+    t.text "description"
+    t.string "ip_address"
+    t.bigint "item_id", null: false
+    t.string "item_type", null: false
+    t.string "request_method", limit: 10
+    t.json "request_params"
+    t.string "request_path"
+    t.integer "response_status"
+    t.datetime "updated_at", null: false
+    t.string "user_agent"
+    t.string "whodunnit"
+    t.index ["action"], name: "index_operation_logs_on_action"
+    t.index ["created_at"], name: "index_operation_logs_on_created_at"
+    t.index ["item_type", "item_id"], name: "index_activity_logs_on_item"
+    t.index ["item_type", "item_id"], name: "index_operation_logs_on_item_type_and_item_id"
+    t.index ["request_path"], name: "index_operation_logs_on_request_path"
   end
 
   create_table "payables", force: :cascade do |t|

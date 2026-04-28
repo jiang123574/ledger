@@ -38,7 +38,13 @@ class BackupService
   end
 
   def self.list_backups(limit: 20)
-    BackupRecord.order(created_at: :desc).limit(limit).map do |record|
+    BackupRecord.order(created_at: :desc).limit(limit).filter_map do |record|
+      # 过滤掉文件不存在的记录
+      unless File.exist?(record.file_path)
+        record.destroy
+        next
+      end
+
       {
         id: record.id,
         name: record.filename,

@@ -27,11 +27,7 @@ Rails.application.routes.draw do
     end
   end
 
-  resources :versions, only: [ :index, :show ] do
-    member do
-      post :revert
-    end
-  end
+  resources :versions, only: [ :index, :show ]
 
   resources :accounts do
     member do
@@ -101,7 +97,7 @@ Rails.application.routes.draw do
   resources :backups, only: [ :index, :create, :destroy ] do
     collection do
       post :webdav_connect
-      get :webdav_test
+      post :webdav_test
       post :enable_auto_backup
       post :disable_auto_backup
     end
@@ -112,6 +108,7 @@ Rails.application.routes.draw do
     end
   end
   get "/webdav/download", to: "backups#webdav_download", as: :webdav_download_backups
+  post "/webdav/delete", to: "backups#webdav_delete", as: :webdav_delete_backup
 
   # Settings routes
   get "/settings", to: "settings#show", as: :settings

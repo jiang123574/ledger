@@ -22,7 +22,8 @@ class WebdavClient
   end
 
   def test_connection
-    uri = build_uri("")
+    # 测试服务器连接（使用根 URL，不包含目录）
+    uri = URI.parse(@url)
     request = Net::HTTP::Propfind.new(uri)
     request.basic_auth(@username, @password)
     request["Depth"] = "0"
@@ -30,6 +31,8 @@ class WebdavClient
     response = execute_request(uri, request)
 
     if response.code.to_i < 400
+      # 服务器连接成功，确保目录存在
+      ensure_directory
       { success: true, message: "连接成功" }
     else
       { success: false, error: "连接失败: #{response.code} #{response.message}" }
@@ -39,14 +42,16 @@ class WebdavClient
   end
 
   def upload(file_path, filename)
-    remote_path = "#{@directory}/#{filename}".gsub("//", "/")
-    uri = build_uri(remote_path)
+    file_size = File.size(file_path)
+
+    uri = build_uri(filename)
 
     ensure_directory
 
     request = Net::HTTP::Put.new(uri)
     request.basic_auth(@username, @password)
     request.content_type = "application/octet-stream"
+    request["Content-Length"] = file_size.to_s
     request.body_stream = File.open(file_path, "rb")
 
     response = execute_request(uri, request)
@@ -61,8 +66,7 @@ class WebdavClient
   end
 
   def download(filename, local_path)
-    remote_path = "#{@directory}/#{filename}".gsub("//", "/")
-    uri = build_uri(remote_path)
+    uri = build_uri(filename)
 
     request = Net::HTTP::Get.new(uri)
     request.basic_auth(@username, @password)
@@ -98,8 +102,7 @@ class WebdavClient
   end
 
   def delete(filename)
-    remote_path = "#{@directory}/#{filename}".gsub("//", "/")
-    uri = build_uri(remote_path)
+    uri = build_uri(filename)
 
     request = Net::HTTP::Delete.new(uri)
     request.basic_auth(@username, @password)
@@ -114,13 +117,26 @@ class WebdavClient
   end
 
   def url_for(filename)
-    "#{@url}#{@directory}/#{filename}".gsub("//", "/")
+    normalize_url_path(@url, "#{@directory}/#{filename}")
   end
 
   private
 
+  def normalize_url_path(url, path)
+    # 分离协议头和其余部分，只规范化路径中的多余斜杠
+    protocol_match = url.match(/^(\w+:\/\/)/)
+    if protocol_match
+      protocol = protocol_match[1]
+      rest = url[protocol.length..-1] + path
+      protocol + rest.gsub(/\/+/, "/")
+    else
+      (url + path).gsub(/\/+/, "/")
+    end
+  end
+
   def build_uri(path)
-    URI.parse("#{@url}#{@directory}/#{path}".gsub("//", "/"))
+    normalized = normalize_url_path(@url, "#{@directory}/#{path}")
+    URI.parse(normalized)
   end
 
   def execute_request(uri, request)
@@ -134,13 +150,20 @@ class WebdavClient
   def ensure_directory
     return if @directory == "/" || @directory.empty?
 
+    # 尝试创建目标目录（父目录需已存在）
     uri = build_uri("")
     request = Net::HTTP::Mkcol.new(uri)
     request.basic_auth(@username, @password)
 
-    execute_request(uri, request)
-  rescue StandardError
-    nil
+    begin
+      response = execute_request(uri, request)
+      # 201 Created = 新建成功, 409 Conflict = 已存在或其他冲突
+      if response.code.to_i == 201
+        Rails.logger.info("WebDAV directory created: #{@directory}")
+      end
+    rescue StandardError => e
+      Rails.logger.debug("WebDAV directory creation skipped: #{e.message}")
+    end
   end
 
   def parse_propfind_response(xml_body)
@@ -153,13 +176,21 @@ class WebdavClient
       href = response.at_xpath("href")&.text
       next if href.nil?
 
-      filename = File.basename(URI.decode_www_form_component(href))
+      # 过滤掉目录（href 结尾是 / 或没有 size）
+      decoded_href = URI.decode_www_form_component(href)
+      next if decoded_href.end_with?("/")
+
+      filename = File.basename(decoded_href)
       next if filename.empty?
+
+      size = response.at_xpath("propstat/prop/getcontentlength")&.text&.to_i
+      # 过滤掉没有 size 的项目（通常是目录）
+      next if size.nil? || size == 0
 
       {
         name: filename,
         href: href,
-        size: response.at_xpath("propstat/prop/getcontentlength")&.text&.to_i,
+        size: size,
         last_modified: response.at_xpath("propstat/prop/getlastmodified")&.text
       }
     end

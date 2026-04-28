@@ -24,7 +24,8 @@ class BackupsController < ApplicationController
     record = BackupRecord.find(params[:id])
 
     unless File.exist?(record.file_path)
-      redirect_to backups_path, alert: "备份文件不存在"
+      record.destroy
+      redirect_to backups_path, alert: "备份文件已不存在，记录已清理"
       return
     end
 
@@ -35,6 +36,13 @@ class BackupsController < ApplicationController
 
   def restore
     record = BackupRecord.find(params[:id])
+
+    unless File.exist?(record.file_path)
+      record.destroy
+      redirect_to backups_path, alert: "备份文件已不存在，记录已清理"
+      return
+    end
+
     result = BackupService.restore_backup(record.file_path)
 
     if result[:success]
@@ -76,11 +84,26 @@ class BackupsController < ApplicationController
 
   def webdav_test
     result = BackupService.test_webdav_connection
-    render json: result
+
+    respond_to do |format|
+      format.turbo_stream do
+        message = result[:success] ? "✓ 连接成功" : "✗ #{result[:error]}"
+        css_class = result[:success] ? "text-sm text-green-600 dark:text-green-400" : "text-sm text-red-600 dark:text-red-400"
+        render turbo_stream: turbo_stream.update("webdav-test-result", "<span class=\"#{css_class}\">#{message}</span>".html_safe)
+      end
+      format.json { render json: result }
+    end
   end
 
   def webdav_upload
     record = BackupRecord.find(params[:id])
+
+    unless File.exist?(record.file_path)
+      record.destroy
+      redirect_to backups_path, alert: "备份文件已不存在，记录已清理"
+      return
+    end
+
     result = BackupService.upload_to_webdav(record.file_path, record.filename)
 
     if result[:success]
@@ -102,12 +125,23 @@ class BackupsController < ApplicationController
     end
   end
 
+  def webdav_delete
+    safe_filename = File.basename(params[:filename].to_s)
+    result = BackupService.delete_from_webdav(safe_filename)
+
+    if result[:success]
+      redirect_to backups_path, notice: "云端备份已删除"
+    else
+      redirect_to backups_path, alert: result[:error]
+    end
+  end
+
   # Auto Backup
   def enable_auto_backup
     result = BackupService.enable_auto_backup(
       frequency: params[:frequency] || "daily",
       retention: params[:retention] || 10,
-      webdav_sync: params[:webdav_sync] == "true"
+      webdav_sync: params[:webdav_sync] == "1"
     )
 
     if result[:success]

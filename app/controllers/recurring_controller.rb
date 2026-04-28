@@ -1,4 +1,6 @@
 class RecurringController < ApplicationController
+  include OperationLoggable
+
   def index
     @recurring = RecurringTransaction.includes(:account, :category).order(:next_date)
     @accounts = Account.visible.order(:name)
@@ -31,7 +33,12 @@ class RecurringController < ApplicationController
 
   def execute
     @recurring = RecurringTransaction.find(params[:id])
-    @recurring.create_transaction
+    transaction = @recurring.create_transaction
+
+    # 记录执行操作
+    OperationLog.log_execute(@recurring, result: transaction, request: request,
+                              description: "执行定期交易 #{@recurring.note || @recurring.id}")
+
     redirect_to recurring_index_path, notice: "交易已生成"
   end
 

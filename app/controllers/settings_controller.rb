@@ -1,4 +1,6 @@
 class SettingsController < ApplicationController
+  include OperationLoggable
+
   def show
     @currencies = Currency.order(:code)
     @backups = BackupService.list_backups.take(10)
@@ -64,6 +66,15 @@ class SettingsController < ApplicationController
     end
 
     results = ImportService.import_transactions_csv(file)
+
+    # 记录导入操作
+    OperationLog.log_import(
+      item_type: "Entry",
+      count: results[:success],
+      source: file.original_filename,
+      request: request,
+      description: "导入交易 #{results[:success]} 条"
+    )
 
     if results[:failed] > 0
       flash[:warning] = "导入完成: 成功 #{results[:success]} 条, 失败 #{results[:failed]} 条"
@@ -186,7 +197,7 @@ class SettingsController < ApplicationController
       Payable.delete_all
       Receivable.delete_all
       Counterparty.delete_all
-      ActivityLog.delete_all
+      OperationLog.delete_all
       Tagging.delete_all
       Tag.delete_all
 

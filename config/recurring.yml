@@ -18,7 +18,16 @@ production:
     command: "SolidQueue::Job.clear_finished_in_batches(sleep_between_batches: 0.3)"
     schedule: every hour at minute 12
 
+  auto_backup:
+    class: AutoBackupJob
+    schedule: every day at 3am
+
 development:
   generate_due_plans:
     class: GenerateDuePlansJob
     schedule: every hour at minute 3
+
+  # 开发环境不启用自动备份，避免干扰开发
+  # auto_backup:
+  #   class: AutoBackupJob
+  #   schedule: every day at 3am

@@ -1,4 +1,6 @@
 class PayablesController < ApplicationController
+  include OperationLoggable
+
   before_action :set_payable, only: %i[show update destroy settle revert]
   before_action :check_not_settled, only: %i[update destroy]
 
@@ -57,6 +59,8 @@ class PayablesController < ApplicationController
       return
     end
 
+    account = Account.find(@account_id)
+
     ActiveRecord::Base.transaction do
       create_payment_entry
 
@@ -65,6 +69,10 @@ class PayablesController < ApplicationController
         remaining_amount: new_remaining,
         settled_at: new_remaining <= 0 ? @settlement_date : nil
       )
+
+      # 记录付款操作
+      log_settle(@payable, amount: @settle_amount, account: account,
+                 description: "付款 #{@payable.description} ¥#{@settle_amount}")
     end
 
     redirect_to payables_path, notice: "付款成功"
@@ -78,6 +86,9 @@ class PayablesController < ApplicationController
         remaining_amount: @payable.original_amount,
         settled_at: nil
       )
+
+      # 记录撤销操作
+      log_revert(@payable, description: "撤销付款 #{@payable.description}")
     end
 
     redirect_to payables_path, notice: "付款已撤销"
