@@ -125,9 +125,9 @@ class WebdavClient
     if protocol_match
       protocol = protocol_match[1]
       rest = url[protocol.length..-1] + path
-      protocol + rest.gsub(/\/+/, '/')
+      protocol + rest.gsub(/\/+/, "/")
     else
-      (url + path).gsub(/\/+/, '/')
+      (url + path).gsub(/\/+/, "/")
     end
   end
 
@@ -173,13 +173,21 @@ class WebdavClient
       href = response.at_xpath("href")&.text
       next if href.nil?
 
-      filename = File.basename(URI.decode_www_form_component(href))
+      # 过滤掉目录（href 结尾是 / 或没有 size）
+      decoded_href = URI.decode_www_form_component(href)
+      next if decoded_href.end_with?("/")
+
+      filename = File.basename(decoded_href)
       next if filename.empty?
+
+      size = response.at_xpath("propstat/prop/getcontentlength")&.text&.to_i
+      # 过滤掉没有 size 的项目（通常是目录）
+      next if size.nil? || size == 0
 
       {
         name: filename,
         href: href,
-        size: response.at_xpath("propstat/prop/getcontentlength")&.text&.to_i,
+        size: size,
         last_modified: response.at_xpath("propstat/prop/getlastmodified")&.text
       }
     end

@@ -118,7 +118,7 @@ class BackupsController < ApplicationController
     result = BackupService.enable_auto_backup(
       frequency: params[:frequency] || "daily",
       retention: params[:retention] || 10,
-      webdav_sync: params[:webdav_sync] == "true"
+      webdav_sync: params[:webdav_sync] == "1"
     )
 
     if result[:success]

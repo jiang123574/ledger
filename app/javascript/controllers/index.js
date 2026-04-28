@@ -56,6 +56,7 @@ import YearNavController from "controllers/year_nav_controller"
 import ConfirmModalController from "controllers/confirm_modal_controller"
 import ConfirmFormController from "controllers/confirm_form_controller"
 import HapticController from "controllers/haptic_controller"
+import WebdavTestController from "controllers/webdav_test_controller"
 
 // New unified controllers
 import LineChartController from "controllers/line_chart_controller"
@@ -115,6 +116,7 @@ application.register("year-nav", YearNavController)
 application.register("confirm-modal", ConfirmModalController)
 application.register("confirm-form", ConfirmFormController)
 application.register("haptic", HapticController)
+application.register("webdav-test", WebdavTestController)
 
 // Unified chart controllers
 application.register("line-chart", LineChartController)

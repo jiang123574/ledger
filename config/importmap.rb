@@ -63,6 +63,7 @@ pin "controllers/flash_controller", to: "controllers/flash_controller.js"
 pin "controllers/year_nav_controller", to: "controllers/year_nav_controller.js"
 pin "controllers/confirm_modal_controller", to: "controllers/confirm_modal_controller.js"
 pin "controllers/confirm_form_controller", to: "controllers/confirm_form_controller.js"
+pin "controllers/webdav_test_controller", to: "controllers/webdav_test_controller.js"
 pin "controllers/utils/chartjs_helper", to: "controllers/utils/chartjs_helper.js"
 
 # Unified chart controllers
