@@ -46,28 +46,64 @@
   <!-- WebDAV Configuration -->
   <div class="bg-container dark:bg-container-dark rounded-lg shadow-sm p-6">
     <h2 class="text-lg font-semibold mb-4">WebDAV 云备份</h2>
-    
+
     <% if @webdav_configured %>
       <div class="space-y-4">
-        <div class="flex items-center justify-between bg-green-50 rounded-lg p-4">
+        <div class="flex items-center justify-between bg-green-50 dark:bg-green-900/20 rounded-lg p-4">
           <div class="flex items-center gap-3">
             <div class="text-green-500 text-2xl">✓</div>
             <div>
-              <div class="font-medium text-green-800">已连接</div>
-              <div class="text-sm text-green-600"><%= @webdav_config[:url] %></div>
+              <div class="font-medium text-green-800 dark:text-green-200">已连接</div>
+              <div class="text-sm text-green-600 dark:text-green-400"><%= @webdav_config[:url] %></div>
             </div>
           </div>
-          <%= link_to "测试连接", webdav_test_backups_path, remote: true, class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+          <div class="flex gap-2">
+            <%= link_to "测试连接", webdav_test_backups_path, remote: true, class: "px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
+            <button onclick="document.getElementById('webdav-edit-form').classList.toggle('hidden')" class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+              修改配置
+            </button>
+          </div>
+        </div>
+
+        <!-- 修改配置表单 -->
+        <div id="webdav-edit-form" class="hidden border rounded-lg p-4">
+          <h3 class="font-medium mb-3 text-primary dark:text-primary-dark">修改 WebDAV 配置</h3>
+          <%= form_with url: webdav_connect_backups_path, local: true, class: "space-y-4" do |f| %>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <%= f.label :url, "WebDAV 地址", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
+                <%= f.text_field :url, value: @webdav_config[:url], placeholder: "https://dav.example.com", class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
+              </div>
+              <div>
+                <%= f.label :directory, "目录", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
+                <%= f.text_field :directory, value: @webdav_config[:directory], class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
+              </div>
+              <div>
+                <%= f.label :username, "用户名", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
+                <%= f.text_field :username, value: @webdav_config[:username], class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
+              </div>
+              <div>
+                <%= f.label :password, "密码（留空保持不变）", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
+                <%= f.password_field :password, placeholder: "输入新密码或留空", class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <%= f.submit "保存修改", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
+              <button type="button" onclick="document.getElementById('webdav-edit-form').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
+                取消
+              </button>
+            </div>
+          <% end %>
         </div>
 
         <% if @webdav_backups&.any? %>
-          <div class="border rounded-lg p-4">
-            <h3 class="font-medium mb-2">云端备份 (<%= @webdav_backups.size %>)</h3>
+          <div class="border border-border dark:border-border-dark rounded-lg p-4">
+            <h3 class="font-medium mb-2 text-primary dark:text-primary-dark">云端备份 (<%= @webdav_backups.size %>)</h3>
             <div class="space-y-2 max-h-40 overflow-y-auto">
               <% @webdav_backups.each do |backup| %>
                 <div class="flex justify-between items-center text-sm">
-                  <span><%= backup[:name] %></span>
-                  <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+                  <span class="text-primary dark:text-primary-dark"><%= backup[:name] %></span>
+                  <%= link_to "下载", webdav_download_backups_path(filename: backup[:name]), class: "px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" %>
                 </div>
               <% end %>
             </div>
@@ -78,32 +114,32 @@
       <div class="text-secondary dark:text-secondary-dark text-center py-8">
         <div class="text-4xl mb-2">☁️</div>
         <p>配置 WebDAV 以启用云备份</p>
-        <button onclick="document.getElementById('webdav-form').classList.toggle('hidden')" class="mt-4 px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
+        <button onclick="document.getElementById('webdav-form').classList.toggle('hidden')" class="mt-4 px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
           配置 WebDAV
         </button>
       </div>
 
-      <div id="webdav-form" class="hidden mt-4 border-t pt-4">
+      <div id="webdav-form" class="hidden mt-4 border-t border-border dark:border-border-dark pt-4">
         <%= form_with url: webdav_connect_backups_path, local: true, class: "space-y-4" do |f| %>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <%= f.label :url, "WebDAV 地址", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
-              <%= f.text_field :url, placeholder: "https://dav.example.com", class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
+              <%= f.text_field :url, placeholder: "https://dav.example.com", class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
             </div>
             <div>
               <%= f.label :directory, "目录", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
-              <%= f.text_field :directory, value: "/ledger-backups", class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
+              <%= f.text_field :directory, value: "/ledger-backups", class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
             </div>
             <div>
               <%= f.label :username, "用户名", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
-              <%= f.text_field :username, class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
+              <%= f.text_field :username, class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
             </div>
             <div>
               <%= f.label :password, "密码", class: "block text-sm font-medium text-primary dark:text-primary-dark" %>
-              <%= f.password_field :password, class: "mt-1 block w-full border rounded-lg px-3 py-2" %>
+              <%= f.password_field :password, class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
             </div>
           </div>
-          <%= f.submit "连接", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+          <%= f.submit "连接", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
         <% end %>
       </div>
     <% end %>
