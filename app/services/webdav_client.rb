@@ -114,13 +114,26 @@ class WebdavClient
   end
 
   def url_for(filename)
-    "#{@url}#{@directory}/#{filename}".gsub("//", "/")
+    normalize_url_path(@url, "#{@directory}/#{filename}")
   end
 
   private
 
+  def normalize_url_path(url, path)
+    # 分离协议头和其余部分，只规范化路径中的多余斜杠
+    protocol_match = url.match(/^(\w+:\/\/)/)
+    if protocol_match
+      protocol = protocol_match[1]
+      rest = url[protocol.length..-1] + path
+      protocol + rest.gsub(/\/+/, '/')
+    else
+      (url + path).gsub(/\/+/, '/')
+    end
+  end
+
   def build_uri(path)
-    URI.parse("#{@url}#{@directory}/#{path}".gsub("//", "/"))
+    normalized = normalize_url_path(@url, "#{@directory}/#{path}")
+    URI.parse(normalized)
   end
 
   def execute_request(uri, request)
