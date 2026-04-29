@@ -22,6 +22,7 @@ class RenameActivityLogsToOperationLogs < ActiveRecord::Migration[8.1]
     add_column :operation_logs, :request_method, :string, limit: 10 unless column_exists?(:operation_logs, :request_method)
     add_column :operation_logs, :request_params, :json unless column_exists?(:operation_logs, :request_params)
     add_column :operation_logs, :user_agent, :string unless column_exists?(:operation_logs, :user_agent)
+    add_column :operation_logs, :ip_address, :string unless column_exists?(:operation_logs, :ip_address)
     add_column :operation_logs, :response_status, :integer unless column_exists?(:operation_logs, :response_status)
 
     # 添加新索引（避免重复）
@@ -35,6 +36,7 @@ class RenameActivityLogsToOperationLogs < ActiveRecord::Migration[8.1]
 
     # 移除新字段
     remove_column :operation_logs, :response_status if column_exists?(:operation_logs, :response_status)
+    remove_column :operation_logs, :ip_address if column_exists?(:operation_logs, :ip_address)
     remove_column :operation_logs, :user_agent if column_exists?(:operation_logs, :user_agent)
     remove_column :operation_logs, :request_params if column_exists?(:operation_logs, :request_params)
     remove_column :operation_logs, :request_method if column_exists?(:operation_logs, :request_method)
