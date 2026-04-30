@@ -56,10 +56,16 @@ class Plan < ApplicationRecord
     next_month = today.next_month
 
     # Calculate next due date based on day_of_month
-    if today.day < day_of_month
-      Date.new(today.year, today.month, day_of_month)
+    # Handle case where day_of_month exceeds month's max days
+    max_day_this_month = Date.civil(today.year, today.month, -1).day
+    actual_day_this_month = [ day_of_month, max_day_this_month ].min
+
+    if today.day < actual_day_this_month
+      Date.new(today.year, today.month, actual_day_this_month)
     else
-      Date.new(next_month.year, next_month.month, [ day_of_month, Date.civil(next_month.year, next_month.month, -1).day ].min)
+      max_day_next_month = Date.civil(next_month.year, next_month.month, -1).day
+      actual_day_next_month = [ day_of_month, max_day_next_month ].min
+      Date.new(next_month.year, next_month.month, actual_day_next_month)
     end
   end
 
