@@ -128,6 +128,8 @@ export default class extends Controller {
     params.delete('period_type')
     params.delete('period_value')
     params.delete('category_ids')
+    // 清除全局变量中的分类选择
+    window.selectedCategoryIds = []
     if (accountId) params.set('account_id', accountId)
     const url = '/accounts' + (params.toString() ? '?' + params.toString() : '')
     history.pushState({}, '', url)
