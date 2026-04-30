@@ -123,11 +123,24 @@ export default class extends Controller {
 
   confirm() {
     this.close()
-    this.syncFromModal()
+    // 直接从弹窗获取选中状态并触发事件，不依赖 hiddenCheckbox
+    const modal = this.getModal()
+    if (modal) {
+      const selectedIds = Array.from(modal.querySelectorAll('.category-filter-option'))
+        .filter(cb => cb.checked)
+        .map(cb => cb.value)
+
+      // 同时更新 hiddenCheckbox 以保持一致性
+      this.hiddenCheckboxTargets.forEach(cb => {
+        cb.checked = selectedIds.includes(cb.value)
+      })
+
+      // 触发事件，使用弹窗的选中状态
+      this.dispatch('change', { detail: { selectedIds }, bubbles: true })
+    }
     if (this.storageKeyValue) {
       this.saveToStorage()
     }
-    this.dispatchChange()
     this.updateButtonCount()
   }
 
