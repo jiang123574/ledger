@@ -39,6 +39,10 @@ export default class extends Controller {
       searchInput.value = ''
       searchInput.focus()
     }
+    // 重置所有分类项的显示状态（清除之前的搜索过滤）
+    modal.querySelectorAll('.category-filter-item').forEach(item => {
+      item.style.display = ''
+    })
     this.updateModalCount()
     this.bindModalEvents(modal)
   }
@@ -135,12 +139,21 @@ export default class extends Controller {
   syncToModal() {
     const modal = this.getModal()
     if (!modal) return
-    const hiddenCheckedIds = this.hiddenCheckboxTargets
-      .filter(cb => cb.checked)
-      .map(cb => cb.value)
+
+    // 从 URL 参数获取当前选中状态（比 hiddenCheckbox 更可靠）
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlSelectedIds = urlParams.getAll('category_ids[]').filter(id => id)
+
+    // 如果 URL 参数为空，尝试从 hiddenCheckbox 获取
+    let selectedIds = urlSelectedIds
+    if (selectedIds.length === 0) {
+      selectedIds = this.hiddenCheckboxTargets
+        .filter(cb => cb.checked)
+        .map(cb => cb.value)
+    }
 
     modal.querySelectorAll('.category-filter-option').forEach(cb => {
-      cb.checked = hiddenCheckedIds.includes(cb.value)
+      cb.checked = selectedIds.includes(cb.value)
     })
   }
 
@@ -153,10 +166,6 @@ export default class extends Controller {
 
     this.hiddenCheckboxTargets.forEach(cb => {
       cb.checked = selectedIds.includes(cb.value)
-    })
-
-    this.hiddenCheckboxTargets.forEach(cb => {
-      cb.dispatchEvent(new Event('change', { bubbles: true }))
     })
   }
 
@@ -227,6 +236,6 @@ export default class extends Controller {
     const selectedIds = this.hiddenCheckboxTargets
       .filter(cb => cb.checked)
       .map(cb => cb.value)
-    this.dispatch('change', { detail: { selectedIds } })
+    this.dispatch('change', { detail: { selectedIds }, bubbles: true })
   }
 }
