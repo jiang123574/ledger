@@ -48,45 +48,112 @@ export default class extends Controller {
   }
 
   bindModalEvents(modal) {
-    if (modal._boundClose) return
+    // 移除旧的事件处理器（如果存在）
+    if (modal._eventHandlers) {
+      const oldHandlers = modal._eventHandlers
 
-    const closeModal = () => {
+      // 移除 close 按钮
+      modal.querySelectorAll('[data-close-modal]').forEach(el => {
+        if (oldHandlers.closeModal) el.removeEventListener('click', oldHandlers.closeModal)
+      })
+
+      // 移除背景点击
+      const overlayBg = modal.querySelector('.modal-overlay-bg')
+      if (overlayBg && oldHandlers.closeModal) {
+        overlayBg.removeEventListener('click', oldHandlers.closeModal)
+      }
+
+      // 移除搜索输入
+      const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') ||
+                          modal.querySelector('input[type="text"][placeholder*="搜索"]')
+      if (searchInput && oldHandlers.search) {
+        searchInput.removeEventListener('input', oldHandlers.search)
+      }
+
+      // 移除 checkbox change
+      modal.querySelectorAll('.category-filter-option').forEach(cb => {
+        if (oldHandlers.checkboxChange) cb.removeEventListener('change', oldHandlers.checkboxChange)
+      })
+
+      // 移除按钮
+      const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]') ||
+                           modal.querySelector('[id$="-select-all"]')
+      if (selectAllBtn && oldHandlers.selectAll) {
+        selectAllBtn.removeEventListener('click', oldHandlers.selectAll)
+      }
+
+      const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]') ||
+                          modal.querySelector('[id$="-clear-all"]')
+      if (clearAllBtn && oldHandlers.clearAll) {
+        clearAllBtn.removeEventListener('click', oldHandlers.clearAll)
+      }
+
+      const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') ||
+                         modal.querySelector('[id$="-confirm"]')
+      if (confirmBtn && oldHandlers.confirm) {
+        confirmBtn.removeEventListener('click', oldHandlers.confirm)
+      }
+    }
+
+    // 创建新的处理器（使用箭头函数绑定当前 controller）
+    const handlers = {}
+
+    handlers.closeModal = () => {
       modal.classList.add('hidden')
     }
 
+    // 绑定关闭按钮
     modal.querySelectorAll('[data-close-modal]').forEach(el => {
-      el.addEventListener('click', closeModal)
+      el.addEventListener('click', handlers.closeModal)
     })
 
-    // 绑定搜索输入框事件
-    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') || modal.querySelector('input[type="text"][placeholder*="搜索"]')
+    // 绑定背景点击
+    const overlayBg = modal.querySelector('.modal-overlay-bg')
+    if (overlayBg) {
+      overlayBg.addEventListener('click', handlers.closeModal)
+    }
+
+    // 绑定搜索
+    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') ||
+                        modal.querySelector('input[type="text"][placeholder*="搜索"]')
     if (searchInput) {
-      searchInput.addEventListener('input', (e) => this.search(e))
+      handlers.search = (e) => this.search(e)
+      searchInput.addEventListener('input', handlers.search)
     }
 
+    // 绑定 checkbox
+    handlers.checkboxChange = (e) => {
+      this.toggleDescendants(e.target)
+      this.updateModalCount()
+    }
     modal.querySelectorAll('.category-filter-option').forEach(cb => {
-      cb.addEventListener('change', (e) => {
-        this.toggleDescendants(e.target)
-        this.updateModalCount()
-      })
+      cb.addEventListener('change', handlers.checkboxChange)
     })
 
-    const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]') || modal.querySelector('[id$="-select-all"]')
+    // 绑定按钮
+    const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]') ||
+                         modal.querySelector('[id$="-select-all"]')
     if (selectAllBtn) {
-      selectAllBtn.addEventListener('click', () => this.selectAll())
+      handlers.selectAll = () => this.selectAll()
+      selectAllBtn.addEventListener('click', handlers.selectAll)
     }
 
-    const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]') || modal.querySelector('[id$="-clear-all"]')
+    const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]') ||
+                        modal.querySelector('[id$="-clear-all"]')
     if (clearAllBtn) {
-      clearAllBtn.addEventListener('click', () => this.clearAll())
+      handlers.clearAll = () => this.clearAll()
+      clearAllBtn.addEventListener('click', handlers.clearAll)
     }
 
-    const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') || modal.querySelector('[id$="-confirm"]')
+    const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') ||
+                       modal.querySelector('[id$="-confirm"]')
     if (confirmBtn) {
-      confirmBtn.addEventListener('click', () => this.confirm())
+      handlers.confirm = () => this.confirm()
+      confirmBtn.addEventListener('click', handlers.confirm)
     }
 
-    modal._boundClose = closeModal
+    // 保存处理器引用（供下次移除使用）
+    modal._eventHandlers = handlers
   }
 
   close() {
