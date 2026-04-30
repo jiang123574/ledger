@@ -54,6 +54,12 @@ export default class extends Controller {
       el.addEventListener('click', closeModal)
     })
 
+    // 绑定搜索输入框事件
+    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') || modal.querySelector('input[type="text"][placeholder*="搜索"]')
+    if (searchInput) {
+      searchInput.addEventListener('input', (e) => this.search(e))
+    }
+
     modal.querySelectorAll('.category-filter-option').forEach(cb => {
       cb.addEventListener('change', (e) => {
         this.toggleDescendants(e.target)
