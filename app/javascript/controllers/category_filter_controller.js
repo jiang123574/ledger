@@ -71,7 +71,7 @@ export default class extends Controller {
       clearAllBtn.addEventListener('click', () => this.clearAll())
     }
 
-    const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') || modal.querySelector('[id^="confirm-"]')
+    const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') || modal.querySelector('[id$="-confirm"]')
     if (confirmBtn) {
       confirmBtn.addEventListener('click', () => this.confirm())
     }
