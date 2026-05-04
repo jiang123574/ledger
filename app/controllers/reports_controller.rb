@@ -9,6 +9,9 @@ class ReportsController < ApplicationController
     # 获取当前面板参数（用于 Turbo Frame 刷新时保持面板状态）
     @active_panel = params[:panel] || "trend"
 
+    # 获取分类筛选参数（用于保持筛选状态）
+    @selected_category_ids = params[:category_ids].presence || []
+
     if @month.present?
       @start_date = Date.new(@year, @month, 1)
       @end_date = @start_date.end_of_month

@@ -40,6 +40,11 @@ export default class extends Controller {
     }
     this.showActive()
 
+    // 根据当前面板的 hiddenCheckbox 状态执行筛选
+    if (this.activePanelValue && this.activePanelValue !== 'trend') {
+      this.applyFilter(this.activePanelValue)
+    }
+
     if (this.activePanelValue && this.activePanelValue !== 'trend') {
       history.replaceState(null, '', '#' + this.activePanelValue)
     }
