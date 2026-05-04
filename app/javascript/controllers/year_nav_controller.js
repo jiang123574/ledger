@@ -36,9 +36,17 @@ export default class extends Controller {
   }
 
   // 获取当前面板的选中分类 ID
+  // 优先从 URL 参数读取（最可靠），其次从 DOM hiddenCheckbox
   getSelectedCategoryIds() {
+    // 优先从 URL 参数读取
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlCategoryIds = urlParams.getAll('category_ids[]').filter(id => id)
+    if (urlCategoryIds.length > 0) {
+      return urlCategoryIds
+    }
+
+    // 如果 URL 参数没有，从 DOM hiddenCheckbox 获取
     const panel = this.getCurrentPanel()
-    // 根据面板名称找到对应的筛选组
     const filterGroupMap = {
       'category-stats': 'category-stats',
       'expense': 'expense',
@@ -48,7 +56,6 @@ export default class extends Controller {
     const filterGroup = filterGroupMap[panel]
     if (!filterGroup) return []
 
-    // 从 hiddenCheckbox 获取选中状态
     const filterWrapper = document.querySelector(`[data-filter-group="${filterGroup}"]`)
     if (!filterWrapper) return []
 
