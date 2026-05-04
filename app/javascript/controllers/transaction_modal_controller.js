@@ -495,6 +495,8 @@ export default class extends Controller {
                 
                 if (billController && entryDate >= startDate && entryDate <= endDate) {
                   this.insertEntryToBillContainer(entry)
+                } else {
+                  this.showInfoToast('交易已创建，不在当前账单期')
                 }
               })
             }
@@ -550,47 +552,17 @@ export default class extends Controller {
 
     const cardFragment = createEntryCard(entry, {
       onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
-      onDelete: (id, name) => {
-        // 使用通用确认弹窗替代浏览器原生 confirm
-        window.showConfirmDialog({
-          title: "确认删除",
-          content: `确定删除 <strong>${name}</strong> 吗？此操作不可撤销。`,
-          confirmText: "删除",
-          cancelText: "取消",
-          danger: true
-        }).then(confirmed => {
-          if (confirmed) {
-            // 使用 AJAX 删除，避免刷新页面
-            fetch(`/transactions/${id}.json`, {
-              method: 'DELETE',
-              headers: {
-                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            })
-              .then(response => response.json())
-              .then(data => {
-                if (data.success) {
-                  this.removeEntryFromList(id)
-                  this.showSuccessToast(data.message || '交易已删除')
-                } else {
-                  this.showErrorToast(data.error || '删除失败')
-                }
-              })
-              .catch(() => {
-                this.showErrorToast('网络错误，请重试')
-              })
-          }
-        })
-      }
+      onDelete: this.getDeleteCallback()
     })
 
     container.insertBefore(cardFragment, container.firstChild)
 
-    // 添加高亮动画效果
-    const desktopRow = container.querySelector(`[data-entry-id="${entry.id}"]`)
-    const mobileRow = container.querySelector(`[data-mobile-entry-id="${entry.id}"]`)
+    this.addHighlightAnimation(container, entry.id)
+  }
+
+  addHighlightAnimation(container, entryId) {
+    const desktopRow = container.querySelector(`[data-entry-id="${entryId}"]`)
+    const mobileRow = container.querySelector(`[data-mobile-entry-id="${entryId}"]`)
     if (desktopRow) {
       desktopRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
       setTimeout(() => {
@@ -603,6 +575,43 @@ export default class extends Controller {
         mobileRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
       }, 2000)
     }
+  }
+
+  getDeleteCallback() {
+    return (id, name) => {
+      window.showConfirmDialog?.({
+        title: "确认删除",
+        content: `确定删除 <strong>${name}</strong> 吗？此操作不可撤销。`,
+        confirmText: "删除",
+        cancelText: "取消",
+        danger: true
+      }).then(confirmed => {
+        if (confirmed) this.executeDeleteRequest(id)
+      })
+    }
+  }
+
+  executeDeleteRequest(id) {
+    fetch(`/transactions/${id}.json`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          this.removeEntryFromList(id)
+          this.showSuccessToast(data.message || '交易已删除')
+        } else {
+          this.showErrorToast(data.error || '删除失败')
+        }
+      })
+      .catch(() => {
+        this.showErrorToast('网络错误，请重试')
+      })
   }
 
   // 插入多条 entry 到列表顶部（用于带资金来源转账场景）
@@ -622,57 +631,12 @@ export default class extends Controller {
 
     const cardFragment = createEntryCard(entry, {
       onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
-      onDelete: (id, name) => {
-        window.showConfirmDialog?.({
-          title: "确认删除",
-          content: `确定删除 <strong>${name}</strong> 吗？此操作不可撤销。`,
-          confirmText: "删除",
-          cancelText: "取消",
-          danger: true
-        }).then(confirmed => {
-          if (confirmed) {
-            fetch(`/transactions/${id}.json`, {
-              method: 'DELETE',
-              headers: {
-                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            })
-              .then(response => response.json())
-              .then(data => {
-                if (data.success) {
-                  this.removeEntryFromList(id)
-                  this.showSuccessToast(data.message || '交易已删除')
-                } else {
-                  this.showErrorToast(data.error || '删除失败')
-                }
-              })
-              .catch(() => {
-                this.showErrorToast('网络错误，请重试')
-              })
-          }
-        })
-      }
+      onDelete: this.getDeleteCallback()
     })
 
     container.insertBefore(cardFragment, container.firstChild)
 
-    // 添加高亮动画效果
-    const desktopRow = container.querySelector(`[data-entry-id="${entry.id}"]`)
-    const mobileRow = container.querySelector(`[data-mobile-entry-id="${entry.id}"]`)
-    if (desktopRow) {
-      desktopRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
-      setTimeout(() => {
-        desktopRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
-      }, 2000)
-    }
-    if (mobileRow) {
-      mobileRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
-      setTimeout(() => {
-        mobileRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
-      }, 2000)
-    }
+    this.addHighlightAnimation(container, entry.id)
   }
 
   // 获取 bill-statement controller 实例
