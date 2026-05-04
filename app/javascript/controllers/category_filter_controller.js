@@ -13,10 +13,40 @@ export default class extends Controller {
   }
 
   connect() {
-    if (this.storageKeyValue) {
+    // 从 URL 参数恢复筛选状态（优先级高于 storage）
+    this.restoreFromUrlParams()
+
+    if (this.storageKeyValue && !this.hasUrlParams()) {
       this.restoreFromStorage()
     }
     this.updateButtonCount()
+
+    // 更新年份导航链接以保持筛选状态
+    this.updateYearNavLinks()
+  }
+
+  // 检查 URL 是否有 category_ids 参数
+  hasUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search)
+    return urlParams.has('category_ids[]')
+  }
+
+  // 从 URL 参数恢复筛选状态
+  restoreFromUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlCategoryIds = urlParams.getAll('category_ids[]').filter(id => id)
+
+    if (urlCategoryIds.length === 0) return
+
+    // 更新 hiddenCheckbox 状态
+    this.hiddenCheckboxTargets.forEach(cb => {
+      cb.checked = urlCategoryIds.includes(cb.value)
+    })
+
+    // 触发 change 事件让 report_tabs_controller 应用筛选
+    this.hiddenCheckboxTargets.forEach(cb => {
+      cb.dispatchEvent(new Event('change', { bubbles: true }))
+    })
   }
 
   getModal() {
@@ -197,18 +227,43 @@ export default class extends Controller {
         .filter(cb => cb.checked)
         .map(cb => cb.value)
 
-      // 同时更新 hiddenCheckbox 以保持一致性
+      // 同时更新 hiddenCheckbox 以保持一致性，并触发 change 事件
       this.hiddenCheckboxTargets.forEach(cb => {
+        const wasChecked = cb.checked
         cb.checked = selectedIds.includes(cb.value)
+        // 手动触发 change 事件，让 report_tabs_controller 能响应
+        if (wasChecked !== cb.checked) {
+          cb.dispatchEvent(new Event('change', { bubbles: true }))
+        }
       })
 
-      // 触发事件，使用弹窗的选中状态
+      // 触发 Stimulus 自定义事件，使用弹窗的选中状态
       this.dispatch('change', { detail: { selectedIds }, bubbles: true })
+
+      // 更新年份导航链接以保持筛选状态
+      this.updateYearNavLinks()
     }
     if (this.storageKeyValue) {
       this.saveToStorage()
     }
     this.updateButtonCount()
+  }
+
+  // 更新年份导航链接，保持筛选状态
+  updateYearNavLinks() {
+    const yearNavController = this.getYearNavController()
+    if (yearNavController) {
+      yearNavController.updateLinks()
+    }
+  }
+
+  // 获取 year-nav controller 实例
+  getYearNavController() {
+    const element = document.querySelector('[data-controller="year-nav"]')
+    if (element && window.Stimulus) {
+      return window.Stimulus.getControllerForElementAndIdentifier(element, 'year-nav')
+    }
+    return null
   }
 
   toggleOption(event) {
