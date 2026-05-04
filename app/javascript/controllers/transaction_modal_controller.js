@@ -188,34 +188,39 @@ export default class extends Controller {
   }
 
   removeEntryFromList(id) {
-    const container = document.querySelector('#transactions-container')
-    if (!container) return
+    // 同时处理两个容器（按日期 + 按账单）
+    const containers = [
+      document.querySelector('#transactions-container'),
+      document.querySelector('#bill-entries-container')
+    ].filter(c => c)
 
-    // 收集要删除的元素
-    const elementsToRemove = []
+    containers.forEach(container => {
+      // 收集要删除的元素
+      const elementsToRemove = []
 
-    // 桌面端行
-    const desktopRow = container.querySelector(`[data-entry-id="${id}"]`)
-    if (desktopRow) elementsToRemove.push(desktopRow)
+      // 桌面端行
+      const desktopRow = container.querySelector(`[data-entry-id="${id}"]`)
+      if (desktopRow) elementsToRemove.push(desktopRow)
 
-    // 移动端卡片
-    const mobileRow = container.querySelector(`[data-mobile-entry-id="${id}"]`)
-    if (mobileRow) elementsToRemove.push(mobileRow)
+      // 移动端卡片
+      const mobileRow = container.querySelector(`[data-mobile-entry-id="${id}"]`)
+      if (mobileRow) elementsToRemove.push(mobileRow)
 
-    // 添加动画类
-    elementsToRemove.forEach(el => {
-      el.style.transition = 'opacity 0.2s, height 0.3s, padding 0.3s, margin 0.3s'
-      el.style.opacity = '0'
-      el.style.height = '0'
-      el.style.padding = '0'
-      el.style.margin = '0'
-      el.style.overflow = 'hidden'
+      // 添加动画类
+      elementsToRemove.forEach(el => {
+        el.style.transition = 'opacity 0.2s, height 0.3s, padding 0.3s, margin 0.3s'
+        el.style.opacity = '0'
+        el.style.height = '0'
+        el.style.padding = '0'
+        el.style.margin = '0'
+        el.style.overflow = 'hidden'
+      })
+
+      // 动画结束后移除元素
+      setTimeout(() => {
+        elementsToRemove.forEach(el => el.remove())
+      }, 300)
     })
-
-    // 动画结束后移除元素
-    setTimeout(() => {
-      elementsToRemove.forEach(el => el.remove())
-    }, 300)
   }
 
   initNewModalSelectors() {
