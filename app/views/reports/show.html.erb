@@ -410,7 +410,7 @@
         <div class="hidden" data-filter-group="expense">
           <% expense_filter_active_ids.each do |id| %>
             <% is_selected = expense_selected_ids.include?(id) %>
-            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" <%= is_selected ? 'checked' : '' %> class="hidden">
+            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" <%= 'checked' if is_selected %> class="hidden">
           <% end %>
         </div>
       </div>
@@ -477,7 +477,7 @@
         <div class="hidden" data-filter-group="income">
           <% income_filter_active_ids.each do |id| %>
             <% is_selected = income_selected_ids.include?(id) %>
-            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" <%= is_selected ? 'checked' : '' %> class="hidden">
+            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" <%= 'checked' if is_selected %> class="hidden">
           <% end %>
         </div>
       </div>
@@ -605,7 +605,7 @@
         <div class="hidden" data-filter-group="comparison">
           <% comparison_cat_ids.each do |id| %>
             <% is_selected = comparison_selected_ids.include?(id) %>
-            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" <%= is_selected ? 'checked' : '' %> class="hidden">
+            <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" <%= 'checked' if is_selected %> class="hidden">
           <% end %>
         </div>
       </div>
