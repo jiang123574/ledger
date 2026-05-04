@@ -463,11 +463,21 @@ export default class extends Controller {
           const noteInput = form.querySelector('input[name="transaction[note]"]')
           if (amountInput) amountInput.value = ''
           if (noteInput) noteInput.value = ''
-          // 如果返回了 entry 数据，插入到列表顶部
-          if (data.entry) {
-            this.insertEntryToList(data.entry)
-          } else if (data.entries && data.entries.length > 0) {
-            this.insertEntriesToList(data.entries)
+
+          // 检查当前视图模式
+          const urlParams = new URLSearchParams(window.location.search)
+          const viewMode = urlParams.get('view_mode')
+
+          if (viewMode === 'bill') {
+            // 按账单模式：刷新账单视图
+            this.refreshBillView()
+          } else {
+            // 按日期模式：插入到列表顶部
+            if (data.entry) {
+              this.insertEntryToList(data.entry)
+            } else if (data.entries && data.entries.length > 0) {
+              this.insertEntriesToList(data.entries)
+            }
           }
         } else {
           this.showErrorToast(data.error || '保存失败')
@@ -576,5 +586,22 @@ export default class extends Controller {
     entries.forEach(entry => {
       this.insertEntryToList(entry)
     })
+  }
+
+  // 刷新账单视图（用于按账单模式下的保存并继续）
+  refreshBillView() {
+    const billController = this.getBillStatementController()
+    if (billController) {
+      billController.loadBillsWithCount(billController.currentBillCount)
+    }
+  }
+
+  // 获取 bill-statement controller 实例
+  getBillStatementController() {
+    const element = document.querySelector('[data-controller="bill-statement"]')
+    if (element && window.Stimulus) {
+      return window.Stimulus.getControllerForElementAndIdentifier(element, 'bill-statement')
+    }
+    return null
   }
 }
