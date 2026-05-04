@@ -21,19 +21,19 @@ RSpec.describe "Accounts entries API", type: :request do
 
     context "with basic entries" do
       before do
-        # 创建几条普通交易
+        # 创建几条普通交易（使用当前日期确保在默认月份过滤范围内）
         create(:entry,
           account: account,
           entryable: create(:entryable_transaction, kind: 'EXPENSE'),
           amount: -100,
-          date: 10.days.ago,
+          date: Date.current,
           name: '午餐'
         )
         create(:entry,
           account: account,
           entryable: create(:entryable_transaction, kind: 'INCOME'),
           amount: 500,
-          date: 5.days.ago,
+          date: Date.current - 1.day,
           name: '收入'
         )
       end
@@ -64,7 +64,7 @@ RSpec.describe "Accounts entries API", type: :request do
         expect(data["entries"].count).to be <= 200
       end
 
-      it "enforces minimum per_page of 5" do
+      it "enforces minimum per_page of 15" do
         get "/accounts/entries", params: { page: 1, per_page: 1, format: :json }
 
         data = response.parsed_body

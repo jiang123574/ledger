@@ -188,34 +188,39 @@ export default class extends Controller {
   }
 
   removeEntryFromList(id) {
-    const container = document.querySelector('#transactions-container')
-    if (!container) return
+    // 同时处理两个容器（按日期 + 按账单）
+    const containers = [
+      document.querySelector('#transactions-container'),
+      document.querySelector('#bill-entries-container')
+    ].filter(c => c)
 
-    // 收集要删除的元素
-    const elementsToRemove = []
+    containers.forEach(container => {
+      // 收集要删除的元素
+      const elementsToRemove = []
 
-    // 桌面端行
-    const desktopRow = container.querySelector(`[data-entry-id="${id}"]`)
-    if (desktopRow) elementsToRemove.push(desktopRow)
+      // 桌面端行
+      const desktopRow = container.querySelector(`[data-entry-id="${id}"]`)
+      if (desktopRow) elementsToRemove.push(desktopRow)
 
-    // 移动端卡片
-    const mobileRow = container.querySelector(`[data-mobile-entry-id="${id}"]`)
-    if (mobileRow) elementsToRemove.push(mobileRow)
+      // 移动端卡片
+      const mobileRow = container.querySelector(`[data-mobile-entry-id="${id}"]`)
+      if (mobileRow) elementsToRemove.push(mobileRow)
 
-    // 添加动画类
-    elementsToRemove.forEach(el => {
-      el.style.transition = 'opacity 0.2s, height 0.3s, padding 0.3s, margin 0.3s'
-      el.style.opacity = '0'
-      el.style.height = '0'
-      el.style.padding = '0'
-      el.style.margin = '0'
-      el.style.overflow = 'hidden'
+      // 添加动画类
+      elementsToRemove.forEach(el => {
+        el.style.transition = 'opacity 0.2s, height 0.3s, padding 0.3s, margin 0.3s'
+        el.style.opacity = '0'
+        el.style.height = '0'
+        el.style.padding = '0'
+        el.style.margin = '0'
+        el.style.overflow = 'hidden'
+      })
+
+      // 动画结束后移除元素
+      setTimeout(() => {
+        elementsToRemove.forEach(el => el.remove())
+      }, 300)
     })
-
-    // 动画结束后移除元素
-    setTimeout(() => {
-      elementsToRemove.forEach(el => el.remove())
-    }, 300)
   }
 
   initNewModalSelectors() {
@@ -463,11 +468,45 @@ export default class extends Controller {
           const noteInput = form.querySelector('input[name="transaction[note]"]')
           if (amountInput) amountInput.value = ''
           if (noteInput) noteInput.value = ''
-          // 如果返回了 entry 数据，插入到列表顶部
-          if (data.entry) {
-            this.insertEntryToList(data.entry)
-          } else if (data.entries && data.entries.length > 0) {
-            this.insertEntriesToList(data.entries)
+
+          // 检查当前视图模式
+          const urlParams = new URLSearchParams(window.location.search)
+          const viewMode = urlParams.get('view_mode')
+
+          if (viewMode === 'bill') {
+            // 按账单模式：检查日期范围后插入到账单明细列表
+            const billController = this.getBillStatementController()
+            if (billController && data.entry) {
+              const entryDate = data.entry.date
+              const startDate = billController.selectedStartDate
+              const endDate = billController.selectedEndDate
+              
+              if (entryDate >= startDate && entryDate <= endDate) {
+                this.insertEntryToBillContainer(data.entry)
+              } else {
+                this.showInfoToast('交易已创建，不在当前账单期')
+              }
+            } else if (data.entries && data.entries.length > 0) {
+              // 多条交易（带资金来源转账场景）
+              data.entries.forEach(entry => {
+                const entryDate = entry.date
+                const startDate = billController?.selectedStartDate
+                const endDate = billController?.selectedEndDate
+                
+                if (billController && entryDate >= startDate && entryDate <= endDate) {
+                  this.insertEntryToBillContainer(entry)
+                } else {
+                  this.showInfoToast('交易已创建，不在当前账单期')
+                }
+              })
+            }
+          } else {
+            // 按日期模式：插入到列表顶部
+            if (data.entry) {
+              this.insertEntryToList(data.entry)
+            } else if (data.entries && data.entries.length > 0) {
+              this.insertEntriesToList(data.entries)
+            }
           }
         } else {
           this.showErrorToast(data.error || '保存失败')
@@ -513,47 +552,17 @@ export default class extends Controller {
 
     const cardFragment = createEntryCard(entry, {
       onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
-      onDelete: (id, name) => {
-        // 使用通用确认弹窗替代浏览器原生 confirm
-        window.showConfirmDialog({
-          title: "确认删除",
-          content: `确定删除 <strong>${name}</strong> 吗？此操作不可撤销。`,
-          confirmText: "删除",
-          cancelText: "取消",
-          danger: true
-        }).then(confirmed => {
-          if (confirmed) {
-            // 使用 AJAX 删除，避免刷新页面
-            fetch(`/transactions/${id}.json`, {
-              method: 'DELETE',
-              headers: {
-                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
-                'Accept': 'application/json',
-                'X-Requested-With': 'XMLHttpRequest'
-              }
-            })
-              .then(response => response.json())
-              .then(data => {
-                if (data.success) {
-                  this.removeEntryFromList(id)
-                  this.showSuccessToast(data.message || '交易已删除')
-                } else {
-                  this.showErrorToast(data.error || '删除失败')
-                }
-              })
-              .catch(() => {
-                this.showErrorToast('网络错误，请重试')
-              })
-          }
-        })
-      }
+      onDelete: this.getDeleteCallback()
     })
 
     container.insertBefore(cardFragment, container.firstChild)
 
-    // 添加高亮动画效果
-    const desktopRow = container.querySelector(`[data-entry-id="${entry.id}"]`)
-    const mobileRow = container.querySelector(`[data-mobile-entry-id="${entry.id}"]`)
+    this.addHighlightAnimation(container, entry.id)
+  }
+
+  addHighlightAnimation(container, entryId) {
+    const desktopRow = container.querySelector(`[data-entry-id="${entryId}"]`)
+    const mobileRow = container.querySelector(`[data-mobile-entry-id="${entryId}"]`)
     if (desktopRow) {
       desktopRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
       setTimeout(() => {
@@ -568,6 +577,43 @@ export default class extends Controller {
     }
   }
 
+  getDeleteCallback() {
+    return (id, name) => {
+      window.showConfirmDialog?.({
+        title: "确认删除",
+        content: `确定删除 <strong>${name}</strong> 吗？此操作不可撤销。`,
+        confirmText: "删除",
+        cancelText: "取消",
+        danger: true
+      }).then(confirmed => {
+        if (confirmed) this.executeDeleteRequest(id)
+      })
+    }
+  }
+
+  executeDeleteRequest(id) {
+    fetch(`/transactions/${id}.json`, {
+      method: 'DELETE',
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          this.removeEntryFromList(id)
+          this.showSuccessToast(data.message || '交易已删除')
+        } else {
+          this.showErrorToast(data.error || '删除失败')
+        }
+      })
+      .catch(() => {
+        this.showErrorToast('网络错误，请重试')
+      })
+  }
+
   // 插入多条 entry 到列表顶部（用于带资金来源转账场景）
   insertEntriesToList(entries) {
     if (!entries || entries.length === 0) return
@@ -576,5 +622,42 @@ export default class extends Controller {
     entries.forEach(entry => {
       this.insertEntryToList(entry)
     })
+  }
+
+  // 插入 entry 到账单明细容器（用于按账单模式）
+  insertEntryToBillContainer(entry) {
+    const container = document.querySelector('#bill-entries-container')
+    if (!container || !entry) return
+
+    const cardFragment = createEntryCard(entry, {
+      onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
+      onDelete: this.getDeleteCallback()
+    })
+
+    container.insertBefore(cardFragment, container.firstChild)
+
+    this.addHighlightAnimation(container, entry.id)
+  }
+
+  // 获取 bill-statement controller 实例
+  getBillStatementController() {
+    const element = document.querySelector('[data-controller="bill-statement"]')
+    if (element && window.Stimulus) {
+      return window.Stimulus.getControllerForElementAndIdentifier(element, 'bill-statement')
+    }
+    return null
+  }
+
+  // 显示信息提示（用于非成功/错误的提示）
+  showInfoToast(message) {
+    const toast = document.createElement('div')
+    toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50'
+    toast.textContent = message
+    document.body.appendChild(toast)
+    setTimeout(() => {
+      toast.style.opacity = '0'
+      toast.style.transition = 'opacity 0.3'
+      setTimeout(() => toast.remove(), 300)
+    }, 2500)
   }
 }
