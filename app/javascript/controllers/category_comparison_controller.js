@@ -18,9 +18,9 @@ export default class extends Controller {
     this.element.addEventListener('click', this._boundRowClick)
 
     // 监听筛选变化，联动更新趋势图
+    // 筛选由 report_tabs_controller 处理，这里只监听 data-tab-filter 的 change 事件更新图表
     this._boundFilterChange = (e) => {
       if (e.target.matches('[data-tab-filter]')) {
-        // 筛选变化时，更新趋势图为选中分类的汇总
         setTimeout(() => this._renderSummaryChart(), 50)
       }
     }
