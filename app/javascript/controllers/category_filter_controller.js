@@ -89,7 +89,7 @@ export default class extends Controller {
       }
 
       const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') ||
-                         modal.querySelector('[id$="-confirm"]')
+                         modal.querySelector('[id^="confirm-"]')
       if (confirmBtn && oldHandlers.confirm) {
         confirmBtn.removeEventListener('click', oldHandlers.confirm)
       }
@@ -146,7 +146,7 @@ export default class extends Controller {
     }
 
     const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') ||
-                       modal.querySelector('[id$="-confirm"]')
+                       modal.querySelector('[id^="confirm-"]')
     if (confirmBtn) {
       handlers.confirm = () => this.confirm()
       confirmBtn.addEventListener('click', handlers.confirm)
