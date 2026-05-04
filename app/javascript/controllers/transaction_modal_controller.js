@@ -469,8 +469,30 @@ export default class extends Controller {
           const viewMode = urlParams.get('view_mode')
 
           if (viewMode === 'bill') {
-            // 按账单模式：刷新账单视图
-            this.refreshBillView()
+            // 按账单模式：检查日期范围后插入到账单明细列表
+            const billController = this.getBillStatementController()
+            if (billController && data.entry) {
+              const entryDate = data.entry.date
+              const startDate = billController.selectedStartDate
+              const endDate = billController.selectedEndDate
+              
+              if (entryDate >= startDate && entryDate <= endDate) {
+                this.insertEntryToBillContainer(data.entry)
+              } else {
+                this.showInfoToast('交易已创建，不在当前账单期')
+              }
+            } else if (data.entries && data.entries.length > 0) {
+              // 多条交易（带资金来源转账场景）
+              data.entries.forEach(entry => {
+                const entryDate = entry.date
+                const startDate = billController?.selectedStartDate
+                const endDate = billController?.selectedEndDate
+                
+                if (billController && entryDate >= startDate && entryDate <= endDate) {
+                  this.insertEntryToBillContainer(entry)
+                }
+              })
+            }
           } else {
             // 按日期模式：插入到列表顶部
             if (data.entry) {
@@ -588,11 +610,63 @@ export default class extends Controller {
     })
   }
 
-  // 刷新账单视图（用于按账单模式下的保存并继续）
-  refreshBillView() {
-    const billController = this.getBillStatementController()
-    if (billController) {
-      billController.loadBillsWithCount(billController.currentBillCount)
+  // 插入 entry 到账单明细容器（用于按账单模式）
+  insertEntryToBillContainer(entry) {
+    const container = document.querySelector('#bill-entries-container')
+    if (!container || !entry) return
+
+    const cardFragment = createEntryCard(entry, {
+      onEdit: (id) => window.openEditTransactionModal?.({ params: { id } }),
+      onDelete: (id, name) => {
+        window.showConfirmDialog?.({
+          title: "确认删除",
+          content: `确定删除 <strong>${name}</strong> 吗？此操作不可撤销。`,
+          confirmText: "删除",
+          cancelText: "取消",
+          danger: true
+        }).then(confirmed => {
+          if (confirmed) {
+            fetch(`/transactions/${id}.json`, {
+              method: 'DELETE',
+              headers: {
+                'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+                'Accept': 'application/json',
+                'X-Requested-With': 'XMLHttpRequest'
+              }
+            })
+              .then(response => response.json())
+              .then(data => {
+                if (data.success) {
+                  this.removeEntryFromList(id)
+                  this.showSuccessToast(data.message || '交易已删除')
+                } else {
+                  this.showErrorToast(data.error || '删除失败')
+                }
+              })
+              .catch(() => {
+                this.showErrorToast('网络错误，请重试')
+              })
+          }
+        })
+      }
+    })
+
+    container.insertBefore(cardFragment, container.firstChild)
+
+    // 添加高亮动画效果
+    const desktopRow = container.querySelector(`[data-entry-id="${entry.id}"]`)
+    const mobileRow = container.querySelector(`[data-mobile-entry-id="${entry.id}"]`)
+    if (desktopRow) {
+      desktopRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
+      setTimeout(() => {
+        desktopRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+      }, 2000)
+    }
+    if (mobileRow) {
+      mobileRow.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
+      setTimeout(() => {
+        mobileRow.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+      }, 2000)
     }
   }
 
@@ -603,5 +677,18 @@ export default class extends Controller {
       return window.Stimulus.getControllerForElementAndIdentifier(element, 'bill-statement')
     }
     return null
+  }
+
+  // 显示信息提示（用于非成功/错误的提示）
+  showInfoToast(message) {
+    const toast = document.createElement('div')
+    toast.className = 'fixed top-4 right-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow-lg z-50'
+    toast.textContent = message
+    document.body.appendChild(toast)
+    setTimeout(() => {
+      toast.style.opacity = '0'
+      toast.style.transition = 'opacity 0.3'
+      setTimeout(() => toast.remove(), 300)
+    }, 2500)
   }
 }
