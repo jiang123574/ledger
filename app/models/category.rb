@@ -34,6 +34,48 @@ class Category < ApplicationRecord
   # ============ 回调 ============
   before_validation :set_defaults
   before_save :update_level
+  after_save :clear_tree_cache
+  after_destroy :clear_tree_cache
+
+  # ============ 缓存 ============
+  CACHE_KEY = "categories:tree"
+
+  # 获取缓存的分类树
+  def self.tree
+    Rails.cache.fetch(CACHE_KEY, expires_in: 1.day) do
+      build_tree
+    end
+  end
+
+  # 构建分类树结构
+  def self.build_tree
+    roots = roots.active.by_sort_order
+    {
+      expense: roots.expense.map { |c| build_tree_node(c) },
+      income: roots.income.map { |c| build_tree_node(c) }
+    }
+  end
+
+  # 构建单个节点
+  def self.build_tree_node(category)
+    {
+      id: category.id,
+      name: category.name,
+      icon: category.icon,
+      color: category.color,
+      level: category.level,
+      children: category.children.active.by_sort_order.map { |child| build_tree_node(child) }
+    }
+  end
+
+  # 清除分类树缓存
+  def self.clear_tree_cache
+    Rails.cache.delete(CACHE_KEY)
+  end
+
+  def clear_tree_cache
+    Category.clear_tree_cache
+  end
 
   # ============ 类型方法 ============
   def expense?
