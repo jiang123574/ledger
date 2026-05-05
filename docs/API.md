@@ -1,12 +1,117 @@
 # API 文档
 
-更新时间：2026-04-16
+更新时间：2026-05-05
 
 ---
 
 ## 认证
 
 页面级功能使用 session 认证（Cookie）。API 端点见下方说明。
+
+---
+
+## External API 详细说明
+
+External API 用于外部系统集成，需要 API Key 认证。
+
+### 认证方式
+
+请求头携带 API Key：
+```
+X-API-Key: your_api_key_here
+```
+
+环境配置：
+```bash
+# .env
+EXTERNAL_API_KEY=your_secure_key_here
+```
+
+### 端点详情
+
+#### 健康检查
+
+**GET** `/api/v1/external/health`
+
+```bash
+curl -H "X-API-Key: your_key" http://localhost:3000/api/v1/external/health
+```
+
+响应：
+```json
+{
+  "status": "ok",
+  "timestamp": "2026-05-05T12:00:00Z"
+}
+```
+
+#### 获取上下文
+
+**GET** `/api/v1/external/context`
+
+返回可用的账户和分类列表：
+```json
+{
+  "accounts": [{ "id": 1, "name": "现金" }],
+  "categories": [{ "id": 1, "name": "餐饮" }]
+}
+```
+
+#### 创建交易
+
+**POST** `/api/v1/external/transactions`
+
+| 参数 | 类型 | 必填 | 说明 |
+|-----|------|-----|------|
+| type | string | 是 | expense 或 income |
+| amount | decimal | 是 | 金额 |
+| account_id | integer | 是 | 账户 ID |
+| category_id | integer | 否 | 分类 ID |
+| date | date | 否 | 日期，默认当天 |
+| note | string | 否 | 备注 |
+
+请求示例：
+```bash
+curl -X POST \
+  -H "X-API-Key: your_key" \
+  -H "Content-Type: application/json" \
+  -d '{"type":"expense","amount":100.50,"account_id":1,"category_id":3,"note":"午餐"}' \
+  http://localhost:3000/api/v1/external/transactions
+```
+
+成功响应 (201)：
+```json
+{
+  "success": true,
+  "entry": { "id": 123, "date": "2026-05-05", "amount": -100.50 }
+}
+```
+
+错误响应：
+- 401 Unauthorized - API Key 无效
+- 403 Forbidden - API Key 未配置
+- 404 Not Found - account_id 无效
+- 422 Unprocessable Entity - 数据验证失败
+
+### Python 示例
+
+```python
+import requests
+
+API_KEY = "your_api_key"
+BASE_URL = "http://localhost:3000/api/v1/external"
+headers = {"X-API-Key": API_KEY}
+
+# 创建交易
+response = requests.post(
+    f"{BASE_URL}/transactions",
+    headers=headers,
+    json={"type": "expense", "amount": 100.50, "account_id": 1}
+)
+
+if response.status_code == 201:
+    print(f"Created: {response.json()['entry']['id']}")
+```
 
 ---
 
