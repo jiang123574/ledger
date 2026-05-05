@@ -19,6 +19,16 @@ class PlansController < ApplicationController
   def create
     @plan = Plan.new(plan_params)
     @plan.type ||= Plan::RECURRING
+
+    # 验证 account_id
+    if @plan.account_id.present?
+      account = Account.find_by(id: @plan.account_id)
+      unless account
+        redirect_to plans_path, alert: "账户不存在"
+        return
+      end
+    end
+
     apply_active_param(@plan)
 
     apply_plan_amount_logic(@plan)
@@ -37,6 +47,16 @@ class PlansController < ApplicationController
 
   def update
     @plan.assign_attributes(plan_params)
+
+    # 验证 account_id
+    if @plan.account_id.present?
+      account = Account.find_by(id: @plan.account_id)
+      unless account
+        redirect_to plans_path, alert: "账户不存在"
+        return
+      end
+    end
+
     apply_active_param(@plan)
     apply_plan_amount_logic(@plan, completed_installments: @plan.installments_completed.to_i)
 

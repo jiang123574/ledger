@@ -71,6 +71,18 @@ RSpec.describe "Plans", type: :request do
         expect(response).to redirect_to(plans_path)
         expect(flash[:alert]).to be_present
       end
+
+      it "does not create a plan with invalid account_id" do
+        expect {
+          post plans_path, params: { plan: valid_attributes.merge(account_id: 99999) }
+        }.not_to change(Plan, :count)
+      end
+
+      it "redirects with error for invalid account_id" do
+        post plans_path, params: { plan: valid_attributes.merge(account_id: 99999) }
+        expect(response).to redirect_to(plans_path)
+        expect(flash[:alert]).to eq("账户不存在")
+      end
     end
 
     context "with installment type" do
@@ -156,6 +168,18 @@ RSpec.describe "Plans", type: :request do
         patch plan_path(plan), params: { plan: { name: nil } }
         expect(response).to redirect_to(plans_path)
         expect(flash[:alert]).to be_present
+      end
+
+      it "does not update plan with invalid account_id" do
+        original_account_id = plan.account_id
+        patch plan_path(plan), params: { plan: { account_id: 99999 } }
+        expect(plan.reload.account_id).to eq(original_account_id)
+      end
+
+      it "redirects with error for invalid account_id" do
+        patch plan_path(plan), params: { plan: { account_id: 99999 } }
+        expect(response).to redirect_to(plans_path)
+        expect(flash[:alert]).to eq("账户不存在")
       end
     end
 
