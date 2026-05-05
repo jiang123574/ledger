@@ -64,7 +64,7 @@ export default class extends Controller {
     if (!modal) return
     this.syncToModal()
     modal.classList.remove('hidden')
-    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') || modal.querySelector('input[type="text"]')
+    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]')
     if (searchInput) {
       searchInput.value = ''
       searchInput.focus()
@@ -94,8 +94,7 @@ export default class extends Controller {
       }
 
       // 移除搜索输入
-      const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') ||
-                          modal.querySelector('input[type="text"][placeholder*="搜索"]')
+      const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]')
       if (searchInput && oldHandlers.search) {
         searchInput.removeEventListener('input', oldHandlers.search)
       }
@@ -106,20 +105,17 @@ export default class extends Controller {
       })
 
       // 移除按钮
-      const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]') ||
-                           modal.querySelector('[id$="-select-all"]')
+      const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]')
       if (selectAllBtn && oldHandlers.selectAll) {
         selectAllBtn.removeEventListener('click', oldHandlers.selectAll)
       }
 
-      const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]') ||
-                          modal.querySelector('[id$="-clear-all"]')
+      const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]')
       if (clearAllBtn && oldHandlers.clearAll) {
         clearAllBtn.removeEventListener('click', oldHandlers.clearAll)
       }
 
-      const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') ||
-                         modal.querySelector('[id^="confirm-"]')
+      const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]')
       if (confirmBtn && oldHandlers.confirm) {
         confirmBtn.removeEventListener('click', oldHandlers.confirm)
       }
@@ -144,8 +140,7 @@ export default class extends Controller {
     }
 
     // 绑定搜索
-    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]') ||
-                        modal.querySelector('input[type="text"][placeholder*="搜索"]')
+    const searchInput = modal.querySelector('[data-category-filter-target="searchInput"]')
     if (searchInput) {
       handlers.search = (e) => this.search(e)
       searchInput.addEventListener('input', handlers.search)
@@ -161,22 +156,19 @@ export default class extends Controller {
     })
 
     // 绑定按钮
-    const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]') ||
-                         modal.querySelector('[id$="-select-all"]')
+    const selectAllBtn = modal.querySelector('[data-category-filter-target="selectAllBtn"]')
     if (selectAllBtn) {
       handlers.selectAll = () => this.selectAll()
       selectAllBtn.addEventListener('click', handlers.selectAll)
     }
 
-    const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]') ||
-                        modal.querySelector('[id$="-clear-all"]')
+    const clearAllBtn = modal.querySelector('[data-category-filter-target="clearBtn"]')
     if (clearAllBtn) {
       handlers.clearAll = () => this.clearAll()
       clearAllBtn.addEventListener('click', handlers.clearAll)
     }
 
-    const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]') ||
-                       modal.querySelector('[id^="confirm-"]')
+    const confirmBtn = modal.querySelector('[data-category-filter-target="confirmBtn"]')
     if (confirmBtn) {
       handlers.confirm = () => this.confirm()
       confirmBtn.addEventListener('click', handlers.confirm)
