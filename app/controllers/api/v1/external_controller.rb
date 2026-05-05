@@ -20,6 +20,14 @@ module Api
     end
 
     def transactions
+      # 验证 account_id
+      account_id = params[:account_id].to_i
+      account = Account.find_by(id: account_id)
+      unless account
+        render json: { success: false, error: "Account not found" }, status: :not_found
+        return
+      end
+
       # 支持新的 Entry 创建
       kind = params[:type].to_s.downcase == "income" ? "income" : "expense"
       amount = params[:amount].to_d
@@ -36,7 +44,7 @@ module Api
       end
 
       entry = Entry.new(
-        account_id: params[:account_id],
+        account_id: account.id,
         date: params[:date] || Time.current,
         name: params[:note] || "API导入",
         amount: entry_amount,
