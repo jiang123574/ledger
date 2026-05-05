@@ -109,7 +109,7 @@ class Category < ApplicationRecord
 
     sql = <<~SQL
       WITH RECURSIVE cat_tree AS (
-        SELECT id FROM categories WHERE id IN (#{ids.join(',')})
+        SELECT id FROM categories WHERE id IN (?)
         UNION
         SELECT c.id FROM categories c
         INNER JOIN cat_tree ct ON c.parent_id = ct.id
@@ -117,7 +117,10 @@ class Category < ApplicationRecord
       SELECT id FROM cat_tree
     SQL
 
-    ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
+    result = ActiveRecord::Base.connection.execute(
+      sanitize_sql([ sql, ids ])
+    )
+    result.map { |row| row["id"].to_i }
   end
 
   # 类方法：给定一批 category IDs，获取它们及其所有祖先的 IDs（单次递归 CTE 查询）
@@ -130,15 +133,18 @@ class Category < ApplicationRecord
 
     sql = <<~SQL
       WITH RECURSIVE cat_tree AS (
-        SELECT id, parent_id FROM categories WHERE id IN (#{ids.join(',')})
+        SELECT id, parent_id FROM categories WHERE id IN (?)
         UNION
         SELECT c.id, c.parent_id FROM categories c
         INNER JOIN cat_tree ct ON c.id = ct.parent_id
       )
-      SELECT id FROM cat_tree WHERE id NOT IN (#{ids.join(',')})
+      SELECT id FROM cat_tree WHERE id NOT IN (?)
     SQL
 
-    ActiveRecord::Base.connection.execute(sql).map { |row| row["id"].to_i }
+    result = ActiveRecord::Base.connection.execute(
+      sanitize_sql([ sql, ids, ids ])
+    )
+    result.map { |row| row["id"].to_i }
   end
 
   # 类方法：批量获取多个分类及其所有后代 ID 的映射（单次 CTE）
@@ -151,7 +157,7 @@ class Category < ApplicationRecord
 
     sql = <<~SQL
       WITH RECURSIVE cat_tree AS (
-        SELECT id, parent_id, id as root_id FROM categories WHERE id IN (#{ids.join(',')})
+        SELECT id, parent_id, id as root_id FROM categories WHERE id IN (?)
         UNION
         SELECT c.id, c.parent_id, ct.root_id FROM categories c
         INNER JOIN cat_tree ct ON c.parent_id = ct.id
@@ -159,7 +165,9 @@ class Category < ApplicationRecord
       SELECT id, root_id FROM cat_tree
     SQL
 
-    results = ActiveRecord::Base.connection.execute(sql)
+    results = ActiveRecord::Base.connection.execute(
+      sanitize_sql([ sql, ids ])
+    )
     results.group_by { |row| row["root_id"] }
            .transform_values { |rows| rows.map { |r| r["id"].to_i } }
   end
