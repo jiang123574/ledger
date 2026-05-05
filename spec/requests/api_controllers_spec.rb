@@ -110,13 +110,49 @@ RSpec.describe "API Controllers", type: :request do
         expect(json["success"]).to be true
       end
 
+      it "returns not_found for invalid account_id" do
+        params = {
+          type: "expense",
+          amount: 50.0,
+          account_id: 99999,
+          category_id: category.id,
+          note: "API test"
+        }
+        post api_v1_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
+
+        expect(response).to have_http_status(:not_found)
+        json = JSON.parse(response.body)
+        expect(json["success"]).to be false
+        expect(json["error"]).to eq("Account not found")
+      end
+
+      it "returns not_found for nil account_id" do
+        params = {
+          type: "expense",
+          amount: 50.0,
+          account_id: nil,
+          category_id: category.id
+        }
+        post api_v1_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
+
+        expect(response).to have_http_status(:not_found)
+      end
+
       it "returns errors for invalid entry" do
-        params = { type: "expense", amount: 50.0 }
+        # 使用超过 30 年前的日期会触发验证错误
+        params = {
+          type: "expense",
+          account_id: account.id,
+          category_id: category.id,
+          amount: 100,
+          date: "1970-01-01"
+        }
         post api_v1_external_transactions_path, params: params, headers: { "X-API-Key" => "test_api_key_123" }
 
         expect(response).to have_http_status(:unprocessable_entity)
         json = JSON.parse(response.body)
         expect(json["success"]).to be false
+        expect(json["errors"]).to be_present
       end
 
       it "rejects unauthorized requests" do
