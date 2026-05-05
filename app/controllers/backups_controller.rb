@@ -119,7 +119,20 @@ class BackupsController < ApplicationController
     result = BackupService.download_from_webdav(safe_filename, BackupService::BACKUP_DIR.join(safe_filename))
 
     if result[:success]
-      send_file result[:path], filename: safe_filename
+      # 安全验证：确保下载的文件路径在 BACKUP_DIR 内
+      begin
+        expanded_path = Pathname.new(result[:path]).realpath
+        base_dir = BackupService::BACKUP_DIR.realpath
+        unless expanded_path.to_s.start_with?(base_dir.to_s)
+          redirect_to backups_path, alert: "非法文件路径"
+          return
+        end
+      rescue Errno::ENOENT
+        redirect_to backups_path, alert: "下载文件不存在"
+        return
+      end
+
+      send_file expanded_path, filename: safe_filename
     else
       redirect_to backups_path, alert: result[:error]
     end
