@@ -348,4 +348,143 @@ RSpec.describe Category, type: :model do
       expect(category.name).to include('🎉')
     end
   end
+
+  # ==================== Class Methods - Bulk Operations ====================
+  describe '.ancestor_ids_for' do
+    let!(:root) { create(:category, name: 'Root') }
+    let!(:child) { create(:category, name: 'Child', parent: root) }
+    let!(:grandchild) { create(:category, name: 'Grandchild', parent: child) }
+    let!(:great_grandchild) { create(:category, name: 'Great-Grandchild', parent: grandchild) }
+
+    context 'with valid category ids' do
+      it 'returns ancestor ids for given categories' do
+        result = described_class.ancestor_ids_for([grandchild.id])
+        expect(result).to contain_exactly(root.id, child.id)
+      end
+
+      it 'handles multiple categories' do
+        other_root = create(:category, name: 'Other Root')
+        other_child = create(:category, name: 'Other Child', parent: other_root)
+
+        result = described_class.ancestor_ids_for([grandchild.id, other_child.id])
+        expect(result).to contain_exactly(root.id, child.id, other_root.id)
+      end
+
+      it 'excludes original category ids from result' do
+        result = described_class.ancestor_ids_for([child.id, grandchild.id])
+        expect(result).not_to include(child.id)
+        expect(result).not_to include(grandchild.id)
+      end
+    end
+
+    context 'with edge cases' do
+      it 'returns empty array for empty input' do
+        expect(described_class.ancestor_ids_for([])).to eq([])
+      end
+
+      it 'ignores invalid ids' do
+        result = described_class.ancestor_ids_for([grandchild.id, -1, "invalid"])
+        expect(result).to contain_exactly(root.id, child.id)
+      end
+
+      it 'handles root category without parents' do
+        result = described_class.ancestor_ids_for([root.id])
+        expect(result).to be_empty
+      end
+
+      it 'handles nil values' do
+        result = described_class.ancestor_ids_for([grandchild.id, nil])
+        expect(result).to contain_exactly(root.id, child.id)
+      end
+
+      it 'handles large id arrays safely (no SQL injection)' do
+        large_array = Array.new(100) { rand(1..999999) }
+        expect { described_class.ancestor_ids_for(large_array) }.not_to raise_error
+      end
+    end
+  end
+
+  describe '.descendant_ids_for' do
+    let!(:root) { create(:category, name: 'Root') }
+    let!(:child1) { create(:category, name: 'Child 1', parent: root) }
+    let!(:child2) { create(:category, name: 'Child 2', parent: root) }
+    let!(:grandchild) { create(:category, name: 'Grandchild', parent: child1) }
+
+    context 'with valid category ids' do
+      it 'returns descendant ids for given categories' do
+        result = described_class.descendant_ids_for([root.id])
+        expect(result).to contain_exactly(root.id, child1.id, child2.id, grandchild.id)
+      end
+
+      it 'handles multiple categories' do
+        result = described_class.descendant_ids_for([child1.id, child2.id])
+        expect(result).to contain_exactly(child1.id, child2.id, grandchild.id)
+      end
+
+      it 'includes the original category in result' do
+        result = described_class.descendant_ids_for([root.id])
+        expect(result).to include(root.id)
+      end
+    end
+
+    context 'with edge cases' do
+      it 'returns empty array for empty input' do
+        expect(described_class.descendant_ids_for([])).to eq([])
+      end
+
+      it 'ignores invalid ids' do
+        result = described_class.descendant_ids_for([root.id, -1, "invalid"])
+        expect(result).to contain_exactly(root.id, child1.id, child2.id, grandchild.id)
+      end
+
+      it 'handles leaf category (no descendants)' do
+        result = described_class.descendant_ids_for([grandchild.id])
+        expect(result).to eq([grandchild.id])
+      end
+
+      it 'handles large id arrays safely (no SQL injection)' do
+        large_array = Array.new(100) { rand(1..999999) }
+        expect { described_class.descendant_ids_for(large_array) }.not_to raise_error
+      end
+    end
+  end
+
+  describe '.batch_descendants_map' do
+    let!(:root1) { create(:category, name: 'Root 1') }
+    let!(:root2) { create(:category, name: 'Root 2') }
+    let!(:child1_1) { create(:category, name: 'Child 1.1', parent: root1) }
+    let!(:child1_2) { create(:category, name: 'Child 1.2', parent: root1) }
+    let!(:child2_1) { create(:category, name: 'Child 2.1', parent: root2) }
+    let!(:grandchild1_1) { create(:category, name: 'Grandchild 1.1', parent: child1_1) }
+
+    context 'with valid category ids' do
+      it 'returns descendants map for multiple categories' do
+        result = described_class.batch_descendants_map([root1.id, root2.id])
+
+        expect(result[root1.id]).to contain_exactly(root1.id, child1_1.id, child1_2.id, grandchild1_1.id)
+        expect(result[root2.id]).to contain_exactly(root2.id, child2_1.id)
+      end
+
+      it 'handles single category' do
+        result = described_class.batch_descendants_map([root1.id])
+        expect(result[root1.id]).to contain_exactly(root1.id, child1_1.id, child1_2.id, grandchild1_1.id)
+      end
+    end
+
+    context 'with edge cases' do
+      it 'returns empty hash for empty input' do
+        expect(described_class.batch_descendants_map([])).to eq({})
+      end
+
+      it 'ignores invalid ids' do
+        result = described_class.batch_descendants_map([root1.id, -1, "invalid"])
+        expect(result[root1.id]).to contain_exactly(root1.id, child1_1.id, child1_2.id, grandchild1_1.id)
+      end
+
+      it 'handles large id arrays safely (no SQL injection)' do
+        large_array = Array.new(100) { rand(1..999999) }
+        expect { described_class.batch_descendants_map(large_array) }.not_to raise_error
+      end
+    end
+  end
 end
