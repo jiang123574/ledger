@@ -1,6 +1,21 @@
 # frozen_string_literal: true
 
 module Ds
+  # Dialog Component - Renders a modal dialog with header, body, and actions
+  #
+  # Usage:
+  #   <%= render(Ds::DialogComponent.new(title: "Confirm Action")) do |d| %>
+  #     <% d.with_body do %>Are you sure?<% end %>
+  #     <% d.with_actions do %>
+  #       <%= render(Ds::ButtonComponent.new(variant: :secondary)) %>Cancel<% end %>
+  #       <%= render(Ds::ButtonComponent.new(variant: :destructive)) %>Delete<% end %>
+  #     <% end %>
+  #   <% end %>
+  #
+  # Sizes: :modal (md), :wide (2xl), :full (4xl)
+  # Options: title, subtitle, show_close (default: true)
+  # Blocks: with_header, with_body, with_actions
+  #
   class DialogComponent < BaseComponent
     VARIANTS = {
       modal: "max-w-md",

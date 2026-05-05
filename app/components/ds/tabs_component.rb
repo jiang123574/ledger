@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
 module Ds
+  # Tabs Component - Renders tab navigation with panels
+  #
+  # Usage:
+  #   <%= render(Ds::TabsComponent.new(active_tab: :overview)) do |t| %>
+  #     <% t.tab_link(:overview, "Overview") %>
+  #     <% t.tab_link(:details, "Details") %>
+  #     <% t.panel(:overview) do %>Overview content<% end %>
+  #     <% t.panel(:details) do %>Details content<% end %>
+  #   <% end %>
+  #
+  # Methods: tab_link(id, label), panel(id), panel_with_frame(id)
+  # Options: active_tab (default: nil)
+  #
   class TabsComponent < BaseComponent
     def initialize(active_tab: nil, **options)
       @active_tab = active_tab

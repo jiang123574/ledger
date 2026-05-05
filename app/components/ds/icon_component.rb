@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 module Ds
+  # Icon Component - Renders SVG icons using Lucide icon set
+  #
+  # Usage:
+  #   <%= render(Ds::IconComponent.new(name: "check", size: :sm)) %>
+  #   <%= render(Ds::IconComponent.new(name: "trash", size: :lg, class: "text-red-500")) %>
+  #   <%= render(Ds::IconComponent.new(name: "home")) %>
+  #
+  # Sizes: :xs, :sm, :md, :lg, :xl
+  # Legacy icon names are automatically mapped to Lucide equivalents
+  #
   class IconComponent < BaseComponent
     SIZES = {
       xs: "w-3 h-3",

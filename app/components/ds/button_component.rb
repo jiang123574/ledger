@@ -1,6 +1,18 @@
 # frozen_string_literal: true
 
 module Ds
+  # Button Component - Renders a styled button or link element
+  #
+  # Usage:
+  #   <%= render(Ds::ButtonComponent.new) do %>Click me<% end %>
+  #   <%= render(Ds::ButtonComponent.new(variant: :primary, size: :lg)) do %>Save<% end %>
+  #   <%= render(Ds::ButtonComponent.new(variant: :destructive, icon: "trash")) %>Delete<% end %>
+  #   <%= render(Ds::ButtonComponent.new(href: "/path", variant: :ghost)) %>Link<% end %>
+  #
+  # Variants: :primary, :secondary, :destructive, :inverse, :outline, :ghost, :link
+  # Sizes: :xs, :sm, :md, :lg
+  # Options: disabled, loading, icon, icon_position (:left or :right)
+  #
   class ButtonComponent < BaseComponent
     VARIANTS = {
       primary: {
