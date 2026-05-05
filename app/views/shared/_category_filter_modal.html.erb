@@ -31,7 +31,10 @@
           <svg class="w-5 h-5 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
       </div>
-      <input type="text" id="<%= search_input_id %>" <%= local_assigns[:use_stimulus] ? "data-category-filter-target=\"searchInput\" data-action=\"input->category-filter#search\"" : "" %> placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+      <input type="text" id="<%= search_input_id %>" 
+             data-category-filter-target="searchInput"
+             <%= local_assigns[:use_stimulus] ? "data-action=\"input->category-filter#search\"" : "" %>
+             placeholder="搜索分类（支持拼音）" class="w-full px-3 py-2 mb-3 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
       <div id="<%= options_container_id %>" class="max-h-80 overflow-y-auto border border-border dark:border-border-dark rounded-lg">
         <% if local_assigns[:show_expense_section] != false && expense_categories&.any? %>
         <div class="category-type-section <%= income_categories&.any? ? 'border-b border-border dark:border-border-dark' : '' %>">
@@ -48,12 +51,21 @@
       </div>
       <div class="flex justify-between mt-4">
         <div class="flex gap-2">
-          <button type="button" id="<%= select_all_btn_id %>" <%= local_assigns[:use_stimulus] ? "data-category-filter-target=\"selectAllBtn\" data-action=\"click->category-filter#selectAll\"" : "" %> class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
-          <button type="button" id="<%= clear_all_btn_id %>" <%= local_assigns[:use_stimulus] ? "data-category-filter-target=\"clearBtn\" data-action=\"click->category-filter#clearAll\"" : "" %> class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
+          <button type="button" id="<%= select_all_btn_id %>" 
+                  data-category-filter-target="selectAllBtn"
+                  <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#selectAll\"" : "" %>
+                  class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">全选</button>
+          <button type="button" id="<%= clear_all_btn_id %>" 
+                  data-category-filter-target="clearBtn"
+                  <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#clearAll\"" : "" %>
+                  class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">清除</button>
         </div>
         <div class="flex gap-3">
           <button type="button" <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#close\"".html_safe : "data-close-modal".html_safe %> class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-          <button type="button" id="<%= confirm_btn_id %>" <%= local_assigns[:use_stimulus] ? "data-category-filter-target=\"confirmBtn\" data-action=\"click->category-filter#confirm\"" : "" %> class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+          <button type="button" id="<%= confirm_btn_id %>" 
+                  data-category-filter-target="confirmBtn"
+                  <%= local_assigns[:use_stimulus] ? "data-action=\"click->category-filter#confirm\"" : "" %>
+                  class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
         </div>
       </div>
     </div>
