@@ -122,12 +122,26 @@ class SettingsController < ApplicationController
 
     backup_path = BackupService::BACKUP_DIR.join(backup_name)
 
-    unless File.exist?(backup_path)
+    # 安全验证：确保路径在 BACKUP_DIR 内，防止路径遍历攻击
+    begin
+      expanded_path = backup_path.realpath
+      base_dir = BackupService::BACKUP_DIR.realpath
+      unless expanded_path.to_s.start_with?(base_dir.to_s)
+        redirect_to settings_path, alert: "非法文件路径"
+        return
+      end
+    rescue Errno::ENOENT
+      # 文件不存在时 realpath 会抛出异常
       redirect_to settings_path, alert: "备份文件不存在"
       return
     end
 
-    send_file backup_path,
+    unless File.exist?(expanded_path)
+      redirect_to settings_path, alert: "备份文件不存在"
+      return
+    end
+
+    send_file expanded_path,
               filename: backup_name,
               type: "application/sql"
   end
@@ -181,7 +195,9 @@ class SettingsController < ApplicationController
     end
 
     connection = ActiveRecord::Base.connection
+    # 安全获取当前 timeout（使用安全查询）
     old_timeout = connection.execute("SHOW statement_timeout").first["statement_timeout"]
+    # 使用安全的数值设置，避免 SQL 注入
     connection.execute("SET statement_timeout = '300000'")
 
     begin
@@ -215,7 +231,9 @@ class SettingsController < ApplicationController
     rescue StandardError => e
       redirect_to settings_path, alert: "清除失败: #{e.message}"
     ensure
-      connection.execute("SET statement_timeout = '#{old_timeout}'")
+      # 使用 sanitize_sql 防止 SQL 注入
+      sanitized_timeout = connection.quote(old_timeout)
+      connection.execute("SET statement_timeout = #{sanitized_timeout}")
     end
   end
 
