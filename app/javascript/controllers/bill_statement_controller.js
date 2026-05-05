@@ -245,7 +245,31 @@ export default class extends Controller {
 
   showStatementInputModal() {
     const modal = document.getElementById("statement-input-modal")
-    if (modal) modal.classList.remove("hidden")
+    if (modal) {
+      modal.classList.remove("hidden")
+      this.bindModalEvents(modal)
+    }
+  }
+
+  bindModalEvents(modal) {
+    if (modal._eventHandlers) {
+      const oldHandlers = modal._eventHandlers
+      const cancelBtn = modal.querySelector('[data-statement-modal-cancel]')
+      const saveBtn = modal.querySelector('[data-statement-modal-save]')
+      if (cancelBtn && oldHandlers.hideModal) cancelBtn.removeEventListener('click', oldHandlers.hideModal)
+      if (saveBtn && oldHandlers.saveStatement) saveBtn.removeEventListener('click', oldHandlers.saveStatement)
+    }
+
+    const handlers = {}
+    handlers.hideModal = () => this.hideStatementInputModal()
+    handlers.saveStatement = () => this.saveStatementAmount()
+
+    const cancelBtn = modal.querySelector('[data-statement-modal-cancel]')
+    const saveBtn = modal.querySelector('[data-statement-modal-save]')
+    if (cancelBtn) cancelBtn.addEventListener('click', handlers.hideModal)
+    if (saveBtn) saveBtn.addEventListener('click', handlers.saveStatement)
+
+    modal._eventHandlers = handlers
   }
 
   hideStatementInputModal() {
