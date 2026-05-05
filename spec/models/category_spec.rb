@@ -358,7 +358,7 @@ RSpec.describe Category, type: :model do
 
     context 'with valid category ids' do
       it 'returns ancestor ids for given categories' do
-        result = described_class.ancestor_ids_for([grandchild.id])
+        result = described_class.ancestor_ids_for([ grandchild.id ])
         expect(result).to contain_exactly(root.id, child.id)
       end
 
@@ -366,12 +366,12 @@ RSpec.describe Category, type: :model do
         other_root = create(:category, name: 'Other Root')
         other_child = create(:category, name: 'Other Child', parent: other_root)
 
-        result = described_class.ancestor_ids_for([grandchild.id, other_child.id])
+        result = described_class.ancestor_ids_for([ grandchild.id, other_child.id ])
         expect(result).to contain_exactly(root.id, child.id, other_root.id)
       end
 
       it 'excludes original category ids from result' do
-        result = described_class.ancestor_ids_for([child.id, grandchild.id])
+        result = described_class.ancestor_ids_for([ child.id, grandchild.id ])
         expect(result).not_to include(child.id)
         expect(result).not_to include(grandchild.id)
       end
@@ -383,17 +383,17 @@ RSpec.describe Category, type: :model do
       end
 
       it 'ignores invalid ids' do
-        result = described_class.ancestor_ids_for([grandchild.id, -1, "invalid"])
+        result = described_class.ancestor_ids_for([ grandchild.id, -1, "invalid" ])
         expect(result).to contain_exactly(root.id, child.id)
       end
 
       it 'handles root category without parents' do
-        result = described_class.ancestor_ids_for([root.id])
+        result = described_class.ancestor_ids_for([ root.id ])
         expect(result).to be_empty
       end
 
       it 'handles nil values' do
-        result = described_class.ancestor_ids_for([grandchild.id, nil])
+        result = described_class.ancestor_ids_for([ grandchild.id, nil ])
         expect(result).to contain_exactly(root.id, child.id)
       end
 
@@ -412,17 +412,17 @@ RSpec.describe Category, type: :model do
 
     context 'with valid category ids' do
       it 'returns descendant ids for given categories' do
-        result = described_class.descendant_ids_for([root.id])
+        result = described_class.descendant_ids_for([ root.id ])
         expect(result).to contain_exactly(root.id, child1.id, child2.id, grandchild.id)
       end
 
       it 'handles multiple categories' do
-        result = described_class.descendant_ids_for([child1.id, child2.id])
+        result = described_class.descendant_ids_for([ child1.id, child2.id ])
         expect(result).to contain_exactly(child1.id, child2.id, grandchild.id)
       end
 
       it 'includes the original category in result' do
-        result = described_class.descendant_ids_for([root.id])
+        result = described_class.descendant_ids_for([ root.id ])
         expect(result).to include(root.id)
       end
     end
@@ -433,13 +433,13 @@ RSpec.describe Category, type: :model do
       end
 
       it 'ignores invalid ids' do
-        result = described_class.descendant_ids_for([root.id, -1, "invalid"])
+        result = described_class.descendant_ids_for([ root.id, -1, "invalid" ])
         expect(result).to contain_exactly(root.id, child1.id, child2.id, grandchild.id)
       end
 
       it 'handles leaf category (no descendants)' do
-        result = described_class.descendant_ids_for([grandchild.id])
-        expect(result).to eq([grandchild.id])
+        result = described_class.descendant_ids_for([ grandchild.id ])
+        expect(result).to eq([ grandchild.id ])
       end
 
       it 'handles large id arrays safely (no SQL injection)' do
@@ -459,14 +459,14 @@ RSpec.describe Category, type: :model do
 
     context 'with valid category ids' do
       it 'returns descendants map for multiple categories' do
-        result = described_class.batch_descendants_map([root1.id, root2.id])
+        result = described_class.batch_descendants_map([ root1.id, root2.id ])
 
         expect(result[root1.id]).to contain_exactly(root1.id, child1_1.id, child1_2.id, grandchild1_1.id)
         expect(result[root2.id]).to contain_exactly(root2.id, child2_1.id)
       end
 
       it 'handles single category' do
-        result = described_class.batch_descendants_map([root1.id])
+        result = described_class.batch_descendants_map([ root1.id ])
         expect(result[root1.id]).to contain_exactly(root1.id, child1_1.id, child1_2.id, grandchild1_1.id)
       end
     end
@@ -477,7 +477,7 @@ RSpec.describe Category, type: :model do
       end
 
       it 'ignores invalid ids' do
-        result = described_class.batch_descendants_map([root1.id, -1, "invalid"])
+        result = described_class.batch_descendants_map([ root1.id, -1, "invalid" ])
         expect(result[root1.id]).to contain_exactly(root1.id, child1_1.id, child1_2.id, grandchild1_1.id)
       end
 
