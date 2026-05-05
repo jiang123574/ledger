@@ -689,19 +689,19 @@ RSpec.describe Entry, type: :model do
       # Should be defined as scope method or accept entry_ids parameter
       # TODO: Fix bulk_update! method implementation
       xit 'updates all entries' do
-        Entry.where(id: [entry1.id, entry2.id]).bulk_update!(bulk_params)
+        Entry.where(id: [ entry1.id, entry2.id ]).bulk_update!(bulk_params)
         expect(entry1.reload.date).to eq(Date.current)
         expect(entry1.notes).to eq('Bulk update')
       end
 
       xit 'returns the number of updated entries' do
-        result = Entry.where(id: [entry1.id, entry2.id]).bulk_update!(bulk_params)
+        result = Entry.where(id: [ entry1.id, entry2.id ]).bulk_update!(bulk_params)
         expect(result).to eq(2)
       end
 
       xit 'skips date update for split children' do
         child = create(:entry, account: account, parent_entry: entry1, date: entry1.date)
-        Entry.where(id: [entry1.id, child.id]).bulk_update!({ date: Date.yesterday - 1 })
+        Entry.where(id: [ entry1.id, child.id ]).bulk_update!({ date: Date.yesterday - 1 })
         expect(child.reload.date).to eq(entry1.date)  # child date should not change
       end
     end
