@@ -118,7 +118,7 @@ class Category < ApplicationRecord
     SQL
 
     result = ActiveRecord::Base.connection.execute(
-      sanitize_sql([sql, ids])
+      sanitize_sql([ sql, ids ])
     )
     result.map { |row| row["id"].to_i }
   end
@@ -142,7 +142,7 @@ class Category < ApplicationRecord
     SQL
 
     result = ActiveRecord::Base.connection.execute(
-      sanitize_sql([sql, ids, ids])
+      sanitize_sql([ sql, ids, ids ])
     )
     result.map { |row| row["id"].to_i }
   end
@@ -166,7 +166,7 @@ class Category < ApplicationRecord
     SQL
 
     results = ActiveRecord::Base.connection.execute(
-      sanitize_sql([sql, ids])
+      sanitize_sql([ sql, ids ])
     )
     results.group_by { |row| row["root_id"] }
            .transform_values { |rows| rows.map { |r| r["id"].to_i } }
