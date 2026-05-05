@@ -69,6 +69,9 @@ group :development, :test do
   gem "rubocop-rails-omakase", require: false
   gem "flog", require: false
   gem "reek", require: false
+
+  # MCP SDK for Rubocop - patched for CVE-2026-33946
+  gem "mcp", ">= 0.9.2"
 end
 
 group :test do
