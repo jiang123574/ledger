@@ -127,7 +127,7 @@ export default class extends Controller {
     params.delete('type')
     params.delete('period_type')
     params.delete('period_value')
-    params.delete('category_ids')
+    params.delete('category_ids[]')
     // 清除全局变量中的分类选择
     window.selectedCategoryIds = []
     if (accountId) params.set('account_id', accountId)
