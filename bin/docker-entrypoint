@@ -7,7 +7,7 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
     # Database exists with schema, run migrations
     ./bin/rails db:migrate
   else
-    # Fresh deployment - load schema directly
+    # Fresh deployment - load schema directly (includes Solid Queue tables)
     ./bin/rails db:schema:load
   fi
 fi
