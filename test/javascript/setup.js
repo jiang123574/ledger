@@ -1,39 +1,36 @@
-// Vitest setup file for Stimulus controller tests
-import { vi } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
-// Mock window globals that controllers might use
-global.window = {
-  showConfirmDialog: vi.fn().mockResolvedValue(true),
-  closeConfirmDialog: vi.fn(),
-  confirm: vi.fn().mockReturnValue(true),
-  localStorage: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn()
-  },
-  matchMedia: vi.fn().mockReturnValue({ matches: false })
+if (!window.matchMedia) {
+  Object.defineProperty(window, 'matchMedia', {
+    writable: true,
+    value: vi.fn().mockReturnValue({
+      matches: false,
+      media: '',
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn()
+    })
+  })
 }
 
-global.document = {
-  createElement: vi.fn().mockReturnValue({
-    classList: { add: vi.fn(), remove: vi.fn(), contains: vi.fn().mockReturnValue(false) },
-    setAttribute: vi.fn(),
-    addEventListener: vi.fn()
-  }),
-  querySelector: vi.fn(),
-  querySelectorAll: vi.fn().mockReturnValue([])
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = vi.fn()
 }
 
-// Mock Stimulus Application
-vi.mock('@hotwired/stimulus', () => ({
-  Controller: class Controller {
-    constructor() {
-      this.element = document.createElement('div')
-      this.targets = {}
-      this.values = {}
-    }
-    connect() {}
-    disconnect() {}
-  }
-}))
+if (!navigator.clipboard) {
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: vi.fn() }
+  })
+}
+
+afterEach(() => {
+  document.body.innerHTML = ''
+  document.documentElement.className = ''
+  document.documentElement.removeAttribute('data-theme')
+  delete window.LedgerNative
+  vi.restoreAllMocks()
+})
