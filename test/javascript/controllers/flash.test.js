@@ -1,46 +1,29 @@
-// Test for flash controller
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import FlashController from '../../../app/javascript/controllers/flash_controller.js'
+import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('FlashController', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
+  let application
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers()
+    if (application) await stopController(application)
   })
 
-  describe('auto-dismiss', () => {
-    it('should dismiss after 3 seconds', () => {
-      const mockElement = {
-        style: {},
-        remove: vi.fn()
-      }
+  it('auto-dismisses after three seconds', async () => {
+    vi.useFakeTimers()
 
-      // Simulate controller behavior
-      const controller = {
-        element: mockElement,
-        connect() {
-          setTimeout(() => this.dismiss(), 3000)
-        },
-        dismiss() {
-          this.element.style.transition = 'opacity 0.3s ease-out'
-          this.element.style.opacity = '0'
-          setTimeout(() => this.element.remove(), 300)
-        }
-      }
+    ;({ application } = await startController('flash', FlashController, `
+      <div data-controller="flash">Saved</div>
+    `))
 
-      controller.connect()
+    const flash = document.querySelector('[data-controller="flash"]')
+    vi.advanceTimersByTime(3000)
 
-      // Fast-forward 3 seconds
-      vi.advanceTimersByTime(3000)
+    expect(flash.style.transition).toBe('opacity 0.3s ease-out')
+    expect(flash.style.opacity).toBe('0')
 
-      expect(mockElement.style.opacity).toBe('0')
-
-      // Fast-forward 300ms for removal
-      vi.advanceTimersByTime(300)
-
-      expect(mockElement.remove).toHaveBeenCalled()
-    })
+    vi.advanceTimersByTime(300)
+    expect(document.querySelector('[data-controller="flash"]')).toBeNull()
   })
 })
