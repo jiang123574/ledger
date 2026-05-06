@@ -10,6 +10,11 @@ if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
     # Fresh deployment - load schema directly (includes Solid Queue tables)
     ./bin/rails db:schema:load
   fi
+  
+  # Ensure Solid Queue tables exist (for both fresh and existing deployments)
+  if [ -f db/queue_schema.rb ]; then
+    ./bin/rails runner 'load Rails.root.join("db", "queue_schema.rb")' 2>/dev/null || true
+  fi
 fi
 
 exec "${@}"
