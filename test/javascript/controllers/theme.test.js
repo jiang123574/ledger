@@ -1,115 +1,66 @@
-// Test for theme controller
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import ThemeController from '../../../app/javascript/controllers/theme_controller.js'
+import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('ThemeController', () => {
-  let mockDocument
-  let mockLocalStorage
+  let application
 
-  beforeEach(() => {
-    mockLocalStorage = {
-      theme: undefined,
-      getItem: vi.fn((key) => mockLocalStorage[key]),
-      setItem: vi.fn((key, value) => mockLocalStorage[key] = value),
-      removeItem: vi.fn((key) => delete mockLocalStorage[key])
-    }
-
-    mockDocument = {
-      documentElement: {
-        classList: {
-          contains: vi.fn().mockReturnValue(false),
-          add: vi.fn(),
-          remove: vi.fn()
-        },
-        setAttribute: vi.fn(),
-        getAttribute: vi.fn()
-      }
-    }
-
-    global.localStorage = mockLocalStorage
-    global.document = mockDocument
-    global.window = {
-      matchMedia: vi.fn().mockReturnValue({ matches: false })
-    }
+  afterEach(async () => {
+    if (application) await stopController(application)
+    localStorage.clear()
   })
 
-  afterEach(() => {
-    vi.clearAllMocks()
+  async function mountTheme() {
+    const result = await startController('theme', ThemeController, `
+      <div data-controller="theme">
+        <input data-theme-target="toggle" type="checkbox">
+        <button data-action="click->theme#toggle">Toggle</button>
+        <span data-theme-icon="sun" class="hidden">sun</span>
+        <span data-theme-icon="moon">moon</span>
+      </div>
+    `)
+    application = result.application
+    return result.element
+  }
+
+  it('applies a stored dark theme on connect', async () => {
+    localStorage.theme = 'dark'
+
+    const element = await mountTheme()
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect(element.querySelector('[data-theme-target="toggle"]').checked).toBe(true)
+    expect(element.querySelector('[data-theme-icon="sun"]').classList.contains('hidden')).toBe(false)
+    expect(element.querySelector('[data-theme-icon="moon"]').classList.contains('hidden')).toBe(true)
   })
 
-  describe('toggle', () => {
-    it('should switch to dark mode when currently light', () => {
-      mockDocument.documentElement.classList.contains.mockReturnValue(false)
+  it('uses system dark preference when no stored theme exists', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true })
 
-      // Simulate toggle behavior
-      const toggle = () => {
-        const isDark = mockDocument.documentElement.classList.contains('dark')
-        if (!isDark) {
-          mockLocalStorage.theme = 'dark'
-          mockDocument.documentElement.classList.add('dark')
-          mockDocument.documentElement.setAttribute('data-theme', 'dark')
-        }
-      }
+    await mountTheme()
 
-      toggle()
-
-      expect(mockLocalStorage.theme).toBe('dark')
-      expect(mockDocument.documentElement.classList.add).toHaveBeenCalledWith('dark')
-      expect(mockDocument.documentElement.setAttribute).toHaveBeenCalledWith('data-theme', 'dark')
-    })
-
-    it('should switch to light mode when currently dark', () => {
-      mockDocument.documentElement.classList.contains.mockReturnValue(true)
-
-      // Simulate toggle behavior
-      const toggle = () => {
-        const isDark = mockDocument.documentElement.classList.contains('dark')
-        if (isDark) {
-          mockLocalStorage.theme = 'light'
-          mockDocument.documentElement.classList.remove('dark')
-          mockDocument.documentElement.setAttribute('data-theme', 'light')
-        }
-      }
-
-      toggle()
-
-      expect(mockLocalStorage.theme).toBe('light')
-      expect(mockDocument.documentElement.classList.remove).toHaveBeenCalledWith('dark')
-      expect(mockDocument.documentElement.setAttribute).toHaveBeenCalledWith('data-theme', 'light')
-    })
+    expect(window.matchMedia).toHaveBeenCalledWith('(prefers-color-scheme: dark)')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
   })
 
-  describe('updateThemeClass', () => {
-    it('should use stored theme preference', () => {
-      mockLocalStorage.theme = 'dark'
+  it('toggles between dark and light themes', async () => {
+    window.matchMedia = vi.fn().mockReturnValue({ matches: false })
+    const element = await mountTheme()
+    const button = element.querySelector('button')
+    const toggle = element.querySelector('[data-theme-target="toggle"]')
 
-      const updateThemeClass = () => {
-        const stored = mockLocalStorage.theme
-        if (stored === 'dark') {
-          mockDocument.documentElement.classList.add('dark')
-          mockDocument.documentElement.setAttribute('data-theme', 'dark')
-        }
-      }
+    button.click()
+    expect(localStorage.theme).toBe('dark')
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    expect(document.documentElement.getAttribute('data-theme')).toBe('dark')
+    expect(toggle.checked).toBe(true)
 
-      updateThemeClass()
-
-      expect(mockDocument.documentElement.classList.add).toHaveBeenCalledWith('dark')
-    })
-
-    it('should fall back to system preference when no stored theme', () => {
-      mockLocalStorage.theme = undefined
-      global.window.matchMedia.mockReturnValue({ matches: true }) // prefers dark
-
-      const updateThemeClass = () => {
-        const stored = mockLocalStorage.theme
-        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-        if (stored === 'dark' || (!stored && prefersDark)) {
-          mockDocument.documentElement.classList.add('dark')
-        }
-      }
-
-      updateThemeClass()
-
-      expect(mockDocument.documentElement.classList.add).toHaveBeenCalledWith('dark')
-    })
+    button.click()
+    expect(localStorage.theme).toBe('light')
+    expect(document.documentElement.classList.contains('dark')).toBe(false)
+    expect(document.documentElement.getAttribute('data-theme')).toBe('light')
+    expect(toggle.checked).toBe(false)
   })
 })
