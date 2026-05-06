@@ -281,7 +281,7 @@ class BackupService
 
   def self.get_pg_version
     db_config = get_primary_db_config
-    
+
     env_vars = { "PGPASSWORD" => db_config["password"] }
     cmd = [
       "psql",
@@ -291,9 +291,9 @@ class BackupService
       "-t", "-A",
       "-c", "SELECT current_setting('server_version_num')"
     ]
-    
+
     stdout, stderr, status = Open3.capture3(env_vars, *cmd)
-    
+
     if status.success? && stdout.strip =~ /^\d+$/
       stdout.strip.to_i / 10000
     else
