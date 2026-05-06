@@ -40,7 +40,7 @@ module Ds
     def call
       content_tag(:div, **dialog_wrapper_options) do
         content_tag(:div, **dialog_content_options) do
-          header + body + actions
+          safe_join([ header, body, actions ].compact)
         end
       end
     end
