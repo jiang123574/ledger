@@ -1,39 +1,53 @@
-// Vitest setup file for Stimulus controller tests
-import { vi } from 'vitest'
+import { afterEach, vi } from 'vitest'
 
-// Mock window globals that controllers might use
-global.window = {
-  showConfirmDialog: vi.fn().mockResolvedValue(true),
-  closeConfirmDialog: vi.fn(),
-  confirm: vi.fn().mockReturnValue(true),
-  localStorage: {
-    getItem: vi.fn(),
-    setItem: vi.fn(),
-    removeItem: vi.fn(),
-    clear: vi.fn()
-  },
-  matchMedia: vi.fn().mockReturnValue({ matches: false })
+function createMatchMedia(matches = false) {
+  return vi.fn().mockReturnValue({
+    matches,
+    media: '',
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn()
+  })
 }
 
-global.document = {
-  createElement: vi.fn().mockReturnValue({
-    classList: { add: vi.fn(), remove: vi.fn(), contains: vi.fn().mockReturnValue(false) },
-    setAttribute: vi.fn(),
-    addEventListener: vi.fn()
-  }),
-  querySelector: vi.fn(),
-  querySelectorAll: vi.fn().mockReturnValue([])
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: createMatchMedia()
+})
+
+if (!Element.prototype.scrollIntoView) {
+  Element.prototype.scrollIntoView = vi.fn()
 }
 
-// Mock Stimulus Application
-vi.mock('@hotwired/stimulus', () => ({
-  Controller: class Controller {
-    constructor() {
-      this.element = document.createElement('div')
-      this.targets = {}
-      this.values = {}
-    }
-    connect() {}
-    disconnect() {}
-  }
-}))
+Object.defineProperty(navigator, 'clipboard', {
+  configurable: true,
+  value: { writeText: vi.fn() }
+})
+
+Object.defineProperty(navigator, 'share', {
+  configurable: true,
+  value: undefined
+})
+
+afterEach(() => {
+  document.body.innerHTML = ''
+  document.documentElement.className = ''
+  document.documentElement.removeAttribute('data-theme')
+  localStorage.clear()
+  delete localStorage.theme
+  delete window.LedgerNative
+  vi.restoreAllMocks()
+
+  window.matchMedia = createMatchMedia()
+  Object.defineProperty(navigator, 'clipboard', {
+    configurable: true,
+    value: { writeText: vi.fn() }
+  })
+  Object.defineProperty(navigator, 'share', {
+    configurable: true,
+    value: undefined
+  })
+})
