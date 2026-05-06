@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
 module Ds
+  # Card Component - Renders a container with configurable styling
+  #
+  # Usage:
+  #   <%= render(Ds::CardComponent.new) do %>Content here<% end %>
+  #   <%= render(Ds::CardComponent.new(padding: false, shadow: :border_md)) do %>
+  #     <div class="p-4">Custom padding</div>
+  #   <% end %>
+  #
+  # Options:
+  #   padding: true/false (default: true)
+  #   rounded: :sm, :md, :lg, :xl, :none (default: :lg)
+  #   shadow: :none, :border_xs, :border_sm, :border_md, :border_lg (default: :border_xs)
+  #
   class CardComponent < BaseComponent
     def initialize(
       padding: true,

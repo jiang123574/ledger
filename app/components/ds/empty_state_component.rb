@@ -1,6 +1,25 @@
 # frozen_string_literal: true
 
 module Ds
+  # Empty State Component - Displays placeholder when no data available
+  #
+  # Usage:
+  #   <%= render(Ds::EmptyStateComponent.new(
+  #     icon: "folder-open",
+  #     title: "No entries found",
+  #     description: "Start adding entries to track your finances"
+  #   )) %>
+  #
+  # With action:
+  #   <%= render(Ds::EmptyStateComponent.new(
+  #     icon: "plus",
+  #     title: "No accounts",
+  #     action: new_account_path,
+  #     action_label: "Create Account"
+  #   )) %>
+  #
+  # Options: icon, title (required), description, action, action_label
+  #
   class EmptyStateComponent < BaseComponent
     def initialize(
       icon: nil,

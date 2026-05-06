@@ -1,6 +1,17 @@
 # frozen_string_literal: true
 
 module Ds
+  # Badge Component - Renders a styled badge/label element
+  #
+  # Usage:
+  #   <%= render(Ds::BadgeComponent.new(variant: :success)) do %>Active<% end %>
+  #   <%= render(Ds::BadgeComponent.new(variant: :expense, size: :md)) do %>支出<% end %>
+  #   <%= render(Ds::BadgeComponent.new(variant: :warning, dot: true)) do %>Pending<% end %>
+  #
+  # Variants: :default, :primary, :success, :warning, :danger, :info, :income, :expense, :transfer
+  # Sizes: :xs, :sm, :md
+  # Options: dot (shows colored dot indicator)
+  #
   class BadgeComponent < BaseComponent
     VARIANTS = {
       default: "bg-gray-100 text-gray-800",

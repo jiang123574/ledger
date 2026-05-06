@@ -1,6 +1,16 @@
 # frozen_string_literal: true
 
 module Ds
+  # Input Component - Renders a form input field with consistent styling
+  #
+  # Usage:
+  #   <%= render(Ds::InputComponent.new(form: f, field: :name, type: :text)) %>
+  #   <%= render(Ds::InputComponent.new(form: f, field: :email, type: :email, required: true)) %>
+  #   <%= render(Ds::InputComponent.new(form: f, field: :amount, type: :number, prefix: "$")) %>
+  #
+  # Types: :text, :email, :number, :password, :date, :select
+  # Options: placeholder, required, prefix, html_class
+  #
   class InputComponent < ViewComponent::Base
     def initialize(form:, field:, type: :text, placeholder: nil, required: false, prefix: nil, html_class: nil, **options)
       @form = form
