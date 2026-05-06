@@ -1,60 +1,31 @@
-// Test for alert controller
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import AlertController from '../../../app/javascript/controllers/alert_controller.js'
+import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('AlertController', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
+  let application
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers()
+    if (application) await stopController(application)
   })
 
-  describe('dismiss action', () => {
-    it('should fade out and remove element', () => {
-      const mockElement = {
-        style: {},
-        remove: vi.fn()
-      }
+  it('fades and removes the controller element when dismissed', async () => {
+    vi.useFakeTimers()
 
-      // Simulate controller dismiss behavior
-      const dismiss = () => {
-        mockElement.style.opacity = '0'
-        mockElement.style.transform = 'translateY(-10px)'
-        setTimeout(() => mockElement.remove(), 300)
-      }
+    ;({ application } = await startController('alert--dismissible', AlertController, `
+      <div data-controller="alert--dismissible">
+        <button data-action="alert--dismissible#dismiss">Close</button>
+      </div>
+    `))
 
-      dismiss()
+    const alert = document.querySelector('[data-controller="alert--dismissible"]')
+    alert.querySelector('button').click()
 
-      expect(mockElement.style.opacity).toBe('0')
-      expect(mockElement.style.transform).toBe('translateY(-10px)')
+    expect(alert.style.opacity).toBe('0')
+    expect(alert.style.transform).toBe('translateY(-10px)')
 
-      // Fast-forward 300ms
-      vi.advanceTimersByTime(300)
-
-      expect(mockElement.remove).toHaveBeenCalled()
-    })
-
-    it('should handle multiple dismiss calls gracefully', () => {
-      const mockElement = {
-        style: {},
-        remove: vi.fn()
-      }
-
-      const dismiss = () => {
-        mockElement.style.opacity = '0'
-        mockElement.style.transform = 'translateY(-10px)'
-        setTimeout(() => mockElement.remove(), 300)
-      }
-
-      // Call dismiss multiple times
-      dismiss()
-      dismiss()
-
-      vi.advanceTimersByTime(300)
-
-      // Element should be removed only once (after timeout)
-      expect(mockElement.remove).toHaveBeenCalled()
-    })
+    vi.advanceTimersByTime(300)
+    expect(document.querySelector('[data-controller="alert--dismissible"]')).toBeNull()
   })
 })
