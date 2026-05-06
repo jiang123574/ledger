@@ -1,5 +1,11 @@
 class RenameActivityLogsToOperationLogs < ActiveRecord::Migration[8.1]
   def up
+    # 如果 activity_logs 表不存在，跳过（全新部署时）
+    return unless table_exists?(:activity_logs)
+
+    # 如果 operation_logs 已存在，跳过（已被其他迁移处理）
+    return if table_exists?(:operation_logs)
+
     # 重命名表
     rename_table :activity_logs, :operation_logs
 
