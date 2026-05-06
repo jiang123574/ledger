@@ -14,6 +14,32 @@ module Ds
   class AlertComponent < BaseComponent
     VARIANTS = %i[info success warning error].freeze
 
+    VARIANT_STYLES = {
+      info: {
+        container: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800",
+        icon: "text-blue-600"
+      },
+      success: {
+        container: "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800",
+        icon: "text-green-600"
+      },
+      warning: {
+        container: "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800",
+        icon: "text-yellow-600"
+      },
+      error: {
+        container: "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800",
+        icon: "text-red-600"
+      }
+    }.freeze
+
+    VARIANT_ICONS = {
+      info: "information-circle",
+      success: "check-circle",
+      warning: "exclamation-circle",
+      error: "x-circle"
+    }.freeze
+
     def initialize(message: nil, variant: :info, dismissible: false, **options)
       @message = message
       @variant = variant.to_sym
@@ -36,37 +62,17 @@ module Ds
     private
 
     def container_classes
-      base = "flex items-start gap-3 p-4 rounded-lg border"
-      variant_classes = case @variant
-      when :info
-        "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-900/20 dark:text-blue-400 dark:border-blue-800"
-      when :success
-        "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
-      when :warning
-        "bg-yellow-50 text-yellow-700 border-yellow-200 dark:bg-yellow-900/20 dark:text-yellow-400 dark:border-yellow-800"
-      when :error
-        "bg-red-50 text-red-700 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
-      end
-
-      [ base, variant_classes, @options[:class] ].compact.join(" ")
+      variant_style = VARIANT_STYLES[@variant] || VARIANT_STYLES[:info]
+      [ "flex items-start gap-3 p-4 rounded-lg border", variant_style[:container], @options[:class] ].compact.join(" ")
     end
 
     def icon_name
-      case @variant
-      when :info then "information-circle"
-      when :success then "check-circle"
-      when :warning then "exclamation-circle"
-      when :error then "x-circle"
-      end
+      VARIANT_ICONS[@variant] || VARIANT_ICONS[:info]
     end
 
     def icon_color_class
-      case @variant
-      when :info then "text-blue-600"
-      when :success then "text-green-600"
-      when :warning then "text-yellow-600"
-      when :error then "text-red-600"
-      end
+      variant_style = VARIANT_STYLES[@variant] || VARIANT_STYLES[:info]
+      variant_style[:icon]
     end
 
     def dismissible_button
