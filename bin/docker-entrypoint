@@ -1,18 +1,19 @@
 #!/bin/bash -e
 
-# If running the rails server then create or migrate existing database
-if [ "${@: -2:1}" == "./bin/rails" ] && [ "${@: -1:1}" == "server" ]; then
+# Always prepare database when running in production mode with database configured
+if [ "$RAILS_ENV" == "production" ]; then
   # Check if database exists and has tables
   if ./bin/rails db:version 2>/dev/null; then
-    # Database exists with schema, run migrations
+    echo "Database exists, running migrations..."
     ./bin/rails db:migrate
   else
-    # Fresh deployment - load schema directly (includes Solid Queue tables)
+    echo "Fresh deployment, loading schema..."
     ./bin/rails db:schema:load
   fi
   
-  # Ensure Solid Queue tables exist (for both fresh and existing deployments)
+  # Ensure Solid Queue tables exist
   if [ -f db/queue_schema.rb ]; then
+    echo "Loading Solid Queue schema..."
     ./bin/rails runner 'load Rails.root.join("db", "queue_schema.rb")' 2>/dev/null || true
   fi
 fi
