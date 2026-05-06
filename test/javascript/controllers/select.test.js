@@ -1,217 +1,100 @@
-// Test for select controller
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import SelectController from '../../../app/javascript/controllers/select_controller.js'
+import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('SelectController', () => {
-  describe('toggle action', () => {
-    it('should open menu when closed', () => {
-      const mockMenu = {
-        classList: {
-          remove: vi.fn(),
-          add: vi.fn()
-        }
-      }
-      const mockButton = {
-        setAttribute: vi.fn()
-      }
+  let application
 
-      // Simulate open behavior
-      let isOpen = false
-      const open = () => {
-        isOpen = true
-        mockMenu.classList.remove('hidden', 'opacity-0', '-translate-y-1')
-        mockMenu.classList.add('opacity-100', 'translate-y-0')
-        mockButton.setAttribute('aria-expanded', 'true')
-      }
-
-      open()
-
-      expect(isOpen).toBe(true)
-      expect(mockMenu.classList.remove).toHaveBeenCalledWith('hidden', 'opacity-0', '-translate-y-1')
-      expect(mockButton.setAttribute).toHaveBeenCalledWith('aria-expanded', 'true')
-    })
-
-    it('should close menu when open', () => {
-      vi.useFakeTimers()
-
-      const mockMenu = {
-        classList: {
-          remove: vi.fn(),
-          add: vi.fn()
-        }
-      }
-      const mockButton = {
-        setAttribute: vi.fn()
-      }
-
-      // Simulate close behavior
-      let isOpen = true
-      const close = () => {
-        isOpen = false
-        mockMenu.classList.remove('opacity-100', 'translate-y-0')
-        mockMenu.classList.add('opacity-0', '-translate-y-1')
-        mockButton.setAttribute('aria-expanded', 'false')
-        setTimeout(() => {
-          if (!isOpen) {
-            mockMenu.classList.add('hidden')
-          }
-        }, 150)
-      }
-
-      close()
-
-      expect(isOpen).toBe(false)
-      expect(mockMenu.classList.add).toHaveBeenCalledWith('opacity-0', '-translate-y-1')
-      expect(mockButton.setAttribute).toHaveBeenCalledWith('aria-expanded', 'false')
-
-      vi.advanceTimersByTime(150)
-      expect(mockMenu.classList.add).toHaveBeenCalledWith('hidden')
-
-      vi.useRealTimers()
-    })
+  afterEach(async () => {
+    vi.useRealTimers()
+    if (application) await stopController(application)
   })
 
-  describe('select action', () => {
-    it('should update input value and close menu', () => {
-      const mockInput = {
-        value: '',
-        dispatchEvent: vi.fn()
-      }
-      const mockButton = {
-        querySelector: vi.fn().mockReturnValue(null),
-        textContent: '',
-        focus: vi.fn()
-      }
-      const mockMenu = {
-        querySelector: vi.fn().mockReturnValue(null)
-      }
+  async function mountSelect() {
+    const result = await startController('select', SelectController, `
+      <div data-controller="select">
+        <input data-select-target="input" type="hidden" name="choice">
+        <button data-select-target="button" data-action="click->select#toggle" aria-expanded="false">
+          <span>Choose</span>
+        </button>
+        <div data-select-target="menu" class="hidden opacity-0 -translate-y-1">
+          <div data-action="click->select#select" data-value="one" data-filter-name="Option One">One</div>
+          <div data-action="click->select#select" data-value="two">Option Two</div>
+        </div>
+      </div>
+    `)
+    application = result.application
+    return result.element
+  }
 
-      const mockEvent = {
-        currentTarget: {
-          dataset: { value: 'option1', filterName: 'Option 1' },
-          setAttribute: vi.fn(),
-          classList: { add: vi.fn() }
-        }
-      }
+  it('opens and closes the menu through the toggle action', async () => {
+    vi.useFakeTimers()
+    const element = await mountSelect()
+    const button = element.querySelector('button')
+    const menu = element.querySelector('[data-select-target="menu"]')
 
-      // Simulate select behavior
-      const select = (event) => {
-        const selectedElement = event.currentTarget
-        const value = selectedElement.dataset.value
-        const label = selectedElement.dataset.filterName || selectedElement.textContent.trim()
+    button.click()
+    expect(menu.classList.contains('hidden')).toBe(false)
+    expect(menu.classList.contains('opacity-100')).toBe(true)
+    expect(button.getAttribute('aria-expanded')).toBe('true')
 
-        mockButton.textContent = label
-        mockInput.value = value
-        mockInput.dispatchEvent(new Event('change', { bubbles: true }))
-        mockButton.focus()
-      }
+    button.click()
+    expect(menu.classList.contains('opacity-0')).toBe(true)
+    expect(button.getAttribute('aria-expanded')).toBe('false')
 
-      select(mockEvent)
-
-      expect(mockButton.textContent).toBe('Option 1')
-      expect(mockInput.value).toBe('option1')
-      expect(mockInput.dispatchEvent).toHaveBeenCalled()
-      expect(mockButton.focus).toHaveBeenCalled()
-    })
-
-    it('should dispatch dropdown:select event', () => {
-      const mockElement = {
-        dispatchEvent: vi.fn()
-      }
-
-      const mockEvent = {
-        currentTarget: {
-          dataset: { value: 'test-value', filterName: 'Test Label' }
-        }
-      }
-
-      // Simulate event dispatch
-      const dispatchSelectEvent = (element, event) => {
-        element.dispatchEvent(new CustomEvent('dropdown:select', {
-          detail: { value: event.currentTarget.dataset.value, label: event.currentTarget.dataset.filterName },
-          bubbles: true
-        }))
-      }
-
-      dispatchSelectEvent(mockElement, mockEvent)
-
-      expect(mockElement.dispatchEvent).toHaveBeenCalled()
-      const dispatchedEvent = mockElement.dispatchEvent.mock.calls[0][0]
-      expect(dispatchedEvent.type).toBe('dropdown:select')
-      expect(dispatchedEvent.detail.value).toBe('test-value')
-    })
+    vi.advanceTimersByTime(150)
+    expect(menu.classList.contains('hidden')).toBe(true)
   })
 
-  describe('keyboard navigation', () => {
-    it('should close on Escape key', () => {
-      const mockButton = { focus: vi.fn() }
-      let isOpen = true
-      const close = vi.fn(() => {
-        isOpen = false
-        mockButton.focus()
-      })
+  it('updates the hidden input, button label, selected state, and custom event', async () => {
+    const element = await mountSelect()
+    const input = element.querySelector('input')
+    const button = element.querySelector('button')
+    const option = element.querySelector('[data-value="one"]')
+    const change = vi.fn()
+    const selected = vi.fn()
 
-      const handleKeydown = (event) => {
-        if (event.key === 'Escape') {
-          close()
-        }
-      }
+    input.addEventListener('change', change)
+    element.addEventListener('dropdown:select', selected)
 
-      handleKeydown({ key: 'Escape' })
+    option.click()
 
-      expect(close).toHaveBeenCalled()
-      expect(mockButton.focus).toHaveBeenCalled()
-    })
-
-    it('should select on Enter key', () => {
-      const mockTarget = {
-        dataset: { value: 'option1' },
-        click: vi.fn()
-      }
-
-      const handleKeydown = (event) => {
-        if (event.key === 'Enter' && event.target.dataset.value) {
-          event.preventDefault()
-          event.target.click()
-        }
-      }
-
-      handleKeydown({ key: 'Enter', target: mockTarget, preventDefault: vi.fn() })
-
-      expect(mockTarget.click).toHaveBeenCalled()
-    })
+    expect(input.value).toBe('one')
+    expect(change).toHaveBeenCalledTimes(1)
+    expect(button.textContent).toContain('Option One')
+    expect(option.getAttribute('aria-selected')).toBe('true')
+    expect(option.classList.contains('bg-gray-100')).toBe(true)
+    expect(selected).toHaveBeenCalledTimes(1)
+    expect(selected.mock.calls[0][0].detail).toEqual({ value: 'one', label: 'Option One' })
   })
 
-  describe('outside click handling', () => {
-    it('should close menu when clicking outside', () => {
-      let isOpen = true
-      const close = vi.fn(() => { isOpen = false })
+  it('closes on Escape and selects the focused option on Enter', async () => {
+    vi.useFakeTimers()
+    const element = await mountSelect()
+    const button = element.querySelector('button')
+    const option = element.querySelector('[data-value="two"]')
+    const input = element.querySelector('input')
 
-      const handleOutsideClick = (event) => {
-        if (isOpen && !elementContains(event.target)) {
-          close()
-        }
-      }
+    button.click()
+    element.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+    vi.advanceTimersByTime(150)
+    expect(element.querySelector('[data-select-target="menu"]').classList.contains('hidden')).toBe(true)
 
-      const elementContains = vi.fn().mockReturnValue(false)
+    button.click()
+    option.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }))
+    expect(input.value).toBe('two')
+  })
 
-      handleOutsideClick({ target: {} })
+  it('closes when clicking outside the controller element', async () => {
+    vi.useFakeTimers()
+    const element = await mountSelect()
+    const button = element.querySelector('button')
+    const menu = element.querySelector('[data-select-target="menu"]')
 
-      expect(close).toHaveBeenCalled()
-    })
+    button.click()
+    document.body.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    vi.advanceTimersByTime(150)
 
-    it('should not close menu when clicking inside', () => {
-      let isOpen = true
-      const close = vi.fn(() => { isOpen = false })
-
-      const handleOutsideClick = (event, contains) => {
-        if (isOpen && !contains) {
-          close()
-        }
-      }
-
-      handleOutsideClick({ target: {} }, true)
-
-      expect(close).not.toHaveBeenCalled()
-    })
+    expect(menu.classList.contains('hidden')).toBe(true)
   })
 })
