@@ -6,8 +6,8 @@ module Ds
   # Usage:
   #   <%= render(Ds::ButtonComponent.new) do %>Click me<% end %>
   #   <%= render(Ds::ButtonComponent.new(variant: :primary, size: :lg)) do %>Save<% end %>
-  #   <%= render(Ds::ButtonComponent.new(variant: :destructive, icon: "trash")) %>Delete<% end %>
-  #   <%= render(Ds::ButtonComponent.new(href: "/path", variant: :ghost)) %>Link<% end %>
+  #   <%= render(Ds::ButtonComponent.new(variant: :destructive, icon: "trash")) do %>Delete<% end %>
+  #   <%= render(Ds::ButtonComponent.new(href: "/path", variant: :ghost)) do %>Link<% end %>
   #
   # Variants: :primary, :secondary, :destructive, :inverse, :outline, :ghost, :link
   # Sizes: :xs, :sm, :md, :lg

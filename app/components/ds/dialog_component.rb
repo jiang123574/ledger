@@ -7,8 +7,8 @@ module Ds
   #   <%= render(Ds::DialogComponent.new(title: "Confirm Action")) do |d| %>
   #     <% d.with_body do %>Are you sure?<% end %>
   #     <% d.with_actions do %>
-  #       <%= render(Ds::ButtonComponent.new(variant: :secondary)) %>Cancel<% end %>
-  #       <%= render(Ds::ButtonComponent.new(variant: :destructive)) %>Delete<% end %>
+  #       <%= render(Ds::ButtonComponent.new(variant: :secondary)) do %>Cancel<% end %>
+  #       <%= render(Ds::ButtonComponent.new(variant: :destructive)) do %>Delete<% end %>
   #     <% end %>
   #   <% end %>
   #
