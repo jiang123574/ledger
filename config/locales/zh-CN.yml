@@ -4,12 +4,33 @@ zh-CN:
   activerecord:
     models:
       bill_statement: "账单"
+      account: "账户"
     attributes:
       bill_statement:
         billing_date: "账单日期"
         statement_amount: "账单金额"
         account: "账户"
+      account:
+        name: "名称"
     errors:
+      messages:
+        taken: "已存在"
+        blank: "不能为空"
+        invalid: "格式不正确"
+        confirmation: "两次输入不一致"
+        accepted: "必须接受"
+        too_short: "至少需要 %{count} 个字符"
+        too_long: "最多 %{count} 个字符"
+        not_a_number: "必须是数字"
+        greater_than: "必须大于 %{count}"
+        greater_than_or_equal_to: "必须大于或等于 %{count}"
+        equal_to: "必须等于 %{count}"
+        less_than: "必须小于 %{count}"
+        less_than_or_equal_to: "必须小于或等于 %{count}"
+        other_than: "不能等于 %{count}"
+        odd: "必须是奇数"
+        even: "必须是偶数"
+        required: "必须填写"
       models:
         bill_statement:
           attributes:
