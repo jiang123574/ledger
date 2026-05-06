@@ -113,9 +113,10 @@ RSpec.describe Ds::ButtonComponent, type: :component do
       expect(page).to have_css("button[disabled]")
     end
 
-    it "hides content when loading with spinner only" do
-      render_inline(described_class.new(loading: true)) { "Should Not Show" }
+    it "renders spinner alongside content when loading" do
+      render_inline(described_class.new(loading: true)) { "Loading Text" }
       expect(page).to have_css(".btn-spinner")
+      expect(page).to have_text("Loading Text")
     end
   end
 
