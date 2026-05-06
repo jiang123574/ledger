@@ -3,94 +3,120 @@
 require "rails_helper"
 
 RSpec.describe Ds::InputComponent, type: :component do
-  let(:form) do
-    instance_double(ActionView::Helpers::FormBuilder).tap do |fb|
-      allow(fb).to receive(:text_field).and_return("<input type='text'>".html_safe)
-      allow(fb).to receive(:email_field).and_return("<input type='email'>".html_safe)
-      allow(fb).to receive(:password_field).and_return("<input type='password'>".html_safe)
-      allow(fb).to receive(:number_field).and_return("<input type='number'>".html_safe)
-      allow(fb).to receive(:text_area).and_return("<textarea></textarea>".html_safe)
-      allow(fb).to receive(:select).and_return("<select></select>".html_safe)
-    end
-  end
-
   describe "text field" do
-    it "renders text input" do
+    it "calls text_field with correct parameters" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:text_field).with(
+        :name,
+        hash_including(class: include("w-full"), placeholder: nil, required: false)
+      ).and_return("<input>".html_safe)
+
       render_inline(described_class.new(form: form, field: :name, type: :text))
-      expect(page).to have_css("input[type='text']")
     end
 
-    it "renders with placeholder" do
+    it "passes placeholder to text_field" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:text_field).with(
+        :name,
+        hash_including(placeholder: "Enter name")
+      ).and_return("<input>".html_safe)
+
       render_inline(described_class.new(form: form, field: :name, type: :text, placeholder: "Enter name"))
-      expect(page).to have_css("input")
     end
 
-    it "renders with required attribute" do
+    it "passes required to text_field" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:text_field).with(
+        :name,
+        hash_including(required: true)
+      ).and_return("<input>".html_safe)
+
       render_inline(described_class.new(form: form, field: :name, type: :text, required: true))
-      expect(page).to have_css("input")
     end
   end
 
   describe "email field" do
-    it "renders email input" do
+    it "calls email_field with correct field name" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:email_field).with(:email, anything).and_return("<input>".html_safe)
+
       render_inline(described_class.new(form: form, field: :email, type: :email))
-      expect(page).to have_css("input[type='email']")
     end
   end
 
   describe "password field" do
-    it "renders password input" do
+    it "calls password_field with correct field name" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:password_field).with(:password, anything).and_return("<input>".html_safe)
+
       render_inline(described_class.new(form: form, field: :password, type: :password))
-      expect(page).to have_css("input[type='password']")
     end
   end
 
   describe "number field" do
-    it "renders number input" do
+    it "calls number_field with correct field name" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:number_field).with(:amount, anything).and_return("<input>".html_safe)
+
       render_inline(described_class.new(form: form, field: :amount, type: :number))
-      expect(page).to have_css("input[type='number']")
     end
   end
 
   describe "textarea" do
-    it "renders textarea" do
+    it "calls text_area with correct field name and rows" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:text_area).with(:notes, hash_including(rows: 3)).and_return("<textarea>".html_safe)
+
       render_inline(described_class.new(form: form, field: :notes, type: :textarea))
-      expect(page).to have_css("textarea")
     end
   end
 
   describe "select" do
-    it "renders select dropdown" do
-      render_inline(described_class.new(form: form, field: :category, type: :select, choices: [ "A", "B" ]))
-      expect(page).to have_css("select")
+    it "calls select with choices and include_blank" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:select).with(
+        :category,
+        [ "A", "B" ],
+        hash_including(include_blank: "Select..."),
+        anything
+      ).and_return("<select>".html_safe)
+
+      render_inline(described_class.new(form: form, field: :category, type: :select, choices: [ "A", "B" ], placeholder: "Select..."))
     end
   end
 
   describe "prefix" do
-    it "renders with prefix wrapper" do
+    it "renders prefix wrapper and passes modified class to field" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:number_field).with(
+        :price,
+        hash_including(class: include("pl-8"))
+      ).and_return("<input>".html_safe)
+
       render_inline(described_class.new(form: form, field: :price, type: :number, prefix: "$"))
       expect(page).to have_css("div.relative")
       expect(page).to have_css("span", text: "$")
-    end
-
-    it "applies left padding class with prefix" do
-      render_inline(described_class.new(form: form, field: :price, type: :number, prefix: "$"))
-      expect(page).to have_css("div.relative")
     end
   end
 
   describe "base classes" do
     it "base_classes includes w-full" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      allow(form).to receive(:text_field).and_return("<input>".html_safe)
       component = described_class.new(form: form, field: :name, type: :text)
       expect(component.send(:base_classes)).to include("w-full")
     end
 
     it "base_classes includes rounded-lg" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      allow(form).to receive(:text_field).and_return("<input>".html_safe)
       component = described_class.new(form: form, field: :name, type: :text)
       expect(component.send(:base_classes)).to include("rounded-lg")
     end
 
     it "base_classes includes border" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      allow(form).to receive(:text_field).and_return("<input>".html_safe)
       component = described_class.new(form: form, field: :name, type: :text)
       expect(component.send(:base_classes)).to include("border")
     end
@@ -98,13 +124,35 @@ RSpec.describe Ds::InputComponent, type: :component do
 
   describe "custom class" do
     it "base_classes includes custom html_class" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      allow(form).to receive(:text_field).and_return("<input>".html_safe)
       component = described_class.new(form: form, field: :name, type: :text, html_class: "custom-input")
       expect(component.send(:base_classes)).to include("custom-input")
+    end
+
+    it "passes custom class to form field" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:text_field).with(
+        :name,
+        hash_including(class: include("custom-input"))
+      ).and_return("<input>".html_safe)
+
+      render_inline(described_class.new(form: form, field: :name, type: :text, html_class: "custom-input"))
     end
   end
 
   describe "combinations" do
-    it "renders text input with all options" do
+    it "passes all options to text_field" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:text_field).with(
+        :name,
+        hash_including(
+          placeholder: "Enter name",
+          required: true,
+          class: include("w-full", "custom")
+        )
+      ).and_return("<input>".html_safe)
+
       render_inline(described_class.new(
         form: form,
         field: :name,
@@ -113,10 +161,15 @@ RSpec.describe Ds::InputComponent, type: :component do
         required: true,
         html_class: "custom"
       ))
-      expect(page).to have_css("input[type='text']")
     end
 
-    it "renders number input with prefix and custom class" do
+    it "renders number input with prefix wrapper" do
+      form = instance_double(ActionView::Helpers::FormBuilder)
+      expect(form).to receive(:number_field).with(
+        :price,
+        hash_including(class: include("pl-8", "price-input"))
+      ).and_return("<input>".html_safe)
+
       render_inline(described_class.new(
         form: form,
         field: :price,
