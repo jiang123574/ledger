@@ -1,103 +1,63 @@
-// Test for list_filter controller
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
+import ListFilterController from '../../../app/javascript/controllers/list_filter_controller.js'
+import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('ListFilterController', () => {
-  describe('filter action', () => {
-    it('should show matching items and hide non-matching', () => {
-      const mockItems = [
-        { dataset: { filterName: 'Apple' }, classList: { toggle: vi.fn() }, textContent: 'Apple' },
-        { dataset: { filterName: 'Banana' }, classList: { toggle: vi.fn() }, textContent: 'Banana' },
-        { dataset: { filterName: 'Cherry' }, classList: { toggle: vi.fn() }, textContent: 'Cherry' }
-      ]
+  let application
 
-      const filter = (query, items) => {
-        items.forEach(item => {
-          const filterName = (item.dataset.filterName || item.textContent).toLowerCase()
-          const matches = filterName.includes(query)
-          item.classList.toggle('hidden', !matches)
-        })
-      }
+  afterEach(async () => {
+    if (application) await stopController(application)
+  })
 
-      filter('a', mockItems)
+  async function mountList() {
+    ;({ application } = await startController('list-filter', ListFilterController, `
+      <div data-controller="list-filter">
+        <input data-list-filter-target="input" data-action="input->list-filter#filter">
+        <div data-list-filter-target="list">
+          <div class="filterable-item" data-filter-name="Apple">Apple</div>
+          <div class="filterable-item" data-filter-name="Banana">Banana</div>
+          <div class="filterable-item">Cherry Pie</div>
+        </div>
+      </div>
+    `))
 
-      expect(mockItems[0].classList.toggle).toHaveBeenCalledWith('hidden', false) // Apple matches
-      expect(mockItems[1].classList.toggle).toHaveBeenCalledWith('hidden', false) // Banana matches
-      expect(mockItems[2].classList.toggle).toHaveBeenCalledWith('hidden', true)  // Cherry doesn't match
-    })
+    return document.querySelector('[data-controller="list-filter"]')
+  }
 
-    it('should be case insensitive', () => {
-      const mockItem = {
-        dataset: { filterName: 'APPLE' },
-        classList: { toggle: vi.fn() }
-      }
+  it('shows matching items and hides non-matches', async () => {
+    const element = await mountList()
+    const input = element.querySelector('input')
+    const items = element.querySelectorAll('.filterable-item')
 
-      const filter = (query, item) => {
-        const filterName = (item.dataset.filterName || item.textContent).toLowerCase()
-        const matches = filterName.includes(query.toLowerCase())
-        item.classList.toggle('hidden', !matches)
-      }
+    input.value = 'app'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
 
-      filter('apple', mockItem)
+    expect(items[0].classList.contains('hidden')).toBe(false)
+    expect(items[1].classList.contains('hidden')).toBe(true)
+    expect(items[2].classList.contains('hidden')).toBe(true)
+  })
 
-      expect(mockItem.classList.toggle).toHaveBeenCalledWith('hidden', false)
-    })
+  it('matches case-insensitively and falls back to text content', async () => {
+    const element = await mountList()
+    const input = element.querySelector('input')
+    const items = element.querySelectorAll('.filterable-item')
 
-    it('should show all items when query is empty', () => {
-      const mockItems = [
-        { dataset: { filterName: 'Apple' }, classList: { toggle: vi.fn() } },
-        { dataset: { filterName: 'Banana' }, classList: { toggle: vi.fn() } }
-      ]
+    input.value = 'CHERRY'
+    input.dispatchEvent(new Event('input', { bubbles: true }))
 
-      const filter = (query, items) => {
-        items.forEach(item => {
-          const filterName = (item.dataset.filterName || item.textContent).toLowerCase()
-          const matches = filterName.includes(query)
-          item.classList.toggle('hidden', !matches)
-        })
-      }
+    expect(items[0].classList.contains('hidden')).toBe(true)
+    expect(items[1].classList.contains('hidden')).toBe(true)
+    expect(items[2].classList.contains('hidden')).toBe(false)
+  })
 
-      filter('', mockItems)
+  it('shows every item for an empty query', async () => {
+    const element = await mountList()
+    const input = element.querySelector('input')
+    const items = element.querySelectorAll('.filterable-item')
 
-      expect(mockItems[0].classList.toggle).toHaveBeenCalledWith('hidden', false)
-      expect(mockItems[1].classList.toggle).toHaveBeenCalledWith('hidden', false)
-    })
+    input.value = ''
+    input.dispatchEvent(new Event('input', { bubbles: true }))
 
-    it('should handle items without filterName dataset', () => {
-      const mockItem = {
-        dataset: {},
-        textContent: 'Test Item',
-        classList: { toggle: vi.fn() }
-      }
-
-      const filter = (query, item) => {
-        const filterName = (item.dataset.filterName || item.textContent).toLowerCase()
-        const matches = filterName.includes(query)
-        item.classList.toggle('hidden', !matches)
-      }
-
-      filter('test', mockItem)
-
-      expect(mockItem.classList.toggle).toHaveBeenCalledWith('hidden', false)
-    })
-
-    it('should handle partial matches', () => {
-      const mockItems = [
-        { dataset: { filterName: 'Apple Juice' }, classList: { toggle: vi.fn() } },
-        { dataset: { filterName: 'Apple Pie' }, classList: { toggle: vi.fn() } }
-      ]
-
-      const filter = (query, items) => {
-        items.forEach(item => {
-          const filterName = (item.dataset.filterName || item.textContent).toLowerCase()
-          const matches = filterName.includes(query)
-          item.classList.toggle('hidden', !matches)
-        })
-      }
-
-      filter('apple', mockItems)
-
-      expect(mockItems[0].classList.toggle).toHaveBeenCalledWith('hidden', false)
-      expect(mockItems[1].classList.toggle).toHaveBeenCalledWith('hidden', false)
-    })
+    items.forEach((item) => expect(item.classList.contains('hidden')).toBe(false))
   })
 })
