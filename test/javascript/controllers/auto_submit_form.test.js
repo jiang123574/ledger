@@ -4,18 +4,18 @@ import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('AutoSubmitFormController', () => {
   let application
+  let requestSubmitSpy
 
   afterEach(async () => {
     vi.useRealTimers()
     if (application) await stopController(application)
+    requestSubmitSpy?.mockRestore()
+    requestSubmitSpy = null
   })
 
   async function mountForm(markup) {
-    document.body.innerHTML = markup
-    const form = document.querySelector('form')
-    form.requestSubmit = vi.fn()
-
-    ;({ application } = await startController('auto-submit-form', AutoSubmitFormController, document.body.innerHTML))
+    requestSubmitSpy = vi.spyOn(HTMLFormElement.prototype, 'requestSubmit').mockImplementation(() => {})
+    ;({ application } = await startController('auto-submit-form', AutoSubmitFormController, markup))
     return document.querySelector('form')
   }
 
@@ -28,13 +28,13 @@ describe('AutoSubmitFormController', () => {
     `)
 
     form.querySelector('input').dispatchEvent(new Event('blur', { bubbles: true }))
-    expect(form.requestSubmit).not.toHaveBeenCalled()
+    expect(requestSubmitSpy).not.toHaveBeenCalled()
 
     vi.advanceTimersByTime(499)
-    expect(form.requestSubmit).not.toHaveBeenCalled()
+    expect(requestSubmitSpy).not.toHaveBeenCalled()
 
     vi.advanceTimersByTime(1)
-    expect(form.requestSubmit).toHaveBeenCalledTimes(1)
+    expect(requestSubmitSpy).toHaveBeenCalledTimes(1)
   })
 
   it('submits number inputs immediately on change', async () => {
@@ -45,7 +45,7 @@ describe('AutoSubmitFormController', () => {
     `)
 
     form.querySelector('input').dispatchEvent(new Event('change', { bubbles: true }))
-    expect(form.requestSubmit).toHaveBeenCalledTimes(1)
+    expect(requestSubmitSpy).toHaveBeenCalledTimes(1)
   })
 
   it('debounces repeated text input blur events', async () => {
@@ -62,26 +62,24 @@ describe('AutoSubmitFormController', () => {
     textarea.dispatchEvent(new Event('blur', { bubbles: true }))
     vi.advanceTimersByTime(500)
 
-    expect(form.requestSubmit).toHaveBeenCalledTimes(1)
+    expect(requestSubmitSpy).toHaveBeenCalledTimes(1)
   })
 
   it('falls back to submit when requestSubmit is unavailable', async () => {
-    document.body.innerHTML = `
+    const originalRequestSubmit = HTMLFormElement.prototype.requestSubmit
+    HTMLFormElement.prototype.requestSubmit = undefined
+
+    ;({ application } = await startController('auto-submit-form', AutoSubmitFormController, `
       <form data-controller="auto-submit-form">
         <select name="category"><option>A</option></select>
       </form>
-    `
-    const originalRequestSubmit = HTMLFormElement.prototype.requestSubmit
-    HTMLFormElement.prototype.requestSubmit = undefined
+    `))
+
     const form = document.querySelector('form')
     form.submit = vi.fn()
+    form.querySelector('select').dispatchEvent(new Event('change', { bubbles: true }))
 
-    ;({ application } = await startController('auto-submit-form', AutoSubmitFormController, document.body.innerHTML))
-    const mountedForm = document.querySelector('form')
-    mountedForm.submit = form.submit
-    mountedForm.querySelector('select').dispatchEvent(new Event('change', { bubbles: true }))
-
-    expect(mountedForm.submit).toHaveBeenCalledTimes(1)
+    expect(form.submit).toHaveBeenCalledTimes(1)
     HTMLFormElement.prototype.requestSubmit = originalRequestSubmit
   })
 })
