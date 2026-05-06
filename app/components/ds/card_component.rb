@@ -15,6 +15,22 @@ module Ds
   #   shadow: :none, :border_xs, :border_sm, :border_md, :border_lg (default: :border_xs)
   #
   class CardComponent < BaseComponent
+    ROUNDED_CLASSES = {
+      sm: "rounded-sm",
+      md: "rounded",
+      lg: "rounded-lg",
+      xl: "rounded-xl",
+      none: ""
+    }.freeze
+
+    SHADOW_CLASSES = {
+      none: "",
+      border_xs: "shadow-border-xs",
+      border_sm: "shadow-border-sm",
+      border_md: "shadow-border-md",
+      border_lg: "shadow-border-lg"
+    }.freeze
+
     def initialize(
       padding: true,
       rounded: :lg,
@@ -43,26 +59,9 @@ module Ds
 
     def base_classes
       classes = [ "bg-container" ]
-
-      classes << case @rounded
-      when :sm then "rounded-sm"
-      when :md then "rounded"
-      when :lg then "rounded-lg"
-      when :xl then "rounded-xl"
-      when :none then ""
-      else "rounded-lg"
-      end
-
-      classes << case @shadow
-      when :none then ""
-      when :border_xs then "shadow-border-xs"
-      when :border_sm then "shadow-border-sm"
-      when :border_md then "shadow-border-md"
-      when :border_lg then "shadow-border-lg"
-      else "shadow-border-xs"
-      end
-
-      classes << (@padding ? "p-4 lg:p-6" : "")
+      classes << ROUNDED_CLASSES.fetch(@rounded, "rounded-lg")
+      classes << SHADOW_CLASSES.fetch(@shadow, "shadow-border-xs")
+      classes << "p-4 lg:p-6" if @padding
 
       classes.join(" ")
     end
