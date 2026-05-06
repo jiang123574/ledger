@@ -16,6 +16,12 @@ if [ "$RAILS_ENV" == "production" ]; then
     echo "Loading Solid Queue schema..."
     ./bin/rails runner 'load Rails.root.join("db", "queue_schema.rb")' 2>/dev/null || true
   fi
+  
+  # Ensure Solid Cache tables exist
+  if [ -f db/cache_schema.rb ]; then
+    echo "Loading Solid Cache schema..."
+    ./bin/rails runner 'load Rails.root.join("db", "cache_schema.rb")' 2>/dev/null || true
+  fi
 fi
 
 exec "${@}"
