@@ -280,10 +280,25 @@ class BackupService
   end
 
   def self.get_pg_version
-    stdout, _, status = Open3.capture3("psql --version")
-    if status.success?
-      match = stdout.match(/PostgreSQL\)\s+(\d+)/)
-      match ? match[1].to_i : nil
+    db_config = get_primary_db_config
+    
+    env_vars = { "PGPASSWORD" => db_config["password"] }
+    cmd = [
+      "psql",
+      "-h", db_config["host"] || "localhost",
+      "-U", db_config["username"] || "postgres",
+      "-d", db_config["database"],
+      "-t", "-A",
+      "-c", "SELECT current_setting('server_version_num')"
+    ]
+    
+    stdout, stderr, status = Open3.capture3(env_vars, *cmd)
+    
+    if status.success? && stdout.strip =~ /^\d+$/
+      stdout.strip.to_i / 10000
+    else
+      Rails.logger.warn("Failed to get server version: #{stderr}")
+      nil
     end
   end
 
