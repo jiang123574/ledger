@@ -31,6 +31,8 @@ afterEach(() => {
   document.body.innerHTML = ''
   document.documentElement.className = ''
   document.documentElement.removeAttribute('data-theme')
+  localStorage.clear()
+  delete localStorage.theme
   delete window.LedgerNative
   vi.restoreAllMocks()
 })
