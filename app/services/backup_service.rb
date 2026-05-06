@@ -65,8 +65,16 @@ class BackupService
 
     Rails.logger.info("Starting restore from backup file: #{backup_file}")
 
+    # Filter PG17 params before restore
+    filtered_file = filter_pg17_params(backup_file)
+
     db_config = get_primary_db_config
-    result = execute_psql_restore(db_config, backup_file.to_s)
+    result = execute_psql_restore(db_config, filtered_file.to_s)
+
+    # Cleanup filtered file if created
+    if filtered_file != backup_file && File.exist?(filtered_file)
+      File.delete(filtered_file)
+    end
 
     if result[:success]
       # 恢复成功后更新缓存字段
