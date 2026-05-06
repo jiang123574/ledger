@@ -1,221 +1,87 @@
-// Test for auto_submit_form controller
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
+import AutoSubmitFormController from '../../../app/javascript/controllers/auto_submit_form_controller.js'
+import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('AutoSubmitFormController', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
+  let application
 
-  afterEach(() => {
+  afterEach(async () => {
     vi.useRealTimers()
+    if (application) await stopController(application)
   })
 
-  describe('getEventType', () => {
-    const getEventType = (input) => {
-      const type = input.type?.toLowerCase() || input.tagName.toLowerCase()
+  async function mountForm(markup) {
+    document.body.innerHTML = markup
+    const form = document.querySelector('form')
+    form.requestSubmit = vi.fn()
 
-      switch (type) {
-        case 'text':
-        case 'email':
-        case 'search':
-          return 'blur'
-        case 'number':
-        case 'date':
-        case 'datetime-local':
-        case 'time':
-          return 'change'
-        case 'checkbox':
-        case 'radio':
-          return 'change'
-        case 'range':
-          return 'input'
-        case 'select':
-          return 'change'
-        case 'textarea':
-          return 'blur'
-        default:
-          return 'change'
-      }
-    }
+    ;({ application } = await startController('auto-submit-form', AutoSubmitFormController, document.body.innerHTML))
+    return document.querySelector('form')
+  }
 
-    it('should return blur for text inputs', () => {
-      expect(getEventType({ type: 'text' })).toBe('blur')
-      expect(getEventType({ type: 'email' })).toBe('blur')
-      expect(getEventType({ type: 'search' })).toBe('blur')
-    })
+  it('submits text inputs on blur after the debounce delay', async () => {
+    vi.useFakeTimers()
+    const form = await mountForm(`
+      <form data-controller="auto-submit-form">
+        <input type="text" name="q">
+      </form>
+    `)
 
-    it('should return change for number inputs', () => {
-      expect(getEventType({ type: 'number' })).toBe('change')
-      expect(getEventType({ type: 'date' })).toBe('change')
-      expect(getEventType({ type: 'datetime-local' })).toBe('change')
-    })
+    form.querySelector('input').dispatchEvent(new Event('blur', { bubbles: true }))
+    expect(form.requestSubmit).not.toHaveBeenCalled()
 
-    it('should return change for checkbox and radio', () => {
-      expect(getEventType({ type: 'checkbox' })).toBe('change')
-      expect(getEventType({ type: 'radio' })).toBe('change')
-    })
+    vi.advanceTimersByTime(499)
+    expect(form.requestSubmit).not.toHaveBeenCalled()
 
-    it('should return input for range', () => {
-      expect(getEventType({ type: 'range' })).toBe('input')
-    })
-
-    it('should return change for select', () => {
-      expect(getEventType({ tagName: 'select' })).toBe('change')
-    })
-
-    it('should return blur for textarea', () => {
-      expect(getEventType({ tagName: 'textarea' })).toBe('blur')
-    })
+    vi.advanceTimersByTime(1)
+    expect(form.requestSubmit).toHaveBeenCalledTimes(1)
   })
 
-  describe('getDebounceTime', () => {
-    const getDebounceTime = (input) => {
-      const type = input.type?.toLowerCase() || input.tagName.toLowerCase()
+  it('submits number inputs immediately on change', async () => {
+    const form = await mountForm(`
+      <form data-controller="auto-submit-form">
+        <input type="number" name="amount">
+      </form>
+    `)
 
-      switch (type) {
-        case 'text':
-        case 'email':
-        case 'search':
-        case 'textarea':
-          return 500
-        case 'number':
-        case 'date':
-        case 'datetime-local':
-        case 'time':
-          return 0
-        case 'checkbox':
-        case 'radio':
-          return 0
-        case 'range':
-          return 200
-        case 'select':
-          return 0
-        default:
-          return 0
-      }
-    }
-
-    it('should return 500ms for text inputs', () => {
-      expect(getDebounceTime({ type: 'text' })).toBe(500)
-      expect(getDebounceTime({ type: 'email' })).toBe(500)
-      expect(getDebounceTime({ tagName: 'textarea' })).toBe(500)
-    })
-
-    it('should return 0ms for immediate inputs', () => {
-      expect(getDebounceTime({ type: 'number' })).toBe(0)
-      expect(getDebounceTime({ type: 'checkbox' })).toBe(0)
-      expect(getDebounceTime({ tagName: 'select' })).toBe(0)
-    })
-
-    it('should return 200ms for range', () => {
-      expect(getDebounceTime({ type: 'range' })).toBe(200)
-    })
+    form.querySelector('input').dispatchEvent(new Event('change', { bubbles: true }))
+    expect(form.requestSubmit).toHaveBeenCalledTimes(1)
   })
 
-  describe('debounce behavior', () => {
-    it('should submit immediately when debounce is 0', () => {
-      const mockForm = {
-        requestSubmit: vi.fn()
-      }
+  it('debounces repeated text input blur events', async () => {
+    vi.useFakeTimers()
+    const form = await mountForm(`
+      <form data-controller="auto-submit-form">
+        <textarea name="notes"></textarea>
+      </form>
+    `)
+    const textarea = form.querySelector('textarea')
 
-      const handleInput = (input, form, debounceTime) => {
-        if (debounceTime === 0) {
-          form.requestSubmit()
-        }
-      }
+    textarea.dispatchEvent(new Event('blur', { bubbles: true }))
+    vi.advanceTimersByTime(300)
+    textarea.dispatchEvent(new Event('blur', { bubbles: true }))
+    vi.advanceTimersByTime(500)
 
-      handleInput({ type: 'checkbox' }, mockForm, 0)
-
-      expect(mockForm.requestSubmit).toHaveBeenCalled()
-    })
-
-    it('should debounce text input by 500ms', () => {
-      const mockForm = {
-        requestSubmit: vi.fn()
-      }
-      let debounceTimer = null
-
-      const handleInput = (debounceTime) => {
-        if (debounceTimer) {
-          clearTimeout(debounceTimer)
-        }
-        debounceTimer = setTimeout(() => {
-          mockForm.requestSubmit()
-        }, debounceTime)
-      }
-
-      handleInput(500)
-
-      expect(mockForm.requestSubmit).not.toHaveBeenCalled()
-
-      vi.advanceTimersByTime(500)
-
-      expect(mockForm.requestSubmit).toHaveBeenCalled()
-    })
-
-    it('should cancel previous debounce on new input', () => {
-      const mockForm = {
-        requestSubmit: vi.fn()
-      }
-      let debounceTimer = null
-      let submitCount = 0
-
-      const handleInput = (debounceTime) => {
-        if (debounceTimer) {
-          clearTimeout(debounceTimer)
-        }
-        debounceTimer = setTimeout(() => {
-          mockForm.requestSubmit()
-          submitCount++
-        }, debounceTime)
-      }
-
-      handleInput(500)
-      vi.advanceTimersByTime(300)
-      handleInput(500) // Cancel previous and start new
-      vi.advanceTimersByTime(500)
-
-      expect(submitCount).toBe(1) // Only one submission
-    })
+    expect(form.requestSubmit).toHaveBeenCalledTimes(1)
   })
 
-  describe('submitForm', () => {
-    it('should use requestSubmit when available', () => {
-      const mockForm = {
-        requestSubmit: vi.fn(),
-        submit: vi.fn()
-      }
+  it('falls back to submit when requestSubmit is unavailable', async () => {
+    document.body.innerHTML = `
+      <form data-controller="auto-submit-form">
+        <select name="category"><option>A</option></select>
+      </form>
+    `
+    const originalRequestSubmit = HTMLFormElement.prototype.requestSubmit
+    HTMLFormElement.prototype.requestSubmit = undefined
+    const form = document.querySelector('form')
+    form.submit = vi.fn()
 
-      const submitForm = (form) => {
-        if (form.requestSubmit) {
-          form.requestSubmit()
-        } else {
-          form.submit()
-        }
-      }
+    ;({ application } = await startController('auto-submit-form', AutoSubmitFormController, document.body.innerHTML))
+    const mountedForm = document.querySelector('form')
+    mountedForm.submit = form.submit
+    mountedForm.querySelector('select').dispatchEvent(new Event('change', { bubbles: true }))
 
-      submitForm(mockForm)
-
-      expect(mockForm.requestSubmit).toHaveBeenCalled()
-      expect(mockForm.submit).not.toHaveBeenCalled()
-    })
-
-    it('should fallback to submit when requestSubmit not available', () => {
-      const mockForm = {
-        submit: vi.fn()
-      }
-
-      const submitForm = (form) => {
-        if (form.requestSubmit) {
-          form.requestSubmit()
-        } else {
-          form.submit()
-        }
-      }
-
-      submitForm(mockForm)
-
-      expect(mockForm.submit).toHaveBeenCalled()
-    })
+    expect(mountedForm.submit).toHaveBeenCalledTimes(1)
+    HTMLFormElement.prototype.requestSubmit = originalRequestSubmit
   })
 })
