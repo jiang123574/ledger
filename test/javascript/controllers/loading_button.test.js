@@ -1,87 +1,54 @@
-// Test for loading_button controller
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, afterEach } from 'vitest'
+import LoadingButtonController from '../../../app/javascript/controllers/loading_button_controller.js'
+import { startController, stopController } from './stimulus_test_helper.js'
 
 describe('LoadingButtonController', () => {
-  describe('showLoading action', () => {
-    it('should disable button and show loading text', () => {
-      const mockButton = {
-        disabled: false,
-        setAttribute: vi.fn(),
-        innerHTML: ''
-      }
+  let application
 
-      const showLoading = (button, loadingText = 'Loading...') => {
-        button.disabled = true
-        button.setAttribute('aria-disabled', 'true')
-        button.setAttribute('aria-busy', 'true')
-        button.innerHTML = `
-          <span class="inline-flex items-center gap-2">
-            <span class="btn-spinner" aria-hidden="true"></span>
-            <span>${loadingText}</span>
-          </span>
-        `
-      }
-
-      showLoading(mockButton, '处理中...')
-
-      expect(mockButton.disabled).toBe(true)
-      expect(mockButton.setAttribute).toHaveBeenCalledWith('aria-disabled', 'true')
-      expect(mockButton.setAttribute).toHaveBeenCalledWith('aria-busy', 'true')
-      expect(mockButton.innerHTML).toContain('处理中...')
-      expect(mockButton.innerHTML).toContain('btn-spinner')
-    })
-
-    it('should use default loading text when not specified', () => {
-      const mockButton = {
-        disabled: false,
-        setAttribute: vi.fn(),
-        innerHTML: ''
-      }
-
-      const showLoading = (button, loadingText = 'Loading...') => {
-        button.innerHTML = `<span>${loadingText}</span>`
-      }
-
-      showLoading(mockButton)
-
-      expect(mockButton.innerHTML).toContain('Loading...')
-    })
-
-    it('should handle missing button target', () => {
-      const mockController = {
-        hasButtonTarget: false,
-        buttonTarget: undefined
-      }
-
-      const showLoading = (controller) => {
-        if (!controller.hasButtonTarget) return
-        controller.buttonTarget.disabled = true
-      }
-
-      showLoading(mockController)
-
-      // Should not throw and should not modify anything
-      expect(mockController.hasButtonTarget).toBe(false)
-    })
+  afterEach(async () => {
+    if (application) await stopController(application)
   })
 
-  describe('accessibility', () => {
-    it('should set correct aria attributes', () => {
-      const mockButton = {
-        disabled: false,
-        setAttribute: vi.fn()
-      }
+  it('disables the target button and renders the configured loading text', async () => {
+    ;({ application } = await startController('loading-button', LoadingButtonController, `
+      <div data-controller="loading-button" data-loading-button-loading-text-value="Processing...">
+        <button data-loading-button-target="button" data-action="click->loading-button#showLoading">Save</button>
+      </div>
+    `))
 
-      const showLoading = (button) => {
-        button.disabled = true
-        button.setAttribute('aria-disabled', 'true')
-        button.setAttribute('aria-busy', 'true')
-      }
+    const button = document.querySelector('button')
+    button.click()
 
-      showLoading(mockButton)
+    expect(button.disabled).toBe(true)
+    expect(button.getAttribute('aria-disabled')).toBe('true')
+    expect(button.getAttribute('aria-busy')).toBe('true')
+    expect(button.querySelector('.btn-spinner')).not.toBeNull()
+    expect(button.textContent).toContain('Processing...')
+  })
 
-      expect(mockButton.setAttribute).toHaveBeenCalledWith('aria-disabled', 'true')
-      expect(mockButton.setAttribute).toHaveBeenCalledWith('aria-busy', 'true')
-    })
+  it('uses the default loading text when no value is configured', async () => {
+    ;({ application } = await startController('loading-button', LoadingButtonController, `
+      <div data-controller="loading-button">
+        <button data-loading-button-target="button" data-action="click->loading-button#showLoading">Save</button>
+      </div>
+    `))
+
+    const button = document.querySelector('button')
+    button.click()
+
+    expect(button.textContent).toContain('Loading...')
+  })
+
+  it('does nothing when the button target is missing', async () => {
+    ;({ application } = await startController('loading-button', LoadingButtonController, `
+      <div data-controller="loading-button">
+        <button data-action="click->loading-button#showLoading">Save</button>
+      </div>
+    `))
+
+    const button = document.querySelector('button')
+    expect(() => button.click()).not.toThrow()
+    expect(button.disabled).toBe(false)
+    expect(button.textContent).toBe('Save')
   })
 })
