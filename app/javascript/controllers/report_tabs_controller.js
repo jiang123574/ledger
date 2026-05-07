@@ -120,8 +120,89 @@ export default class extends Controller {
         panel.querySelectorAll('.comparison-row').forEach(row => {
           row.classList.toggle('hidden', checkedIds.length > 0 && !checkedIds.includes(row.dataset.categoryId || ''))
         })
+        // 筛选后重新计算总计
+        this.updateComparisonTotals(panel)
         break
     }
+  }
+
+  // 更新 comparison 面板的总计（根据可见的分类行）
+  updateComparisonTotals(panel) {
+    const visibleRows = panel.querySelectorAll('.comparison-row:not(.hidden)')
+
+    // 初始化月度总计
+    const monthlyExpense = Array(12).fill(0)
+    const monthlyIncome = Array(12).fill(0)
+    let totalExpense = 0
+    let totalIncome = 0
+
+    // 遍历可见行，累加金额
+    visibleRows.forEach(row => {
+      const kind = row.dataset.categoryKind
+      const total = parseFloat(row.dataset.categoryTotal) || 0
+      const monthlyValues = JSON.parse(row.dataset.monthlyValues || '{}')
+
+      if (kind === 'expense') {
+        totalExpense += total
+        for (let m = 1; m <= 12; m++) {
+          monthlyExpense[m - 1] += parseFloat(monthlyValues[m]) || 0
+        }
+      } else if (kind === 'income') {
+        totalIncome += total
+        for (let m = 1; m <= 12; m++) {
+          monthlyIncome[m - 1] += parseFloat(monthlyValues[m]) || 0
+        }
+      }
+    })
+
+    // 更新支出总计行
+    const expenseRow = panel.querySelector('[data-comparison-totals="expense"]')
+    if (expenseRow) {
+      expenseRow.querySelector('[data-total="expense-total"]').textContent = this.formatCurrency(totalExpense)
+      for (let m = 1; m <= 12; m++) {
+        expenseRow.querySelector(`[data-total="expense-${m}"]`).textContent = this.formatCurrency(monthlyExpense[m - 1])
+      }
+    }
+
+    // 更新收入总计行
+    const incomeRow = panel.querySelector('[data-comparison-totals="income"]')
+    if (incomeRow) {
+      incomeRow.querySelector('[data-total="income-total"]').textContent = this.formatCurrency(totalIncome)
+      for (let m = 1; m <= 12; m++) {
+        incomeRow.querySelector(`[data-total="income-${m}"]`).textContent = this.formatCurrency(monthlyIncome[m - 1])
+      }
+    }
+
+    // 更新差额行
+    const diffRow = panel.querySelector('[data-comparison-totals="diff"]')
+    if (diffRow) {
+      const totalDiff = totalIncome - totalExpense
+      const totalCell = diffRow.querySelector('[data-total="diff-total"]')
+      totalCell.textContent = this.formatCurrency(totalDiff)
+      this.updateDiffCellClass(totalCell, totalDiff)
+
+      for (let m = 1; m <= 12; m++) {
+        const monthDiff = monthlyIncome[m - 1] - monthlyExpense[m - 1]
+        const monthCell = diffRow.querySelector(`[data-total="diff-${m}"]`)
+        monthCell.textContent = this.formatCurrency(monthDiff)
+        this.updateDiffCellClass(monthCell, monthDiff)
+      }
+    }
+  }
+
+  // 格式化货币（简单版，与 Rails format_currency 保持一致）
+  formatCurrency(amount) {
+    const absAmount = Math.abs(amount)
+    const formatted = absAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+    return amount < 0 ? `-¥${formatted}` : `¥${formatted}`
+  }
+
+  // 更新差额单元格的颜色类
+  updateDiffCellClass(cell, value) {
+    const positiveClass = cell.dataset.classPositive || 'text-income'
+    const negativeClass = cell.dataset.classNegative || 'text-expense'
+    cell.classList.remove(positiveClass, negativeClass)
+    cell.classList.add(value >= 0 ? positiveClass : negativeClass)
   }
 
   toggleRows(panel, selector, checkedIds) {
