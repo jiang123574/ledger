@@ -140,61 +140,106 @@ export default class extends Controller {
     visibleRows.forEach(row => {
       const kind = row.dataset.categoryKind
       const total = parseFloat(row.dataset.categoryTotal) || 0
-      const monthlyValues = JSON.parse(row.dataset.monthlyValues || '{}')
+
+      // 安全解析 JSON，避免无效数据抛错
+      let monthlyValues = {}
+      try {
+        monthlyValues = JSON.parse(row.dataset.monthlyValues || '{}')
+      } catch (e) {
+        // JSON 无效时跳过
+      }
 
       if (kind === 'expense') {
         totalExpense += total
-        for (let m = 1; m <= 12; m++) {
-          monthlyExpense[m - 1] += parseFloat(monthlyValues[m]) || 0
-        }
+        this.addMonthlyValues(monthlyExpense, monthlyValues)
       } else if (kind === 'income') {
         totalIncome += total
-        for (let m = 1; m <= 12; m++) {
-          monthlyIncome[m - 1] += parseFloat(monthlyValues[m]) || 0
-        }
+        this.addMonthlyValues(monthlyIncome, monthlyValues)
       }
     })
 
     // 更新支出总计行
-    const expenseRow = panel.querySelector('[data-comparison-totals="expense"]')
-    if (expenseRow) {
-      expenseRow.querySelector('[data-total="expense-total"]').textContent = this.formatCurrency(totalExpense)
-      for (let m = 1; m <= 12; m++) {
-        expenseRow.querySelector(`[data-total="expense-${m}"]`).textContent = this.formatCurrency(monthlyExpense[m - 1])
-      }
-    }
+    this.updateTotalRow(panel, 'expense', totalExpense, monthlyExpense, 'text-expense')
 
     // 更新收入总计行
-    const incomeRow = panel.querySelector('[data-comparison-totals="income"]')
-    if (incomeRow) {
-      incomeRow.querySelector('[data-total="income-total"]').textContent = this.formatCurrency(totalIncome)
-      for (let m = 1; m <= 12; m++) {
-        incomeRow.querySelector(`[data-total="income-${m}"]`).textContent = this.formatCurrency(monthlyIncome[m - 1])
-      }
-    }
+    this.updateTotalRow(panel, 'income', totalIncome, monthlyIncome, 'text-income')
 
     // 更新差额行
     const diffRow = panel.querySelector('[data-comparison-totals="diff"]')
     if (diffRow) {
       const totalDiff = totalIncome - totalExpense
-      const totalCell = diffRow.querySelector('[data-total="diff-total"]')
-      totalCell.textContent = this.formatCurrency(totalDiff)
-      this.updateDiffCellClass(totalCell, totalDiff)
+      this.updateCell(diffRow, 'diff-total', totalDiff, true)
 
       for (let m = 1; m <= 12; m++) {
         const monthDiff = monthlyIncome[m - 1] - monthlyExpense[m - 1]
-        const monthCell = diffRow.querySelector(`[data-total="diff-${m}"]`)
-        monthCell.textContent = this.formatCurrency(monthDiff)
-        this.updateDiffCellClass(monthCell, monthDiff)
+        this.updateCell(diffRow, `diff-${m}`, monthDiff, true)
       }
     }
   }
 
-  // 格式化货币（简单版，与 Rails format_currency 保持一致）
-  formatCurrency(amount) {
-    const absAmount = Math.abs(amount)
-    const formatted = absAmount.toLocaleString('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-    return amount < 0 ? `-¥${formatted}` : `¥${formatted}`
+  // 累加月度值
+  addMonthlyValues(targetArray, monthlyValues) {
+    for (let m = 1; m <= 12; m++) {
+      targetArray[m - 1] += parseFloat(monthlyValues[m]) || 0
+    }
+  }
+
+  // 更新总计行
+  updateTotalRow(panel, type, total, monthlyValues, cssClass) {
+    const row = panel.querySelector(`[data-comparison-totals="${type}"]`)
+    if (!row) return
+
+    this.updateCell(row, `${type}-total`, total, false, cssClass)
+
+    for (let m = 1; m <= 12; m++) {
+      this.updateCell(row, `${type}-${m}`, monthlyValues[m - 1], false, cssClass)
+    }
+  }
+
+  // 更新单个单元格
+  updateCell(row, dataTotalKey, value, updateClass = false, fixedClass = null) {
+    const cell = row.querySelector(`[data-total="${dataTotalKey}"]`)
+    if (!cell) return
+
+    cell.textContent = this.formatCurrencyFromExisting(cell, value)
+
+    if (updateClass) {
+      this.updateDiffCellClass(cell, value)
+    } else if (fixedClass) {
+      // 固定类型行保持原有颜色类
+    }
+  }
+
+  // 从现有单元格推断格式，保持与 Rails 输出一致
+  formatCurrencyFromExisting(cell, newValue) {
+    const existingText = cell.textContent.trim()
+
+    // 提取现有格式：符号位置、分隔符样式
+    // 例如 "¥123.00" 或 "-¥123.00" 或 "¥-123.00"
+    const isNegative = newValue < 0
+    const absValue = Math.abs(newValue)
+
+    // 格式化数字部分（保持小数位）
+    const formattedNumber = absValue.toLocaleString(undefined, {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+
+    // 尝试从现有文本提取货币符号
+    const symbolMatch = existingText.match(/[¥$€£]/)
+    const symbol = symbolMatch ? symbolMatch[0] : '¥'
+
+    // 根据现有格式判断符号位置
+    if (existingText.startsWith('-')) {
+      // 格式类似 "-¥123.00"
+      return isNegative ? `-${symbol}${formattedNumber}` : `${symbol}${formattedNumber}`
+    } else if (existingText.includes(symbol + '-') || existingText.match(new RegExp(`^${symbol}-`))) {
+      // 格式类似 "¥-123.00"
+      return `${symbol}${isNegative ? '-' : ''}${formattedNumber}`
+    } else {
+      // 默认格式 "¥123.00"，负数 "-¥123.00"
+      return isNegative ? `-${symbol}${formattedNumber}` : `${symbol}${formattedNumber}`
+    }
   }
 
   // 更新差额单元格的颜色类
