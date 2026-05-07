@@ -214,32 +214,21 @@ export default class extends Controller {
   formatCurrencyFromExisting(cell, newValue) {
     const existingText = cell.textContent.trim()
 
-    // 提取现有格式：符号位置、分隔符样式
-    // 例如 "¥123.00" 或 "-¥123.00" 或 "¥-123.00"
     const isNegative = newValue < 0
     const absValue = Math.abs(newValue)
 
-    // 格式化数字部分（保持小数位）
-    const formattedNumber = absValue.toLocaleString(undefined, {
+    // 使用 zh-CN locale 保持与 Rails format_currency 一致
+    const formattedNumber = absValue.toLocaleString('zh-CN', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     })
 
-    // 尝试从现有文本提取货币符号
+    // 提取货币符号（默认 ¥）
     const symbolMatch = existingText.match(/[¥$€£]/)
     const symbol = symbolMatch ? symbolMatch[0] : '¥'
 
-    // 根据现有格式判断符号位置
-    if (existingText.startsWith('-')) {
-      // 格式类似 "-¥123.00"
-      return isNegative ? `-${symbol}${formattedNumber}` : `${symbol}${formattedNumber}`
-    } else if (existingText.includes(symbol + '-') || existingText.match(new RegExp(`^${symbol}-`))) {
-      // 格式类似 "¥-123.00"
-      return `${symbol}${isNegative ? '-' : ''}${formattedNumber}`
-    } else {
-      // 默认格式 "¥123.00"，负数 "-¥123.00"
-      return isNegative ? `-${symbol}${formattedNumber}` : `${symbol}${formattedNumber}`
-    }
+    // Rails format_currency 格式: 正数 "¥123.00"，负数 "-¥123.00"
+    return isNegative ? `-${symbol}${formattedNumber}` : `${symbol}${formattedNumber}`
   }
 
   // 更新差额单元格的颜色类
