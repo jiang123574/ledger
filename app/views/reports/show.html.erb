@@ -641,6 +641,9 @@
                 <% is_income = cat_data[:kind] == 'income' %>
                 <tr class="border-b border-border/50 dark:border-border-dark/50 hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer comparison-row"
                     data-category-id="<%= cat_id %>"
+                    data-category-kind="<%= cat_data[:kind] %>"
+                    data-category-total="<%= cat_data[:total] %>"
+                    data-monthly-values="<%= cat_data[:monthly].to_json %>"
                     data-row-index="<%= idx %>">
                   <td class="py-1.5 px-2 font-medium text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5 whitespace-nowrap">
                     <span class="inline-flex items-center gap-1">
@@ -667,27 +670,27 @@
                 <% end %>
 
                 <%# 总计行 %>
-                <tr class="border-t-2 border-border dark:border-border-dark bg-surface/50 dark:bg-surface-dark/50 font-semibold">
+                <tr data-comparison-totals="expense" class="border-t-2 border-border dark:border-border-dark bg-surface/50 dark:bg-surface-dark/50 font-semibold">
                   <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5">支出总计</td>
-                  <td class="py-2 px-2 text-right text-expense whitespace-nowrap"><%= format_currency(comparison_totals.values.sum { |t| t[:expense] }) %></td>
+                  <td class="py-2 px-2 text-right text-expense whitespace-nowrap" data-total="expense-total"><%= format_currency(comparison_totals.values.sum { |t| t[:expense] }) %></td>
                   <% (1..12).each do |m| %>
-                    <td class="py-2 px-1.5 text-right text-expense whitespace-nowrap"><%= format_currency(comparison_totals.dig(m, :expense)) %></td>
+                    <td class="py-2 px-1.5 text-right text-expense whitespace-nowrap" data-month="<%= m %>" data-total="expense-<%= m %>"><%= format_currency(comparison_totals.dig(m, :expense)) %></td>
                   <% end %>
                 </tr>
-                <tr class="border-b border-border/50 dark:border-border-dark/50 bg-surface/50 dark:bg-surface-dark/50 font-semibold">
+                <tr data-comparison-totals="income" class="border-b border-border/50 dark:border-border-dark/50 bg-surface/50 dark:bg-surface-dark/50 font-semibold">
                   <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5">收入总计</td>
-                  <td class="py-2 px-2 text-right text-income whitespace-nowrap"><%= format_currency(comparison_totals.values.sum { |t| t[:income] }) %></td>
+                  <td class="py-2 px-2 text-right text-income whitespace-nowrap" data-total="income-total"><%= format_currency(comparison_totals.values.sum { |t| t[:income] }) %></td>
                   <% (1..12).each do |m| %>
-                    <td class="py-2 px-1.5 text-right text-income whitespace-nowrap"><%= format_currency(comparison_totals.dig(m, :income)) %></td>
+                    <td class="py-2 px-1.5 text-right text-income whitespace-nowrap" data-month="<%= m %>" data-total="income-<%= m %>"><%= format_currency(comparison_totals.dig(m, :income)) %></td>
                   <% end %>
                 </tr>
-                <tr class="border-b-2 border-border dark:border-border-dark bg-surface dark:bg-surface-dark font-bold">
+                <tr data-comparison-totals="diff" class="border-b-2 border-border dark:border-border-dark bg-surface dark:bg-surface-dark font-bold">
                   <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-10">差额</td>
                   <% total_diff = comparison_totals.values.sum { |t| t[:income] - t[:expense] } %>
-                  <td class="py-2 px-2 text-right <%= total_diff >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap"><%= format_currency(total_diff) %></td>
+                  <td class="py-2 px-2 text-right <%= total_diff >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap" data-total="diff-total" data-class-positive="text-income" data-class-negative="text-expense"><%= format_currency(total_diff) %></td>
                   <% (1..12).each do |m| %>
                     <% diff = comparison_totals.dig(m, :income) - comparison_totals.dig(m, :expense) %>
-                    <td class="py-2 px-1.5 text-right <%= diff >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap"><%= format_currency(diff) %></td>
+                    <td class="py-2 px-1.5 text-right <%= diff >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap" data-month="<%= m %>" data-total="diff-<%= m %>" data-class-positive="text-income" data-class-negative="text-expense"><%= format_currency(diff) %></td>
                   <% end %>
                 </tr>
               </tbody>

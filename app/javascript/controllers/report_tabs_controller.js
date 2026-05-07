@@ -120,8 +120,123 @@ export default class extends Controller {
         panel.querySelectorAll('.comparison-row').forEach(row => {
           row.classList.toggle('hidden', checkedIds.length > 0 && !checkedIds.includes(row.dataset.categoryId || ''))
         })
+        // 筛选后重新计算总计
+        this.updateComparisonTotals(panel)
         break
     }
+  }
+
+  // 更新 comparison 面板的总计（根据可见的分类行）
+  updateComparisonTotals(panel) {
+    const visibleRows = panel.querySelectorAll('.comparison-row:not(.hidden)')
+
+    // 初始化月度总计
+    const monthlyExpense = Array(12).fill(0)
+    const monthlyIncome = Array(12).fill(0)
+    let totalExpense = 0
+    let totalIncome = 0
+
+    // 遍历可见行，累加金额
+    visibleRows.forEach(row => {
+      const kind = row.dataset.categoryKind
+      const total = parseFloat(row.dataset.categoryTotal) || 0
+
+      // 安全解析 JSON，避免无效数据抛错
+      let monthlyValues = {}
+      try {
+        monthlyValues = JSON.parse(row.dataset.monthlyValues || '{}')
+      } catch (e) {
+        // JSON 无效时跳过
+      }
+
+      if (kind === 'expense') {
+        totalExpense += total
+        this.addMonthlyValues(monthlyExpense, monthlyValues)
+      } else if (kind === 'income') {
+        totalIncome += total
+        this.addMonthlyValues(monthlyIncome, monthlyValues)
+      }
+    })
+
+    // 更新支出总计行
+    this.updateTotalRow(panel, 'expense', totalExpense, monthlyExpense, 'text-expense')
+
+    // 更新收入总计行
+    this.updateTotalRow(panel, 'income', totalIncome, monthlyIncome, 'text-income')
+
+    // 更新差额行
+    const diffRow = panel.querySelector('[data-comparison-totals="diff"]')
+    if (diffRow) {
+      const totalDiff = totalIncome - totalExpense
+      this.updateCell(diffRow, 'diff-total', totalDiff, true)
+
+      for (let m = 1; m <= 12; m++) {
+        const monthDiff = monthlyIncome[m - 1] - monthlyExpense[m - 1]
+        this.updateCell(diffRow, `diff-${m}`, monthDiff, true)
+      }
+    }
+  }
+
+  // 累加月度值
+  addMonthlyValues(targetArray, monthlyValues) {
+    for (let m = 1; m <= 12; m++) {
+      targetArray[m - 1] += parseFloat(monthlyValues[m]) || 0
+    }
+  }
+
+  // 更新总计行
+  updateTotalRow(panel, type, total, monthlyValues, cssClass) {
+    const row = panel.querySelector(`[data-comparison-totals="${type}"]`)
+    if (!row) return
+
+    this.updateCell(row, `${type}-total`, total, false, cssClass)
+
+    for (let m = 1; m <= 12; m++) {
+      this.updateCell(row, `${type}-${m}`, monthlyValues[m - 1], false, cssClass)
+    }
+  }
+
+  // 更新单个单元格
+  updateCell(row, dataTotalKey, value, updateClass = false, fixedClass = null) {
+    const cell = row.querySelector(`[data-total="${dataTotalKey}"]`)
+    if (!cell) return
+
+    cell.textContent = this.formatCurrencyFromExisting(cell, value)
+
+    if (updateClass) {
+      this.updateDiffCellClass(cell, value)
+    } else if (fixedClass) {
+      // 固定类型行保持原有颜色类
+    }
+  }
+
+  // 从现有单元格推断格式，保持与 Rails 输出一致
+  formatCurrencyFromExisting(cell, newValue) {
+    const existingText = cell.textContent.trim()
+
+    const isNegative = newValue < 0
+    const absValue = Math.abs(newValue)
+
+    // 使用 zh-CN locale 保持与 Rails format_currency 一致
+    const formattedNumber = absValue.toLocaleString('zh-CN', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+
+    // 提取货币符号（默认 ¥）
+    const symbolMatch = existingText.match(/[¥$€£]/)
+    const symbol = symbolMatch ? symbolMatch[0] : '¥'
+
+    // Rails format_currency 格式: 正数 "¥123.00"，负数 "-¥123.00"
+    return isNegative ? `-${symbol}${formattedNumber}` : `${symbol}${formattedNumber}`
+  }
+
+  // 更新差额单元格的颜色类
+  updateDiffCellClass(cell, value) {
+    const positiveClass = cell.dataset.classPositive || 'text-income'
+    const negativeClass = cell.dataset.classNegative || 'text-expense'
+    cell.classList.remove(positiveClass, negativeClass)
+    cell.classList.add(value >= 0 ? positiveClass : negativeClass)
   }
 
   toggleRows(panel, selector, checkedIds) {
