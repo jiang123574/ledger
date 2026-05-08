@@ -627,7 +627,6 @@
         </div>
         <div class="p-4 overflow-x-auto">
           <% comparison_cats = @category_monthly_comparison[:categories] %>
-          <% comparison_totals = @category_monthly_comparison[:monthly_totals] %>
           <% comparison_max_val = comparison_cats.values.map { |c| c[:monthly].values.max }.compact.max || 1 %>
           <div id="category-comparison-wrapper" data-controller="category-comparison"
                data-category-comparison-categories-value="<%= comparison_cats.to_json %>">
