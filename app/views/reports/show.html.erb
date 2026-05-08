@@ -593,18 +593,23 @@
          data-controller="category-filter"
          data-category-filter-modal-selector-value="#comparison-filter-modal">
       <% comparison_cat_ids = @category_monthly_comparison[:categories].keys.map(&:to_s) %>
+      <%# 表格行和总计只基于当前年份有数据且用户选择的分类 %>
       <% comparison_selected_ids = @selected_category_ids.empty? ? comparison_cat_ids : @selected_category_ids.select { |id| comparison_cat_ids.include?(id) } %>
+      <%# badge 显示实际勾选数量：默认全部，否则用户选择数量 %>
+      <% comparison_filter_count = @selected_category_ids.empty? ? all_cat_ids.size : @selected_category_ids.size %>
       <!-- 筛选按钮 -->
       <div class="relative mb-4">
         <button type="button" id="open-comparison-filter" data-action="click->category-filter#open"
                 class="h-9 px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth inline-flex items-center gap-1.5">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
           分类筛选
-          <span id="comparison-filter-count" data-category-filter-target="countBadge" class="px-1.5 py-0.5 text-xs rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"><%= comparison_selected_ids.size %></span>
+          <span id="comparison-filter-count" data-category-filter-target="countBadge" class="px-1.5 py-0.5 text-xs rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"><%= comparison_filter_count %></span>
         </button>
+        <%# hiddenCheckbox 包含所有分类，与弹窗内容匹配，用户可勾选任何分类并保持状态 %>
         <div class="hidden" data-filter-group="comparison">
-          <% comparison_cat_ids.each do |id| %>
-            <% is_selected = comparison_selected_ids.include?(id) %>
+          <% all_cat_ids.each do |id| %>
+            <%# checkbox 选中状态：用户已选择，或默认勾选所有分类 %>
+            <% is_selected = @selected_category_ids.include?(id) || @selected_category_ids.empty? %>
             <input type="checkbox" value="<%= id %>" data-tab-filter data-category-filter-target="hiddenCheckbox" <%= 'checked' if is_selected %> class="hidden">
           <% end %>
         </div>
@@ -639,7 +644,8 @@
               <tbody id="comparison-table-body">
                 <% comparison_cats.each_with_index do |(cat_id, cat_data), idx| %>
                 <% is_income = cat_data[:kind] == 'income' %>
-                <tr class="border-b border-border/50 dark:border-border-dark/50 hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer comparison-row"
+                <% cat_selected = comparison_selected_ids.include?(cat_id.to_s) %>
+                <tr class="border-b border-border/50 dark:border-border-dark/50 hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer comparison-row <%= 'hidden' unless cat_selected %>"
                     data-category-id="<%= cat_id %>"
                     data-category-kind="<%= cat_data[:kind] %>"
                     data-category-total="<%= cat_data[:total] %>"
@@ -669,28 +675,45 @@
                 </tr>
                 <% end %>
 
+                <%# 计算筛选后的分类总计 %>
+                <% filtered_cats = comparison_cats.select { |cat_id, _| comparison_selected_ids.include?(cat_id.to_s) } %>
+                <% filtered_expense_totals = (1..12).index_with { |m| 0.to_d } %>
+                <% filtered_income_totals = (1..12).index_with { |m| 0.to_d } %>
+                <% filtered_cats.each_value do |cat_data| %>
+                  <% (1..12).each do |m| %>
+                    <% val = cat_data[:monthly][m] || 0 %>
+                    <% if cat_data[:kind] == 'expense' %>
+                      <% filtered_expense_totals[m] += val %>
+                    <% else %>
+                      <% filtered_income_totals[m] += val %>
+                    <% end %>
+                  <% end %>
+                <% end %>
+                <% filtered_expense_total = filtered_expense_totals.values.sum %>
+                <% filtered_income_total = filtered_income_totals.values.sum %>
+                <% filtered_diff_total = filtered_income_total - filtered_expense_total %>
+
                 <%# 总计行 %>
                 <tr data-comparison-totals="expense" class="border-t-2 border-border dark:border-border-dark bg-surface/50 dark:bg-surface-dark/50 font-semibold">
                   <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5">支出总计</td>
-                  <td class="py-2 px-2 text-right text-expense whitespace-nowrap" data-total="expense-total"><%= format_currency(comparison_totals.values.sum { |t| t[:expense] }) %></td>
+                  <td class="py-2 px-2 text-right text-expense whitespace-nowrap" data-total="expense-total"><%= format_currency(filtered_expense_total) %></td>
                   <% (1..12).each do |m| %>
-                    <td class="py-2 px-1.5 text-right text-expense whitespace-nowrap" data-month="<%= m %>" data-total="expense-<%= m %>"><%= format_currency(comparison_totals.dig(m, :expense)) %></td>
+                    <td class="py-2 px-1.5 text-right text-expense whitespace-nowrap" data-month="<%= m %>" data-total="expense-<%= m %>"><%= format_currency(filtered_expense_totals[m]) %></td>
                   <% end %>
                 </tr>
                 <tr data-comparison-totals="income" class="border-b border-border/50 dark:border-border-dark/50 bg-surface/50 dark:bg-surface-dark/50 font-semibold">
                   <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-5">收入总计</td>
-                  <td class="py-2 px-2 text-right text-income whitespace-nowrap" data-total="income-total"><%= format_currency(comparison_totals.values.sum { |t| t[:income] }) %></td>
+                  <td class="py-2 px-2 text-right text-income whitespace-nowrap" data-total="income-total"><%= format_currency(filtered_income_total) %></td>
                   <% (1..12).each do |m| %>
-                    <td class="py-2 px-1.5 text-right text-income whitespace-nowrap" data-month="<%= m %>" data-total="income-<%= m %>"><%= format_currency(comparison_totals.dig(m, :income)) %></td>
+                    <td class="py-2 px-1.5 text-right text-income whitespace-nowrap" data-month="<%= m %>" data-total="income-<%= m %>"><%= format_currency(filtered_income_totals[m]) %></td>
                   <% end %>
                 </tr>
                 <tr data-comparison-totals="diff" class="border-b-2 border-border dark:border-border-dark bg-surface dark:bg-surface-dark font-bold">
                   <td class="py-2 px-2 text-primary dark:text-primary-dark sticky left-0 bg-inherit z-10">差额</td>
-                  <% total_diff = comparison_totals.values.sum { |t| t[:income] - t[:expense] } %>
-                  <td class="py-2 px-2 text-right <%= total_diff >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap" data-total="diff-total" data-class-positive="text-income" data-class-negative="text-expense"><%= format_currency(total_diff) %></td>
+                  <td class="py-2 px-2 text-right <%= filtered_diff_total >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap" data-total="diff-total" data-class-positive="text-income" data-class-negative="text-expense"><%= format_currency(filtered_diff_total) %></td>
                   <% (1..12).each do |m| %>
-                    <% diff = comparison_totals.dig(m, :income) - comparison_totals.dig(m, :expense) %>
-                    <td class="py-2 px-1.5 text-right <%= diff >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap" data-month="<%= m %>" data-total="diff-<%= m %>" data-class-positive="text-income" data-class-negative="text-expense"><%= format_currency(diff) %></td>
+                    <% diff_m = filtered_income_totals[m] - filtered_expense_totals[m] %>
+                    <td class="py-2 px-1.5 text-right <%= diff_m >= 0 ? 'text-income' : 'text-expense' %> whitespace-nowrap" data-month="<%= m %>" data-total="diff-<%= m %>" data-class-positive="text-income" data-class-negative="text-expense"><%= format_currency(diff_m) %></td>
                   <% end %>
                 </tr>
               </tbody>
