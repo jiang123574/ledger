@@ -1,5 +1,5 @@
 import { Controller } from "@hotwired/stimulus"
-import { formatMoney, formatCurrencyRaw } from "bill_formatters"
+import { formatMoney } from "bill_formatters"
 
 // 分类明细展示控制器
 // 点击分类行后，弹窗展示该分类在该时间段的所有交易记录
@@ -109,6 +109,10 @@ export default class extends Controller {
       return
     }
 
+    // 存储entries供删除后更新使用
+    this.currentEntries = entries
+    this.entriesContainer = container
+
     const transactionModalController = this.getTransactionModalController()
     const typeBadgeClass = (displayType) => {
       const classes = {
@@ -142,10 +146,13 @@ export default class extends Controller {
       // 备注：只显示用户填写的备注
       const noteHtml = entry.note ? `<span class="truncate">${entry.note}</span>` : ""
 
-      // 账户
-      const accountHtml = isTransfer && entry.transfer_from && entry.transfer_to
-        ? `${entry.transfer_from} → ${entry.transfer_to}`
-        : entry.account_name || "未知账户"
+      // 操作按钮HTML（桌面和移动端共用）
+      const editBtnHtml = `<button type="button" data-action="edit" data-entry-id="${entry.id}" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+      </button>`
+      const deleteBtnHtml = `<button type="button" data-action="delete" data-entry-id="${entry.id}" data-entry-name="${entry.display_name || ''}" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+      </button>`
 
       return `
         <div class="hidden lg:flex items-center py-1.5 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="${entry.id}">
@@ -158,12 +165,8 @@ export default class extends Controller {
           <div class="shrink-0 text-right text-sm font-medium truncate" style="width: 80px;">${outflowHtml}</div>
           <div class="flex-1 min-w-0 text-xs text-secondary dark:text-secondary-dark truncate ml-4">${noteHtml}</div>
           <div class="shrink-0 flex items-center justify-center gap-1.5" style="width: 70px;">
-            <button type="button" data-action="edit" data-entry-id="${entry.id}" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
-            </button>
-            <button type="button" data-action="delete" data-entry-id="${entry.id}" data-entry-name="${entry.display_name || ''}" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-            </button>
+            ${editBtnHtml}
+            ${deleteBtnHtml}
           </div>
         </div>
         <!-- 移动端 -->
@@ -176,8 +179,12 @@ export default class extends Controller {
             </div>
             <div class="text-xs text-secondary dark:text-secondary-dark truncate pl-4">${noteHtml}</div>
           </div>
-          <div class="text-right shrink-0">
+          <div class="text-right shrink-0 flex flex-col gap-1 items-end">
             <p class="text-sm font-medium ${isIncome ? 'text-income' : 'text-expense'}">${isIncome ? '+' : '-'}${amountText}</p>
+            <div class="flex gap-1">
+              ${editBtnHtml}
+              ${deleteBtnHtml}
+            </div>
           </div>
         </div>
       `
@@ -204,22 +211,42 @@ export default class extends Controller {
     })
   }
 
+  // 删除后更新合计
+  updateTotalAfterDelete(deletedId) {
+    if (!this.currentEntries) return
+
+    // 移除已删除的entry
+    this.currentEntries = this.currentEntries.filter(e => e.id != deletedId)
+
+    // 重新计算合计
+    const totalAmount = this.currentEntries.reduce((sum, e) => {
+      const amount = e.display_amount_type === "INCOME" ? e.display_amount : -e.display_amount
+      return sum + amount
+    }, 0)
+
+    const modal = this.getModal()
+    const totalEl = modal?.querySelector('[data-detail-total]')
+    if (totalEl) {
+      totalEl.textContent = `${this.currentEntries.length} 笔交易，合计 ¥${Math.abs(totalAmount).toFixed(2)}`
+    }
+  }
+
   bindCloseEvents(modal) {
-    // 移除旧的事件处理器
-    if (modal._detailCloseHandlers) {
-      modal._detailCloseHandlers.forEach(({ el, handler, event }) => {
+    // 移除旧的事件处理器（存储在实例上）
+    if (this.closeHandlers) {
+      this.closeHandlers.forEach(({ el, handler, event }) => {
         el.removeEventListener(event, handler)
       })
     }
 
-    const handlers = []
+    this.closeHandlers = []
 
     // 关闭按钮
     const closeBtn = modal.querySelector('[data-detail-close]')
     if (closeBtn) {
       const handler = () => this.close()
       closeBtn.addEventListener("click", handler)
-      handlers.push({ el: closeBtn, handler, event: "click" })
+      this.closeHandlers.push({ el: closeBtn, handler, event: "click" })
     }
 
     // 点击遮罩层关闭
@@ -227,7 +254,7 @@ export default class extends Controller {
     if (overlayBg) {
       const handler = () => this.close()
       overlayBg.addEventListener("click", handler)
-      handlers.push({ el: overlayBg, handler, event: "click" })
+      this.closeHandlers.push({ el: overlayBg, handler, event: "click" })
     }
 
     // 阻止内容区域点击冒泡到遮罩层
@@ -235,10 +262,8 @@ export default class extends Controller {
     if (contentArea) {
       const handler = (e) => e.stopPropagation()
       contentArea.addEventListener("click", handler)
-      handlers.push({ el: contentArea, handler, event: "click" })
+      this.closeHandlers.push({ el: contentArea, handler, event: "click" })
     }
-
-    modal._detailCloseHandlers = handlers
   }
 
   close() {

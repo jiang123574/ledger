@@ -170,6 +170,15 @@ export default class extends Controller {
           this.closeDeleteModal()
           this.removeEntryFromList(id)
           this.showSuccessToast(data.message || '交易已删除')
+
+          // 更新分类明细弹窗的合计（如果存在）
+          const categoryDetailElement = document.querySelector('[data-controller="category-detail"]')
+          if (categoryDetailElement && window.Stimulus) {
+            const categoryDetailController = window.Stimulus.getControllerForElementAndIdentifier(categoryDetailElement, 'category-detail')
+            if (categoryDetailController && typeof categoryDetailController.updateTotalAfterDelete === 'function') {
+              categoryDetailController.updateTotalAfterDelete(id)
+            }
+          }
         } else {
           this.showErrorToast(data.error || '删除失败')
           if (deleteBtn) {
