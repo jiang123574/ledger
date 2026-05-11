@@ -305,14 +305,14 @@ RSpec.describe Entry, type: :model do
         expect(entry.display_note).to eq('买咖啡')
       end
 
-      it 'returns name when notes is nil' do
+      it 'returns nil when notes is nil' do
         entry = build(:entry, notes: nil, name: '午餐')
-        expect(entry.display_note).to eq('午餐')
+        expect(entry.display_note).to be_nil
       end
 
-      it 'returns name when notes is empty' do
+      it 'returns nil when notes is empty' do
         entry = build(:entry, notes: '', name: '晚餐')
-        expect(entry.display_note).to eq('晚餐')
+        expect(entry.display_note).to be_nil
       end
     end
 
