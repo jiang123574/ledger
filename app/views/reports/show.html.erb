@@ -887,9 +887,9 @@
 
 <!-- 分类明细弹窗 -->
 <div id="category-detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
-  <div class="modal-overlay-bg fixed inset-0 bg-black/50 dark:bg-black/70"></div>
+  <div class="modal-overlay-bg fixed inset-0 bg-black/50 dark:bg-black/70" data-detail-overlay></div>
   <div class="flex min-h-full items-center justify-center p-4 relative">
-    <div class="bg-container dark:bg-container-dark rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
+    <div class="bg-container dark:bg-container-dark rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden">
       <!-- 标题 -->
       <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
         <h3 class="text-base font-semibold text-primary dark:text-primary-dark" data-detail-title>分类明细</h3>
@@ -901,8 +901,18 @@
       <div class="px-4 py-2 bg-surface-inset dark:bg-surface-dark-inset text-sm text-secondary dark:text-secondary-dark" data-detail-total>
         加载中...
       </div>
+      <!-- 表头 -->
+      <div class="px-4 py-2 border-b border-border dark:border-border-dark text-xs text-secondary dark:text-secondary-dark font-medium hidden lg:grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1.5fr_0.5fr] gap-2" data-detail-header>
+        <div>日期</div>
+        <div>分类</div>
+        <div class="text-right">流入</div>
+        <div class="text-right">流出</div>
+        <div class="text-right">余额</div>
+        <div>备注</div>
+        <div class="text-center">操作</div>
+      </div>
       <!-- 交易列表 -->
-      <div class="p-4 overflow-y-auto max-h-[60vh]" data-detail-container>
+      <div class="overflow-y-auto max-h-[55vh]" data-detail-container>
         <!-- 交易卡片将在此渲染 -->
       </div>
     </div>
