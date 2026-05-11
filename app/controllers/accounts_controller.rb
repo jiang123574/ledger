@@ -167,7 +167,7 @@ class AccountsController < ApplicationController
         display_type: display_type,
         display_amount_type: display_amount_type,
         display_name: display_name,
-        note: e.display_note || e.account&.name || "未知账户",
+        note: e.display_note,
         balance_after: balance_map[e.id],
         show_both_amounts: is_transfer && current_account_filter.blank?,
         transfer_from: is_transfer ? e.source_account_for_transfer&.name : nil,

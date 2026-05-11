@@ -92,7 +92,7 @@ RSpec.describe "Accounts entries API", type: :request do
         )
       end
 
-      it "returns account name as note when display_note is missing" do
+      it "returns nil as note when display_note is missing" do
         entry = create(:entry,
           account: account,
           entryable: create(:entryable_transaction, kind: 'EXPENSE'),
@@ -108,7 +108,7 @@ RSpec.describe "Accounts entries API", type: :request do
         matched = data["entries"].find { |e| e["id"] == entry.id }
 
         expect(matched).to be_present
-        expect(matched["note"]).to eq(account.name)
+        expect(matched["note"]).to be_nil
       end
 
       it "returns entries in reverse chronological order" do

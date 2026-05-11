@@ -258,9 +258,9 @@ class Entry < ApplicationRecord
     cache
   end
 
-  # 备注显示（notes 或 name）
+  # 备注显示（仅 notes）
   def display_note
-    notes.presence || name.presence
+    notes.presence
   end
 
   # 账户名

@@ -111,9 +111,9 @@ RSpec.describe Entry, type: :model do
         expect(entry.display_note).to eq("Test notes")
       end
 
-      it "returns name when notes is blank" do
+      it "returns nil when notes is blank" do
         entry = Entry.new(notes: nil, name: "Test name")
-        expect(entry.display_note).to eq("Test name")
+        expect(entry.display_note).to be_nil
       end
     end
 
