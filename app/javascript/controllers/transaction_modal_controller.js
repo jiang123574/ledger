@@ -352,6 +352,8 @@ export default class extends Controller {
   showTransferFields() {
     document.getElementById('target-account-field')?.classList.remove('hidden')
     document.getElementById('account-field-wrapper')?.classList.add('hidden')
+    // 转账模式下隐藏实际资金来源字段（此功能只在支出模式下有效）
+    document.getElementById('funding-account-field')?.classList.add('hidden')
   }
 
   hideTransferFields() {
@@ -361,6 +363,11 @@ export default class extends Controller {
   showCategoryFields() {
     document.getElementById('category-field-wrapper')?.classList.remove('hidden')
     document.getElementById('account-field-wrapper')?.classList.remove('hidden')
+    // 根据当前类型决定是否显示实际资金来源字段
+    const fundingField = document.getElementById('funding-account-field')
+    if (fundingField) {
+      fundingField.classList.toggle('hidden', this.currentType !== 'EXPENSE')
+    }
   }
 
   hideCategoryFields() {
