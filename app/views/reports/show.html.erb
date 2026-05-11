@@ -393,10 +393,8 @@
 
     <!-- ====== 面板 2: 支出分类 ====== -->
     <div data-report-tabs-target="panel" data-panel-name="expense" class="<%= @active_panel == 'expense' ? '' : 'hidden' %>" role="tabpanel" aria-label="支出分类"
-         data-controller="category-filter category-detail"
-         data-category-filter-modal-selector-value="#expense-filter-modal"
-         data-category-detail-start-date-value="<%= @start_date %>"
-         data-category-detail-end-date-value="<%= @end_date %>">
+         data-controller="category-filter"
+         data-category-filter-modal-selector-value="#expense-filter-modal">
       <% expense_cats = @categories.select { |c| c.category_type == 'EXPENSE' && c.parent_id.nil? }.sort_by(&:name) %>
       <% expense_cat_ids = @categories.select { |c| c.category_type == 'EXPENSE' }.map(&:id).map(&:to_s) %>
       <% expense_filter_active_ids = @filter_categories[:expense].map { |c| c[:id].to_s } %>
@@ -430,9 +428,8 @@
                 <% @expense_chart_data.each_with_index do |cat, idx| %>
                   <% percentage = total_exp > 0 ? (cat[:value] / total_exp * 100).round(1) : 0 %>
                   <% bar_width = [percentage, 95].min %>
-                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer group"
-                       data-category-row data-category-index="<%= idx %>" data-category-id="<%= cat[:id] %>"
-                       data-action="click->category-detail#show">
+                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-default group"
+                       data-category-row data-category-index="<%= idx %>" data-category-id="<%= cat[:id] %>">
                     <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-right shrink-0"><%= idx + 1 %></span>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between mb-0.5">
@@ -463,10 +460,8 @@
 
     <!-- ====== 面板 3: 收入分类 ====== -->
     <div data-report-tabs-target="panel" data-panel-name="income" class="<%= @active_panel == 'income' ? '' : 'hidden' %>" role="tabpanel" aria-label="收入分类"
-         data-controller="category-filter category-detail"
-         data-category-filter-modal-selector-value="#income-filter-modal"
-         data-category-detail-start-date-value="<%= @start_date %>"
-         data-category-detail-end-date-value="<%= @end_date %>">
+         data-controller="category-filter"
+         data-category-filter-modal-selector-value="#income-filter-modal">
       <% income_cats = @categories.select { |c| c.category_type == 'INCOME' && c.parent_id.nil? }.sort_by(&:name) %>
       <% income_cat_ids = @categories.select { |c| c.category_type == 'INCOME' }.map(&:id).map(&:to_s) %>
       <% income_filter_active_ids = @filter_categories[:income].map { |c| c[:id].to_s } %>
@@ -500,9 +495,8 @@
                 <% @income_chart_data.each_with_index do |cat, idx| %>
                   <% percentage = total_inc > 0 ? (cat[:value] / total_inc * 100).round(1) : 0 %>
                   <% bar_width = [percentage, 95].min %>
-                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-pointer group"
-                       data-income-row data-category-index="<%= idx %>" data-category-id="<%= cat[:id] %>"
-                       data-action="click->category-detail#show">
+                  <div class="flex items-center gap-2 py-1.5 px-2 rounded-lg hover:bg-surface dark:hover:bg-surface-dark transition-smooth cursor-default group"
+                       data-income-row data-category-index="<%= idx %>" data-category-id="<%= cat[:id] %>">
                     <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-right shrink-0"><%= idx + 1 %></span>
                     <div class="flex-1 min-w-0">
                       <div class="flex items-center justify-between mb-0.5">
@@ -884,26 +878,3 @@
     expense_categories: expense_cats,
     income_categories: income_cats,
     all_category_ids: all_cat_ids %>
-
-<!-- 分类明细弹窗 -->
-<div id="category-detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay" data-category-detail-target="modal">
-  <div class="flex min-h-full items-center justify-center p-4">
-    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl max-w-2xl w-full max-h-[80vh] overflow-hidden">
-      <!-- 标题 -->
-      <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
-        <h3 class="text-base font-semibold text-primary dark:text-primary-dark" data-category-detail-target="title">分类明细</h3>
-        <button type="button" data-category-detail-target="closeBtn" class="p-1.5 rounded-lg hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark">
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
-        </button>
-      </div>
-      <!-- 总计 -->
-      <div class="px-4 py-2 bg-surface-inset dark:bg-surface-dark-inset text-sm text-secondary dark:text-secondary-dark" data-category-detail-target="total">
-        加载中...
-      </div>
-      <!-- 交易列表 -->
-      <div class="p-4 overflow-y-auto max-h-[60vh]" data-category-detail-target="container">
-        <!-- 交易卡片将在此渲染 -->
-      </div>
-    </div>
-  </div>
-</div>

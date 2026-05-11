@@ -27,7 +27,7 @@ class AccountEntriesQueryService
   def cache_key
     sort_direction = params[:sort_direction]&.downcase || "desc"
     sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
-    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:start_date]}_#{params[:end_date]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}_#{sort_direction}"
+    "#{params[:account_id]}_#{params[:type]}_#{params[:period_type]}_#{params[:period_value]}_#{params[:search]}_#{Array(params[:category_ids]).sort.join(',')}_#{sort_direction}"
   end
 
   private
@@ -69,25 +69,14 @@ class AccountEntriesQueryService
   end
 
   def apply_period_filter(entries)
-    # 支持直接的 start_date/end_date 参数
-    if params[:start_date].present? && params[:end_date].present?
-      start_date = Date.parse(params[:start_date]) rescue nil
-      end_date = Date.parse(params[:end_date]) rescue nil
-      if start_date && end_date
-        entries.by_date_range(start_date, end_date)
-      else
-        entries
-      end
-    else
-      period_type = params[:period_type].presence || "month"
-      period_value = params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
+    period_type = params[:period_type].presence || "month"
+    period_value = params[:period_value].presence || PeriodFilterable.default_period_value(period_type)
 
-      range = PeriodFilterable.resolve_period(period_type, period_value)
-      if range
-        entries.by_date_range(range.first, range.last)
-      else
-        entries
-      end
+    range = PeriodFilterable.resolve_period(period_type, period_value)
+    if range
+      entries.by_date_range(range.first, range.last)
+    else
+      entries
     end
   end
 
