@@ -176,10 +176,13 @@ export default class extends Controller {
                   const prev = firstDatasetData[idx - 1]
                   const diff = val - prev
                   const sign = diff >= 0 ? "+" : ""
-                  return `${context.dataset.label}: ¥${val.toFixed(2)} (${sign}¥${diff.toFixed(2)})`
+                  // 使用 context.dataset.label 而不是 context.dataset.label
+                  const label = context.dataset?.label || ''
+                  return `${label}: ¥${val.toFixed(2)} (${sign}¥${diff.toFixed(2)})`
                 }
 
-                return `${context.dataset.label}: ¥${val.toFixed(2)}`
+                const label = context.dataset?.label || ''
+                return `${label}: ¥${val.toFixed(2)}`
               }
             }
           }
