@@ -486,7 +486,9 @@
   <%= raw @categories.map { |c| { id: c.id, name: c.name, full_name: build_full_name_in_memory(c, @category_parent_map), level: c.level || 0, parent_id: c.parent_id, type: (c.category_type || c.type), pinyin: PinYin.abbr(build_full_name_in_memory(c, @category_parent_map)).downcase } }.to_json %>
 </script>
 
-<script>
+<script type="module">
+  import { initSelectorWithData } from 'selectors';
+
   function setInputDisabled(id, disabled) {
     const input = document.getElementById(id)
     if (input) input.disabled = disabled
@@ -549,10 +551,10 @@
     const total = parseFloat(document.getElementById(totalId)?.value) || 0
     const installments = parseInt(document.getElementById(installmentsId)?.value) || 1
     const perInstallment = total / installments
-    
+
     const display = document.getElementById(displayId)
     if (display) display.textContent = '¥' + perInstallment.toFixed(2)
-    
+
     const amount = document.getElementById(amountId)
     if (amount) amount.value = perInstallment.toFixed(2)
   }
@@ -617,12 +619,12 @@
 
     const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
-    
+
     // Set type display
     const typeLabels = { 'INSTALLMENT': '💳 分期还款', 'MORTGAGE': '🏠 房贷', 'RECURRING': '🔄 周期支出', 'ONE_TIME': '🔄 周期支出' }
     document.getElementById('edit-plan-type-display').textContent = typeLabels[type] || type
     document.getElementById('edit-plan-type').value = type
-    
+
     // Set fields
     document.getElementById('edit-plan-name').value = name
     document.getElementById('edit-plan-category-id').value = categoryId || ''
@@ -647,7 +649,7 @@
     } else {
       document.getElementById('edit-plan-amount').value = amount
     }
-    
+
     document.getElementById('edit-plan-modal').classList.remove('hidden')
   }
 
@@ -658,7 +660,7 @@
     allAccounts = JSON.parse(accountsDataEl.textContent);
   }
 
-  window.initSelectorWithData({
+  initSelectorWithData({
     searchInputId: 'new-plan-account-search',
     dropdownId: 'new-plan-account-dropdown',
     optionsId: 'new-plan-account-options',
@@ -669,7 +671,7 @@
     noMatchText: '无匹配账户'
   });
 
-  window.initSelectorWithData({
+  initSelectorWithData({
     searchInputId: 'edit-plan-account-search',
     dropdownId: 'edit-plan-account-dropdown',
     optionsId: 'edit-plan-account-options',
@@ -687,7 +689,7 @@
     allCategories = JSON.parse(categoriesDataEl.textContent);
   }
 
-  window.initSelectorWithData({
+  initSelectorWithData({
     searchInputId: 'new-plan-category-search',
     dropdownId: 'new-plan-category-dropdown',
     optionsId: 'new-plan-category-options',
@@ -700,7 +702,7 @@
     groupColors: { 'INCOME': 'text-income', 'EXPENSE': 'text-expense' }
   });
 
-  window.initSelectorWithData({
+  initSelectorWithData({
     searchInputId: 'edit-plan-category-search',
     dropdownId: 'edit-plan-category-dropdown',
     optionsId: 'edit-plan-category-options',
@@ -712,4 +714,8 @@
     groupLabels: { 'INCOME': '收入', 'EXPENSE': '支出' },
     groupColors: { 'INCOME': 'text-income', 'EXPENSE': 'text-expense' }
   });
+
+  // 暴露函数到全局作用域（供 onclick 使用）
+  window.openNewPlanModal = openNewPlanModal;
+  window.openEditPlanModal = openEditPlanModal;
 </script>
