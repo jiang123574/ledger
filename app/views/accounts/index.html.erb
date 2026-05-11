@@ -377,29 +377,34 @@
               </div>
               
               <!-- 类型 / 分类 -->
-              <div class="truncate flex items-center gap-2">
-                <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
-                  case display_type
-                  when '收入' then 'bg-income-light text-income'
-                  when '支出' then 'bg-expense-light text-expense'
-                  when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                  when '转入' then 'bg-income-light text-income'
-                  when '转出' then 'bg-expense-light text-expense'
-                  else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                  end %>">
-                  <%= display_type %>
-                </span>
-                <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">
-                  <% if is_transfer %>
-                    <% if current_account_filter.present? %>
-                      <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
+              <div class="truncate flex flex-col gap-0.5">
+                <div class="flex items-center gap-2">
+                  <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
+                    case display_type
+                    when '收入' then 'bg-income-light text-income'
+                    when '支出' then 'bg-expense-light text-expense'
+                    when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                    when '转入' then 'bg-income-light text-income'
+                    when '转出' then 'bg-expense-light text-expense'
+                    else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                    end %>">
+                    <%= display_type %>
+                  </span>
+                  <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">
+                    <% if is_transfer %>
+                      <% if current_account_filter.present? %>
+                        <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
+                      <% else %>
+                        <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
+                      <% end %>
                     <% else %>
-                      <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
+                      <%= e.display_category&.name || '-' %>
                     <% end %>
-                  <% else %>
-                    <%= e.display_category&.name || '-' %>
-                  <% end %>
-                </span>
+                  </span>
+                </div>
+                <div class="text-xs text-secondary dark:text-secondary-dark truncate pl-5">
+                  <%= e.notes.presence || e.name.presence || '' %>
+                </div>
               </div>
               
               <!-- 流入 -->
@@ -461,29 +466,34 @@
               </div>
               
               <!-- 类型 + 分类 -->
-              <div class="flex-1 min-w-0 flex items-center gap-1.5">
-                <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium <%=
-                  case display_type
-                  when '收入' then 'bg-income-light text-income'
-                  when '支出' then 'bg-expense-light text-expense'
-                  when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                  when '转入' then 'bg-income-light text-income'
-                  when '转出' then 'bg-expense-light text-expense'
-                  else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                  end %>">
-                  <%= display_type %>
-                </span>
-                <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">
-                  <% if is_transfer %>
-                    <% if current_account_filter.present? %>
-                      <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
+              <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+                <div class="flex items-center gap-1.5">
+                  <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium <%=
+                    case display_type
+                    when '收入' then 'bg-income-light text-income'
+                    when '支出' then 'bg-expense-light text-expense'
+                    when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                    when '转入' then 'bg-income-light text-income'
+                    when '转出' then 'bg-expense-light text-expense'
+                    else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                    end %>">
+                    <%= display_type %>
+                  </span>
+                  <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">
+                    <% if is_transfer %>
+                      <% if current_account_filter.present? %>
+                        <%= is_inflow ? "← #{transfer_counterpart}" : "→ #{transfer_counterpart}" %>
+                      <% else %>
+                        <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
+                      <% end %>
                     <% else %>
-                      <%= "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}" %>
+                      <%= e.display_category&.name || '-' %>
                     <% end %>
-                  <% else %>
-                    <%= e.display_category&.name || '-' %>
-                  <% end %>
-                </span>
+                  </span>
+                </div>
+                <div class="text-xs text-secondary dark:text-secondary-dark truncate pl-4">
+                  <%= e.notes.presence || e.name.presence || '' %>
+                </div>
               </div>
               
               <!-- 金额 + 余额 -->

@@ -3,9 +3,12 @@ import { formatMoney, formatCurrencyRaw } from "bill_formatters"
 const ENTRY_CARD_TEMPLATE_DESKTOP = `
 <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="" data-date="" draggable="false">
   <div class="text-xs text-secondary dark:text-secondary-dark truncate" data-field="date"></div>
-  <div class="truncate flex items-center gap-2">
-    <span data-field="type" class="shrink-0"></span>
-    <span class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></span>
+  <div class="truncate flex flex-col gap-0.5">
+    <div class="flex items-center gap-2">
+      <span data-field="type" class="shrink-0"></span>
+      <span class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></span>
+    </div>
+    <div class="text-xs text-secondary dark:text-secondary-dark truncate pl-5" data-field="note"></div>
   </div>
   <div class="text-right text-sm font-medium truncate" data-field="inflow"></div>
   <div class="text-right text-sm font-medium truncate" data-field="outflow"></div>
@@ -24,9 +27,12 @@ const ENTRY_CARD_TEMPLATE_DESKTOP = `
 const ENTRY_CARD_TEMPLATE_MOBILE = `
 <div class="lg:hidden flex gap-2 items-center py-2 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="" data-date="" draggable="false">
   <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark" data-field="date"></div>
-  <div class="flex-1 min-w-0 flex items-center gap-1.5">
-    <span data-field="type" class="shrink-0"></span>
-    <span class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></span>
+  <div class="flex-1 min-w-0 flex flex-col gap-0.5">
+    <div class="flex items-center gap-1.5">
+      <span data-field="type" class="shrink-0"></span>
+      <span class="text-sm font-medium text-primary dark:text-primary-dark truncate" data-field="name"></span>
+    </div>
+    <div class="text-xs text-secondary dark:text-secondary-dark truncate pl-4" data-field="note"></div>
   </div>
   <div class="text-right shrink-0">
     <p class="text-sm font-medium" data-field="amount"></p>
@@ -79,6 +85,8 @@ function createEntryCard(entry, options = {}) {
   const nameEl = desktopRow.querySelector('[data-field="name"]')
   nameEl.textContent = entry.display_name || "-"
 
+  desktopRow.querySelector('[data-field="note"]').textContent = entry.note || ""
+
   const inflowEl = desktopRow.querySelector('[data-field="inflow"]')
   const outflowEl = desktopRow.querySelector('[data-field="outflow"]')
   
@@ -128,6 +136,8 @@ function createEntryCard(entry, options = {}) {
   
   const mobileNameEl = mobileRow.querySelector('[data-field="name"]')
   mobileNameEl.textContent = entry.display_name || "-"
+
+  mobileRow.querySelector('[data-field="note"]').textContent = entry.note || ""
 
   const amountEl = mobileRow.querySelector('[data-field="amount"]')
   if (isTransfer && entry.show_both_amounts) {
