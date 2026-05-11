@@ -97,7 +97,8 @@ export default class extends Controller {
 
       // 显示总数
       const totalAmount = entries.reduce((sum, e) => {
-        const amount = e.display_amount_type === "INCOME" ? e.display_amount : -e.display_amount
+        const amountValue = parseFloat(e.display_amount) || 0
+        const amount = e.display_amount_type === "INCOME" ? amountValue : -amountValue
         return sum + amount
       }, 0)
       if (totalEl) {
@@ -243,7 +244,8 @@ export default class extends Controller {
 
     // 重新计算合计
     const totalAmount = this.currentEntries.reduce((sum, e) => {
-      const amount = e.display_amount_type === "INCOME" ? e.display_amount : -e.display_amount
+      const amountValue = parseFloat(e.display_amount) || 0
+      const amount = e.display_amount_type === "INCOME" ? amountValue : -amountValue
       return sum + amount
     }, 0)
 
