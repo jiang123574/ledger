@@ -148,17 +148,17 @@ export default class extends Controller {
         : entry.account_name || "未知账户"
 
       return `
-        <div class="hidden lg:flex lg:gap-2 items-center py-1.5 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="${entry.id}">
-          <div class="w-[8%] shrink-0 text-xs text-secondary dark:text-secondary-dark truncate">${entry.date || ""}</div>
-          <div class="w-[16%] shrink-0 truncate flex items-center gap-2">
+        <div class="hidden lg:flex items-center py-1.5 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="${entry.id}">
+          <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark truncate" style="width: 10%;">${entry.date || ""}</div>
+          <div class="shrink-0 truncate flex items-center gap-2" style="width: 20%;">
             <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}">${entry.display_type || ""}</span>
             <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">${entry.display_name || "-"}</span>
           </div>
-          <div class="w-[8%] shrink-0 text-right text-sm font-medium truncate">${inflowHtml}</div>
-          <div class="w-[8%] shrink-0 text-right text-sm font-medium truncate">${outflowHtml}</div>
-          <div class="w-[8%] shrink-0 text-right text-xs text-secondary dark:text-secondary-dark truncate">${formatCurrencyRaw(entry.balance_after || 0)}</div>
-          <div class="w-[12%] shrink-0 text-xs text-secondary dark:text-secondary-dark truncate">${noteHtml}</div>
-          <div class="w-[6%] shrink-0 flex items-center gap-1 justify-center">
+          <div class="shrink-0 text-right text-sm font-medium truncate" style="width: 12%;">${inflowHtml}</div>
+          <div class="shrink-0 text-right text-sm font-medium truncate" style="width: 12%;">${outflowHtml}</div>
+          <div class="shrink-0 text-right text-xs text-secondary dark:text-secondary-dark truncate" style="width: 12%;">${formatCurrencyRaw(entry.balance_after || 0)}</div>
+          <div class="flex-1 min-w-0 text-xs text-secondary dark:text-secondary-dark truncate">${noteHtml}</div>
+          <div class="shrink-0 flex items-center gap-1" style="width: 50px;">
             <button type="button" data-action="edit" data-entry-id="${entry.id}" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
             </button>
