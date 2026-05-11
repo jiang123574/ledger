@@ -327,6 +327,7 @@ class AccountsController < ApplicationController
   def create
     @account = Account.new(account_params)
     if @account.save
+      expire_accounts_cache
       redirect_to accounts_path, notice: "账户已创建"
     else
       redirect_to accounts_path, alert: @account.errors.full_messages.join(", ")
