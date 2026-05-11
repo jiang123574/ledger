@@ -45,6 +45,7 @@ import PageTransitionController from "controllers/page_transition_controller"
 import CategoryStatsController from "controllers/category_stats_controller"
 import PeriodPickerController from "controllers/period_picker_controller"
 import CategoryFilterController from "controllers/category_filter_controller"
+import CategoryDetailController from "controllers/category_detail_controller"
 import ViewModeController from "controllers/view_mode_controller"
 import AccountModalController from "controllers/account_modal_controller"
 import AccountPageController from "controllers/account_page_controller"
@@ -105,6 +106,7 @@ application.register("page-transition", PageTransitionController)
 application.register("category-stats", CategoryStatsController)
 application.register("period-picker", PeriodPickerController)
 application.register("category-filter", CategoryFilterController)
+application.register("category-detail", CategoryDetailController)
 application.register("view-mode", ViewModeController)
 application.register("account-modal", AccountModalController)
 application.register("account-page", AccountPageController)

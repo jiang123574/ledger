@@ -170,6 +170,11 @@ export default class extends Controller {
           this.closeDeleteModal()
           this.removeEntryFromList(id)
           this.showSuccessToast(data.message || '交易已删除')
+
+          // 更新分类明细弹窗的合计（使用全局存储的活跃controller）
+          if (window.activeCategoryDetailController && typeof window.activeCategoryDetailController.updateTotalAfterDelete === 'function') {
+            window.activeCategoryDetailController.updateTotalAfterDelete(id)
+          }
         } else {
           this.showErrorToast(data.error || '删除失败')
           if (deleteBtn) {
@@ -188,10 +193,11 @@ export default class extends Controller {
   }
 
   removeEntryFromList(id) {
-    // 同时处理两个容器（按日期 + 按账单）
+    // 同时处理多个容器（按日期 + 按账单 + 分类明细弹窗）
     const containers = [
       document.querySelector('#transactions-container'),
-      document.querySelector('#bill-entries-container')
+      document.querySelector('#bill-entries-container'),
+      document.querySelector('[data-detail-container]')
     ].filter(c => c)
 
     containers.forEach(container => {
