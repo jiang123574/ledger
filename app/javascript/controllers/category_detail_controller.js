@@ -230,6 +230,14 @@ export default class extends Controller {
       handlers.push({ el: overlayBg, handler, event: "click" })
     }
 
+    // 阻止内容区域点击冒泡到遮罩层
+    const contentArea = modal.querySelector('[data-detail-content]')
+    if (contentArea) {
+      const handler = (e) => e.stopPropagation()
+      contentArea.addEventListener("click", handler)
+      handlers.push({ el: contentArea, handler, event: "click" })
+    }
+
     modal._detailCloseHandlers = handlers
   }
 
