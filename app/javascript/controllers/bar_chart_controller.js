@@ -120,7 +120,8 @@ export default class extends Controller {
           tooltip: {
             callbacks: {
               label: (context) => {
-                return `${context.dataset.label}: ¥${context.raw?.toFixed(2) || 0}`
+                const label = context.dataset?.label || ''
+                return `${label}: ¥${context.raw?.toFixed(2) || 0}`
               }
             }
           }

@@ -130,7 +130,9 @@ export default class extends Controller {
                 const val = context.parsed.y
                 const formatted = Math.abs(val).toLocaleString('zh-CN', { minimumFractionDigits: 2 })
                 const sign = val < 0 ? '-' : ''
-                return `${context.datasetLabel}: ${sign}¥${formatted}`
+                // 使用 context.dataset.label 而不是 context.datasetLabel（更可靠）
+                const label = context.dataset?.label || ''
+                return `${label}: ${sign}¥${formatted}`
               }
             }
           }
