@@ -119,18 +119,12 @@ export default class extends Controller {
     entries.forEach((entry) => {
       const card = window.EntryCardRenderer.createEntryCard(entry, {
         onEdit: (id) => {
-          if (window.openEditTransactionModal) {
-            window.openEditTransactionModal(id)
-          } else {
-            console.warn("openEditTransactionModal not found")
-          }
+          const controller = this.getTransactionModalController()
+          if (controller) controller.openEditTransactionModal({ params: { id } })
         },
         onDelete: (id, name) => {
-          if (window.confirmDeleteTransaction) {
-            window.confirmDeleteTransaction(id, name)
-          } else {
-            console.warn("confirmDeleteTransaction not found")
-          }
+          const controller = this.getTransactionModalController()
+          if (controller) controller.confirmDeleteTransaction({ params: { id, name } })
         },
         dragEnabled: !!this.accountIdValue
       })
@@ -311,5 +305,13 @@ export default class extends Controller {
     toast.textContent = message
     document.body.appendChild(toast)
     setTimeout(() => toast.remove(), 2500)
+  }
+
+  getTransactionModalController() {
+    const element = document.querySelector('[data-controller="transaction-modal"]')
+    if (element && window.Stimulus) {
+      return window.Stimulus.getControllerForElementAndIdentifier(element, 'transaction-modal')
+    }
+    return null
   }
 }
