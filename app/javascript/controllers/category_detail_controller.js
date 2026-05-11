@@ -4,6 +4,18 @@ import { formatMoney } from "bill_formatters"
 // 分类明细展示控制器
 // 点击分类行后，弹窗展示该分类在该时间段的所有交易记录
 
+// HTML转义函数，防止XSS攻击
+function escapeHtml(text) {
+  if (!text) return ""
+  const div = document.createElement('div')
+  div.textContent = text
+  return div.innerHTML
+}
+
+// 全局存储当前活跃的controller实例（用于多面板共享弹窗场景）
+// 导出到window以便transaction-modal controller访问
+window.activeCategoryDetailController = null
+
 export default class extends Controller {
   static values = {
     startDate: String,
@@ -53,6 +65,9 @@ export default class extends Controller {
     // 显示弹窗和加载状态
     modal.classList.remove("hidden")
     if (titleEl) titleEl.textContent = categoryName
+
+    // 存储当前活跃的controller实例到全局（用于删除后更新）
+    window.activeCategoryDetailController = this
 
     if (container) {
       container.innerHTML = `<div class="p-4 text-center text-secondary dark:text-secondary-dark text-sm">加载中...</div>`
@@ -143,23 +158,31 @@ export default class extends Controller {
         outflowHtml = `<span class="text-expense">-${amountText}</span>`
       }
 
-      // 备注：只显示用户填写的备注
-      const noteHtml = entry.note ? `<span class="truncate">${entry.note}</span>` : ""
+      // 备注：只显示用户填写的备注（HTML转义）
+      const noteHtml = entry.note ? `<span class="truncate">${escapeHtml(entry.note)}</span>` : ""
 
       // 操作按钮HTML（桌面和移动端共用）
-      const editBtnHtml = `<button type="button" data-action="edit" data-entry-id="${entry.id}" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
+      const entryId = escapeHtml(entry.id)
+      const entryDisplayName = escapeHtml(entry.display_name || '')
+      const editBtnHtml = `<button type="button" data-action="edit" data-entry-id="${entryId}" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
       </button>`
-      const deleteBtnHtml = `<button type="button" data-action="delete" data-entry-id="${entry.id}" data-entry-name="${entry.display_name || ''}" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
+      const deleteBtnHtml = `<button type="button" data-action="delete" data-entry-id="${entryId}" data-entry-name="${entryDisplayName}" class="p-1 rounded hover:bg-expense-light text-secondary dark:text-secondary-dark hover:text-expense transition-smooth">
         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
       </button>`
 
+      // 转义动态内容防止XSS
+      const safeDate = escapeHtml(entry.date || "")
+      const safeDateShort = escapeHtml(entry.date?.slice(5) || "")
+      const safeDisplayType = escapeHtml(entry.display_type || "")
+      const safeDisplayName = escapeHtml(entry.display_name || "-")
+
       return `
-        <div class="hidden lg:flex items-center py-1.5 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="${entry.id}">
-          <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark truncate pr-2" style="width: 80px;">${entry.date || ""}</div>
+        <div class="hidden lg:flex items-center py-1.5 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="${entryId}">
+          <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark truncate pr-2" style="width: 80px;">${safeDate}</div>
           <div class="shrink-0 truncate flex items-center gap-2 pr-2" style="width: 150px;">
-            <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}">${entry.display_type || ""}</span>
-            <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">${entry.display_name || "-"}</span>
+            <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}">${safeDisplayType}</span>
+            <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">${safeDisplayName}</span>
           </div>
           <div class="shrink-0 text-right text-sm font-medium truncate" style="width: 80px;">${inflowHtml}</div>
           <div class="shrink-0 text-right text-sm font-medium truncate" style="width: 80px;">${outflowHtml}</div>
@@ -170,12 +193,12 @@ export default class extends Controller {
           </div>
         </div>
         <!-- 移动端 -->
-        <div class="lg:hidden flex gap-2 items-center py-2 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="${entry.id}">
-          <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark">${entry.date?.slice(5) || ""}</div>
+        <div class="lg:hidden flex gap-2 items-center py-2 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-mobile-entry-id="${entryId}">
+          <div class="shrink-0 text-xs text-secondary dark:text-secondary-dark">${safeDateShort}</div>
           <div class="flex-1 min-w-0 flex flex-col gap-0.5">
             <div class="flex items-center gap-1.5">
-              <span class="shrink-0 inline-flex items-center px-1 py-0.5 rounded text-[10px] font-medium ${typeBadgeCls}">${entry.display_type || ""}</span>
-              <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">${entry.display_name || "-"}</span>
+              <span class="shrink-0 inline-flex items-center px-1 py-0.5 rounded text-[10px] font-medium ${typeBadgeCls}">${safeDisplayType}</span>
+              <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">${safeDisplayName}</span>
             </div>
             <div class="text-xs text-secondary dark:text-secondary-dark truncate pl-4">${noteHtml}</div>
           </div>
