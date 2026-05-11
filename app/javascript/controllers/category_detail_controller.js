@@ -148,7 +148,7 @@ export default class extends Controller {
         : entry.account_name || "未知账户"
 
       return `
-        <div class="py-1.5 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth grid grid-cols-[1fr_2fr_1fr_1fr_1fr_1.5fr_0.5fr] gap-2 items-center hidden lg:grid" data-entry-id="${entry.id}">
+        <div class="hidden lg:grid lg:grid-cols-[1fr_2fr_1fr_1fr_1fr_1.5fr_auto] gap-2 items-center py-1.5 px-4 border-b border-border/50 dark:border-border-dark/50 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth" data-entry-id="${entry.id}">
           <div class="text-xs text-secondary dark:text-secondary-dark truncate">${entry.date || ""}</div>
           <div class="truncate flex items-center gap-2">
             <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}">${entry.display_type || ""}</span>
@@ -158,7 +158,7 @@ export default class extends Controller {
           <div class="text-right text-sm font-medium truncate">${outflowHtml}</div>
           <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate">${formatCurrencyRaw(entry.balance_after || 0)}</div>
           <div class="text-xs text-secondary dark:text-secondary-dark truncate">${noteHtml}</div>
-          <div class="flex items-center gap-1 shrink-0 justify-center">
+          <div class="flex items-center gap-1 shrink-0">
             <button type="button" data-action="edit" data-entry-id="${entry.id}" class="p-1 rounded hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
               <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
             </button>
