@@ -2,6 +2,7 @@ class ReceivableCreationError < StandardError; end
 
 class ReceivablesController < ApplicationController
   include OperationLoggable
+  include CounterpartyFilterable
 
   before_action :set_receivable, only: %i[show update destroy settle revert]
   before_action :check_not_settled, only: %i[update destroy]
@@ -203,48 +204,5 @@ class ReceivablesController < ApplicationController
       Entry.where(transfer_id: transfer_id).destroy_all
     end
     @receivable.update!(reimbursement_transfer_ids: [])
-  end
-
-  def build_counterparty_stats(records)
-    records.group_by { |r| counterparty_filter_token_for(r) }
-      .map do |filter_value, rows|
-         first = rows.first
-        name = first.counterparty&.name.presence || first.counterparty.presence || "未设置联系人"
-        {
-          name: name,
-          filter_value: filter_value,
-          count: rows.size,
-          amount: rows.sum { |row| row.remaining_amount.to_d }
-        }
-      end
-      .sort_by { |s| [ -s[:amount], -s[:count], s[:name] ] }
-      .first(8)
-  end
-
-  def filter_by_counterparty(scope, counterparty_id)
-    return scope if counterparty_id.blank?
-    return scope.where(counterparty_id: nil, counterparty: [ nil, "" ]) if counterparty_id == "none"
-
-    if counterparty_id.start_with?("name:")
-      name = counterparty_id.delete_prefix("name:")
-      return scope.where(counterparty: name).or(scope.joins(:counterparty).where(counterparties: { name: name }))
-    end
-
-    normalized_id = counterparty_id.start_with?("id:") ? counterparty_id.delete_prefix("id:") : counterparty_id
-
-    cp = Counterparty.find_by(id: normalized_id)
-    return scope.none unless cp
-
-    scope.where(counterparty_id: cp.id).or(scope.where(counterparty: cp.name))
-  end
-
-  def counterparty_filter_token_for(record)
-    if record.counterparty_id.present?
-      "id:#{record.counterparty_id}"
-    elsif record.counterparty.present?
-      "name:#{record.counterparty}"
-    else
-      "none"
-    end
   end
 end
