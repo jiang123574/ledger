@@ -1,4 +1,5 @@
 module ApplicationHelper
+  include EntryDisplayHelper
   # Currency formatting helper
   # Supports both:
   #   format_currency(amount, "CNY")

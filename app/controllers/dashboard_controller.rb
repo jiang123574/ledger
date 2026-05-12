@@ -153,83 +153,11 @@ class DashboardController < ApplicationController
     today = Date.today
     six_months_ago = today.beginning_of_month - 5.months
 
-    asset_types = %w[CASH BANK INVESTMENT]
-    liability_types = %w[CREDIT LOAN DEBT]
-
-    current_balances = Account.visible.included_in_total
-      .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
-      .group("accounts.id")
-      .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
-      .to_h { |id, type, bal| [ id, { type: type, balance: bal.to_d } ] }
-
-    Account.visible.included_in_total.where.not(id: current_balances.keys)
-      .pluck(:id, :type, :initial_balance)
-      .each { |id, type, bal| current_balances[id] = { type: type, balance: bal.to_d } }
-
-    asset_account_ids = current_balances.select { |_, v| asset_types.include?(v[:type]) }.keys
-    liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
-
-    monthly_changes = Entry.where(date: six_months_ago..today.end_of_month, entryable_type: "Entryable::Transaction")
-      .group("date_trunc('month', date)")
-      .group(:account_id)
-      .sum(:amount)
-
-    monthly_asset_delta = Hash.new(0)
-    monthly_liability_delta = Hash.new(0)
-
-    monthly_changes.each do |(month_key, account_id), amount|
-      m = month_key.to_date.month rescue nil
-      next unless m
-      if asset_account_ids.include?(account_id)
-        monthly_asset_delta[m] += amount.to_d
-      elsif liability_account_ids.include?(account_id)
-        monthly_liability_delta[m] += amount.to_d
-      end
-    end
-
-    months = []
-    cumulative_asset = 0
-    cumulative_liability = 0
-
-    current_assets = current_balances.select { |_, v| asset_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
-    current_liabilities = current_balances.select { |_, v| liability_types.include?(v[:type]) }.values.sum { |v| v[:balance] }
-
-    months_in_range = []
-    current = six_months_ago.beginning_of_month
-    while current <= today.beginning_of_month
-      months_in_range << current.month
-      current = current.next_month
-    end
-
-    total_asset_delta = months_in_range.sum { |m| monthly_asset_delta[m] || 0 }
-    total_liability_delta = months_in_range.sum { |m| monthly_liability_delta[m] || 0 }
-
-    estimated_start_assets = current_assets - total_asset_delta
-    estimated_start_liabilities = current_liabilities - total_liability_delta
-
-    current = six_months_ago.beginning_of_month
-    while current <= today.beginning_of_month
-      m = current.month
-      cumulative_asset += monthly_asset_delta[m] || 0
-      cumulative_liability += monthly_liability_delta[m] || 0
-
-      asset_val = estimated_start_assets + cumulative_asset
-      liability_val = estimated_start_liabilities + cumulative_liability
-      net_val = asset_val + liability_val
-
-      months << {
-        month: current,
-        label: current.strftime("%m月"),
-        net_worth: net_val.to_f.round(2)
-      }
-
-      current = current.next_month
-    end
-
-    {
-      labels: months.map { |m| m[:label] },
-      net_worth: months.map { |m| m[:net_worth] }
-    }
+    service = AccountBalanceService.new(
+      start_date: six_months_ago,
+      end_date: today.end_of_month
+    )
+    service.compute_net_worth_trend.except(:details, :assets, :liabilities)
   end
 
   def load_weekly_trend(start_date, end_date)
