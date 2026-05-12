@@ -115,66 +115,11 @@ class AccountsController < ApplicationController
     AccountStatsService.preload_transfer_accounts_for(entries.map { |e| [ e, nil ] })
 
     current_account_filter = params[:account_id].to_s
-    entry_data = entries.map do |e|
-      entry_type = e.display_entry_type
-      is_transfer = entry_type == "TRANSFER"
-      is_inflow = is_transfer && e.amount.positive?
-
-      display_type = if is_transfer
-        if current_account_filter.blank?
-          "转账"
-        else
-          is_inflow ? "转入" : "转出"
-        end
-      else
-        e.display_type_label
-      end
-
-      display_amount_type = if is_transfer
-        if current_account_filter.blank?
-          "TRANSFER"
-        else
-          is_inflow ? "INCOME" : "EXPENSE"
-        end
-      else
-        entry_type
-      end
-
-      transfer_counterpart = if is_inflow
-        e.source_account_for_transfer&.name
-      else
-        e.target_account_for_display&.name
-      end
-
-      display_name = if is_transfer
-        if current_account_filter.present?
-          (is_inflow ? "← " : "→ ") + (transfer_counterpart || "未知账户")
-        else
-          "#{e.source_account_for_transfer&.name} → #{e.target_account_for_display&.name}"
-        end
-      else
-        e.display_category&.name || "-"
-      end
-
-      {
-        id: e.id,
-        account_id: e.account_id,
-        name: e.name,
-        date: e.date&.strftime("%Y-%m-%d"),
-        amount: e.amount.to_f,
-        display_amount: e.display_amount,
-        type: entry_type,
-        display_type: display_type,
-        display_amount_type: display_amount_type,
-        display_name: display_name,
-        note: e.display_note,
-        balance_after: balance_map[e.id],
-        show_both_amounts: is_transfer && current_account_filter.blank?,
-        transfer_from: is_transfer ? e.source_account_for_transfer&.name : nil,
-        transfer_to: is_transfer ? e.target_account_for_display&.name : nil,
-        account_name: e.account&.name || "未知账户"
-      }
-    end
+    entry_data = EntrySerializer.serialize_batch(
+      entries,
+      balance_map: balance_map,
+      account_filter: current_account_filter
+    )
 
     render json: { entries: entry_data, total: total_count }
   end
