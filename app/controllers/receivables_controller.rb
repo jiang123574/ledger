@@ -8,7 +8,7 @@ class ReceivablesController < ApplicationController
   before_action :check_not_settled, only: %i[update destroy]
 
   def index
-    @unsettled = Receivable.where(settled_at: nil).order(date: :desc).includes(:counterparty, :account)
+    @unsettled = Receivable.where(settled_at: nil).order(date: :desc).includes(:counterparty)
     @settled = Receivable.where.not(settled_at: nil).order(date: :desc).includes(:counterparty)
     @receivables = Receivable.order(date: :desc).includes(:counterparty)
     @selected_counterparty_id = params[:counterparty_id].presence
