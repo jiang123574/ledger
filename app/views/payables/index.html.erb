@@ -31,7 +31,7 @@
   </div>
 
   <% if @unsettled_counterparty_stats.any? %>
-    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs p-3">
+    <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs overflow-hidden p-3">
       <div class="flex items-center justify-between mb-2">
         <h2 class="text-sm font-semibold text-primary dark:text-primary-dark">待付款按联系人</h2>
         <span class="text-xs text-secondary dark:text-secondary-dark">Top <%= @unsettled_counterparty_stats.size %></span>
@@ -54,7 +54,7 @@
   <% end %>
 
   <%= turbo_frame_tag "unsettled-payables", class: "block" do %>
-  <section id="unsettled-payables-section" class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+  <section id="unsettled-payables-section" class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs overflow-hidden">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
       <h2 class="text-base font-semibold text-primary dark:text-primary-dark">待付款</h2>
       <span class="text-xs text-secondary dark:text-secondary-dark"><%= @filtered_unsettled.size %> 条</span>
@@ -166,7 +166,7 @@
   </section>
 <% end %>
 
-<section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+<section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs overflow-hidden">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
       <h2 class="text-base font-semibold text-primary dark:text-primary-dark">已完成</h2>
       <span class="text-xs text-secondary dark:text-secondary-dark"><%= @settled.size %> 条</span>
