@@ -96,34 +96,37 @@ class ReportGenerationService
   end
 
   def compute_monthly_trend_for_month
-    # 按周统计当月数据
-    first_day = start_date
-    last_day = end_date
+    stats = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(date: start_date..end_date)
+      .group("date_trunc('week', entries.date)", "entryable_transactions.kind")
+      .select("date_trunc('week', entries.date) as week_date, entryable_transactions.kind as kind, SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE entries.amount END) as total")
+      .map { |r| { week: r.week_date.to_date, kind: r.kind, amount: r.total.to_f } }
 
+    stats_by_week = stats.group_by { |s| s[:week] }
     weeks = []
-    current = first_day
-    while current <= last_day
-      week_end = [ current + 6.days, last_day ].min
-      weeks << { start: current, end: week_end, label: "第#{(current - first_day).to_i / 7 + 1}周" }
-      current = week_end + 1.day
-    end
+    current = start_date
+    week_num = 1
 
-    weeks.map do |week|
-      week_entries = Entry.with_entryable_transaction
-        .transactions_only
-        .non_transfers
-        .where(date: week[:start]..week[:end])
+    while current <= end_date
+      week_end = [ current.end_of_week, end_date ].min
+      week_data = stats_by_week[current] || []
+      income = week_data.find { |s| s[:kind] == "income" }&.dig(:amount) || 0
+      expense = week_data.find { |s| s[:kind] == "expense" }&.dig(:amount) || 0
 
-      income = week_entries.where(entryable_transactions: { kind: "income" }).sum(:amount)
-      expense = week_entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
-
-      {
-        month: week[:start].day,
-        label: week[:label],
+      weeks << {
+        week: week_num,
+        label: "第#{week_num}周",
         income: income,
         expense: expense
       }
+
+      current = week_end + 1.day
+      week_num += 1
     end
+
+    weeks
   end
 
   # 分类统计
@@ -148,20 +151,26 @@ class ReportGenerationService
 
   # 预算进度（月报）
   def compute_budget_data
-    Budget.where(month: start_date)
-      .includes(:category)
-      .map do |budget|
-        spent = budget.spent_amount || 0
-        percentage = budget.amount > 0 ? (spent / budget.amount * 100).round(1) : 0
-        {
-          category: budget.category,
-          budget_amount: budget.amount,
-          spent_amount: spent,
-          percentage: percentage,
-          remaining: budget.amount - spent
-        }
-      end
-      .sort_by { |b| -b[:spent_amount] }
+    budgets = Budget.for_month("#{start_date.year}-#{start_date.month.to_s.rjust(2, '0')}")
+    return [] if budgets.empty?
+
+    category_ids = budgets.pluck(:category_id)
+    spent_by_category = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(entryable_transactions: { kind: "expense", category_id: category_ids })
+      .where(date: start_date..end_date)
+      .group("entryable_transactions.category_id")
+      .sum("entries.amount * -1")
+
+    budgets.map do |budget|
+      spent = spent_by_category[budget.category_id] || 0
+      {
+        budget: budget,
+        spent: spent,
+        percentage: budget.amount > 0 ? (spent / budget.amount * 100).round : 0
+      }
+    end
   end
 
   # 账户余额数据
@@ -172,13 +181,13 @@ class ReportGenerationService
   end
 
   # 资产趋势
-  def compute_asset_trend(balance_data)
+  def compute_asset_trend(_balance_data)
     # TODO: 提取 compute_asset_trend 逻辑
     []
   end
 
   # 瀑布图数据
-  def compute_waterfall_data(balance_data)
+  def compute_waterfall_data(_balance_data)
     # TODO: 提取 compute_waterfall_data 逻辑
     []
   end
@@ -190,7 +199,7 @@ class ReportGenerationService
   end
 
   # Sankey 数据
-  def compute_sankey_data(total_income, total_expense)
+  def compute_sankey_data(_total_income, _total_expense)
     # TODO: 提取 compute_sankey_data 逻辑
     []
   end
@@ -201,13 +210,19 @@ class ReportGenerationService
     []
   end
 
-  # 筛选分类
+  # 筛选分类 — 只返回该时间段内有活动的分类
   def compute_filter_categories
-    expense_cats = categories.select { |c| (c.category_type || c.type) == "EXPENSE" }.sort_by(&:name)
-    income_cats = categories.select { |c| (c.category_type || c.type) == "INCOME" }.sort_by(&:name)
+    cats = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(date: start_date..end_date)
+      .select("DISTINCT categories.id, categories.name, entryable_transactions.kind")
+      .joins("INNER JOIN categories ON entryable_transactions.category_id = categories.id")
+      .map { |r| { id: r.id, name: r.name, kind: r.kind } }
+
     {
-      expense: expense_cats,
-      income: income_cats
+      expense: cats.select { |c| c[:kind] == "expense" },
+      income: cats.select { |c| c[:kind] == "income" }
     }
   end
 end
