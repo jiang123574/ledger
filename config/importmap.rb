@@ -6,6 +6,11 @@ pin "entry_card_renderer"
 pin "web_vitals"
 pin "selectors"
 
+# Utility modules for modular code organization
+pin "utils/toast_utils", to: "utils/toast_utils.js"
+pin "utils/entry_list_utils", to: "utils/entry_list_utils.js"
+pin "utils/selector_factory", to: "utils/selector_factory.js"
+
 # Pin controllers manually (Propshaft compatibility)
 pin "controllers", to: "controllers/index.js"
 pin "controllers/application", to: "controllers/application.js"
