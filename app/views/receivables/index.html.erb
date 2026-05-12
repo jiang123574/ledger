@@ -53,8 +53,8 @@
     </section>
   <% end %>
 
-  <%= turbo_frame_tag "unsettled-receivables" do %>
-    <section id="unsettled-receivables-section" class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+  <%= turbo_frame_tag "unsettled-receivables", class: "block" do %>
+    <section id="unsettled-receivables-section" class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
       <h2 class="text-base font-semibold text-primary dark:text-primary-dark">待报销</h2>
       <span class="text-xs text-secondary dark:text-secondary-dark"><%= @filtered_unsettled.size %> 条</span>
@@ -160,7 +160,7 @@
   </section>
 <% end %>
 
-<section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+<section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
       <h2 class="text-base font-semibold text-primary dark:text-primary-dark">已完成</h2>
       <span class="text-xs text-secondary dark:text-secondary-dark"><%= @settled.size %> 条</span>
