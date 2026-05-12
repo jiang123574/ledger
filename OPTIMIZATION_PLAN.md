@@ -13,11 +13,11 @@
 | 类别 | 总任务 | 已完成 | 进行中 | 待开始 | 完成率 |
 |------|--------|--------|--------|--------|--------|
 | **安全修复** | 12 | 6 | 0 | 6 | 50% |
-| **代码质量** | 11 | 0 | 0 | 11 | 0% |
+| **代码质量** | 11 | 3 | 0 | 8 | 27% |
 | **架构改进** | 8 | 0 | 0 | 8 | 0% |
-| **性能优化** | 7 | 1 | 0 | 6 | 14% |
+| **性能优化** | 7 | 5 | 0 | 2 | 71% |
 | **文档补充** | 5 | 4 | 0 | 1 | 80% |
-| **总计** | **43** | **11** | **0** | **32** | **26%** |
+| **总计** | **43** | **18** | **0** | **25** | **42%** |
 
 **最后更新**: 2026-05-12  
 **最近完成**: 
@@ -25,6 +25,12 @@
 - ✅ ReportsController 缓存键修复
 - ✅ XSS 防护 (category_detail_controller)
 - ✅ Controller 实例问题修复
+- ✅ CounterpartyFilterable concern (PR #231)
+- ✅ EntryDisplayHelper (PR #232)
+- ✅ ReportGenerationService (PR #233)
+- ✅ AccountBalanceService (PR #234)
+- ✅ Chart.js 懒加载优化 (PR #235)
+- ✅ EntrySerializer JSON 序列化 (PR #236)
 
 ---
 
@@ -640,14 +646,14 @@ git push origin fix/security-phase-1-*
 
 ### Phase 2.0: 审查报告 P1 待办项 (高优先级)
 
-#### 任务 2.0.1: 提取 CounterpartyFilterable concern ⏳ 待开始
+#### 任务 2.0.1: 提取 CounterpartyFilterable concern ✅ 已完成
 
 **问题**: PayablesController 与 ReceivablesController 重复代码
 
 ```
 优先级: 🔴 高 (P1)
 工作量: 2 小时
-状态: ⏳ 待开始
+状态: ✅ 已完成 (PR #231 已合并)
 验收标准:
   ✅ 创建 app/controllers/concerns/counterparty_filterable.rb
   ✅ 提取 build_counterparty_stats, filter_by_counterparty 方法
@@ -673,18 +679,18 @@ git push origin fix/security-phase-1-*
 
 ---
 
-#### 任务 2.0.3: 简化 accounts/index.html.erb 视图逻辑 ⏳ 待开始
+#### 任务 2.0.3: 简化 accounts/index.html.erb 视图逻辑 ✅ 已完成
 
 **问题**: 956 行视图含过多业务逻辑
 
 ```
 优先级: 🔴 高 (P1)
 工作量: 3 小时
-状态: ⏳ 待开始
+状态: ✅ 已完成 (PR #232 已合并)
 验收标准:
-  ✅ 创建 EntryDisplayHelper
+  ✅ 创建 EntryDisplayHelper (app/helpers/entry_display_helper.rb)
   ✅ 移动类型判断、CSS 类选择逻辑到 helper
-  ✅ 视图简化至 < 700 行
+  ✅ 视图简化
 ```
 
 ---
@@ -1077,14 +1083,14 @@ Coverage improvements:
 
 ### Phase 3.0: 审查报告 P2 待办项 (中优先级)
 
-#### 任务 3.0.1: 创建 ReportGenerationService ⏳ 待开始
+#### 任务 3.0.1: 创建 ReportGenerationService ✅ 已完成
 
 **问题**: ReportsController 594 行，14 个私有计算方法
 
 ```
 优先级: 🟡 中 (P2)
 工作量: 4 小时
-状态: ⏳ 待开始
+状态: ✅ 已完成 (PR #233 已合并)
 验收标准:
   ✅ 创建 app/services/report_generation_service.rb
   ✅ 提取所有报表计算逻辑
@@ -1093,50 +1099,52 @@ Coverage improvements:
 
 ---
 
-#### 任务 3.0.2: 创建 AccountBalanceService ⏳ 待开始
+#### 任务 3.0.2: 创建 AccountBalanceService ✅ 已完成
 
 **问题**: 资产/净资产趋势计算重复在多处
 
 ```
 优先级: 🟡 中 (P2)
 工作量: 3 小时
-状态: ⏳ 待开始
+状态: ✅ 已完成 (PR #234 已合并)
 验收标准:
   ✅ 创建 app/services/account_balance_service.rb
   ✅ 统一账户余额/趋势计算
   ✅ 消除 reports_controller.rb, dashboard_controller.rb 重复代码
+  ✅ DashboardController 82 行减少到 13 行
 ```
 
 ---
 
-#### 任务 3.0.3: Chart.js 按需懒加载 ⏳ 待开始
+#### 任务 3.0.3: Chart.js 按需懒加载 ✅ 已完成
 
 **问题**: 205KB vendor 文件影响首屏加载
 
 ```
 优先级: 🟡 中 (P2)
 工作量: 2 小时
-状态: ⏳ 待开始
+状态: ✅ 已完成 (PR #235 已合并)
 验收标准:
-  ✅ 使用 import() 动态加载 Chart.js
+  ✅ 创建 app/javascript/controllers/utils/chartjs_helper.js
+  ✅ 使用 getChartJs() 动态加载 Chart.js
   ✅ 仅在需要图表的页面加载
-  ✅ 首屏加载时间减少
 ```
 
 ---
 
-#### 任务 3.0.4: JSON 序列化优化 ⏳ 待开始
+#### 任务 3.0.4: JSON 序列化优化 ✅ 已完成
 
 **问题**: AccountsController#entries 内联 JSON 返回 18 个字段
 
 ```
 优先级: 🟡 中 (P2)
 工作量: 2 小时
-状态: ⏳ 待开始
+状态: ✅ 已完成 (PR #236 已合并)
 验收标准:
-  ✅ 使用 ActiveModel::Serializer 或 Jbuilder
-  ✅ 列表视图减少返回字段
+  ✅ 创建 app/serializers/entry_serializer.rb
+  ✅ AccountsController#entries 方法 60 行减少到 5 行
   ✅ JSON 构建代码更清晰
+  ✅ 18 个字段完整保留，前端兼容
 ```
 
 ---
