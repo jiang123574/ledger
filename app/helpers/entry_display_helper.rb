@@ -61,9 +61,8 @@ module EntryDisplayHelper
 
   # 获取转账对手账户名称
   # @param entry [Entry] 交易记录
-  # @param account_filter [String, nil] 当前账户筛选参数
   # @return [String, nil] 对手账户名称
-  def entry_transfer_counterpart(entry, account_filter = nil)
+  def entry_transfer_counterpart(entry)
     is_inflow = entry.display_entry_type == "TRANSFER" && entry.amount.positive?
 
     if is_inflow
@@ -93,7 +92,7 @@ module EntryDisplayHelper
   # @return [String] 显示文本
   def entry_transfer_display_text(entry, account_filter = nil)
     if account_filter.present?
-      counterpart = entry_transfer_counterpart(entry, account_filter)
+      counterpart = entry_transfer_counterpart(entry)
       is_inflow = entry.amount.positive?
       is_inflow ? "← #{counterpart}" : "→ #{counterpart}"
     else
