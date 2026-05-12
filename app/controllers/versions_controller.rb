@@ -18,9 +18,10 @@ class VersionsController < ApplicationController
       @operation_logs = @operation_logs.where(action: params[:action_type])
     end
 
-    # 搜索
+    # 搜索（转义 LIKE 通配符防止注入）
     if params[:search].present?
-      @operation_logs = @operation_logs.where("description LIKE ?", "%#{params[:search]}%")
+      search_term = params[:search].to_s.gsub(/[%_]/) { |char| "\\#{char}" }
+      @operation_logs = @operation_logs.where("description LIKE ?", "%#{search_term}%")
     end
   end
 

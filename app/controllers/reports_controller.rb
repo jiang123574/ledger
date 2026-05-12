@@ -42,7 +42,8 @@ class ReportsController < ApplicationController
   private
 
   def load_report_data
-    cache_key = "report/#{@report_type}/#{(@month ? "#{@year}-#{@month}" : @year)}"
+    ev = CacheBuster.version(:entries)
+    cache_key = "report/#{@report_type}/#{(@month ? "#{@year}-#{@month}" : @year)}/#{ev}"
 
     result = Rails.cache.fetch(cache_key, expires_in: 30.minutes) do
       compute_report_data
