@@ -37,13 +37,13 @@
         <span class="text-xs text-secondary dark:text-secondary-dark">Top <%= @unsettled_counterparty_stats.size %></span>
       </div>
       <div class="flex gap-2 overflow-x-auto pb-1">
-        <%= link_to payables_path, class: "shrink-0 min-w-[140px] px-3 py-2 rounded-lg border #{ @selected_counterparty_id.blank? ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-surface dark:bg-surface-dark border-border dark:border-border-dark' }" do %>
+        <%= link_to payables_path, data: { turbo_frame: "unsettled-payables" }, class: "shrink-0 min-w-[140px] px-3 py-2 rounded-lg border #{ @selected_counterparty_id.blank? ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-surface dark:bg-surface-dark border-border dark:border-border-dark' }" do %>
           <p class="text-sm font-medium text-primary dark:text-primary-dark">全部联系人</p>
           <p class="text-xs text-secondary dark:text-secondary-dark mt-0.5"><%= @unsettled.size %> 条待付款</p>
           <p class="text-sm font-semibold text-expense mt-1"><%= format_currency(@unsettled.sum { |r| r.remaining_amount.to_d }) %></p>
         <% end %>
         <% @unsettled_counterparty_stats.each do |item| %>
-          <%= link_to payables_path(counterparty_id: item[:filter_value], anchor: "unsettled-payables"), class: "shrink-0 min-w-[170px] px-3 py-2 rounded-lg border #{ @selected_counterparty_id.to_s == item[:filter_value].to_s ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-surface dark:bg-surface-dark border-border dark:border-border-dark' }" do %>
+          <%= link_to payables_path(counterparty_id: item[:filter_value]), data: { turbo_frame: "unsettled-payables" }, class: "shrink-0 min-w-[170px] px-3 py-2 rounded-lg border #{ @selected_counterparty_id.to_s == item[:filter_value].to_s ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200 dark:border-blue-800' : 'bg-surface dark:bg-surface-dark border-border dark:border-border-dark' }" do %>
             <p class="text-sm font-medium text-primary dark:text-primary-dark truncate"><%= item[:name] %></p>
             <p class="text-xs text-secondary dark:text-secondary-dark mt-0.5"><%= item[:count] %> 条待付款</p>
             <p class="text-sm font-semibold text-expense mt-1"><%= format_currency(item[:amount]) %></p>
@@ -53,15 +53,16 @@
     </section>
   <% end %>
 
-  <section id="unsettled-payables" class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+  <%= turbo_frame_tag "unsettled-payables" do %>
+  <section id="unsettled-payables-section" class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
       <h2 class="text-base font-semibold text-primary dark:text-primary-dark">待付款</h2>
       <span class="text-xs text-secondary dark:text-secondary-dark"><%= @filtered_unsettled.size %> 条</span>
     </div>
     <div class="px-4 py-2 border-b border-border dark:border-border-dark bg-surface-inset/40 dark:bg-surface-dark-inset/40">
-      <form method="get" action="<%= payables_path %>" class="flex items-center gap-2">
+      <form method="get" action="<%= payables_path %>" data-turbo-frame="unsettled-payables" class="flex items-center gap-2">
         <label for="payable-counterparty-filter" class="text-xs text-secondary dark:text-secondary-dark shrink-0">联系人</label>
-        <select id="payable-counterparty-filter" name="counterparty_id" onchange="this.form.submit()" class="w-full sm:w-auto px-2 py-1 text-xs rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark">
+        <select id="payable-counterparty-filter" name="counterparty_id" onchange="this.form.requestSubmit()" class="w-full sm:w-auto px-2 py-1 text-xs rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark">
           <option value="">全部联系人</option>
           <option value="none" <%= "selected" if @selected_counterparty_id == "none" %>>未设置联系人</option>
           <% @counterparties.each do |c| %>
@@ -163,8 +164,9 @@
       <% end %>
     </div>
   </section>
+<% end %>
 
-  <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
+<section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs transition-all group focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2">
     <div class="px-4 py-3 flex items-center justify-between border-b border-border dark:border-border-dark">
       <h2 class="text-base font-semibold text-primary dark:text-primary-dark">已完成</h2>
       <span class="text-xs text-secondary dark:text-secondary-dark"><%= @settled.size %> 条</span>
