@@ -84,5 +84,9 @@ Rails.application.configure do
     Bullet.add_safelist type: :unused_eager_loading, class_name: "SingleBudget", association: :budget_items
     # Category.full_name 递归调用 parent，缓存块内的 includes(:parent) 在缓存未命中时需要
     Bullet.add_safelist type: :unused_eager_loading, class_name: "Category", association: :parent
+    # Payable/Receivable 账户显示是条件性的 (if payable.account.present?)
+    # 当某些记录没有账户时，Bullet 会误报 unused_eager_loading
+    Bullet.add_safelist type: :unused_eager_loading, class_name: "Payable", association: :account
+    Bullet.add_safelist type: :unused_eager_loading, class_name: "Receivable", association: :account
   end
 end
