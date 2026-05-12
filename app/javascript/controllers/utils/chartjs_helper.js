@@ -1,5 +1,11 @@
 let chartJsPromise = null
+let chartJsLoaded = false
 
+/**
+ * 动态加载 Chart.js（仅在需要图表的页面加载）
+ * 使用 import() 动态导入，实现按需加载
+ * @returns {Promise<Chart|null>}
+ */
 export async function getChartJs() {
   if (typeof Chart !== "undefined") {
     return Chart
@@ -7,18 +13,45 @@ export async function getChartJs() {
 
   if (!chartJsPromise) {
     chartJsPromise = new Promise((resolve, reject) => {
+      // 检查是否已加载（UMD 方式可能已注入全局 Chart）
       if (typeof Chart !== "undefined") {
+        chartJsLoaded = true
         resolve(Chart)
         return
       }
 
-      // Chart.js should be loaded via UMD script tag in layout
-      // If not available, the UMD file is missing from production
-      reject(new Error("Chart.js not loaded. Ensure /assets/chart.js.umd.js exists."))
+      // 动态加载 Chart.js UMD 文件
+      const script = document.createElement("script")
+      script.src = "/assets/chart.js.umd.js"
+      script.async = true
+
+      script.onload = () => {
+        if (typeof Chart !== "undefined") {
+          chartJsLoaded = true
+          resolve(Chart)
+        } else {
+          reject(new Error("Chart.js script loaded but Chart global not found"))
+        }
+      }
+
+      script.onerror = () => {
+        chartJsPromise = null // 允许重试
+        reject(new Error("Failed to load Chart.js script"))
+      }
+
+      document.head.appendChild(script)
     })
   }
 
   return chartJsPromise
+}
+
+/**
+ * 检查 Chart.js 是否已加载
+ * @returns {boolean}
+ */
+export function isChartJsLoaded() {
+  return chartJsLoaded || typeof Chart !== "undefined"
 }
 
 /**
