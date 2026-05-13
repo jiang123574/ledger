@@ -1,6 +1,19 @@
 # frozen_string_literal: true
 
 module Ds
+  # Filled Icon Component - Icon with circular colored background
+  #
+  # Renders an icon inside a filled circular container.
+  # Useful for status indicators, category icons, etc.
+  #
+  # ## Usage
+  #   render(Ds::FilledIconComponent.new(icon: "wallet", color: :blue, size: :md))
+  #
+  # ## Options
+  # - icon: Icon name (Lucide icon set)
+  # - color: Background color (:red, :orange, :yellow, :green, :teal, :blue, :indigo, :purple, :pink, :gray)
+  # - size: Container size (:sm, :md, :lg)
+  #
   class FilledIconComponent < BaseComponent
     COLORS = {
       red: "bg-red-100 text-red-600",

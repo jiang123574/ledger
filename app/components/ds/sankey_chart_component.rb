@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 module Ds
+  # Sankey Chart Component - Renders flow diagram visualization
+  #
+  # Displays data flow between nodes as connected streams.
+  # Uses Stimulus controller for client-side D3.js rendering.
+  #
+  # ## Usage
+  #   render(Ds::SankeyChartComponent.new(
+  #     data: {
+  #       nodes: [{ name: "Income" }, { name: "Expense" }],
+  #       links: [{ source: 0, target: 1, value: 100 }]
+  #     },
+  #     height: 400
+  #   ))
+  #
+  # ## Options
+  # - data: Hash with :nodes and :links arrays
+  # - height: SVG height in pixels (default: 400)
+  #
   class SankeyChartComponent < BaseComponent
     def initialize(
       data: {},

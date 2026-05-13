@@ -1,6 +1,25 @@
 # frozen_string_literal: true
 
 module Ds
+  # Selection Bar Component - Bulk action bar for selected items
+  #
+  # Renders a fixed bottom bar showing selection count and actions.
+  # Used with BulkSelectController for multi-item operations.
+  #
+  # ## Usage
+  #   render(Ds::SelectionBarComponent.new(
+  #     count: 5,
+  #     delete_url: bulk_destroy_entries_path,
+  #     edit_url: bulk_edit_entries_path
+  #   ))
+  #
+  # ## Options
+  # - count: Number of selected items (default: 0)
+  # - delete_url: URL for bulk delete action
+  # - edit_url: URL for bulk edit action (optional)
+  #
+  # Returns empty string when count is zero.
+  #
   class SelectionBarComponent < BaseComponent
     def initialize(count: 0, delete_url: nil, edit_url: nil)
       @count = count

@@ -1,6 +1,22 @@
 # frozen_string_literal: true
 
 module Ds
+  # Disclosure Component - Expandable/collapsible content container
+  #
+  # Renders a details/summary element with configurable styling.
+  # Supports both chevron and arrow rotation indicators.
+  #
+  # ## Usage
+  #   render(Ds::DisclosureComponent.new(title: "Details")) do
+  #     "Hidden content here"
+  #   end
+  #
+  # ## Options
+  # - title: Summary title text
+  # - align: Icon alignment (:left, :right)
+  # - open: Initial expanded state (true/false)
+  # - rounded: Border radius (:sm, :md, :lg, :xl, :none)
+  #
   class DisclosureComponent < BaseComponent
     renders_one :summary_content
 
