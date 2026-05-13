@@ -93,8 +93,26 @@ class AccountEntriesQueryService
 
   def apply_search_filter(entries)
     if params[:search].present?
-      search_term = "%#{params[:search].to_s.gsub(/[%_]/) { |char| "\\#{char}" }}%"
-      entries.where("entries.name LIKE ? OR entries.notes LIKE ?", search_term, search_term)
+      raw = params[:search].to_s.strip
+      safe = raw.gsub(/[%_]/) { |char| "\\#{char}" }
+
+      entries = entries
+        .joins("LEFT JOIN entryable_transactions AS st ON entries.entryable_id = st.id AND entries.entryable_type = 'Entryable::Transaction'")
+        .joins("LEFT JOIN categories AS sc ON st.category_id = sc.id")
+
+      if raw.match?(/\A-?\d+(\.\d+)?\z/)
+        amount_val = BigDecimal(raw)
+        entries = entries.where(
+          "entries.name LIKE ? OR entries.notes LIKE ? OR sc.name LIKE ? OR ABS(entries.amount) = ?",
+          "%#{safe}%", "%#{safe}%", "%#{safe}%", amount_val
+        )
+      else
+        search_term = "%#{safe}%"
+        entries = entries.where(
+          "entries.name LIKE ? OR entries.notes LIKE ? OR sc.name LIKE ?",
+          search_term, search_term, search_term
+        )
+      end
     else
       entries
     end
