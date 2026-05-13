@@ -7,9 +7,7 @@ RSpec.describe Entry, type: :model do
   describe 'associations' do
     it { is_expected.to belong_to(:account) }
     it { is_expected.to belong_to(:transfer).optional } if defined?(Transfer)
-    # import association uses Import model which may not exist in this project
-    # ImportBatch exists but Entry.import association may point to different model
-    xit { is_expected.to belong_to(:import).optional }
+    it { is_expected.to belong_to(:import).optional }
     it { is_expected.to belong_to(:parent_entry).optional }
     it { is_expected.to have_many(:child_entries).dependent(:destroy) }
     it { is_expected.to have_many(:attachments).dependent(:destroy) }
@@ -685,24 +683,28 @@ RSpec.describe Entry, type: :model do
       let!(:entry2) { create(:entry, account: account, date: Date.yesterday) }
       let(:bulk_params) { { date: Date.current, notes: 'Bulk update' } }
 
-      # NOTE: bulk_update! method has implementation issue - uses 'each' in class method
-      # Should be defined as scope method or accept entry_ids parameter
-      # TODO: Fix bulk_update! method implementation
-      xit 'updates all entries' do
+      it 'updates all entries' do
         Entry.where(id: [ entry1.id, entry2.id ]).bulk_update!(bulk_params)
-        expect(entry1.reload.date).to eq(Date.current)
+        entry1.reload
+        entry2.reload
+        expect(entry1.date).to eq(Date.current)
         expect(entry1.notes).to eq('Bulk update')
+        expect(entry2.date).to eq(Date.current)
+        expect(entry2.notes).to eq('Bulk update')
       end
 
-      xit 'returns the number of updated entries' do
+      it 'returns the number of updated entries' do
         result = Entry.where(id: [ entry1.id, entry2.id ]).bulk_update!(bulk_params)
         expect(result).to eq(2)
       end
 
-      xit 'skips date update for split children' do
-        child = create(:entry, account: account, parent_entry: entry1, date: entry1.date)
-        Entry.where(id: [ entry1.id, child.id ]).bulk_update!({ date: Date.yesterday - 1 })
-        expect(child.reload.date).to eq(entry1.date)  # child date should not change
+      it 'skips date update for split children' do
+        original_date = entry1.date
+        child = create(:entry, account: account, parent_entry: entry1, date: original_date)
+        new_date = Date.yesterday - 1
+        Entry.where(id: [ entry1.id, child.id ]).bulk_update!({ date: new_date })
+        expect(entry1.reload.date).to eq(new_date)  # parent date should change
+        expect(child.reload.date).to eq(original_date)  # child date should not change
       end
     end
 

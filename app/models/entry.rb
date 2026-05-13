@@ -26,7 +26,7 @@ class Entry < ApplicationRecord
 
   belongs_to :account
   belongs_to :transfer, optional: true
-  belongs_to :import, optional: true
+  belongs_to :import, class_name: "ImportBatch", optional: true
   belongs_to :parent_entry, class_name: "Entry", optional: true
 
   has_many :child_entries, class_name: "Entry", foreign_key: :parent_entry_id, dependent: :destroy
@@ -371,8 +371,13 @@ class Entry < ApplicationRecord
 
       return 0 unless has_updates
 
+      # Use current_scope to handle relation calls (Entry.where(...).bulk_update!)
+      target_entries = current_scope || all
+      entries_to_update = target_entries.to_a
+      count = 0
+
       transaction do
-        each do |entry|
+        entries_to_update.each do |entry|
           changed = false
 
           if bulk_attributes.present?
@@ -395,13 +400,14 @@ class Entry < ApplicationRecord
           end
 
           if changed
-            entry.lock_saved_attributes!
+            entry.entryable.lock_saved_attributes! if entry.transaction?
             entry.mark_user_modified!
+            count += 1
           end
         end
       end
 
-      size
+      count
     end
 
     def min_supported_date
