@@ -22,6 +22,10 @@ production:
     class: AutoBackupJob
     schedule: every day at 3am
 
+  cache_warmup:
+    class: CacheWarmupJob
+    schedule: every 6 hours
+
 development:
   generate_due_plans:
     class: GenerateDuePlansJob
