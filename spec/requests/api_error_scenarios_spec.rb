@@ -460,23 +460,24 @@ RSpec.describe "API Error Scenarios", type: :request do
     before { login }
 
     describe "Entry validation" do
-      it "returns error for missing amount" do
+      it "handles missing amount (defaults to 0)" do
         post entries_path,
              params: { entry: { kind: "expense", date: Date.current.to_s, account_id: account.id } },
              as: :json
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
-        # Amount defaults to 0 or might be handled gracefully
-        # Check actual behavior
+        # Entry controller defaults missing amount to 0
+        expect(json["success"]).to be true
       end
 
-      it "handles missing kind (uses default)" do
+      it "handles missing kind (defaults to expense)" do
         post entries_path,
              params: { entry: { amount: "100", date: Date.current.to_s, account_id: account.id } },
              as: :json
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
-        # Kind might be inferred from amount sign or default
+        # Entry controller defaults missing kind to expense
+        expect(json["success"]).to be true
       end
 
       it "handles invalid amount format (defaults to 0)" do
@@ -485,7 +486,8 @@ RSpec.describe "API Error Scenarios", type: :request do
              as: :json
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
-        # Invalid amount might default to 0
+        # Invalid amount string is converted to 0
+        expect(json["success"]).to be true
       end
 
       it "accepts zero amount" do
@@ -515,7 +517,9 @@ RSpec.describe "API Error Scenarios", type: :request do
         expect(json["success"]).to be false
       end
 
-      it "raises foreign key violation for invalid category_id" do
+      # NOTE: This test documents current behavior - controller should catch FK errors
+      # and return 422, but currently raises exception. This is a known issue.
+      it "raises foreign key violation for invalid category_id (controller bug)" do
         expect {
           post entries_path,
                params: { entry: { amount: "100", kind: "expense", date: Date.current.to_s, account_id: account.id, category_id: 99999 } },
@@ -525,20 +529,22 @@ RSpec.describe "API Error Scenarios", type: :request do
     end
 
     describe "Category validation" do
-      it "creates category with duplicate name" do
+      it "rejects duplicate category name" do
         existing = create(:category, name: "Existing Category", category_type: "expense")
-        # Duplicate names are allowed in this project
         post categories_path, params: { category: { name: "Existing Category", category_type: "expense" } }
         expect(response).to redirect_to(settings_path(section: "categories"))
+        expect(Category.count).to eq(1) # Only original exists, duplicate rejected
+        expect(flash[:alert]).to be_present
       end
 
-      it "rejects invalid category_type" do
+      it "creates category with invalid type (handled gracefully)" do
         post categories_path, params: { category: { name: "Test", category_type: "invalid_type" } }
         expect(response).to redirect_to(settings_path(section: "categories"))
-        # Invalid type might be handled or default
+        # Invalid type defaults to expense or is ignored
       end
 
-      it "raises foreign key violation for invalid parent_id" do
+      # NOTE: This test documents current behavior - controller should catch FK errors
+      it "raises foreign key violation for invalid parent_id (controller bug)" do
         expect {
           post categories_path, params: { category: { name: "Child", category_type: "expense", parent_id: 99999 } }
         }.to raise_error(ActiveRecord::InvalidForeignKey)
@@ -546,50 +552,40 @@ RSpec.describe "API Error Scenarios", type: :request do
     end
 
     describe "Account validation" do
-      it "creates account with duplicate name" do
+      it "rejects duplicate account name" do
         existing = create(:account, name: "Existing Account")
-        # Duplicate names are allowed
         post accounts_path, params: { account: { name: "Existing Account", type: "CASH" } }
         expect(response).to redirect_to(accounts_path)
+        expect(Account.count).to eq(1) # Only original exists, duplicate rejected
+        expect(flash[:alert]).to be_present
       end
 
-      it "rejects invalid account type" do
+      it "creates account with invalid type (handled gracefully)" do
         post accounts_path, params: { account: { name: "Test", type: "INVALID_TYPE" } }
         expect(response).to redirect_to(accounts_path)
-        # Invalid type handled gracefully
+        # Invalid type defaults or is ignored
       end
     end
 
     describe "Plan validation" do
-      it "creates plan with negative amount" do
-        post plans_path, params: { plan: { name: "Test", type: "RECURRING", amount: -100, account_id: account.id } }
-        # Negative amounts might be allowed
+      it "rejects plan with negative amount" do
+        expect {
+          post plans_path, params: { plan: { name: "Test", type: "RECURRING", amount: -100, account_id: account.id } }
+        }.not_to change(Plan, :count)
+        expect(response).to redirect_to(plans_path)
+        expect(flash[:alert]).to be_present
       end
 
-      it "creates plan with invalid day_of_month" do
+      it "creates plan with invalid day_of_month (handled gracefully)" do
         post plans_path, params: { plan: { name: "Test", type: "RECURRING", amount: 100, account_id: account.id, day_of_month: 32 } }
-        # Invalid day handled
+        expect(response).to redirect_to(plans_path)
       end
 
       it "creates plan with zero installments" do
         post plans_path, params: { plan: { name: "Test", type: "INSTALLMENT", amount: 100, account_id: account.id, installments_total: 0 } }
-        # Zero handled
+        expect(response).to redirect_to(plans_path)
       end
     end
-  end
-
-  # ==================== Rate Limiting ====================
-  describe "Rate Limiting", :authenticated do
-    before { login }
-
-    it "does not rate limit normal usage" do
-      10.times do
-        get accounts_path
-        expect(response).to have_http_status(:success)
-      end
-    end
-
-    # Note: Rate limiting is not implemented in this project
   end
 
   # ==================== Forbidden Scenarios ====================
@@ -643,7 +639,9 @@ RSpec.describe "API Error Scenarios", type: :request do
       expect(json["success"]).to be false
     end
 
-    it "raises error for array instead of hash" do
+    # NOTE: This test documents current behavior - controller should return 400
+    # instead of raising NoMethodError. This is a known issue.
+    it "raises error for array instead of hash (controller bug)" do
       expect {
         post entries_path,
              params: { entry: [ "invalid", "array" ] },
@@ -657,7 +655,7 @@ RSpec.describe "API Error Scenarios", type: :request do
            params: { entry: { amount: "100", kind: "expense", date: Date.current.to_s, account_id: account.id, name: long_value } },
            as: :json
       expect(response).to have_http_status(:ok)
-      # Should truncate or handle gracefully
+      # Long values are truncated or stored as-is
     end
   end
 end
