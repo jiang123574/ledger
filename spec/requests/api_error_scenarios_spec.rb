@@ -486,8 +486,9 @@ RSpec.describe "API Error Scenarios", type: :request do
              as: :json
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
-        # Invalid amount string is converted to 0
         expect(json["success"]).to be true
+        # Verify the entry was created with amount 0
+        expect(Entry.last.amount).to eq(0)
       end
 
       it "accepts zero amount" do
@@ -499,13 +500,15 @@ RSpec.describe "API Error Scenarios", type: :request do
         expect(json["success"]).to be true
       end
 
-      it "accepts negative amount" do
+      it "accepts negative amount (stored as positive for expense)" do
         post entries_path,
              params: { entry: { amount: "-100", kind: "expense", date: Date.current.to_s, account_id: account.id } },
              as: :json
         expect(response).to have_http_status(:ok)
         json = JSON.parse(response.body)
         expect(json["success"]).to be true
+        # Negative amount for expense is stored as positive 100 (the sign is handled by kind)
+        expect(Entry.last.amount).to eq(100)
       end
 
       it "returns error for invalid date format" do
@@ -537,10 +540,13 @@ RSpec.describe "API Error Scenarios", type: :request do
         expect(flash[:alert]).to be_present
       end
 
-      it "creates category with invalid type (handled gracefully)" do
+      it "creates category storing invalid type as-is (no validation)" do
         post categories_path, params: { category: { name: "Test", category_type: "invalid_type" } }
         expect(response).to redirect_to(settings_path(section: "categories"))
-        # Invalid type defaults to expense or is ignored
+        # Verify category was created, invalid type is stored as-is (no validation on type)
+        category = Category.find_by(name: "Test")
+        expect(category).to be_present
+        expect(category.category_type).to eq("invalid_type")
       end
 
       # NOTE: This test documents current behavior - controller should catch FK errors
@@ -560,10 +566,13 @@ RSpec.describe "API Error Scenarios", type: :request do
         expect(flash[:alert]).to be_present
       end
 
-      it "creates account with invalid type (handled gracefully)" do
+      it "creates account storing invalid type as-is (no validation)" do
         post accounts_path, params: { account: { name: "Test", type: "INVALID_TYPE" } }
         expect(response).to redirect_to(accounts_path)
-        # Invalid type defaults or is ignored
+        # Verify account was created, invalid type is stored as-is (no validation on type)
+        account = Account.find_by(name: "Test")
+        expect(account).to be_present
+        expect(account.type).to eq("INVALID_TYPE")
       end
     end
 
@@ -576,14 +585,20 @@ RSpec.describe "API Error Scenarios", type: :request do
         expect(flash[:alert]).to be_present
       end
 
-      it "creates plan with invalid day_of_month (handled gracefully)" do
-        post plans_path, params: { plan: { name: "Test", type: "RECURRING", amount: 100, account_id: account.id, day_of_month: 32 } }
+      it "rejects plan with invalid day_of_month" do
+        expect {
+          post plans_path, params: { plan: { name: "Test", type: "RECURRING", amount: 100, account_id: account.id, day_of_month: 32 } }
+        }.not_to change(Plan, :count)
         expect(response).to redirect_to(plans_path)
+        expect(flash[:alert]).to be_present
       end
 
-      it "creates plan with zero installments" do
-        post plans_path, params: { plan: { name: "Test", type: "INSTALLMENT", amount: 100, account_id: account.id, installments_total: 0 } }
+      it "rejects plan with zero installments" do
+        expect {
+          post plans_path, params: { plan: { name: "Test", type: "INSTALLMENT", amount: 100, account_id: account.id, installments_total: 0 } }
+        }.not_to change(Plan, :count)
         expect(response).to redirect_to(plans_path)
+        expect(flash[:alert]).to be_present
       end
     end
   end
