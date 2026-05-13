@@ -85,6 +85,8 @@ class BudgetsController < ApplicationController
     render json: {
       id: budget.id,
       name: budget.name,
+      start_date: budget.start_date,
+      end_date: budget.end_date || Date.current,
       total_amount: total.to_f,
       spent_amount: budget.spent_amount.to_f,
       formatted_total: helpers.format_currency(total),

@@ -337,7 +337,8 @@ export default class extends Controller {
     if (!form) return
 
     const amountInput = form.querySelector('input[name="transaction[amount]"]')
-    if (!amountInput?.value || parseFloat(amountInput.value) <= 0) {
+    const amount = parseFloat(amountInput.value)
+    if (!amountInput?.value || isNaN(amount)) {
       showErrorToast('请输入有效金额')
       return
     }

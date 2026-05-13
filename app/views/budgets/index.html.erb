@@ -145,7 +145,10 @@
           <% end %>
         </div>
 
-        <div id="budget-items-table">
+        <div id="budget-items-table" 
+             data-controller="category-detail"
+             data-category-detail-start-date-value="<%= @selected_budget&.start_date || Date.current.beginning_of_month %>"
+             data-category-detail-end-date-value="<%= @selected_budget&.end_date || Date.current %>">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold text-primary dark:text-primary-dark">预算明细</h3>
             <button id="add-item-btn" data-budget-id="" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth flex items-center gap-1">
@@ -170,8 +173,12 @@
                     <% item_percentage = item.progress_percentage %>
                     <% item_remaining = item.remaining_amount %>
                     <tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">
-<td class="py-1.5 px-2">
-                        <span class="text-xs font-medium text-primary dark:text-primary-dark"><%= item.category&.full_name || item.name %></span>
+<td class="py-1.5 px-2 <%= item.category_id.present? ? 'cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth' : '' %>"
+                          <% if item.category_id.present? %>
+                          data-category-id="<%= item.category_id %>"
+                          data-action="click->category-detail#show"
+                          <% end %>>
+                        <span class="text-xs font-medium text-primary dark:text-primary-dark <%= item.category_id.present? ? 'hover:text-blue-600' : '' %>"><%= item.category&.full_name || item.name %></span>
                       </td>
                       <td class="py-1.5 px-2 text-right text-xs font-medium text-primary dark:text-primary-dark"><%= format_currency(item.amount) %></td>
                       <td class="py-1.5 px-2 text-right text-xs text-spent"><%= format_currency(item.spent_amount) %></td>
@@ -275,6 +282,14 @@
       .then(function(data) {
         updateBudgetOverview(data);
         updateBudgetItems(data.items);
+        // 更新 category-detail controller 的日期范围
+        var container = document.getElementById('budget-items-table');
+        if (container) {
+          var startDate = data.start_date || (new Date().toISOString().split('T')[0].slice(0, 8) + '01');
+          var endDate = data.end_date || new Date().toISOString().split('T')[0];
+          container.dataset.categoryDetailStartDateValue = startDate;
+          container.dataset.categoryDetailEndDateValue = endDate;
+        }
       })
       .catch(function() {
         console.error('Failed to load budget data');
@@ -371,8 +386,19 @@
       var escapedCategoryNameForOnclick = (item.category_name || item.name || '').replace(/'/g, "\\'").replace(/"/g, '\\"');
       var escapedAmount = escapeHtml(item.formatted_amount);
       var escapedSpent = escapeHtml(item.formatted_spent);
+      // 分类单元格支持点击查看明细（仅当有 category_id）
+      var categoryTdAttrs = '';
+      var categoryTdClass = 'py-1.5 px-2';
+      var categorySpanClass = 'text-xs font-medium text-primary dark:text-primary-dark';
+      if (item.category_id) {
+        categoryTdAttrs = ' data-category-id="' + item.category_id + '" data-action="click->category-detail#show"';
+        categoryTdClass += ' cursor-pointer hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth';
+        categorySpanClass += ' hover:text-blue-600';
+      }
+      var categoryTdHtml = '<td class="' + categoryTdClass + '"' + categoryTdAttrs + '>' +
+        '<span class="' + categorySpanClass + '">' + escapedCategoryName + '</span></td>';
       return '<tr class="border-b border-border dark:border-border-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">' +
-        '<td class="py-1.5 px-2"><span class="text-xs font-medium text-primary dark:text-primary-dark">' + escapedCategoryName + '</span></td>' +
+        categoryTdHtml +
         '<td class="py-1.5 px-2 text-right text-xs font-medium text-primary dark:text-primary-dark">' + escapedAmount + '</td>' +
         '<td class="py-1.5 px-2 text-right text-xs text-spent">' + escapedSpent + '</td>' +
         '<td class="py-1.5 px-2 text-right text-xs font-medium text-remaining">' + (remaining >= 0 ? '' : '-') + escapeHtml(item.currency_symbol) + Math.abs(remaining).toFixed(2) + '</td>' +
@@ -737,3 +763,28 @@
     }
   }, true);
 </script>
+
+<!-- 分类明细弹窗 -->
+<div id="category-detail-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+  <div class="fixed inset-0 bg-black/50 dark:bg-black/70" data-detail-overlay></div>
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="relative bg-container dark:bg-container-dark rounded-xl shadow-xl max-w-4xl w-full max-h-[80vh] overflow-hidden z-10" data-detail-content>
+      <div class="px-4 py-3 border-b border-border dark:border-border-dark flex items-center justify-between">
+        <h3 class="text-base font-semibold text-primary dark:text-primary-dark" data-detail-title>分类明细</h3>
+        <button type="button" data-detail-close class="p-1.5 rounded-lg hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="px-4 py-2 bg-surface-inset dark:bg-surface-dark-inset text-sm text-secondary dark:text-secondary-dark" data-detail-total>加载中...</div>
+      <div class="hidden lg:flex px-4 py-2 border-b border-border dark:border-border-dark text-xs text-secondary dark:text-secondary-dark font-medium items-center" data-detail-header>
+        <div class="shrink-0" style="width: 80px;">日期</div>
+        <div class="shrink-0" style="width: 150px;">分类</div>
+        <div class="shrink-0 text-right" style="width: 80px;">流入</div>
+        <div class="shrink-0 text-right" style="width: 80px;">流出</div>
+        <div class="flex-1 min-w-0 ml-4">备注</div>
+        <div class="shrink-0 text-center" style="width: 70px;">操作</div>
+      </div>
+      <div class="overflow-y-auto max-h-[55vh]" data-detail-container></div>
+    </div>
+  </div>
+</div>
