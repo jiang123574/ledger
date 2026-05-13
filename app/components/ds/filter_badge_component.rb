@@ -1,6 +1,23 @@
 # frozen_string_literal: true
 
 module Ds
+  # Filter Badge Component - Displays active filter state
+  #
+  # Renders a badge showing current filter label and value,
+  # with optional remove link to clear the filter.
+  #
+  # ## Usage
+  #   render(Ds::FilterBadgeComponent.new(
+  #     label: "Category",
+  #     value: "Food",
+  #     remove_url: accounts_path(category_id: nil)
+  #   ))
+  #
+  # ## Options
+  # - label: Filter type label (required)
+  # - value: Current filter value (required)
+  # - remove_url: URL to clear this filter (optional)
+  #
   class FilterBadgeComponent < BaseComponent
     def initialize(label:, value:, remove_url: nil)
       @label = label

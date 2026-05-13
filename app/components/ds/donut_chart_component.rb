@@ -1,6 +1,24 @@
 # frozen_string_literal: true
 
 module Ds
+  # Donut Chart Component - Renders a donut/ring chart visualization
+  #
+  # Displays data as segments in a circular chart with an empty center.
+  # Uses Stimulus controller for client-side rendering.
+  #
+  # ## Usage
+  #   render(Ds::DonutChartComponent.new(
+  #     data: { "Food" => 100, "Transport" => 50 },
+  #     size: 200,
+  #     inner_radius: 80
+  #   ))
+  #
+  # ## Options
+  # - data: Hash of label => value pairs
+  # - size: SVG canvas size in pixels (default: 200)
+  # - inner_radius: Inner circle radius (default: size * 0.5)
+  # - show_labels: Display legend overlay (default: true)
+  #
   class DonutChartComponent < BaseComponent
     COLORS = %w[
       #ef4444 #f97316 #eab308 #84cc16 #22c55e #14b8a6 #06b6d4 #0ea5e9 #3b82f6
