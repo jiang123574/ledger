@@ -87,7 +87,7 @@ class EntrySerializer
           is_inflow ? "INCOME" : "EXPENSE"
         end
       else
-        entry.display_entry_type
+        entry.display_flow_type
       end
     end
 
