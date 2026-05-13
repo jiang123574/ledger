@@ -319,36 +319,11 @@ class Entry < ApplicationRecord
   end
 
   def split!(splits)
-    total = splits.sum { |s| s[:amount].to_d }
-    unless total == amount
-      raise ArgumentError,
-            "Split amounts must sum to parent amount (expected #{amount}, got #{total})"
-    end
-
-    transaction do
-      splits.map do |split_attrs|
-        child_entry = child_entries.create!(
-          account: account,
-          date: date,
-          name: split_attrs[:name],
-          amount: split_attrs[:amount],
-          currency: currency,
-          entryable: Entryable::Transaction.new(
-            category_id: split_attrs[:category_id]
-          )
-        )
-      end
-
-      update!(excluded: true)
-      mark_user_modified!
-    end
+    EntrySplitService.split(self, splits)
   end
 
   def unsplit!
-    transaction do
-      child_entries.destroy_all
-      update!(excluded: false)
-    end
+    EntrySplitService.unsplit(self)
   end
 
   class << self
@@ -357,57 +332,11 @@ class Entry < ApplicationRecord
     end
 
     def bulk_update!(bulk_update_params, update_tags: false)
-      bulk_attributes = {
-        date: bulk_update_params[:date],
-        notes: bulk_update_params[:notes],
-        entryable_attributes: {
-          category_id: bulk_update_params[:category_id],
-          merchant_id: bulk_update_params[:merchant_id]
-        }.compact_blank
-      }.compact_blank
-
-      tag_ids = Array.wrap(bulk_update_params[:tag_ids]).reject(&:blank?)
-      has_updates = bulk_attributes.present? || update_tags
-
-      return 0 unless has_updates
-
       # Use current_scope to handle relation calls (Entry.where(...).bulk_update!)
       target_entries = current_scope || all
       entries_to_update = target_entries.to_a
-      count = 0
 
-      transaction do
-        entries_to_update.each do |entry|
-          changed = false
-
-          if bulk_attributes.present?
-            attrs = bulk_attributes.dup
-            attrs.delete(:date) if entry.split_child?
-
-            if attrs.present?
-              attrs[:entryable_attributes] = attrs[:entryable_attributes].dup if attrs[:entryable_attributes].present?
-              attrs[:entryable_attributes][:id] = entry.entryable_id if attrs[:entryable_attributes].present?
-              entry.update! attrs
-              changed = true
-            end
-          end
-
-          if update_tags && entry.transaction?
-            entry.transaction.tag_ids = tag_ids
-            entry.transaction.save!
-            entry.entryable.lock_attr!(:tag_ids) if entry.transaction.tags.any?
-            changed = true
-          end
-
-          if changed
-            entry.entryable.lock_saved_attributes! if entry.transaction?
-            entry.mark_user_modified!
-            count += 1
-          end
-        end
-      end
-
-      count
+      EntryBulkUpdateService.bulk_update(entries_to_update, bulk_update_params, update_tags: update_tags)
     end
 
     def min_supported_date
