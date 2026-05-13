@@ -15,6 +15,12 @@ module Ds
       gray: "bg-gray-100 text-gray-600"
     }.freeze
 
+    SIZES = {
+      sm: { container: "w-8 h-8", icon: :sm },
+      md: { container: "w-10 h-10", icon: :md },
+      lg: { container: "w-12 h-12", icon: :lg }
+    }.freeze
+
     def initialize(
       icon: nil,
       color: :blue,
@@ -48,21 +54,13 @@ module Ds
     end
 
     def size_class
-      case @size
-      when :sm then "w-8 h-8"
-      when :md then "w-10 h-10"
-      when :lg then "w-12 h-12"
-      else "w-10 h-10"
-      end
+      size_config = SIZES[@size] || SIZES[:md]
+      size_config[:container]
     end
 
     def icon_size
-      case @size
-      when :sm then :sm
-      when :md then :md
-      when :lg then :lg
-      else :md
-      end
+      size_config = SIZES[@size] || SIZES[:md]
+      size_config[:icon]
     end
   end
 end

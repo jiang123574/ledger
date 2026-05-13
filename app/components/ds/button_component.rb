@@ -52,6 +52,13 @@ module Ds
       lg: "px-5 py-2 text-base rounded-lg"
     }.freeze
 
+    ICON_SIZES = {
+      xs: :xs,
+      sm: :xs,
+      md: :sm,
+      lg: :md
+    }.freeze
+
     def initialize(
       variant: :primary,
       size: :md,
@@ -139,12 +146,7 @@ module Ds
     end
 
     def icon_size
-      case @size
-      when :xs then :xs
-      when :sm then :xs
-      when :lg then :md
-      else :sm
-      end
+      ICON_SIZES[@size] || :sm
     end
   end
 end
