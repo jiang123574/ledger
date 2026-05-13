@@ -25,6 +25,18 @@ module Ds
       transfer: "bg-blue-100 text-blue-700"
     }.freeze
 
+    DOT_COLORS = {
+      default: "bg-gray-500",
+      primary: "bg-blue-500",
+      success: "bg-income",
+      warning: "bg-yellow-500",
+      danger: "bg-expense",
+      info: "bg-blue-500",
+      income: "bg-expense",
+      expense: "bg-income",
+      transfer: "bg-blue-500"
+    }.freeze
+
     SIZES = {
       xs: "px-1.5 py-0.5 text-xs",
       sm: "px-2 py-0.5 text-xs",
@@ -81,13 +93,7 @@ module Ds
     end
 
     def dot_color
-      case @variant
-      when :success, :expense then "bg-income"
-      when :warning then "bg-yellow-500"
-      when :danger, :income then "bg-expense"
-      when :info, :transfer then "bg-blue-500"
-      else "bg-gray-500"
-      end
+      DOT_COLORS[@variant] || DOT_COLORS[:default]
     end
   end
 end
