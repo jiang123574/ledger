@@ -14,10 +14,10 @@
 |------|--------|--------|--------|--------|--------|
 | **安全修复** | 12 | 12 | 0 | 0 | 100% |
 | **代码质量** | 11 | 11 | 0 | 0 | 100% |
-| **架构改进** | 8 | 2 | 0 | 6 | 25% |
+| **架构改进** | 8 | 4 | 0 | 4 | 50% |
 | **性能优化** | 7 | 7 | 0 | 0 | 100% |
 | **文档补充** | 5 | 5 | 0 | 0 | 100% |
-| **总计** | **43** | **37** | **0** | **6** | **86%** |
+| **总计** | **43** | **39** | **0** | **4** | **91%** |
 
 **最后更新**: 2026-05-14  
 **最近完成**: 
@@ -42,6 +42,7 @@
 - ✅ Stimulus tooltip_controller 单元测试 (PR #248)
 - ✅ Stimulus 控制器单元测试 (10 test files, 31 tests passing)
 - ✅ Brakeman 警告清零 - 单用户架构 FP 文档化 (config/brakeman.ignore)
+- ✅ 大方法拆分 - SankeyDataService + BillCycleService (PR #251)
 - ⚠️ Mass Assignment修复不适用（单用户系统，Account无user_id）- 已通过 brakeman.ignore 文档化
 
 ---
@@ -2162,21 +2163,23 @@ Metrics:
 
 ---
 
-#### 任务 5.0.2: 大方法拆分 ⏳ 待开始
+#### 任务 5.0.2: 大方法拆分 ✅ 已完成
 
 **问题**: 多个超长方法难以维护
 
 ```
 优先级: 🟢 低 (P3)
 工作量: 4 小时
-状态: ⏳ 待开始
+状态: ✅ 已完成 (PR #251)
 涉及方法:
-  - Account#bill_cycles_with_statement (75 行)
-  - Account#batch_bill_cycle_summary (65 行)
-  - ReportsController#compute_sankey_data (93 行)
+  - Account#bill_cycles_with_statement (77 行 → 3 行)
+  - Account#batch_bill_cycle_summary (65 行 → 3 行)
+  - ReportsController#compute_sankey_data (94 行 → 4 行)
 验收标准:
   ✅ 所有方法 < 50 行
   ✅ 单一职责原则
+  ✅ ReportsController: 595 → 504 行 (-15%)
+  ✅ Account: 430 → 333 行 (-23%)
 ```
 
 ---
