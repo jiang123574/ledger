@@ -1,0 +1,58 @@
+{
+  "ignored_warnings": [
+    {
+      "fingerprint": "0c3e79ba84ed06b43e1f2f7f42a216f901aed2f62828fafca43318c3889c1a51",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "51b1645b17430847b3673dcc7245cf1e1baaed3993dde1da58053afc6431732f",
+      "note": "Backup file path validated with File.basename and Pathname.realpath checks"
+    },
+    {
+      "fingerprint": "7af97bc3453e76e849563b8fec12ad5753d32aa2ad6f3b5c8ea5bb44658362b2",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "7ce18b5318863863fd00b40387631caf5d2b3a9754896f8688ce758f35de8a79",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "8b67f747519a5380e71ac022bb01225ce160d4392151b795e4377fcd3f6b2c3a",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "8d1a3ddd5a9c422739a1dc6fd16dfc94f194d3fc1fcabadb0be145efe8c54d04",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "af6122ffc364b07846cbe3383bac5ef3ce4b486e81e412594ca1fd4e2ef3bcc8",
+      "note": "Backup file path validated with File.basename and realpath checks"
+    },
+    {
+      "fingerprint": "bc767c0630d18b7a944295e0183a6ef3d8c2a3237fc7c1f24e009b8bfda18313",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "bec3d836648288e830f86249cbe37420cb3aa089d8cf1c8644b534c519e10651",
+      "note": "Backup file path validated with File.basename and realpath checks"
+    },
+    {
+      "fingerprint": "cab3ecf21ae99699359f66eb56ed49c448db7a0474cf0c3da5dde4773b732f05",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "df22026ca347289c6da1ee5ee82443416508a8f4e9e4a39c638ce52b242e8125",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "f1ca614d98a54d6547380a120e52dbb4dcaa49c80c65407faa7e6a1b5cf6a1b4",
+      "note": "Single-user system: no User model, account_id is safe to allow in params"
+    },
+    {
+      "fingerprint": "fff7653181d5986323eec4d2577d41fb7a1b8a6f956bb038f4c5ffb6ae67cc3f",
+      "note": "Backup file path from model attribute, validated elsewhere"
+    }
+  ],
+  "updated_at": "2026-05-14 13:50:00 +0800",
+  "brakeman_version": "8.0.4"
+}
