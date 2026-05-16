@@ -17,6 +17,7 @@ class AccountEntriesQueryService
     entries = apply_category_filter(entries)
     entries = apply_period_filter(entries)
     entries = apply_search_filter(entries)
+    entries = apply_transfer_filter(entries)
     entries = apply_sort(entries)
 
     entries
@@ -113,6 +114,14 @@ class AccountEntriesQueryService
           search_term, search_term, search_term
         )
       end
+    else
+      entries
+    end
+  end
+
+  def apply_transfer_filter(entries)
+    if params[:exclude_transfers] == "true"
+      entries.non_transfers
     else
       entries
     end

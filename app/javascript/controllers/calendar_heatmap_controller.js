@@ -253,6 +253,7 @@ export default class extends Controller {
       params.set("start_date", dateStr)
       params.set("end_date", dateStr)
       params.set("per_page", "100")
+      params.set("exclude_transfers", "true")
       params.set("format", "json")
 
       const response = await fetch(`/accounts/entries?${params.toString()}`, {
