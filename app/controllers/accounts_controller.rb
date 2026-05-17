@@ -216,7 +216,7 @@ class AccountsController < ApplicationController
       display_amount_type = if is_transfer
         is_inflow ? "INCOME" : "EXPENSE"
       else
-        entry_type
+        e.display_flow_type  # 使用实际流向（正数支出=流入，负数收入=流出）
       end
 
       # 显示名称（对方账户）
