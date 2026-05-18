@@ -220,18 +220,30 @@ export default class extends Controller {
 
   toggleTransferMode() {
     if (this.transactionMode === 'category') {
+      // 先获取当前设置的账户（用于转账时设为转出账户）
+      const incomeHidden = document.getElementById('transaction_account_id_income')
+      const incomeSearch = document.getElementById('account-search-input-income')
+      const currentAccountId = incomeHidden?.value || ''
+      const currentAccountName = incomeSearch?.value || ''
+
       this.transactionMode = 'transfer'
       window.transactionMode = 'transfer'
       this.showTransferFields()
       this.hideCategoryFields()
 
       // Clear income account values
-      const incomeHidden = document.getElementById('transaction_account_id_income')
       if (incomeHidden) incomeHidden.value = ''
-      const incomeSearch = document.getElementById('account-search-input-income')
       if (incomeSearch) incomeSearch.value = ''
 
       forceInitTransferSelectors(this.allAccounts)
+
+      // 将之前设置的账户设为转出账户
+      if (currentAccountId) {
+        const sourceHidden = document.getElementById('transaction_account_id')
+        const sourceSearch = document.getElementById('account-search-input')
+        if (sourceHidden) sourceHidden.value = currentAccountId
+        if (sourceSearch) sourceSearch.value = currentAccountName
+      }
 
       const typeInput = document.getElementById('transaction-type-input')
       if (typeInput) typeInput.value = 'TRANSFER'
