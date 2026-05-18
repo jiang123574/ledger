@@ -544,9 +544,9 @@
   <!-- 期数选择器 -->
   <div class="px-3 lg:px-4 py-2 flex items-center gap-2 border-b border-border dark:border-border-dark bg-surface-inset dark:bg-surface-dark-inset">
     <span class="text-xs text-secondary dark:text-secondary-dark">显示期数：</span>
-    <button data-action="click->bill-statement#loadBillsWithCount" data-bill-statement-count-param="3" class="bill-count-btn px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-count="3">3期</button>
-    <button data-action="click->bill-statement#loadBillsWithCount" data-bill-statement-count-param="12" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="12">12期</button>
-    <button data-action="click->bill-statement#loadBillsWithCount" data-bill-statement-count-param="24" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="24">24期</button>
+    <button data-bill-statement-target="countBtn" data-action="click->bill-statement#loadBillsWithCount" data-bill-statement-count-param="3" class="bill-count-btn px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400" data-count="3">3期</button>
+    <button data-bill-statement-target="countBtn" data-action="click->bill-statement#loadBillsWithCount" data-bill-statement-count-param="12" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="12">12期</button>
+    <button data-bill-statement-target="countBtn" data-action="click->bill-statement#loadBillsWithCount" data-bill-statement-count-param="24" class="bill-count-btn px-2 py-0.5 rounded text-xs hover:bg-surface-hover dark:hover:bg-surface-dark-hover" data-count="24">24期</button>
     <button data-action="click->bill-statement#showStatementInputModal" class="ml-auto px-2 py-0.5 rounded text-xs bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-900/50">录入基准账单</button>
   </div>
   <!-- 账单卡片行 -->
