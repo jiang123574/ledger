@@ -132,7 +132,7 @@ class AccountsController < ApplicationController
       return
     end
 
-    count = (params[:count] || 3).to_i.clamp(1, 12)
+    count = (params[:count] || 3).to_i.clamp(1, 60)
     cycles = @account.bill_cycles_with_statement(count)
 
     bill_data = cycles.map do |cycle|
