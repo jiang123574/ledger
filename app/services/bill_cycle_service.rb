@@ -43,7 +43,7 @@ class BillCycleService
 
     months_from_base = calculate_months_from_base(earliest_base)
     # 确保 needed_cycles 至少为 count，以获取足够多的周期
-    needed_cycles = [months_from_base + count + 2, count].max.clamp(1, 60)
+    needed_cycles = [ months_from_base + count + 2, count ].max.clamp(1, 60)
 
     all_cycles = @account.bill_cycles(needed_cycles)
     cycles_by_date = all_cycles.sort_by { |c| c[:end_date] }
