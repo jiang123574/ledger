@@ -70,7 +70,7 @@ export default class extends Controller {
     this.countBtnTargets.forEach(btn => {
       btn.classList.remove("bg-blue-50", "dark:bg-blue-900/30", "text-blue-600", "dark:text-blue-400")
       btn.classList.add("hover:bg-surface-hover", "dark:hover:bg-surface-dark-hover")
-      if (btn.dataset.count == count) {
+      if (parseInt(btn.dataset.count) === count) {
         btn.classList.add("bg-blue-50", "dark:bg-blue-900/30", "text-blue-600", "dark:text-blue-400")
         btn.classList.remove("hover:bg-surface-hover", "dark:hover:bg-surface-dark-hover")
       }
