@@ -15,12 +15,15 @@ export default class extends Controller {
   }
 
   connect() {
-    this.currentBillCount = 3
-    this.selectedBillLabel = null
-    this.selectedStartDate = null
-    this.selectedEndDate = null
+    // 从 URL 参数恢复状态
+    const urlParams = new URLSearchParams(window.location.search)
+    const urlCount = urlParams.get('bill_count')
+    this.currentBillCount = urlCount ? parseInt(urlCount) : 3
+    this.selectedBillLabel = urlParams.get('bill_label') || null
+    this.selectedStartDate = urlParams.get('bill_start') || null
+    this.selectedEndDate = urlParams.get('bill_end') || null
     this.allBillEntries = []
-    this.currentBillFilter = "all"
+    this.currentBillFilter = urlParams.get('bill_filter') || "all"
 
     // 供外部调用的全局引用（局部刷新后需要）
     window.initCreditBills = this.init.bind(this)
@@ -59,6 +62,9 @@ export default class extends Controller {
       count = this.currentBillCount
     }
     this.currentBillCount = count
+
+    // 更新 URL 参数（保留状态以便刷新后恢复）
+    this.updateUrlParams({ bill_count: count })
 
     // 更新计数按钮样式
     this.countBtnTargets.forEach(btn => {
@@ -159,6 +165,9 @@ export default class extends Controller {
     this.selectedBillLabel = label
     this.selectedStartDate = startDate
     this.selectedEndDate = endDate
+
+    // 更新 URL 参数（保留状态以便刷新后恢复）
+    this.updateUrlParams({ bill_label: label, bill_start: startDate, bill_end: endDate })
 
     // 更新卡片选中状态
     const container = this.hasCardsTarget ? this.cardsTarget : document.getElementById("bill-cards")
@@ -357,5 +366,19 @@ export default class extends Controller {
   formatBillMoney(amount) {
     const num = parseFloat(amount) || 0
     return num.toLocaleString("zh-CN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+  }
+
+  // 更新 URL 参数（不触发页面刷新，仅保留状态）
+  updateUrlParams(params) {
+    const url = new URL(window.location.href)
+    Object.entries(params).forEach(([key, value]) => {
+      if (value) {
+        url.searchParams.set(key, value)
+      } else {
+        url.searchParams.delete(key)
+      }
+    })
+    // 使用 replaceState 避免创建新的历史记录
+    window.history.replaceState({}, '', url.toString())
   }
 }
