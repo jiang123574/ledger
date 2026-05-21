@@ -706,30 +706,42 @@
   import { initSelectorWithData } from 'selectors';
 
   // 初始化分类选择器（在 DOM 元素之后）
-  var expenseCategories = [];
-  var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
-  if (expenseCategoriesDataEl) {
-    expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
+  function initCategorySelectors() {
+    // 清除之前的绑定标记，强制重新初始化
+    var newSearchInput = document.getElementById('new-item-category-search');
+    var editSearchInput = document.getElementById('edit-item-category-search');
+    if (newSearchInput) newSearchInput.dataset.selectorBound = 'false';
+    if (editSearchInput) editSearchInput.dataset.selectorBound = 'false';
+
+    var expenseCategories = [];
+    var expenseCategoriesDataEl = document.getElementById('expense-categories-data');
+    if (expenseCategoriesDataEl) {
+      expenseCategories = JSON.parse(expenseCategoriesDataEl.textContent);
+    }
+
+    initSelectorWithData({
+      searchInputId: 'new-item-category-search',
+      dropdownId: 'new-item-category-dropdown',
+      optionsId: 'new-item-category-options',
+      hiddenInputId: 'new-item-category-id',
+      dataSource: expenseCategories,
+      noMatchText: '无匹配分类',
+      enableLevelIndent: true
+    });
+    initSelectorWithData({
+      searchInputId: 'edit-item-category-search',
+      dropdownId: 'edit-item-category-dropdown',
+      optionsId: 'edit-item-category-options',
+      hiddenInputId: 'edit-item-category-id',
+      dataSource: expenseCategories,
+      noMatchText: '无匹配分类',
+      enableLevelIndent: true
+    });
   }
 
-  initSelectorWithData({
-    searchInputId: 'new-item-category-search',
-    dropdownId: 'new-item-category-dropdown',
-    optionsId: 'new-item-category-options',
-    hiddenInputId: 'new-item-category-id',
-    dataSource: expenseCategories,
-    noMatchText: '无匹配分类',
-    enableLevelIndent: true
-  });
-  initSelectorWithData({
-    searchInputId: 'edit-item-category-search',
-    dropdownId: 'edit-item-category-dropdown',
-    optionsId: 'edit-item-category-options',
-    hiddenInputId: 'edit-item-category-id',
-    dataSource: expenseCategories,
-    noMatchText: '无匹配分类',
-    enableLevelIndent: true
-  });
+  // 初始化并监听 turbo:load 事件（每次导航都重新初始化）
+  initCategorySelectors();
+  document.addEventListener('turbo:load', initCategorySelectors);
 
   // 事件委托：处理动态生成的预算项目删除表单
   document.addEventListener('submit', function(e) {
