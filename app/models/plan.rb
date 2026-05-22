@@ -48,6 +48,17 @@ class Plan < ApplicationRecord
 
     today = Date.current
 
+    # 如果本月已经执行过，跳过到下个月
+    if last_generated.present?
+      last_gen_date = last_generated.to_date
+      if last_gen_date.month == today.month && last_gen_date.year == today.year
+        next_month = today.next_month
+        max_day_next_month = Date.civil(next_month.year, next_month.month, -1).day
+        actual_day_next_month = [ day_of_month, max_day_next_month ].min
+        return Date.new(next_month.year, next_month.month, actual_day_next_month)
+      end
+    end
+
     # If today is the due day, return today
     if today.day == day_of_month
       return today
