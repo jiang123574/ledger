@@ -46,6 +46,7 @@
                     <% end %>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.account') %>:</span> <%= plan.account&.name || '-' %></span>
                     <span class="ml-4"><span class="font-medium"><%= t('plans.day_of_month') %>:</span> <%= plan.day_of_month %><%= t('plans.day', default: '日') %></span>
+                    <span class="ml-4"><span class="font-medium"><%= t('plans.next_due', default: '下次执行') %>:</span> <%= plan.next_due_date&.strftime('%Y-%m-%d') || '-' %></span>
                     <% if plan.category %>
                       <span class="ml-4"><span class="font-medium"><%= t('plans.category', default: '分类') %>:</span> <%= plan.category.name %></span>
                     <% end %>

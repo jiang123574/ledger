@@ -73,6 +73,14 @@ class Plan < ApplicationRecord
     return nil unless active? && account.present?
     return nil if installment_like? && completed?
 
+    # 检查当天是否已有相同金额的交易（避免重复执行）
+    today = Date.current
+    existing = account.entries.where(date: today, amount: -amount.to_d).first
+    if existing
+      Rails.logger.info("Skipping plan #{id}: transaction with same amount already exists for #{today}")
+      return nil
+    end
+
     ApplicationRecord.transaction do
       entry = create_entry(
         account: account,
