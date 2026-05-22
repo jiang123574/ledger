@@ -128,6 +128,24 @@ RSpec.describe Plan, type: :model do
       plan = build(:plan, active: false)
       expect(plan.next_due_date).to be_nil
     end
+
+    it 'skips to next month if already executed this month' do
+      plan = build(:plan, day_of_month: 15, active: true, last_generated: Date.new(2024, 1, 10))
+
+      travel_to Date.new(2024, 1, 12) do
+        # 本月已执行，应跳到下个月
+        expect(plan.next_due_date).to eq(Date.new(2024, 2, 15))
+      end
+    end
+
+    it 'shows current month due date if executed last month' do
+      plan = build(:plan, day_of_month: 15, active: true, last_generated: Date.new(2023, 12, 15))
+
+      travel_to Date.new(2024, 1, 10) do
+        # 上月执行的，本月应正常计算
+        expect(plan.next_due_date).to eq(Date.new(2024, 1, 15))
+      end
+    end
   end
 
   describe '#generate_transaction!' do
