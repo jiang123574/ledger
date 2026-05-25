@@ -260,10 +260,23 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">余额分配</label>
-                <select id="new-plan-balance-distribution" name="plan[balance_distribution]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-                  <option value="LAST">最后一期多付</option>
-                  <option value="FIRST">第一期多付</option>
-                </select>
+                <input type="hidden" name="plan[balance_distribution]" id="new-plan-balance-distribution" value="LAST">
+                <div class="relative">
+                  <div id="new-balance-display"
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark cursor-pointer flex items-center justify-between"
+                       onclick="document.getElementById('new-balance-dropdown').classList.toggle('hidden')">
+                    <span id="new-balance-text">最后一期多付</span>
+                    <svg class="w-4 h-4 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                  <div id="new-balance-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg">
+                    <div class="py-1">
+                      <div class="balance-option px-3 py-2 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark bg-blue-50 dark:bg-blue-900/20" data-value="LAST" data-display="最后一期多付" onclick="selectBalanceOption('new', 'LAST', '最后一期多付')">最后一期多付</div>
+                      <div class="balance-option px-3 py-2 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark" data-value="FIRST" data-display="第一期多付" onclick="selectBalanceOption('new', 'FIRST', '第一期多付')">第一期多付</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
@@ -425,10 +438,23 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">余额分配</label>
-                <select id="edit-plan-balance-distribution" name="plan[balance_distribution]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
-                  <option value="LAST">最后一期多付</option>
-                  <option value="FIRST">第一期多付</option>
-                </select>
+                <input type="hidden" name="plan[balance_distribution]" id="edit-plan-balance-distribution" value="LAST">
+                <div class="relative">
+                  <div id="edit-balance-display"
+                       class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark cursor-pointer flex items-center justify-between"
+                       onclick="document.getElementById('edit-balance-dropdown').classList.toggle('hidden')">
+                    <span id="edit-balance-text">最后一期多付</span>
+                    <svg class="w-4 h-4 text-secondary dark:text-secondary-dark" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                    </svg>
+                  </div>
+                  <div id="edit-balance-dropdown" class="hidden absolute z-50 w-full mt-1 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg">
+                    <div class="py-1">
+                      <div class="balance-option px-3 py-2 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark bg-blue-50 dark:bg-blue-900/20" data-value="LAST" data-display="最后一期多付" onclick="selectBalanceOption('edit', 'LAST', '最后一期多付')">最后一期多付</div>
+                      <div class="balance-option px-3 py-2 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark" data-value="FIRST" data-display="第一期多付" onclick="selectBalanceOption('edit', 'FIRST', '第一期多付')">第一期多付</div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
@@ -634,9 +660,6 @@
   document.getElementById('new-plan-installments')?.addEventListener('input', () => {
     calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount', 'new-plan-balance-distribution', 'new-installment-breakdown', 'new-first-installment', 'new-last-installment')
   })
-  document.getElementById('new-plan-balance-distribution')?.addEventListener('change', () => {
-    calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount', 'new-plan-balance-distribution', 'new-installment-breakdown', 'new-first-installment', 'new-last-installment')
-  })
 
   document.getElementById('edit-plan-total-amount')?.addEventListener('input', () => {
     calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
@@ -644,8 +667,41 @@
   document.getElementById('edit-plan-installments')?.addEventListener('input', () => {
     calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
   })
-  document.getElementById('edit-plan-balance-distribution')?.addEventListener('change', () => {
-    calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
+
+  // 自定义余额分配下拉框选择函数
+  function selectBalanceOption(prefix, value, displayText) {
+    // 更新 hidden input 值
+    document.getElementById(prefix + '-plan-balance-distribution').value = value
+    // 更新显示文本
+    document.getElementById(prefix + '-balance-text').textContent = displayText
+    // 关闭下拉框
+    document.getElementById(prefix + '-balance-dropdown').classList.add('hidden')
+    // 更新选中状态样式
+    const dropdown = document.getElementById(prefix + '-balance-dropdown')
+    dropdown.querySelectorAll('.balance-option').forEach(opt => {
+      if (opt.dataset.value === value) {
+        opt.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
+      } else {
+        opt.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+      }
+    })
+    // 重新计算分期金额
+    if (prefix === 'new') {
+      calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount', 'new-plan-balance-distribution', 'new-installment-breakdown', 'new-first-installment', 'new-last-installment')
+    } else {
+      calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
+    }
+  }
+  window.selectBalanceOption = selectBalanceOption
+
+  // 点击外部关闭下拉框
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('#new-balance-display') && !e.target.closest('#new-balance-dropdown')) {
+      document.getElementById('new-balance-dropdown')?.classList.add('hidden')
+    }
+    if (!e.target.closest('#edit-balance-display') && !e.target.closest('#edit-balance-dropdown')) {
+      document.getElementById('edit-balance-dropdown')?.classList.add('hidden')
+    }
   })
 
   function calculateMortgageTotal(amountId, remainingId, displayId) {
@@ -716,7 +772,21 @@
     if (type === 'INSTALLMENT') {
       document.getElementById('edit-plan-total-amount').value = totalAmount
       document.getElementById('edit-plan-installments').value = installments
+      // 设置自定义下拉框的值和显示
       document.getElementById('edit-plan-balance-distribution').value = balanceDistribution
+      const balanceText = balanceDistribution === 'FIRST' ? '第一期多付' : '最后一期多付'
+      document.getElementById('edit-balance-text').textContent = balanceText
+      // 更新选中状态样式
+      const dropdown = document.getElementById('edit-balance-dropdown')
+      if (dropdown) {
+        dropdown.querySelectorAll('.balance-option').forEach(opt => {
+          if (opt.dataset.value === balanceDistribution) {
+            opt.classList.add('bg-blue-50', 'dark:bg-blue-900/20')
+          } else {
+            opt.classList.remove('bg-blue-50', 'dark:bg-blue-900/20')
+          }
+        })
+      }
       calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
     } else if (type === 'MORTGAGE') {
       const remainingPeriods = Math.max(0, (parseInt(installments, 10) || 0) - (parseInt(completedInstallments, 10) || 0))
