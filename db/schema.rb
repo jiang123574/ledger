@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_04_29_070000) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_25_071637) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -332,6 +332,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_04_29_070000) do
     t.integer "account_id"
     t.integer "active", default: 1
     t.decimal "amount", precision: 10, scale: 2
+    t.string "balance_distribution", default: "LAST", null: false
     t.integer "category_id"
     t.datetime "created_at", null: false
     t.string "currency", limit: 3, default: "CNY"

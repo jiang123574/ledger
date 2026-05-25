@@ -112,7 +112,7 @@ class PlansController < ApplicationController
       :name, :type, :amount, :currency, :total_amount,
       :installments_total, :installments_completed,
       :account_id, :day_of_month, :active, :last_generated,
-      :category_id
+      :category_id, :balance_distribution
     )
   end
 
