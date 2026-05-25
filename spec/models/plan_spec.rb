@@ -107,6 +107,34 @@ RSpec.describe Plan, type: :model do
     end
   end
 
+  describe '#amount_for_installment' do
+    it 'returns base amount when no remainder' do
+      plan = build(:plan, type: Plan::INSTALLMENT, total_amount: 1200, installments_total: 12)
+      expect(plan.amount_for_installment(1)).to eq(100)
+      expect(plan.amount_for_installment(12)).to eq(100)
+    end
+
+    it 'adds remainder to first installment when BALANCE_FIRST' do
+      plan = build(:plan, type: Plan::INSTALLMENT, total_amount: 1000, installments_total: 3, balance_distribution: Plan::BALANCE_FIRST)
+      # 1000 / 3 = 333.33, remainder = 0.01
+      expect(plan.amount_for_installment(1)).to eq(333.34)
+      expect(plan.amount_for_installment(2)).to eq(333.33)
+      expect(plan.amount_for_installment(3)).to eq(333.33)
+    end
+
+    it 'adds remainder to last installment when BALANCE_LAST' do
+      plan = build(:plan, type: Plan::INSTALLMENT, total_amount: 1000, installments_total: 3, balance_distribution: Plan::BALANCE_LAST)
+      expect(plan.amount_for_installment(1)).to eq(333.33)
+      expect(plan.amount_for_installment(2)).to eq(333.33)
+      expect(plan.amount_for_installment(3)).to eq(333.34)
+    end
+
+    it 'returns regular amount for non-installment plans' do
+      plan = build(:plan, type: Plan::RECURRING, amount: 500)
+      expect(plan.amount_for_installment(1)).to eq(500)
+    end
+  end
+
   describe '#next_due_date' do
     it 'calculates next due date correctly' do
       plan = build(:plan, day_of_month: 15, active: true)

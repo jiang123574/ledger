@@ -9,6 +9,12 @@ class Plan < ApplicationRecord
 
   TYPES = [ INSTALLMENT, MORTGAGE, RECURRING, ONE_TIME ].freeze
 
+  # Balance distribution options for installment plans
+  BALANCE_FIRST = "FIRST"
+  BALANCE_LAST = "LAST"
+
+  BALANCE_DISTRIBUTIONS = [ BALANCE_FIRST, BALANCE_LAST ].freeze
+
   belongs_to :account, class_name: "Account", optional: true
   belongs_to :category, optional: true
 
@@ -18,6 +24,7 @@ class Plan < ApplicationRecord
   validates :type, inclusion: { in: TYPES }, allow_nil: true
   validates :installments_total, numericality: { greater_than: 0 }, if: :installment_like?
   validates :total_amount, presence: true, if: :installment_like?
+  validates :balance_distribution, inclusion: { in: BALANCE_DISTRIBUTIONS }
 
   scope :active, -> { where(active: true) }
   scope :installment, -> { where(type: INSTALLMENT) }
@@ -41,6 +48,37 @@ class Plan < ApplicationRecord
     return 100 if completed?
     return 0 unless installment_like? && installments_total.positive?
     (installments_completed.to_f / installments_total * 100).round(1)
+  end
+
+  # 计算指定期的金额（考虑余额分配）
+  def amount_for_installment(installment_number)
+    return amount unless type == INSTALLMENT && total_amount.present? && installments_total.present?
+
+    total = total_amount.to_d
+    periods = installments_total.to_i
+
+    # 基础每期金额
+    base_amount = (total / periods).floor(2)
+    # 总余额（分）
+    total_remainder = (total - base_amount * periods).round(2)
+
+    if total_remainder <= 0
+      return base_amount
+    end
+
+    if balance_distribution == BALANCE_FIRST
+      # 第一期多付：第一期 = base + remainder，其余 = base
+      installment_number == 1 ? base_amount + total_remainder : base_amount
+    else
+      # 最后一期多付：前 n-1 期 = base，最后一期 = base + remainder
+      installment_number == periods ? base_amount + total_remainder : base_amount
+    end
+  end
+
+  # 当前期的实际金额
+  def current_installment_amount
+    return amount unless type == INSTALLMENT
+    amount_for_installment(installments_completed + 1)
   end
 
   def next_due_date
@@ -84,9 +122,12 @@ class Plan < ApplicationRecord
     return nil unless active? && account.present?
     return nil if installment_like? && completed?
 
+    # 使用当前期的实际金额
+    actual_amount = current_installment_amount
+
     # 检查当天是否已有相同金额的交易（避免重复执行）
     today = Date.current
-    existing = account.entries.where(date: today, amount: -amount.to_d).first
+    existing = account.entries.where(date: today, amount: -actual_amount.to_d).first
     if existing
       Rails.logger.info("Skipping plan #{id}: transaction with same amount already exists for #{today}")
       return nil
@@ -95,7 +136,7 @@ class Plan < ApplicationRecord
     ApplicationRecord.transaction do
       entry = create_entry(
         account: account,
-        amount: -amount.to_d,  # Plan 默认是支出，金额为负
+        amount: -actual_amount.to_d,  # Plan 默认是支出，金额为负
         currency: currency || default_currency,
         date: Date.current,
         name: transaction_note,

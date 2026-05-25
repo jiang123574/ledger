@@ -88,6 +88,7 @@
                           data-plan-active="<%= plan.active ? 'true' : 'false' %>"
                           data-plan-category-id="<%= plan.category_id %>"
                           data-plan-category-name="<%= j(plan.category&.name || '') %>"
+                          data-plan-balance-distribution="<%= plan.balance_distribution || 'LAST' %>"
                           onclick="openEditPlanModal(this.dataset)"
                           class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
                     <%= t('common.edit') %>
@@ -256,8 +257,23 @@
                 <input type="number" id="new-plan-installments" name="plan[installments_total]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" placeholder="12">
               </div>
             </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">余额分配</label>
+                <select id="new-plan-balance-distribution" name="plan[balance_distribution]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                  <option value="LAST">最后一期多付</option>
+                  <option value="FIRST">第一期多付</option>
+                </select>
+              </div>
+            </div>
             <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
-              💡 每期还款: <span id="new-per-installment" class="font-semibold">¥0.00</span>
+              <div class="flex justify-between">
+                <span>💡 每期还款:</span>
+                <span id="new-per-installment" class="font-semibold">¥0.00</span>
+              </div>
+              <div id="new-installment-breakdown" class="text-xs text-secondary dark:text-secondary-dark mt-1 hidden">
+                <span id="new-first-installment"></span> → <span id="new-last-installment"></span>
+              </div>
             </div>
             <input type="hidden" id="new-plan-amount" name="plan[amount]">
           </div>
@@ -406,8 +422,23 @@
                 <input type="number" id="edit-plan-installments" name="plan[installments_total]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
               </div>
             </div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">余额分配</label>
+                <select id="edit-plan-balance-distribution" name="plan[balance_distribution]" class="w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500">
+                  <option value="LAST">最后一期多付</option>
+                  <option value="FIRST">第一期多付</option>
+                </select>
+              </div>
+            </div>
             <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3 text-sm text-primary dark:text-primary-dark">
-              💡 每期还款: <span id="edit-per-installment" class="font-semibold">¥0.00</span>
+              <div class="flex justify-between">
+                <span>💡 每期还款:</span>
+                <span id="edit-per-installment" class="font-semibold">¥0.00</span>
+              </div>
+              <div id="edit-installment-breakdown" class="text-xs text-secondary dark:text-secondary-dark mt-1 hidden">
+                <span id="edit-first-installment"></span> → <span id="edit-last-installment"></span>
+              </div>
             </div>
             <input type="hidden" id="edit-plan-amount-hidden" name="plan[amount]">
           </div>
@@ -547,18 +578,75 @@
     })
   })
 
-  // Calculate per installment
-  function calculatePerInstallment(totalId, installmentsId, displayId, amountId) {
+  // Calculate per installment with balance distribution
+  function calculatePerInstallment(totalId, installmentsId, displayId, amountId, distributionId, breakdownId, firstId, lastId) {
     const total = parseFloat(document.getElementById(totalId)?.value) || 0
     const installments = parseInt(document.getElementById(installmentsId)?.value) || 1
-    const perInstallment = total / installments
+    const distribution = document.getElementById(distributionId)?.value || 'LAST'
+
+    // 计算基础金额和余额
+    const baseAmount = Math.floor(total / installments * 100) / 100  // 向下取整到分
+    const remainder = Math.round((total - baseAmount * installments) * 100) / 100
+
+    // 计算首期和末期金额
+    let firstAmount, lastAmount
+    if (remainder > 0) {
+      if (distribution === 'FIRST') {
+        firstAmount = baseAmount + remainder
+        lastAmount = baseAmount
+      } else {
+        firstAmount = baseAmount
+        lastAmount = baseAmount + remainder
+      }
+    } else {
+      firstAmount = baseAmount
+      lastAmount = baseAmount
+    }
 
     const display = document.getElementById(displayId)
-    if (display) display.textContent = '¥' + perInstallment.toFixed(2)
+    if (display) display.textContent = '¥' + baseAmount.toFixed(2)
 
     const amount = document.getElementById(amountId)
-    if (amount) amount.value = perInstallment.toFixed(2)
+    if (amount) amount.value = baseAmount.toFixed(2)
+
+    // 显示分期明细（如果有余额）
+    const breakdown = document.getElementById(breakdownId)
+    const firstEl = document.getElementById(firstId)
+    const lastEl = document.getElementById(lastId)
+
+    if (remainder > 0 && breakdown && firstEl && lastEl) {
+      breakdown.classList.remove('hidden')
+      if (distribution === 'FIRST') {
+        firstEl.textContent = '第1期 ¥' + firstAmount.toFixed(2)
+        lastEl.textContent = '其余 ¥' + lastAmount.toFixed(2)
+      } else {
+        firstEl.textContent = '前' + (installments - 1) + '期 ¥' + firstAmount.toFixed(2)
+        lastEl.textContent = '最后1期 ¥' + lastAmount.toFixed(2)
+      }
+    } else if (breakdown) {
+      breakdown.classList.add('hidden')
+    }
   }
+
+  document.getElementById('new-plan-total-amount')?.addEventListener('input', () => {
+    calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount', 'new-plan-balance-distribution', 'new-installment-breakdown', 'new-first-installment', 'new-last-installment')
+  })
+  document.getElementById('new-plan-installments')?.addEventListener('input', () => {
+    calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount', 'new-plan-balance-distribution', 'new-installment-breakdown', 'new-first-installment', 'new-last-installment')
+  })
+  document.getElementById('new-plan-balance-distribution')?.addEventListener('change', () => {
+    calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount', 'new-plan-balance-distribution', 'new-installment-breakdown', 'new-first-installment', 'new-last-installment')
+  })
+
+  document.getElementById('edit-plan-total-amount')?.addEventListener('input', () => {
+    calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
+  })
+  document.getElementById('edit-plan-installments')?.addEventListener('input', () => {
+    calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
+  })
+  document.getElementById('edit-plan-balance-distribution')?.addEventListener('change', () => {
+    calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
+  })
 
   function calculateMortgageTotal(amountId, remainingId, displayId) {
     const amount = parseFloat(document.getElementById(amountId)?.value) || 0
@@ -567,20 +655,6 @@
     const display = document.getElementById(displayId)
     if (display) display.textContent = '¥' + total.toFixed(2)
   }
-
-  document.getElementById('new-plan-total-amount')?.addEventListener('input', () => {
-    calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount')
-  })
-  document.getElementById('new-plan-installments')?.addEventListener('input', () => {
-    calculatePerInstallment('new-plan-total-amount', 'new-plan-installments', 'new-per-installment', 'new-plan-amount')
-  })
-
-  document.getElementById('edit-plan-total-amount')?.addEventListener('input', () => {
-    calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden')
-  })
-  document.getElementById('edit-plan-installments')?.addEventListener('input', () => {
-    calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden')
-  })
 
   document.getElementById('new-mortgage-amount')?.addEventListener('input', () => {
     calculateMortgageTotal('new-mortgage-amount', 'new-mortgage-remaining', 'new-mortgage-total')
@@ -617,6 +691,7 @@
     const active = d.planActive === 'true'
     const categoryId = d.planCategoryId
     const categoryName = d.planCategoryName
+    const balanceDistribution = d.planBalanceDistribution || 'LAST'
 
     const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
@@ -641,7 +716,8 @@
     if (type === 'INSTALLMENT') {
       document.getElementById('edit-plan-total-amount').value = totalAmount
       document.getElementById('edit-plan-installments').value = installments
-      calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden')
+      document.getElementById('edit-plan-balance-distribution').value = balanceDistribution
+      calculatePerInstallment('edit-plan-total-amount', 'edit-plan-installments', 'edit-per-installment', 'edit-plan-amount-hidden', 'edit-plan-balance-distribution', 'edit-installment-breakdown', 'edit-first-installment', 'edit-last-installment')
     } else if (type === 'MORTGAGE') {
       const remainingPeriods = Math.max(0, (parseInt(installments, 10) || 0) - (parseInt(completedInstallments, 10) || 0))
       document.getElementById('edit-mortgage-amount').value = amount
