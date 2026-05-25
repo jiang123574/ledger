@@ -117,6 +117,10 @@ export default class extends Controller {
 
   appendEntries(entries) {
     entries.forEach((entry) => {
+      // 检查是否已存在相同 entry-id 的元素，避免重复渲染
+      const existing = this.containerTarget.querySelector(`[data-entry-id="${entry.id}"]`)
+      if (existing) return
+
       const card = window.EntryCardRenderer.createEntryCard(entry, {
         onEdit: (id) => {
           const controller = this.getTransactionModalController()
@@ -128,15 +132,15 @@ export default class extends Controller {
         },
         dragEnabled: !!this.accountIdValue
       })
-      
+
       // 只在特定账户页面添加拖拽监听器
       if (this.accountIdValue && this.dragEnabledValue) {
         this.addDragHandlers(card)
       }
-      
+
       this.containerTarget.appendChild(card)
     })
-    
+
     // 动态加载后重新设置拖拽
     this.setupDragAndDrop()
   }
