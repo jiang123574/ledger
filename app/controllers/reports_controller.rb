@@ -73,6 +73,9 @@ class ReportsController < ApplicationController
       plan_deltas = compute_plan_projected_deltas
       plan_deltas[:monthly_asset_delta].each { |m, d| balance_data[:monthly_asset_delta][m] += d }
       plan_deltas[:monthly_liability_delta].each { |m, d| balance_data[:monthly_liability_delta][m] += d }
+      # 将 @year 之前累积的计划投影计入年初值，保持跨年连续性
+      balance_data[:estimated_start_assets] += plan_deltas[:pre_year_asset_delta]
+      balance_data[:estimated_start_liabilities] += plan_deltas[:pre_year_liability_delta]
       data[:asset_trend] = compute_asset_trend(balance_data)
       data[:waterfall_data] = compute_waterfall_data(balance_data)
       data[:category_monthly_comparison] = compute_category_monthly_comparison
@@ -278,6 +281,8 @@ class ReportsController < ApplicationController
   def compute_plan_projected_deltas
     asset_deltas = Hash.new(0.to_d)
     liability_deltas = Hash.new(0.to_d)
+    pre_year_asset = 0.to_d
+    pre_year_liability = 0.to_d
 
     asset_types = %w[CASH BANK INVESTMENT]
     liability_types = %w[CREDIT LOAN DEBT]
@@ -295,25 +300,24 @@ class ReportsController < ApplicationController
       end
       next unless delta_bucket
 
+      start_month = if plan.last_generated.present?
+        plan.last_generated.to_date.next_month.beginning_of_month
+      else
+        plan.created_at.to_date.next_month.beginning_of_month
+      end
+
       installment_like = [ Plan::INSTALLMENT, Plan::MORTGAGE ].include?(plan.type)
 
       remaining = if installment_like
         plan.installments_remaining
       else
-        12
+        months_to_cover = ((@year - start_month.year) * 12 + (12 - start_month.month)) + 1
+        [ 12, months_to_cover ].max
       end
       next if remaining <= 0
 
-      start_month = if plan.last_generated.present?
-        plan.last_generated.to_date.next_month.beginning_of_month
-      else
-        # 从未执行过，从创建时间的次月开始估算
-        plan.created_at.to_date.next_month.beginning_of_month
-      end
-
       remaining.times do |i|
         proj_date = start_month + i.months
-        next if proj_date.year != @year
 
         amount = if installment_like
           installment_num = plan.installments_total - plan.installments_remaining + i + 1
@@ -322,11 +326,25 @@ class ReportsController < ApplicationController
           plan.amount.to_d
         end
 
-        delta_bucket[proj_date.month] -= amount
+        if proj_date.year < @year
+          # 累计 @year 之前的投影，用于调整 estimated_start
+          if delta_bucket.equal?(asset_deltas)
+            pre_year_asset -= amount
+          else
+            pre_year_liability -= amount
+          end
+        elsif proj_date.year == @year
+          delta_bucket[proj_date.month] -= amount
+        end
       end
     end
 
-    { monthly_asset_delta: asset_deltas, monthly_liability_delta: liability_deltas }
+    {
+      monthly_asset_delta: asset_deltas,
+      monthly_liability_delta: liability_deltas,
+      pre_year_asset_delta: pre_year_asset,
+      pre_year_liability_delta: pre_year_liability
+    }
   end
 
   def compute_asset_trend(balance_data)
