@@ -332,7 +332,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                   </svg>
                 </div>
-                <div id="new-day-dropdown" class="hidden z-50 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-48 overflow-y-auto">
+                <div id="new-day-dropdown" class="hidden z-50 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg overflow-y-auto">
                   <div class="py-1">
                     <% (1..31).each do |d| %>
                       <div class="day-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark <%= d == 1 ? 'bg-blue-50 dark:bg-blue-900/20' : '' %>" data-value="<%= d %>" onclick="selectDayOption('new', <%= d %>)"><%= d %>日</div>
@@ -523,7 +523,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
                   </svg>
                 </div>
-                <div id="edit-day-dropdown" class="hidden z-50 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg max-h-48 overflow-y-auto">
+                <div id="edit-day-dropdown" class="hidden z-50 bg-white dark:bg-container-dark rounded-lg border border-border dark:border-border-dark shadow-lg overflow-y-auto">
                   <div class="py-1">
                     <% (1..31).each do |d| %>
                       <div class="day-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark <%= d == 1 ? 'bg-blue-50 dark:bg-blue-900/20' : '' %>" data-value="<%= d %>" onclick="selectDayOption('edit', <%= d %>)"><%= d %>日</div>
@@ -731,19 +731,39 @@
 
     if (isHidden) {
       dropdown.classList.remove('hidden')
-      // 使用 fixed 定位，避免撑大弹窗
-      const rect = display.getBoundingClientRect()
       dropdown.style.position = 'fixed'
-      dropdown.style.top = (rect.bottom + 4) + 'px'
-      dropdown.style.left = rect.left + 'px'
-      dropdown.style.width = rect.width + 'px'
+      dropdown.style.width = display.offsetWidth + 'px'
 
-      // 弹窗滚动时关闭下拉框
-      const modal = display.closest('.modal-overlay')
-      if (modal) {
-        modal._closeDayDropdown = function() { dropdown.classList.add('hidden') }
-        modal.addEventListener('scroll', modal._closeDayDropdown, { passive: true })
-      }
+      // 先设为不可见，计算位置后再显示
+      dropdown.style.opacity = '0'
+      // 让浏览器先渲染 dropdown，获取实际高度
+      requestAnimationFrame(() => {
+        const rect = display.getBoundingClientRect()
+        const dropdownHeight = dropdown.offsetHeight
+        const spaceBelow = window.innerHeight - rect.bottom - 4
+        const spaceAbove = rect.top - 4
+
+        if (spaceBelow >= dropdownHeight || spaceBelow >= spaceAbove) {
+          // 下方空间足够，或下方比上方空间大，向下展开
+          dropdown.style.top = (rect.bottom + 4) + 'px'
+          dropdown.style.left = rect.left + 'px'
+          dropdown.style.maxHeight = Math.min(dropdownHeight, spaceBelow - 4) + 'px'
+        } else {
+          // 向上展开
+          dropdown.style.top = (rect.top - dropdownHeight - 4) + 'px'
+          dropdown.style.left = rect.left + 'px'
+          dropdown.style.maxHeight = Math.min(dropdownHeight, spaceAbove - 4) + 'px'
+        }
+
+        dropdown.style.opacity = '1'
+
+        // 弹窗滚动时关闭下拉框
+        const modal = display.closest('.modal-overlay')
+        if (modal) {
+          modal._closeDayDropdown = function() { dropdown.classList.add('hidden') }
+          modal.addEventListener('scroll', modal._closeDayDropdown, { passive: true })
+        }
+      })
     }
   }
 
