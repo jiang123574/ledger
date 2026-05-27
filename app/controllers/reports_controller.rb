@@ -295,7 +295,9 @@ class ReportsController < ApplicationController
       end
       next unless delta_bucket
 
-      remaining = if plan.installment_like?
+      installment_like = [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type)
+
+      remaining = if installment_like
         plan.installments_remaining
       else
         12
@@ -313,7 +315,7 @@ class ReportsController < ApplicationController
         proj_date = start_month + i.months
         next if proj_date.year != @year
 
-        amount = if plan.installment_like?
+        amount = if installment_like
           installment_num = plan.installments_total - plan.installments_remaining + i + 1
           plan.amount_for_installment(installment_num)
         else
