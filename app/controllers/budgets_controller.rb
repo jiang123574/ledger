@@ -28,11 +28,11 @@ class BudgetsController < ApplicationController
       end
     end
 
+    cv = CacheBuster.version(:categories)
     # 缓存只存 IDs，预加载在缓存外做，避免 bullet 误报
-    @category_ids = Rails.cache.fetch("budgets/category_ids/#{sv}", expires_in: CacheConfig::LONG) do
+    @category_ids = Rails.cache.fetch("budgets/category_ids/#{cv}", expires_in: CacheConfig::LONG) do
       Category.expense.pluck(:id)
     end
-    cv = CacheBuster.version(:categories)
     @categories_json = Rails.cache.fetch("budgets/categories_json/#{cv}", expires_in: CacheConfig::LONG) do
       # 缓存未命中时才需要加载 parent（full_name 递归调用 parent）
       Category.where(id: @category_ids).includes(:parent).map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id } }.to_json
