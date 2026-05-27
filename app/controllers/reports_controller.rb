@@ -295,7 +295,7 @@ class ReportsController < ApplicationController
       end
       next unless delta_bucket
 
-      installment_like = [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type)
+      installment_like = [ Plan::INSTALLMENT, Plan::MORTGAGE ].include?(plan.type)
 
       remaining = if installment_like
         plan.installments_remaining
