@@ -283,7 +283,6 @@ class ReportsController < ApplicationController
     liability_types = %w[CREDIT LOAN DEBT]
 
     Plan.included_in_total.includes(:account).find_each do |plan|
-      next unless plan.last_generated.present?
       account = plan.account
       next unless account
 
@@ -303,7 +302,12 @@ class ReportsController < ApplicationController
       end
       next if remaining <= 0
 
-      start_month = plan.last_generated.to_date.next_month.beginning_of_month
+      start_month = if plan.last_generated.present?
+        plan.last_generated.to_date.next_month.beginning_of_month
+      else
+        # 从未执行过，从创建时间的次月开始估算
+        plan.created_at.to_date.next_month.beginning_of_month
+      end
 
       remaining.times do |i|
         proj_date = start_month + i.months
