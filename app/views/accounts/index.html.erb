@@ -177,7 +177,7 @@
             <span class="font-semibold text-primary dark:text-primary-dark"><%= format_currency(@account_balance) %></span>
           </span>
           <% if params[:account_id].present? && current_account&.credit_card? && current_account.credit_limit %>
-            <% available_credit = current_account.credit_limit.to_d + (@account_balance || 0).to_d %>
+            <% available_credit = current_account.credit_limit.to_d + (@account_balances[current_account.id] || 0).to_d %>
             <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border border-green-200 dark:border-green-800">
               <span>可用额度</span>
               <span class="font-semibold"><%= format_currency(available_credit) %></span>
