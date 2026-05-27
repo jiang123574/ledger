@@ -53,7 +53,7 @@ class Account < ApplicationRecord
       .pluck(:id, :initial_balance)
       .each { |id, balance| result[id] = balance }
 
-    result.values.sum(&:to_d)
+    result.values.sum(&:to_d) - Plan.total_outstanding_liability
   end
 
   def self.balance_by_type

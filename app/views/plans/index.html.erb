@@ -50,6 +50,10 @@
                     <% if plan.category %>
                       <span class="ml-4"><span class="font-medium"><%= t('plans.category', default: '分类') %>:</span> <%= plan.category.name %></span>
                     <% end %>
+                    <% if plan.include_in_total == 1 && plan.active? %>
+                      <span class="ml-4"><span class="font-medium">负债:</span>
+                      <span class="text-red-500"><%= format_currency(plan.outstanding_liability, plan.currency || 'CNY') %></span></span>
+                    <% end %>
                   </div>
 
                   <% if [Plan::INSTALLMENT, Plan::MORTGAGE].include?(plan.type) %>
@@ -63,6 +67,9 @@
                       </div>
                       <div class="text-xs text-secondary dark:text-secondary-dark mt-1">
                         <%= t('plans.remaining_periods', default: '剩余') %> <%= plan.installments_remaining %> <%= t('plans.periods', default: '期') %>，<%= t('plans.about', default: '约') %> <%= format_currency(plan.amount * plan.installments_remaining, plan.currency || 'CNY') %>
+                        <% if plan.include_in_total == 1 %>
+                          <span class="ml-2 text-red-500">(负债 <%= format_currency(plan.outstanding_liability, plan.currency || 'CNY') %>)</span>
+                        <% end %>
                       </div>
                     </div>
                   <% end %>
@@ -88,6 +95,7 @@
                           data-plan-active="<%= plan.active ? 'true' : 'false' %>"
                           data-plan-category-id="<%= plan.category_id %>"
                           data-plan-category-name="<%= j(plan.category&.name || '') %>"
+                          data-plan-include-in-total="<%= plan.include_in_total == 1 ? 'true' : 'false' %>"
                           data-plan-balance-distribution="<%= plan.balance_distribution || 'LAST' %>"
                           onclick="openEditPlanModal(this.dataset)"
                           class="px-3 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern">
@@ -359,6 +367,13 @@
             <input type="checkbox" name="plan[active]" id="new-plan-active" value="1" checked class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
             <label for="new-plan-active" class="text-sm text-primary dark:text-primary-dark">启用计划</label>
           </div>
+
+          <!-- 计入总资产 -->
+          <div class="flex items-center gap-2">
+            <input type="hidden" name="plan[include_in_total]" value="0">
+            <input type="checkbox" name="plan[include_in_total]" id="new-plan-include-in-total" value="1" class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
+            <label for="new-plan-include-in-total" class="text-sm text-primary dark:text-primary-dark">计入总资产（作为负资产）</label>
+          </div>
         </div>
         <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-border dark:border-border-dark">
           <button type="button" onclick="document.getElementById('new-plan-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
@@ -549,6 +564,13 @@
             <input type="hidden" name="plan[active]" value="0">
             <input type="checkbox" id="edit-plan-active" name="plan[active]" value="1" class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
             <label for="edit-plan-active" class="text-sm text-primary dark:text-primary-dark">启用计划</label>
+          </div>
+
+          <!-- 计入总资产 -->
+          <div class="flex items-center gap-2">
+            <input type="hidden" name="plan[include_in_total]" value="0">
+            <input type="checkbox" id="edit-plan-include-in-total" name="plan[include_in_total]" value="1" class="h-4 w-4 text-primary dark:text-primary-dark focus:ring-blue-500 border-border dark:border-border-dark rounded">
+            <label for="edit-plan-include-in-total" class="text-sm text-primary dark:text-primary-dark">计入总资产（作为负资产）</label>
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
@@ -849,6 +871,7 @@
     const categoryId = d.planCategoryId
     const categoryName = d.planCategoryName
     const balanceDistribution = d.planBalanceDistribution || 'LAST'
+    const includeInTotal = d.planIncludeInTotal === 'true'
 
     const form = document.getElementById('edit-plan-form')
     form.action = '/plans/' + id
@@ -879,6 +902,7 @@
     }
     document.getElementById('edit-plan-currency').value = currency
     document.getElementById('edit-plan-active').checked = active
+    document.getElementById('edit-plan-include-in-total').checked = includeInTotal
 
     updateEditPlanTypeFields(type)
 

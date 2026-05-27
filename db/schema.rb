@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_25_071637) do
+ActiveRecord::Schema[8.1].define(version: 2026_05_27_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -337,6 +337,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_25_071637) do
     t.datetime "created_at", null: false
     t.string "currency", limit: 3, default: "CNY"
     t.integer "day_of_month", default: 1
+    t.integer "include_in_total", default: 0, null: false
     t.integer "installments_completed", default: 0
     t.integer "installments_total", default: 1
     t.datetime "last_generated"

@@ -30,6 +30,7 @@ class PlansController < ApplicationController
     end
 
     apply_active_param(@plan)
+    apply_include_in_total_param(@plan)
 
     apply_plan_amount_logic(@plan)
 
@@ -39,6 +40,8 @@ class PlansController < ApplicationController
     end
 
     if @plan.save
+      CacheBuster.bump(:entries)
+      CacheBuster.bump(:accounts)
       redirect_to plans_path, notice: t("plans.created")
     else
       redirect_to plans_path, alert: @plan.errors.full_messages.join(", ")
@@ -58,6 +61,7 @@ class PlansController < ApplicationController
     end
 
     apply_active_param(@plan)
+    apply_include_in_total_param(@plan)
     apply_plan_amount_logic(@plan, completed_installments: @plan.installments_completed.to_i)
 
     if @plan.errors.any?
@@ -66,6 +70,8 @@ class PlansController < ApplicationController
     end
 
     if @plan.save
+      CacheBuster.bump(:entries)
+      CacheBuster.bump(:accounts)
       redirect_to plans_path, notice: t("plans.updated")
     else
       redirect_to plans_path, alert: @plan.errors.full_messages.join(", ")
@@ -74,6 +80,8 @@ class PlansController < ApplicationController
 
   def destroy
     @plan.destroy
+    CacheBuster.bump(:entries)
+    CacheBuster.bump(:accounts)
     redirect_to plans_path, notice: t("plans.deleted")
   end
 
@@ -112,7 +120,8 @@ class PlansController < ApplicationController
       :name, :type, :amount, :currency, :total_amount,
       :installments_total, :installments_completed,
       :account_id, :day_of_month, :active, :last_generated,
-      :category_id, :balance_distribution
+      :category_id, :balance_distribution,
+      :include_in_total
     )
   end
 
@@ -144,6 +153,14 @@ class PlansController < ApplicationController
         plan.total_amount = plan.amount.to_d * plan.installments_total
       end
     end
+  end
+
+  def apply_include_in_total_param(plan)
+    return unless params[:plan].is_a?(ActionController::Parameters) || params[:plan].is_a?(Hash)
+    return unless params[:plan].key?(:include_in_total) || params[:plan].key?("include_in_total")
+
+    raw = params[:plan][:include_in_total] || params[:plan]["include_in_total"]
+    plan.include_in_total = active_value?(raw) ? 1 : 0
   end
 
   def apply_active_param(plan)
