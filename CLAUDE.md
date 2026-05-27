@@ -43,6 +43,9 @@ bundle exec brakeman     # Security vulnerability scan
 bin/rails runner "Account.bulk_update_cache"  # Update counter cache for all accounts
 ```
 
+## 语言
+优先使用中文输出
+
 ## Architecture
 
 ### Entry Model (Delegated Type Pattern)
