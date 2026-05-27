@@ -30,6 +30,7 @@ class Plan < ApplicationRecord
   scope :installment, -> { where(type: INSTALLMENT) }
   scope :mortgage, -> { where(type: MORTGAGE) }
   scope :recurring, -> { where(type: RECURRING) }
+  scope :included_in_total, -> { active.where(include_in_total: 1) }
 
   def active?
     active == true || active == 1
@@ -38,6 +39,20 @@ class Plan < ApplicationRecord
   def installments_remaining
     return 0 unless installment_like?
     installments_total - installments_completed
+  end
+
+  # 计划剩余负债金额（用于计入总资产）
+  def outstanding_liability
+    return 0.to_d unless active? && include_in_total == 1
+
+    case type
+    when INSTALLMENT, MORTGAGE
+      remaining = installments_remaining
+      return 0.to_d if remaining <= 0
+      remaining * current_installment_amount
+    else
+      amount.to_d
+    end
   end
 
   def completed?
@@ -198,6 +213,10 @@ class Plan < ApplicationRecord
   end
 
   class << self
+    def total_outstanding_liability
+      included_in_total.sum(&:outstanding_liability)
+    end
+
     def generate_all_due!
       active.find_each do |plan|
         next unless plan.next_due_date == Date.current
