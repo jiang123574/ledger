@@ -394,6 +394,16 @@ class AccountsController < ApplicationController
     render json: { success: true, balances: balances }
   end
 
+  def update_actual_credit
+    value = params[:actual_available_credit]
+    if value.blank?
+      @account.update_column(:actual_available_credit, nil)
+    else
+      @account.update_column(:actual_available_credit, value.to_d)
+    end
+    render json: { ok: true, actual_available_credit: @account.actual_available_credit }
+  end
+
   private
 
   def system_accounts_sync_needed?
@@ -438,16 +448,6 @@ class AccountsController < ApplicationController
 
   def set_account
     @account = Account.find(params[:id])
-  end
-
-  def update_actual_credit
-    value = params[:actual_available_credit]
-    if value.blank?
-      @account.update_column(:actual_available_credit, nil)
-    else
-      @account.update_column(:actual_available_credit, value.to_d)
-    end
-    render json: { ok: true, actual_available_credit: @account.actual_available_credit }
   end
 
   def account_params
