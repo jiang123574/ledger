@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_05_27_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_06_01_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -19,6 +19,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_05_27_000001) do
     t.integer "billing_day"
     t.string "billing_day_mode", default: "current"
     t.decimal "credit_limit", precision: 10, scale: 2
+    t.decimal "actual_available_credit", precision: 10, scale: 2
     t.string "currency", limit: 3, default: "CNY"
     t.integer "due_day"
     t.string "due_day_mode", default: "fixed"
