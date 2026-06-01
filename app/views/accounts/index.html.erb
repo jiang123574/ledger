@@ -173,7 +173,7 @@
             </span>
           <% end %>
           <span class="inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark">
-            <span>余额</span>
+            <span><%= (params[:account_id].present? && current_account&.credit_card?) ? '负债' : '余额' %></span>
             <span class="font-semibold text-primary dark:text-primary-dark"><%= format_currency(@account_balance) %></span>
           </span>
           <% if params[:account_id].present? && current_account&.credit_card? && current_account.credit_limit %>
