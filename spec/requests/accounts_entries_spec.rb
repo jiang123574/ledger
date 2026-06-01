@@ -102,7 +102,7 @@ RSpec.describe "Accounts entries API", type: :request do
         entry.update_column(:name, '') if entry.respond_to?(:name)
         entry.update_column(:notes, '') if entry.respond_to?(:notes)
 
-        get "/accounts/entries", params: { page: 1, per_page: 10, format: :json }
+        get "/accounts/entries", params: { page: 1, per_page: 10, period_type: 'all', format: :json }
 
         data = response.parsed_body
         matched = data["entries"].find { |e| e["id"] == entry.id }

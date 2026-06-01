@@ -8,7 +8,7 @@ RSpec.describe AccountEntriesQueryService do
 
   describe '#build' do
     context 'with no filters' do
-      let(:params) { {} }
+      let(:params) { { period_type: 'all' } }
 
       before do
         create(:entry, :expense, account: account, date: Date.current)
@@ -106,7 +106,7 @@ RSpec.describe AccountEntriesQueryService do
     end
 
     context 'with sort_direction asc' do
-      let(:params) { { sort_direction: 'asc' } }
+      let(:params) { { sort_direction: 'asc', period_type: 'all' } }
 
       before do
         create(:entry, :expense, account: account, date: Date.current)
