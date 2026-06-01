@@ -35,6 +35,7 @@ Rails.application.routes.draw do
       get :bills
       get :bills_entries
       patch :reorder_entries
+      patch :update_actual_credit
     end
     post "bill_statements", to: "accounts/bill_statements#create", as: :create_bill_statement
     collection do

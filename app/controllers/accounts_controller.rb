@@ -1,7 +1,7 @@
 require "ostruct"
 
 class AccountsController < ApplicationController
-  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries ]
+  before_action :set_account, only: [ :show, :edit, :update, :destroy, :bills, :bills_entries, :reorder, :reorder_entries, :update_actual_credit ]
   before_action :prevent_locked_system_account!, only: [ :edit, :update, :destroy ]
 
   def index
@@ -438,6 +438,16 @@ class AccountsController < ApplicationController
 
   def set_account
     @account = Account.find(params[:id])
+  end
+
+  def update_actual_credit
+    value = params[:actual_available_credit]
+    if value.blank?
+      @account.update_column(:actual_available_credit, nil)
+    else
+      @account.update_column(:actual_available_credit, value.to_d)
+    end
+    render json: { ok: true, actual_available_credit: @account.actual_available_credit }
   end
 
   def account_params
