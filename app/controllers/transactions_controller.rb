@@ -47,9 +47,10 @@ class TransactionsController < ApplicationController
   def update
     update_entry
     expire_entries_cache
-    handle_successful_save("交易已更新")
+    message = @transfer_converted ? "已转换为转账记录" : "交易已更新"
+    handle_successful_save(message)
   rescue ActiveRecord::RecordInvalid
-    handle_save_error(@entry, @entry.entryable)
+    handle_save_error(@entry, @entry&.entryable)
   end
 
   def destroy
@@ -140,13 +141,21 @@ class TransactionsController < ApplicationController
   def update_entry
     attrs = transaction_params
 
+    # 将普通收支记录转换为转账：删除旧记录 + 创建新的转账对
+    if attrs[:type]&.upcase == "TRANSFER" && @entry.transfer_id.nil?
+      convert_to_transfer_entry(attrs)
+      return
+    end
+
     old_category_id = nil
     if @entry.entryable.is_a?(Entryable::Transaction) && attrs[:category_id].present?
       old_category_id = @entry.entryable.category_id
     end
 
     @entry.date = attrs[:date] if attrs[:date].present?
-    @entry.name = attrs[:note] if attrs[:note].present?
+    # 用 note 更新 name；若 note 为空则保留原 name（兜底：确保 name 不被清空）
+    new_name = attrs[:note].presence
+    @entry.name = new_name if new_name.present?
     @entry.notes = attrs[:note] if attrs[:note].present?
 
     if attrs[:type].present?
@@ -221,6 +230,35 @@ class TransactionsController < ApplicationController
       BudgetItem.refresh_for_category(old_category_id)
       BudgetItem.refresh_for_category(attrs[:category_id])
     end
+  end
+
+  # 将普通收支记录转换为转账：删除旧记录，创建新的转账配对
+  def convert_to_transfer_entry(attrs)
+    from_account_id = attrs[:account_id]
+    to_account_id = attrs[:target_account_id]
+    amount = attrs[:amount].to_d
+    date = attrs[:date].presence || @entry.date
+    note = attrs[:note].presence || @entry.notes
+
+    if from_account_id.blank? || to_account_id.blank?
+      raise ActiveRecord::RecordInvalid.new(@entry).tap {
+        @entry.errors.add(:base, "请选择转出账户和转入账户")
+      }
+    end
+
+    Entry.transaction do
+      @entry.destroy!  # 同时通过 dependent: :destroy 清理 entryable 和 attachments
+      EntryCreationService.create_transfer(
+        from_account_id: from_account_id,
+        to_account_id: to_account_id,
+        amount: amount,
+        date: date,
+        currency: "CNY",
+        note: note
+      )
+    end
+
+    @transfer_converted = true
   end
 
   def load_lookups
