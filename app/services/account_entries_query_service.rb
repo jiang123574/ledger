@@ -132,9 +132,23 @@ class AccountEntriesQueryService
     sort_direction = "desc" unless sort_direction.in?(%w[asc desc])
 
     if sort_direction == "asc"
-      entries.chronological
+      entries.order(
+        date: :asc,
+        Arel.sql("CASE WHEN entries.entryable_type = 'Entryable::Valuation' THEN 1 ELSE 0 END") => :asc,
+        sort_order: :asc,
+        Arel.sql("COALESCE(entries.parent_entry_id, entries.id)") => :asc,
+        Arel.sql("CASE WHEN entries.parent_entry_id IS NULL THEN 0 ELSE 1 END") => :asc,
+        id: :asc
+      )
     else
-      entries.reverse_chronological
+      entries.order(
+        date: :desc,
+        Arel.sql("CASE WHEN entries.entryable_type = 'Entryable::Valuation' THEN 1 ELSE 0 END") => :desc,
+        sort_order: :desc,
+        Arel.sql("COALESCE(entries.parent_entry_id, entries.id)") => :desc,
+        Arel.sql("CASE WHEN entries.parent_entry_id IS NULL THEN 0 ELSE 1 END") => :asc,
+        id: :desc
+      )
     end
   end
 end

@@ -86,6 +86,7 @@ class EntryCreationService
 
     transfer_in = nil
     expense_entry = nil
+    transfer_out_entry = nil
 
     Entry.transaction do
       transfer_id = SecureRandom.uuid
@@ -101,8 +102,8 @@ class EntryCreationService
       sort_order_out = next_sort_order(source_account.id, date)
       sort_order_in = next_sort_order(destination_account.id, date)
 
-      # 资金来源转账：转出
-      Entry.create!(
+      # 资金来源转账：转出（记录引用，用于关联实际支出的 parent_entry_id）
+      transfer_out_entry = Entry.create!(
         account_id: source_account.id,
         date: date,
         name: transfer_note,
@@ -127,7 +128,7 @@ class EntryCreationService
         sort_order: sort_order_in
       )
 
-      # 实际支出
+      # 实际支出（parent_entry_id 指向资金来源转出，用于全局视图排序聚合）
       sort_order_expense = next_sort_order(destination_account.id, date)
       expense_entryable = Entryable::Transaction.create!(
         kind: "expense",
@@ -142,7 +143,8 @@ class EntryCreationService
         currency: currency,
         notes: note,
         entryable: expense_entryable,
-        sort_order: sort_order_expense
+        sort_order: sort_order_expense,
+        parent_entry_id: transfer_out_entry.id
       )
     end
 
