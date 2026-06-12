@@ -94,6 +94,7 @@
         <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
         <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, value: @entry.display_amount, class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
       </div>
+      <button type="button" id="edit-full-transfer-btn" class="mt-1 text-xs px-2 py-1 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth" style="display: <%= is_transfer ? '' : 'none' %>">全额转出</button>
     </div>
 
     <!-- 3. 账户（收支时显示） -->
@@ -136,7 +137,10 @@
 
 <script>
 (function() {
-  var allAccounts = <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>;
+<% account_balances = Entry.where(account_id: @accounts.map(&:id), entryable_type: "Entryable::Transaction").group(:account_id).sum(:amount) %>
+<% initial_balances = Account.where(id: @accounts.map(&:id)).pluck(:id, :initial_balance).to_h %>
+<% balance_map = @accounts.each_with_object({}) { |a, h| h[a.id] = (initial_balances[a.id].to_d + (account_balances[a.id] || 0).to_d).to_s } %>
+  var allAccounts = <%= raw @accounts.map { |a| { id: a.id, name: a.name, balance: balance_map[a.id] || "0", pinyin: PinYin.abbr(a.name).downcase } }.to_json %>;
   var allCategories = <%= raw @categories.map { |c| { id: c.id, name: c.name, full_name: c.full_name, pinyin: PinYin.abbr(c.full_name || c.name).downcase, level: c.level || 0, parent_id: c.parent_id, category_type: c.category_type || c.type } }.to_json %>;
 
   var currentType = document.getElementById('edit-transaction-type').value;
@@ -325,6 +329,8 @@
       document.getElementById('edit-category-field-wrapper').classList.add('hidden');
       document.getElementById('edit-transfer-source-field').classList.remove('hidden');
       document.getElementById('edit-account-field-wrapper').classList.add('hidden');
+      var btn = document.getElementById('edit-full-transfer-btn')
+      if (btn) btn.style.display = '';
       // 重新初始化转账账户选择器（DOM 被重新显示）
       initSelector({
         searchInputId: 'edit-account-search-input', dropdownId: 'edit-account-dropdown',
@@ -348,6 +354,8 @@
       document.getElementById('edit-category-field-wrapper').classList.remove('hidden');
       document.getElementById('edit-transfer-source-field').classList.add('hidden');
       document.getElementById('edit-account-field-wrapper').classList.remove('hidden');
+      var btn = document.getElementById('edit-full-transfer-btn')
+      if (btn) btn.style.display = 'none';
       // 清空已选分类
       document.getElementById('edit_category_id').value = '';
       document.getElementById('edit-category-search-input').value = '';
@@ -388,6 +396,18 @@
     if (accountInput) accountInput.value = targetInput ? targetInput.value : '';
     targetId.value = tmpId;
     if (targetInput) targetInput.value = tmpName;
+  });
+
+  // 全额转出
+  document.getElementById('edit-full-transfer-btn').addEventListener('click', function() {
+    var accountId = document.getElementById('edit_account_id');
+    if (!accountId?.value) return;
+
+    var account = allAccounts.find(function(a) { return a.id == accountId.value });
+    if (!account?.balance) return;
+
+    var amountInput = document.querySelector('#transaction-edit-form input[name="entry[amount]"]');
+    if (amountInput) amountInput.value = account.balance;
   });
 
   // 表单提交前同步 account_id 并构建 FormData
