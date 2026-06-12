@@ -84,6 +84,8 @@ export default class extends Controller {
       modal.classList.remove('hidden')
       this.resetToCategoryMode()
       this.setDefaultAccount()
+      const amountInput = document.querySelector('#add-transaction-modal input[name="transaction[amount]"]')
+      if (amountInput) amountInput.value = ''
     }
   }
 
@@ -278,15 +280,21 @@ export default class extends Controller {
     document.getElementById('target-account-field')?.classList.remove('hidden')
     document.getElementById('account-field-wrapper')?.classList.add('hidden')
     document.getElementById('funding-account-field')?.classList.add('hidden')
+    const btn = document.getElementById('full-transfer-btn')
+    if (btn) btn.style.display = ''
   }
 
   hideTransferFields() {
     document.getElementById('target-account-field')?.classList.add('hidden')
+    const btn = document.getElementById('full-transfer-btn')
+    if (btn) btn.style.display = 'none'
   }
 
   showCategoryFields() {
     document.getElementById('category-field-wrapper')?.classList.remove('hidden')
     document.getElementById('account-field-wrapper')?.classList.remove('hidden')
+    const btn = document.getElementById('full-transfer-btn')
+    if (btn) btn.style.display = 'none'
 
     const fundingField = document.getElementById('funding-account-field')
     if (fundingField) {
@@ -318,6 +326,17 @@ export default class extends Controller {
     if (sourceInput) sourceInput.value = targetInput?.value || ''
     targetHidden.value = tmpId
     if (targetInput) targetInput.value = tmpName
+  }
+
+  setFullTransferAmount() {
+    const sourceHidden = document.getElementById('transaction_account_id')
+    if (!sourceHidden?.value) return
+
+    const account = this.allAccounts.find(a => a.id == sourceHidden.value)
+    if (!account?.balance) return
+
+    const amountInput = document.querySelector('#add-transaction-modal input[name="transaction[amount]"]')
+    if (amountInput) amountInput.value = account.balance
   }
 
   setDefaultAccount() {

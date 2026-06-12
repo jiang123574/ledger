@@ -785,7 +785,7 @@
 </script>
 
 <script id="accounts-data" type="application/json">
-  <%= raw @accounts.map { |a| { id: a.id, name: a.name, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
+  <%= raw @accounts.map { |a| { id: a.id, name: a.name, balance: (@account_balances[a.id] || 0).to_s, pinyin: PinYin.abbr(a.name).downcase } }.to_json %>
 </script>
 
 <script id="modal-categories-data" type="application/json">
@@ -864,6 +864,7 @@
               <span class="absolute left-3 top-1/2 -translate-y-1/2 text-secondary dark:text-secondary-dark">¥</span>
               <%= f.number_field :amount, step: "0.01", placeholder: "0.00", required: true, class: "w-full pl-8 pr-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
             </div>
+            <button type="button" id="full-transfer-btn" data-action="click->transaction-modal#setFullTransferAmount" class="mt-1 text-xs px-2 py-1 rounded bg-surface dark:bg-surface-dark text-primary dark:text-primary-dark hover:bg-surface-inset dark:hover:bg-surface-dark-inset transition-smooth" style="display: none">全额转出</button>
           </div>
           <!-- 3. 账户（收支模式） -->
           <div id="account-field-wrapper" data-transaction-modal-target="accountFieldWrapper">
