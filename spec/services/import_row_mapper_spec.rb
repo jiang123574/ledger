@@ -162,4 +162,31 @@ RSpec.describe Importers::ImportRowMapper do
       expect(result[:type]).to eq("TRANSFER")
     end
   end
+
+  describe ImportRecordCreator do
+    describe ".create_entry" do
+      let!(:account) { create(:account, name: "测试账户") }
+
+      it "preserves EXPENSE type for negative amounts" do
+        data = { type: "EXPENSE", amount: BigDecimal("-100"), date: Date.current, account: "测试账户", note: "午餐" }
+        entry = described_class.create_entry(data)
+        expect(entry.entryable.kind).to eq("expense")
+        expect(entry.amount).to eq(-100)
+      end
+
+      it "preserves INCOME type for negative amounts" do
+        data = { type: "INCOME", amount: BigDecimal("-500"), date: Date.current, account: "测试账户", note: "工资" }
+        entry = described_class.create_entry(data)
+        expect(entry.entryable.kind).to eq("income")
+        expect(entry.amount).to eq(500)
+      end
+
+      it "handles positive amounts normally" do
+        data = { type: "EXPENSE", amount: BigDecimal("200"), date: Date.current, account: "测试账户", note: "购物" }
+        entry = described_class.create_entry(data)
+        expect(entry.entryable.kind).to eq("expense")
+        expect(entry.amount).to eq(-200)
+      end
+    end
+  end
 end
