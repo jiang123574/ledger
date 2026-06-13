@@ -180,16 +180,8 @@ class ImportRecordCreator
     original_type = data[:type]
     amount = data[:amount]
 
-    if amount && amount < 0
-      case original_type
-      when "EXPENSE" then kind = "income"
-      when "INCOME" then kind = "expense"
-      else kind = "income"
-      end
-      amount = amount.abs
-    else
-      kind = (original_type == "INCOME") ? "income" : "expense"
-    end
+    kind = (original_type == "INCOME") ? "income" : "expense"
+    amount = amount.abs if amount && amount < 0
 
     account = ImportAccountResolver.find_or_create(data[:account])
     type_str = kind == "income" ? "INCOME" : "EXPENSE"

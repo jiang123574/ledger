@@ -99,7 +99,7 @@ class OperationLog < ApplicationRecord
         item: item,
         action: "settle",
         changeset: data.to_json,
-        description: description || "结算 #{item.class.model_name.human}: #{data[:description]}",
+        description: description || "结算 #{item.class.model_name.human}: #{data[:account_name]}",
         **extract_request_info(request)
       )
     end

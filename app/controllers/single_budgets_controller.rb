@@ -1,5 +1,5 @@
 class SingleBudgetsController < ApplicationController
-  before_action :set_single_budget, only: %i[update destroy]
+  before_action :set_single_budget, only: %i[show update destroy]
 
   def index
     @status = params[:status]

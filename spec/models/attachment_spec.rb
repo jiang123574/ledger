@@ -12,7 +12,7 @@ RSpec.describe Attachment, type: :model do
   end
 
   describe "associations" do
-    it { should belong_to(:entry).optional }
+    it { should belong_to(:entry) }
   end
 
   describe "custom validations" do
