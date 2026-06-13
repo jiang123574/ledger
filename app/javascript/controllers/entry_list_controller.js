@@ -1,6 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { renderEntryCards, renderLoading, renderError } from "entry_card_renderer"
-import { showToast } from "toast_utils"
+import { showToast } from "utils/toast_utils"
 
 export default class extends Controller {
   static targets = ["container"]
