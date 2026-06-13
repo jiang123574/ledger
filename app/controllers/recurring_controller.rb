@@ -40,6 +40,10 @@ class RecurringController < ApplicationController
                               description: "执行定期交易 #{@recurring.note || @recurring.id}")
 
     redirect_to recurring_index_path, notice: "交易已生成"
+  rescue ActiveRecord::RecordInvalid => e
+    redirect_to recurring_index_path, alert: "创建失败: #{e.message}"
+  rescue => e
+    redirect_to recurring_index_path, alert: "执行失败: #{e.message}"
   end
 
   private

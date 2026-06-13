@@ -40,17 +40,18 @@ class Importers::OfxImporter < Importers::BaseImporter
     kind = amount >= 0 ? "income" : "expense"
     account = ImportAccountResolver.find_or_create(@ofx_account_name)
 
-    entryable = Entryable::Transaction.new(kind: kind)
-    entryable.save(validate: false)
+    ActiveRecord::Base.transaction do
+      entryable = Entryable::Transaction.create!(kind: kind)
 
-    Entry.create!(
-      date: row["日期"] || Date.current,
-      name: row["描述"] || "OFX Import",
-      amount: amount,
-      currency: @ofx_currency || "CNY",
-      account: account,
-      entryable: entryable
-    )
+      Entry.create!(
+        date: row["日期"] || Date.current,
+        name: row["描述"] || "OFX Import",
+        amount: amount,
+        currency: @ofx_currency || "CNY",
+        account: account,
+        entryable: entryable
+      )
+    end
 
     @results[:success] += 1
   end

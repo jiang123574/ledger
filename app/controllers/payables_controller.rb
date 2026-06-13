@@ -60,7 +60,11 @@ class PayablesController < ApplicationController
       return
     end
 
-    account = Account.find(@account_id)
+    account = Account.find_by(id: @account_id)
+    unless account
+      redirect_to payables_path, alert: "账户不存在"
+      return
+    end
 
     ActiveRecord::Base.transaction do
       create_payment_entry

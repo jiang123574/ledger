@@ -99,7 +99,10 @@ class BackupConfig
 
   def self.save(data)
     FileUtils.mkdir_p(File.dirname(CONFIG_FILE))
-    File.write(CONFIG_FILE, data.to_json)
+    # 原子写入：先写临时文件再 rename，避免并发读写损坏 JSON
+    temp_path = "#{CONFIG_FILE}.tmp"
+    File.write(temp_path, data.to_json)
+    File.rename(temp_path, CONFIG_FILE)
   end
 
   private_class_method :new
