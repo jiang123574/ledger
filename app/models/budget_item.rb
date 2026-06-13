@@ -118,9 +118,12 @@ class BudgetItem < ApplicationRecord
         end
       end
 
-      # 执行批量更新
-      spent_amounts.each do |item_id, spent|
-        BudgetItem.where(id: item_id).update_all(spent_amount: spent)
+      # 执行批量更新（单条 SQL）
+      if spent_amounts.any?
+        case_clause = spent_amounts.map { |item_id, spent|
+          "WHEN id = #{item_id.to_i} THEN #{ActiveRecord::Base.connection.quote(spent)}"
+        }.join(" ")
+        where(id: spent_amounts.keys).update_all(Arel.sql("spent_amount = CASE #{case_clause} END"))
       end
     end
   end

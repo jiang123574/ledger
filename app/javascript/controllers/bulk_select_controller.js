@@ -132,14 +132,19 @@ export default class extends Controller {
     const form = event.target.closest("form")
     if (!form) return
 
+    const dynamicInputs = []
     this.selectedIdsValue.forEach((id) => {
       const input = document.createElement("input")
       input.type = "hidden"
       input.name = this.paramNameValue
       input.value = id
       form.appendChild(input)
+      dynamicInputs.push(input)
     })
 
     form.requestSubmit()
+
+    // 清理动态创建的 hidden input，避免多次提交累积
+    dynamicInputs.forEach((input) => input.remove())
   }
 }
