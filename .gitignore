@@ -86,6 +86,9 @@ android/keystore.properties
 # IDE
 .idea/
 
+# MiMoCode
+/.minocode
+
 # Keystore
 *.jks
 
