@@ -56,7 +56,7 @@ To update counter cache for all accounts:
 
 ### Testing
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails test
+/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/bundle exec rspec
 ```
 
 ### Linting
