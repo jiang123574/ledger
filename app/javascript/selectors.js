@@ -14,12 +14,12 @@ function escapeHtml(str) {
 
 // Configurable selector initializer
 function initSelectorWithData(config) {
-  var searchInput = document.getElementById(config.searchInputId);
-  var dropdown = document.getElementById(config.dropdownId);
-  var optionsContainer = document.getElementById(config.optionsId);
-  var hiddenInput = document.getElementById(config.hiddenInputId);
-  var dataSource = config.dataSource || [];
-  var onSelect = config.onSelect;  // 选择后的回调函数
+  const searchInput = document.getElementById(config.searchInputId);
+  const dropdown = document.getElementById(config.dropdownId);
+  const optionsContainer = document.getElementById(config.optionsId);
+  const hiddenInput = document.getElementById(config.hiddenInputId);
+  const dataSource = config.dataSource || [];
+  const onSelect = config.onSelect;
 
   if (!searchInput || !dropdown || !optionsContainer) return;
 
@@ -27,35 +27,38 @@ function initSelectorWithData(config) {
   if (searchInput.dataset.selectorBound === 'true') return;
   searchInput.dataset.selectorBound = 'true';
 
-  var valueKey = config.valueKey || 'id';
-  var nameKey = config.nameKey || 'name';
-  var fullNameKey = config.fullNameKey || 'full_name';
-  var pinyinKey = config.pinyinKey || 'pinyin';
-  var levelKey = config.levelKey || 'level';
-  var emptyOption = config.emptyOption;
-  var noMatchText = config.noMatchText || '无匹配项';
-  var enableLevelIndent = !!config.enableLevelIndent;
-  var levelIndentBase = config.levelIndentBase || 12;
-  var levelIndentSize = config.levelIndentSize || 16;
-  var groupByKey = config.groupByKey;  // 分组字段名（如 'type'）
-  var groupLabels = config.groupLabels || {};  // 分组标题映射（如 { 'INCOME': '收入', 'EXPENSE': '支出' }）
-  var groupColors = config.groupColors || {};  // 分组标题颜色类（如 { 'INCOME': 'text-income', 'EXPENSE': 'text-expense' }）
+  const valueKey = config.valueKey || 'id';
+  const nameKey = config.nameKey || 'name';
+  const fullNameKey = config.fullNameKey || 'full_name';
+  const pinyinKey = config.pinyinKey || 'pinyin';
+  const levelKey = config.levelKey || 'level';
+  const emptyOption = config.emptyOption;
+  const noMatchText = config.noMatchText || '无匹配项';
+  const enableLevelIndent = !!config.enableLevelIndent;
+  const levelIndentBase = config.levelIndentBase || 12;
+  const levelIndentSize = config.levelIndentSize || 16;
+  const groupByKey = config.groupByKey;
+  const groupLabels = config.groupLabels || {};
+  const groupColors = config.groupColors || {};
+
+  let pendingOption = null;
+  let isSelecting = false;
 
   function renderOptions(filterText) {
-    var query = (filterText || '').toLowerCase();
-    var filtered = dataSource.filter(function(item) {
+    const query = (filterText || '').toLowerCase();
+    const filtered = dataSource.filter(function(item) {
       if (!query) return true;
-      var name = (item[nameKey] || '').toLowerCase();
-      var fullName = (item[fullNameKey] || '').toLowerCase();
-      var pinyin = (item[pinyinKey] || '').toLowerCase();
+      const name = (item[nameKey] || '').toLowerCase();
+      const fullName = (item[fullNameKey] || '').toLowerCase();
+      const pinyin = (item[pinyinKey] || '').toLowerCase();
       return name.includes(query) || fullName.includes(query) || pinyin.includes(query);
     });
 
-    var rows = [];
+    const rows = [];
     if (emptyOption) {
-      var emptyValue = emptyOption.value == null ? '' : String(emptyOption.value);
-      var emptyDisplay = emptyOption.display == null ? '' : String(emptyOption.display);
-      var emptySelected = hiddenInput && String(hiddenInput.value || '') === emptyValue ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+      const emptyValue = emptyOption.value == null ? '' : String(emptyOption.value);
+      const emptyDisplay = emptyOption.display == null ? '' : String(emptyOption.display);
+      const emptySelected = hiddenInput && String(hiddenInput.value || '') === emptyValue ? 'bg-blue-50 dark:bg-blue-900/20' : '';
       rows.push(
         '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-secondary dark:text-secondary-dark ' + emptySelected + '" data-value="' +
           escapeHtml(emptyValue) + '" data-display="' + escapeHtml(emptyDisplay) + '">' +
@@ -68,25 +71,24 @@ function initSelectorWithData(config) {
       return rows.join('');
     }
 
-    var lastGroup = null;
+    let lastGroup = null;
     filtered.forEach(function(item) {
-      // 分组标题（如果启用分组）
       if (groupByKey) {
-        var currentGroup = item[groupByKey];
+        const currentGroup = item[groupByKey];
         if (currentGroup !== lastGroup) {
           if (lastGroup !== null) rows.push('<div class="border-t border-border dark:border-border-dark my-1"></div>');
-          var groupLabel = groupLabels[currentGroup] || currentGroup || '';
-          var groupColor = groupColors[currentGroup] || 'text-secondary dark:text-secondary-dark';
+          const groupLabel = groupLabels[currentGroup] || currentGroup || '';
+          const groupColor = groupColors[currentGroup] || 'text-secondary dark:text-secondary-dark';
           rows.push('<div class="px-3 py-1 text-xs font-medium ' + groupColor + ' uppercase tracking-wide">' + escapeHtml(groupLabel) + '</div>');
           lastGroup = currentGroup;
         }
       }
 
-      var value = item[valueKey] == null ? '' : String(item[valueKey]);
-      var display = item[fullNameKey] || item[nameKey] || '';
-      var selected = hiddenInput && String(hiddenInput.value) === value ? 'bg-blue-50 dark:bg-blue-900/20' : '';
-      var level = enableLevelIndent ? (parseInt(item[levelKey], 10) || 0) : 0;
-      var styleAttr = level > 0 ? ' style="padding-left: ' + (level * levelIndentSize + levelIndentBase) + 'px"' : '';
+      const value = item[valueKey] == null ? '' : String(item[valueKey]);
+      const display = item[fullNameKey] || item[nameKey] || '';
+      const selected = hiddenInput && String(hiddenInput.value) === value ? 'bg-blue-50 dark:bg-blue-900/20' : '';
+      const level = enableLevelIndent ? (parseInt(item[levelKey], 10) || 0) : 0;
+      const styleAttr = level > 0 ? ' style="padding-left: ' + (level * levelIndentSize + levelIndentBase) + 'px"' : '';
       rows.push(
         '<div class="selector-option px-3 py-1.5 text-sm cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark ' +
           selected + '" data-value="' + escapeHtml(value) + '" data-display="' + escapeHtml(display) + '"' + styleAttr + '>' +
@@ -111,8 +113,8 @@ function initSelectorWithData(config) {
           searchInput.value = this.dataset.display || '';
           dropdown.classList.add('hidden');
           if (onSelect) {
-            var selectedValue = this.dataset.value || '';
-            var selectedItem = dataSource.find(function(item) {
+            const selectedValue = this.dataset.value || '';
+            const selectedItem = dataSource.find(function(item) {
               return String(item[valueKey]) === selectedValue;
             });
             onSelect(selectedValue, selectedItem);
@@ -128,8 +130,8 @@ function initSelectorWithData(config) {
           searchInput.value = this.dataset.display || '';
           dropdown.classList.add('hidden');
           if (onSelect) {
-            var selectedValue = this.dataset.value || '';
-            var selectedItem = dataSource.find(function(item) {
+            const selectedValue = this.dataset.value || '';
+            const selectedItem = dataSource.find(function(item) {
               return String(item[valueKey]) === selectedValue;
             });
             onSelect(selectedValue, selectedItem);
@@ -139,24 +141,18 @@ function initSelectorWithData(config) {
     });
   }
 
-  var pendingOption = null;
-  var isSelecting = false;
-
   // 移除 readonly 属性，让输入框可编辑
   searchInput.removeAttribute('readonly');
 
   function openDropdown() {
     if (!dropdown.classList.contains('hidden')) return;
     dropdown.classList.remove('hidden');
-    // 打开时显示所有选项，不筛选
     optionsContainer.innerHTML = renderOptions('');
     bindOptionEvents();
   }
 
-  // 输入时筛选选项
-  searchInput.addEventListener('input', function(e) {
-    var query = (searchInput.value || '').toLowerCase();
-    // 确保下拉打开
+  searchInput.addEventListener('input', function() {
+    const query = (searchInput.value || '').toLowerCase();
     if (dropdown.classList.contains('hidden')) {
       dropdown.classList.remove('hidden');
     }
@@ -164,20 +160,14 @@ function initSelectorWithData(config) {
     bindOptionEvents();
   });
 
-  // 焦点进入时打开下拉
   searchInput.addEventListener('focus', function() {
     openDropdown();
   });
 
-  // 点击时也打开下拉（处理已有焦点时的点击）
   searchInput.addEventListener('click', function() {
     openDropdown();
   });
 
-  // 点击时不做任何事情（不会 toggle 关闭）
-  // 点击只用于定位光标位置
-
-  // 点击外部关闭下拉
   document.addEventListener('click', function(e) {
     if (isSelecting) return;
     if (!dropdown.contains(e.target) && e.target !== searchInput) {
@@ -186,10 +176,9 @@ function initSelectorWithData(config) {
     }
   });
 
-  // 关闭下拉时恢复 searchInput 的显示值
   function restoreSearchInputValue() {
     if (hiddenInput && hiddenInput.value) {
-      var selectedItem = dataSource.find(function(item) {
+      const selectedItem = dataSource.find(function(item) {
         return String(item[valueKey]) === String(hiddenInput.value);
       });
       if (selectedItem) {
@@ -202,7 +191,6 @@ function initSelectorWithData(config) {
 }
 
 // Generic selector initializer with XSS-safe rendering
-// Note: filterInputId parameter is deprecated and ignored - filtering is done directly on searchInput
 function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, dataSource, placeholder) {
   initSelectorWithData({
     searchInputId: searchInputId,
@@ -216,10 +204,9 @@ function initGenericSelector(searchInputId, dropdownId, filterInputId, optionsId
 }
 
 // Account selector - used across multiple views
-// Note: filterInputId parameter is deprecated and ignored
 function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, placeholder) {
-  var accountsDataEl = document.getElementById('accounts-data');
-  var allAccounts = [];
+  const accountsDataEl = document.getElementById('accounts-data');
+  let allAccounts = [];
   if (accountsDataEl && accountsDataEl.textContent) {
     try {
       allAccounts = JSON.parse(accountsDataEl.textContent);
@@ -232,9 +219,9 @@ function initAccountSelector(searchInputId, dropdownId, filterInputId, optionsId
 
 // Category selector - used across multiple views
 function initCategorySelector(searchInputId, dropdownId, filterInputId, optionsId, hiddenInputId, categoriesData, placeholder) {
-  var categories = categoriesData || [];
+  let categories = categoriesData || [];
   if (!categoriesData) {
-    var expenseDataEl = document.getElementById('expense-categories-data');
+    const expenseDataEl = document.getElementById('expense-categories-data');
     if (expenseDataEl && expenseDataEl.textContent) {
       try {
         categories = JSON.parse(expenseDataEl.textContent);

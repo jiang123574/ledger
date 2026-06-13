@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { renderEntryCards, renderLoading, renderError } from "entry_card_renderer"
+import { showToast } from "toast_utils"
 
 export default class extends Controller {
   static targets = ["container"]
@@ -206,7 +207,7 @@ export default class extends Controller {
     const draggedDate = this.draggedItem.dataset.date
     const targetDate = target.dataset.date
     if (draggedDate !== targetDate) {
-      this.showToast('只能调整同一天的交易顺序', 'error')
+      showToast('只能调整同一天的交易顺序', 'error')
       return
     }
 
@@ -225,7 +226,7 @@ export default class extends Controller {
     const draggedDate = this.draggedItem.dataset.date
     const targetDate = target.dataset.date
     if (draggedDate !== targetDate) {
-      this.showToast('只能调整同一天的交易顺序', 'error')
+      showToast('只能调整同一天的交易顺序', 'error')
       this.clearDragStyles()
       return
     }
@@ -277,14 +278,14 @@ export default class extends Controller {
       .then((data) => {
         if (data.success) {
           this.updateBalances(data.balances)
-          this.showToast('排序已保存', 'success')
+          showToast('排序已保存', 'success')
         } else {
-          this.showToast(data.error || '保存失败', 'error')
+          showToast(data.error || '保存失败', 'error')
         }
       })
       .catch((err) => {
         console.error('排序保存失败：', err)
-        this.showToast('网络错误，请重试', 'error')
+        showToast('网络错误，请重试', 'error')
       })
   }
 
@@ -301,14 +302,6 @@ export default class extends Controller {
         mobileBalanceField.textContent = balance_after
       }
     })
-  }
-
-  showToast(message, type = 'info') {
-    const toast = document.createElement('div')
-    toast.className = `fixed top-4 right-4 px-4 py-2 rounded-lg z-50 ${type === 'success' ? 'bg-green-500 text-white' : type === 'error' ? 'bg-red-500 text-white' : 'bg-surface dark:bg-surface-dark text-primary'}`
-    toast.textContent = message
-    document.body.appendChild(toast)
-    setTimeout(() => toast.remove(), 2500)
   }
 
   getTransactionModalController() {
