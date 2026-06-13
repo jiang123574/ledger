@@ -23,7 +23,7 @@ class ReportsController < ApplicationController
     end
 
     # 预加载所有分类供 helper 使用
-    @categories = Category.all.to_a
+    @categories = Category.includes(:parent).to_a
 
     load_report_data
 

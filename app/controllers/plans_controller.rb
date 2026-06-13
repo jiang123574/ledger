@@ -8,7 +8,7 @@ class PlansController < ApplicationController
     @active_plans = @plans.select(&:active?)
     @completed_plans = @plans.reject(&:active?)
     @accounts = Account.order(:name)
-    @categories = Category.active.order(:name)
+    @categories = Category.active.order(:name).includes(:parent)
     @category_parent_map = Category.active.index_by(&:id)
   end
 
