@@ -7,8 +7,9 @@ class Currency < ApplicationRecord
   CURRENCY_SYMBOLS = {
     "CNY" => "¥", "USD" => "$", "EUR" => "€", "GBP" => "£",
     "JPY" => "¥", "KRW" => "₩", "HKD" => "HK$", "TWD" => "NT$",
-    "SGD" => "S$", "AUD" => "A$", "CAD" => "C$", "NZD" => "NZ$"
-  }
+    "SGD" => "S$", "AUD" => "A$", "CAD" => "C$", "NZD" => "NZ$",
+    "CHF" => "CHF", "INR" => "₹", "THB" => "฿"
+  }.freeze
 
   def self.default
     find_by(is_default: true) || find_by(code: "CNY")

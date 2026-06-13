@@ -1,28 +1,25 @@
 module Money
-  CURRENCY_SYMBOLS = {
-    "CNY" => "¥",
-    "USD" => "$",
-    "EUR" => "€",
-    "GBP" => "£",
-    "JPY" => "¥",
-    "KRW" => "₩",
-    "HKD" => "HK$",
-    "TWD" => "NT$",
-    "AUD" => "A$",
-    "CAD" => "C$",
-    "CHF" => "CHF",
-    "INR" => "₹",
-    "THB" => "฿",
-    "SGD" => "S$"
-  }.freeze
-
   def self.symbol(currency_code)
-    CURRENCY_SYMBOLS[currency_code.to_s.upcase] || currency_code.to_s
+    code = currency_code.to_s.upcase
+    # 优先使用 Currency 模型的符号表，未加载时回退到内置表
+    if defined?(Currency::CURRENCY_SYMBOLS)
+      Currency::CURRENCY_SYMBOLS[code] || code
+    else
+      FALLBACK_SYMBOLS[code] || code
+    end
   end
 
   def self.format(amount, currency_code = "CNY")
     "#{symbol(currency_code)}#{amount.to_s("%.2f")}"
   end
+
+  # 内置回退表（Currency 模型未加载时使用）
+  FALLBACK_SYMBOLS = {
+    "CNY" => "¥", "USD" => "$", "EUR" => "€", "GBP" => "£",
+    "JPY" => "¥", "KRW" => "₩", "HKD" => "HK$", "TWD" => "NT$",
+    "SGD" => "S$", "AUD" => "A$", "CAD" => "C$", "NZD" => "NZ$",
+    "CHF" => "CHF", "INR" => "₹", "THB" => "฿"
+  }.freeze
 
   module Concern
     extend ActiveSupport::Concern
