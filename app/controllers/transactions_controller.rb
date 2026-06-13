@@ -131,7 +131,7 @@ class TransactionsController < ApplicationController
   def set_new_transaction
     @entries = Entry.transactions_only.non_transfers.reverse_chronological.includes(:account, :entryable).limit(50)
     @accounts = Account.visible.order(:name)
-    @categories = Category.active.by_sort_order
+    @categories = Category.active.by_sort_order.includes(:parent)
     @new_transaction = OpenStruct.new(
       type: "EXPENSE", persisted?: false,
       model_name: ActiveModel::Name.new(Entry, nil, "transaction")

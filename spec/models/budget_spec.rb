@@ -164,15 +164,6 @@ RSpec.describe Budget, type: :model do
     end
   end
 
-  describe "#spent_amount_from_transactions" do
-    let(:budget) { build(:budget, amount: 1000) }
-
-    it "delegates to spent_amount" do
-      allow(budget).to receive(:spent_amount).and_return(750)
-      expect(budget.spent_amount_from_transactions).to eq(750)
-    end
-  end
-
   describe "#spent_amount" do
     it "returns 0 when month is blank" do
       budget = build(:budget, month: nil)

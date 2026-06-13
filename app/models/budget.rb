@@ -75,12 +75,6 @@ class Budget < ApplicationRecord
     end
   end
 
-  # 已废弃：使用 spent_amount（基于 Entry 模型）
-  # 保留以兼容可能的外部调用，但内部统一走 spent_amount
-  def spent_amount_from_transactions
-    spent_amount
-  end
-
   # ProgressCalculable 默认使用 amount 作为 total，spent_amount 作为 current
   # 以下方法由 concern 提供，不再需要重复定义：
   # - progress_percentage

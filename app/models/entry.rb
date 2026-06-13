@@ -284,7 +284,7 @@ class Entry < ApplicationRecord
 
   def locked_fields_with_timestamps
     (locked_attributes || {}).transform_values do |timestamp|
-      Time.zone.parse(timestamp.to_s) rescue timestamp
+      Time.zone.parse(timestamp.to_s) rescue nil
     end
   end
 

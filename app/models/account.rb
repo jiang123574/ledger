@@ -35,11 +35,6 @@ class Account < ApplicationRecord
     initial_balance.to_d + transaction_entries.sum(:amount).to_d
   end
 
-  # 已废弃：使用 current_balance（基于 Entry）
-  def current_balance_from_transactions
-    current_balance
-  end
-
   # 优化：单次 SQL 查询，避免 N+1
   def self.total_assets
     result = visible.included_in_total
@@ -104,11 +99,6 @@ class Account < ApplicationRecord
     income = period_entries.where(entryable_transactions: { kind: "income" }).sum(:amount)
     expense = period_entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
     { income: income, expense: expense, net: income - expense }
-  end
-
-  # 已废弃：使用 update_entries_cache!
-  def update_transactions_cache!
-    update_entries_cache!
   end
 
   def update_entries_cache!
