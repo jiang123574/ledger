@@ -16,10 +16,16 @@ class CacheBuster
   # Increment version for a given scope and return new version
   def self.bump(scope)
     key = version_key(scope)
-    current = cache_store.read(key).to_i
-    new_version = current + 1
-    cache_store.write(key, new_version)
-    new_version
+    # 使用 increment 原子操作，避免并发读写竞态
+    if cache_store.respond_to?(:increment)
+      cache_store.increment(key, 1, from: 0)
+      cache_store.read(key).to_i
+    else
+      current = cache_store.read(key).to_i
+      new_version = current + 1
+      cache_store.write(key, new_version)
+      new_version
+    end
   end
 
   # Read current version for a given scope

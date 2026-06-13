@@ -33,17 +33,18 @@ class Importers::QifImporter < Importers::BaseImporter
     category_name = row["分类"]
     category = category_name.present? ? ImportAccountResolver.find_or_create_category(category_name, kind == "income" ? "INCOME" : "EXPENSE") : nil
 
-    entryable = Entryable::Transaction.new(kind: kind, category_id: category&.id)
-    entryable.save(validate: false)
+    ActiveRecord::Base.transaction do
+      entryable = Entryable::Transaction.create!(kind: kind, category_id: category&.id)
 
-    Entry.create!(
-      date: parse_qif_date(row["日期"]),
-      name: row["收款人"] || row["分类"] || "QIF Import",
-      amount: amount,
-      currency: "CNY",
-      account: account,
-      entryable: entryable
-    )
+      Entry.create!(
+        date: parse_qif_date(row["日期"]),
+        name: row["收款人"] || row["分类"] || "QIF Import",
+        amount: amount,
+        currency: "CNY",
+        account: account,
+        entryable: entryable
+      )
+    end
 
     @results[:success] += 1
   end

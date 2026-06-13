@@ -14,10 +14,11 @@ class EntryCreationService
   # 创建普通收支 Entry
   def self.create_regular(type:, account_id:, amount:, date:, currency: "CNY", note: nil, category_id: nil)
     kind = type.downcase
-    sort_order = next_sort_order(account_id, date)
 
     entry = nil
     Entry.transaction do
+      sort_order = next_sort_order(account_id, date)
+
       entryable = Entryable::Transaction.create!(
         kind: kind,
         category_id: category_id
@@ -45,11 +46,11 @@ class EntryCreationService
     transfer_id = SecureRandom.uuid
     transfer_note = note.presence || "转账: #{from_account.name} → #{to_account.name}"
 
-    # 获取两个账户的下一个 sort_order
-    sort_order_out = next_sort_order(from_account_id, date)
-    sort_order_in = next_sort_order(to_account_id, date)
-
     Entry.transaction do
+      # 在事务内获取 sort_order，避免并发竞态
+      sort_order_out = next_sort_order(from_account_id, date)
+      sort_order_in = next_sort_order(to_account_id, date)
+
       Entry.create!(
         account_id: from_account_id,
         date: date,
