@@ -1,5 +1,5 @@
 class Attachment < ApplicationRecord
-  belongs_to :entry, optional: true
+  belongs_to :entry
 
   validates :file_path, :file_name, :file_type, presence: true
   validate :ensure_entry_present

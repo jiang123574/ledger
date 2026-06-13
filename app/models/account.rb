@@ -75,16 +75,6 @@ class Account < ApplicationRecord
     end
   end
 
-  def balance_series(months = 12)
-    balances = []
-    current = current_balance
-    months.times do |i|
-      date = i.months.ago.end_of_month
-      balances << { date: date, balance: current }
-    end
-    balances.reverse
-  end
-
   def monthly_flow(month)
     start_date = Date.parse("#{month}-01")
     end_date = start_date.end_of_month

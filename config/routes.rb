@@ -67,14 +67,12 @@ Rails.application.routes.draw do
   end
   resources :receivables, only: [ :index, :show, :create, :update, :destroy ] do
     member do
-      get :settle
       post :settle
       post :revert
     end
   end
   resources :payables, only: [ :index, :show, :create, :update, :destroy ] do
     member do
-      get :settle
       post :settle
       post :revert
     end

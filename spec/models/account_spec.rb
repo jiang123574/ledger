@@ -132,20 +132,6 @@ RSpec.describe Account, type: :model do
       end
     end
 
-    describe '#balance_series' do
-      it 'returns balance series for specified months' do
-        series = account.balance_series(3)
-        expect(series.length).to eq(3)
-        expect(series.first).to have_key(:date)
-        expect(series.first).to have_key(:balance)
-      end
-
-      it 'defaults to 12 months' do
-        series = account.balance_series
-        expect(series.length).to eq(12)
-      end
-    end
-
     describe '#monthly_flow' do
       let!(:income_entry) { create(:entry, :income, account: account, amount: 1000, date: Date.current.beginning_of_month) }
       let!(:expense_entry) { create(:entry, :expense, account: account, amount: -300, date: Date.current.beginning_of_month + 1.day) }
