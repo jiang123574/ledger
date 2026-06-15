@@ -191,7 +191,7 @@
               <span id="actual-credit-display"
                     class="font-semibold cursor-pointer px-1.5 py-0.5 rounded border border-transparent hover:border-border dark:hover:border-border-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"
                     title="点击编辑实际可用余额"
-                    onclick="window.actualCreditEdit(this)">
+                    onclick="window.actualCreditEdit && window.actualCreditEdit(this)">
                 <%= current_account.actual_available_credit.present? ? format_currency(current_account.actual_available_credit) : '点击输入' %>
               </span>
               <input id="actual-credit-input"
@@ -213,73 +213,71 @@
               <% end %>
             </span>
             <script>
-            (function() {
-              function getWidget() { return document.getElementById('actual-credit-widget'); }
-              function getDisplay() { return document.getElementById('actual-credit-display'); }
-              function getInput() { return document.getElementById('actual-credit-input'); }
-              function getDiff() { return document.getElementById('actual-credit-diff'); }
+            function getWidget() { return document.getElementById('actual-credit-widget'); }
+            function getDisplay() { return document.getElementById('actual-credit-display'); }
+            function getInput() { return document.getElementById('actual-credit-input'); }
+            function getDiff() { return document.getElementById('actual-credit-diff'); }
 
-              window.actualCreditEdit = function(el) {
-                const input = getInput();
-                el.classList.add('hidden');
-                input.classList.remove('hidden');
-                input.focus();
-                input.select();
-              };
+            window.actualCreditEdit = function(el) {
+              const input = getInput();
+              el.classList.add('hidden');
+              input.classList.remove('hidden');
+              input.focus();
+              input.select();
+            };
 
-              window.actualCreditCancel = function(input) {
-                input.classList.add('hidden');
-                getDisplay().classList.remove('hidden');
-              };
+            window.actualCreditCancel = function(input) {
+              input.classList.add('hidden');
+              getDisplay().classList.remove('hidden');
+            };
 
-              window.actualCreditSave = function(input) {
-                const widget = getWidget();
-                const accountId = widget.dataset.accountId;
-                const availableCredit = parseFloat(widget.dataset.availableCredit);
-                const value = input.value.trim();
-                const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
+            window.actualCreditSave = function(input) {
+              const widget = getWidget();
+              const accountId = widget.dataset.accountId;
+              const availableCredit = parseFloat(widget.dataset.availableCredit);
+              const value = input.value.trim();
+              const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content;
 
-                input.classList.add('hidden');
-                const display = getDisplay();
-                display.classList.remove('hidden');
+              input.classList.add('hidden');
+              const display = getDisplay();
+              display.classList.remove('hidden');
 
-                fetch(`/accounts/${accountId}/update_actual_credit`, {
-                  method: 'PATCH',
-                  headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken
-                  },
-                  body: JSON.stringify({ actual_available_credit: value })
-                })
-                .then(r => r.json())
-                .then(data => {
-                  const saved = data.actual_available_credit;
-                  const diffEl = getDiff();
+              fetch(`/accounts/${accountId}/update_actual_credit`, {
+                method: 'PATCH',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'X-CSRF-Token': csrfToken
+                },
+                body: JSON.stringify({ actual_available_credit: value })
+              })
+              .then(r => r.json())
+              .then(data => {
+                const saved = data.actual_available_credit;
+                const diffEl = getDiff();
 
-                  if (saved === null || saved === undefined || saved === '') {
-                    display.textContent = '点击输入';
-                    diffEl.classList.add('hidden');
-                    diffEl.textContent = '';
-                  } else {
-                    const num = parseFloat(saved);
-                    const formatted = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(num);
-                    display.textContent = formatted;
+                if (saved === null || saved === undefined || saved === '') {
+                  display.textContent = '点击输入';
+                  diffEl.classList.add('hidden');
+                  diffEl.textContent = '';
+                } else {
+                  const num = parseFloat(saved);
+                  const formatted = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(num);
+                  display.textContent = formatted;
 
-                    const diff = num - availableCredit;
-                    const diffAbs = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(Math.abs(diff));
-                    const sign = diff >= 0 ? '+' : '-';
-                    diffEl.textContent = `差额 ${sign}${diffAbs}`;
-                    diffEl.className = `px-1.5 py-0.5 rounded-full border text-xs ${diff >= 0
-                      ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
-                      : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'}`;
-                    diffEl.classList.remove('hidden');
-                  }
-                })
-                .catch(() => {
-                  // 失败时静默处理，保持显示原值
-                });
-              };
-            })();
+                  const diff = num - availableCredit;
+                  const diffAbs = new Intl.NumberFormat('zh-CN', { style: 'currency', currency: 'CNY' }).format(Math.abs(diff));
+                  const sign = diff >= 0 ? '+' : '-';
+                  diffEl.textContent = `差额 ${sign}${diffAbs}`;
+                  diffEl.className = `px-1.5 py-0.5 rounded-full border text-xs ${diff >= 0
+                    ? 'bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800'
+                    : 'bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800'}`;
+                  diffEl.classList.remove('hidden');
+                }
+              })
+              .catch(() => {
+                // 失败时静默处理，保持显示原值
+              });
+            };
             </script>
           <% end %>
         </div>
