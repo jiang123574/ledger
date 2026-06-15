@@ -168,6 +168,15 @@ function initSelectorWithData(config) {
     openDropdown();
   });
 
+  searchInput.addEventListener('blur', function() {
+    setTimeout(function() {
+      if (!isSelecting) {
+        dropdown.classList.add('hidden');
+        restoreSearchInputValue();
+      }
+    }, 100);
+  });
+
   document.addEventListener('click', function(e) {
     if (isSelecting) return;
     if (!dropdown.contains(e.target) && e.target !== searchInput) {
