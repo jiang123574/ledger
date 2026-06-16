@@ -196,6 +196,12 @@ RSpec.describe Payable, type: :model do
         expect(SystemAccountSyncService).to receive(:sync_all!)
         create(:payable)
       end
+
+      it 'calls SystemAccountSyncService.sync_all! after destroy' do
+        payable = create(:payable)
+        expect(SystemAccountSyncService).to receive(:sync_all!).at_least(:once)
+        payable.destroy!
+      end
     end
   end
 

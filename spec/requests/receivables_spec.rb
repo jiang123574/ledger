@@ -161,6 +161,14 @@ RSpec.describe "Receivables", type: :request do
 
       expect(Entry.where(transfer_id: transfer_id).count).to eq(0)
     end
+
+    it "syncs system accounts after deletion" do
+      receivable_system_account
+      receivable = create(:receivable, account: account, counterparty: counterparty, original_amount: 500)
+
+      expect(SystemAccountSyncService).to receive(:sync_all!).at_least(:once)
+      delete "/receivables/#{receivable.id}"
+    end
   end
 
   describe "source_entry compatibility" do
