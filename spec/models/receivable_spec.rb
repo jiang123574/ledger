@@ -204,6 +204,12 @@ RSpec.describe Receivable, type: :model do
         expect(SystemAccountSyncService).to receive(:sync_all!)
         create(:receivable)
       end
+
+      it 'calls SystemAccountSyncService.sync_all! after destroy' do
+        receivable = create(:receivable)
+        expect(SystemAccountSyncService).to receive(:sync_all!).at_least(:once)
+        receivable.destroy!
+      end
     end
   end
 

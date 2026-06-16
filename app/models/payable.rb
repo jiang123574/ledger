@@ -26,6 +26,7 @@ class Payable < ApplicationRecord
   CATEGORIES = %w[日常支出 房租 水电 网费 保险 医疗 教育 税费 其他].freeze
 
   after_commit :sync_system_accounts, if: -> { saved_change_to_remaining_amount? || saved_change_to_settled_at? }
+  after_commit :sync_system_accounts_on_destroy, on: :destroy
 
   # ProgressCalculable 配置
   def progress_total
@@ -65,6 +66,10 @@ class Payable < ApplicationRecord
   private
 
   def sync_system_accounts
+    SystemAccountSyncService.sync_all!
+  end
+
+  def sync_system_accounts_on_destroy
     SystemAccountSyncService.sync_all!
   end
 end

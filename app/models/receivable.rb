@@ -28,6 +28,7 @@ class Receivable < ApplicationRecord
   CATEGORIES = %w[差旅 餐饮 交通 办公用品 其他].freeze
 
   after_commit :sync_system_accounts, if: -> { saved_change_to_remaining_amount? || saved_change_to_settled_at? }
+  after_commit :sync_system_accounts_on_destroy, on: :destroy
 
   # ProgressCalculable 配置
   def progress_total
@@ -69,6 +70,10 @@ class Receivable < ApplicationRecord
   private
 
   def sync_system_accounts
+    SystemAccountSyncService.sync_all!
+  end
+
+  def sync_system_accounts_on_destroy
     SystemAccountSyncService.sync_all!
   end
 end

@@ -136,6 +136,23 @@ RSpec.describe "Payables", type: :request do
 
       expect(Entry.where(id: payable.settlement_transfer_ids).count).to eq(0)
     end
+
+    it "updates the payable system account balance after deletion" do
+      SystemAccountSyncService.sync_all!
+      payable_account = Account.find_by(name: SystemAccountSyncService::PAYABLE_ACCOUNT_NAME)
+      initial_balance = payable_account.initial_balance
+
+      payable = create(:payable, original_amount: 500, remaining_amount: 500)
+      SystemAccountSyncService.sync_all!
+      payable_account.reload
+
+      expect(payable_account.initial_balance).to eq(initial_balance - 500)
+
+      delete "/payables/#{payable.id}"
+      payable_account.reload
+
+      expect(payable_account.initial_balance).to eq(initial_balance)
+    end
   end
 
   describe "POST /payables/:id/settle" do
