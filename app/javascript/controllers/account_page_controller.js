@@ -206,6 +206,13 @@ export default class extends Controller {
 
     this.syncPeriodInputType()
     this.bindEvents()
+
+    const scripts = document.querySelectorAll('[data-account-page] script:not([src])')
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script')
+      newScript.textContent = oldScript.textContent
+      oldScript.parentNode.replaceChild(newScript, oldScript)
+    })
   }
 
   applyFilters() {
