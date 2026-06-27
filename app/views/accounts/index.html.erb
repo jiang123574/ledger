@@ -208,11 +208,11 @@
                 <% diff = current_account.actual_available_credit.to_d - available_credit %>
                 <span id="actual-credit-diff"
                       data-actual-credit-target="diff"
-                      class="px-1.5 py-0.5 rounded-full border <%= diff >= 0 ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' %>">
+                      class="px-1.5 py-0.5 rounded-full border text-xs <%= diff >= 0 ? 'bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 border-green-200 dark:border-green-800' : 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 border-red-200 dark:border-red-800' %>">
                   差额 <%= diff >= 0 ? '+' : '' %><%= format_currency(diff) %>
                 </span>
               <% else %>
-                <span id="actual-credit-diff" data-actual-credit-target="diff" class="hidden px-1.5 py-0.5 rounded-full border"></span>
+                <span id="actual-credit-diff" data-actual-credit-target="diff" class="hidden px-1.5 py-0.5 rounded-full border text-xs"></span>
               <% end %>
             </span>
           <% end %>

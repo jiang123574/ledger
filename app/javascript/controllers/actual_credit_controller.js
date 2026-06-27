@@ -46,6 +46,7 @@ export default class extends Controller {
     }
 
     const value = this.inputTarget.value.trim()
+    const actualAvailableCredit = value === "" ? null : value
     const csrfToken = document.querySelector('meta[name="csrf-token"]')?.content
 
     this.inputTarget.classList.add("hidden")
@@ -57,7 +58,7 @@ export default class extends Controller {
         "Content-Type": "application/json",
         "X-CSRF-Token": csrfToken
       },
-      body: JSON.stringify({ actual_available_credit: value })
+      body: JSON.stringify({ actual_available_credit: actualAvailableCredit })
     })
       .then(response => response.json())
       .then(data => this.updateDisplay(data.actual_available_credit))
@@ -85,19 +86,28 @@ export default class extends Controller {
     const diffAbs = this.formatCurrency(Math.abs(diff))
     const sign = diff >= 0 ? "+" : "-"
     this.diffTarget.textContent = `差额 ${sign}${diffAbs}`
-    this.diffTarget.className = `px-1.5 py-0.5 rounded-full border text-xs ${this.diffClasses(diff)}`
+    this.updateDiffClasses(diff)
     this.diffTarget.classList.remove("hidden")
+  }
+
+  updateDiffClasses(diff) {
+    const positiveClasses = [
+      "bg-green-50", "text-green-700", "border-green-200",
+      "dark:bg-green-900/20", "dark:text-green-400", "dark:border-green-800"
+    ]
+    const negativeClasses = [
+      "bg-red-50", "text-red-600", "border-red-200",
+      "dark:bg-red-900/20", "dark:text-red-400", "dark:border-red-800"
+    ]
+    const activeClasses = diff >= 0 ? positiveClasses : negativeClasses
+    const inactiveClasses = diff >= 0 ? negativeClasses : positiveClasses
+
+    this.diffTarget.classList.add("px-1.5", "py-0.5", "rounded-full", "border", "text-xs")
+    this.diffTarget.classList.remove(...inactiveClasses)
+    this.diffTarget.classList.add(...activeClasses)
   }
 
   formatCurrency(value) {
     return new Intl.NumberFormat("zh-CN", { style: "currency", currency: "CNY" }).format(value)
-  }
-
-  diffClasses(diff) {
-    if (diff >= 0) {
-      return "bg-green-50 text-green-700 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800"
-    }
-
-    return "bg-red-50 text-red-600 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800"
   }
 }
