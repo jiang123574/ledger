@@ -2,6 +2,7 @@
 import { application } from "controllers/application"
 
 // Import controllers
+import ActualCreditController from "controllers/actual_credit_controller"
 import AlertController from "controllers/alert_controller"
 import AutoSubmitFormController from "controllers/auto_submit_form_controller"
 import BulkSelectController from "controllers/bulk_select_controller"
@@ -64,6 +65,7 @@ import LineChartController from "controllers/line_chart_controller"
 import MiniLineChartController from "controllers/mini_line_chart_controller"
 
 // Register controllers
+application.register("actual-credit", ActualCreditController)
 application.register("alert--dismissible", AlertController)
 application.register("auto-submit-form", AutoSubmitFormController)
 application.register("bulk-select", BulkSelectController)
