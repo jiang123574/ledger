@@ -162,4 +162,48 @@ RSpec.describe AccountDashboardService do
       expect(key).to include('desc')
     end
   end
+
+  describe '#load_total_assets' do
+    it 'uses cache key containing both accounts and entries versions' do
+      service = AccountDashboardService.new({})
+      av = CacheBuster.version(:accounts)
+      ev = CacheBuster.version(:entries)
+
+      expect(Rails.cache).to receive(:fetch).with("total_assets/#{av}/#{ev}", anything).and_call_original
+
+      service.send(:load_total_assets, av, ev)
+    end
+
+    it 'cache key changes when accounts version changes' do
+      service = AccountDashboardService.new({})
+      av1 = CacheBuster.version(:accounts)
+      ev = CacheBuster.version(:entries)
+
+      service.send(:load_total_assets, av1, ev)
+
+      CacheBuster.bump(:accounts)
+      av2 = CacheBuster.version(:accounts)
+
+      expect(av2).not_to eq(av1)
+      expect(Rails.cache).to receive(:fetch).with("total_assets/#{av2}/#{ev}", anything).and_call_original
+
+      service.send(:load_total_assets, av2, ev)
+    end
+
+    it 'cache key changes when entries version changes' do
+      service = AccountDashboardService.new({})
+      av = CacheBuster.version(:accounts)
+      ev1 = CacheBuster.version(:entries)
+
+      service.send(:load_total_assets, av, ev1)
+
+      CacheBuster.bump(:entries)
+      ev2 = CacheBuster.version(:entries)
+
+      expect(ev2).not_to eq(ev1)
+      expect(Rails.cache).to receive(:fetch).with("total_assets/#{av}/#{ev2}", anything).and_call_original
+
+      service.send(:load_total_assets, av, ev2)
+    end
+  end
 end
