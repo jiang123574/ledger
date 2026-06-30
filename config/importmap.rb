@@ -60,6 +60,7 @@ pin "controllers/period_picker_controller", to: "controllers/period_picker_contr
 pin "controllers/category_filter_controller", to: "controllers/category_filter_controller.js"
 pin "controllers/category_detail_controller", to: "controllers/category_detail_controller.js"
 pin "controllers/view_mode_controller", to: "controllers/view_mode_controller.js"
+pin "controllers/actual_credit_controller", to: "controllers/actual_credit_controller.js"
 pin "controllers/account_modal_controller", to: "controllers/account_modal_controller.js"
 pin "controllers/account_page_controller", to: "controllers/account_page_controller.js"
 pin "controllers/transaction_modal_controller", to: "controllers/transaction_modal_controller.js"
