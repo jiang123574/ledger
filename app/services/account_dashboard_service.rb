@@ -19,7 +19,7 @@ class AccountDashboardService
     accounts = load_accounts(av)
     accounts_map = accounts.index_by(&:id)
     account_balances = load_account_balances(ev, accounts.map(&:id))
-    total_assets = load_total_assets(ev)
+    total_assets = load_total_assets(av, ev)
     categories = load_categories(av)
     expense_categories = load_expense_categories(av)
     counterparties = load_counterparties(av)
@@ -121,8 +121,8 @@ class AccountDashboardService
   end
 
   # 加载总资产
-  def load_total_assets(ev)
-    Rails.cache.fetch("total_assets/#{ev}", expires_in: CacheConfig::SHORT) do
+  def load_total_assets(av, ev)
+    Rails.cache.fetch("total_assets/#{av}/#{ev}", expires_in: CacheConfig::SHORT) do
       Account.total_assets
     end
   end
