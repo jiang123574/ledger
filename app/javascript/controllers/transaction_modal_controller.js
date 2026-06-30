@@ -16,7 +16,6 @@ export default class extends Controller {
     "transferTargetDropdown", "transferTargetFilterInput", "transferTargetOptions",
     "fundingAccountField", "fundingAccountHidden", "fundingAccountSearchInput",
     "fundingAccountDropdown", "fundingAccountFilterInput", "fundingAccountOptions",
-    "swapAccountFundingBtn",
     "typeHiddenInput", "amountInput", "dateInput", "noteInput"
   ]
 
