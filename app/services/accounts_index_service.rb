@@ -30,7 +30,7 @@ class AccountsIndexService
   end
 
   def load_total_assets
-    Rails.cache.fetch("total_assets/#{@ev}", expires_in: CacheConfig::SHORT) do
+    Rails.cache.fetch("total_assets/#{@av}/#{@ev}", expires_in: CacheConfig::SHORT) do
       Account.total_assets
     end
   end
