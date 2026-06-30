@@ -86,6 +86,9 @@ export default class extends Controller {
       this.setDefaultAccount()
       const amountInput = document.querySelector('#add-transaction-modal input[name="transaction[amount]"]')
       if (amountInput) amountInput.value = ''
+
+      const swapBtn = document.getElementById('swap-account-funding-btn')
+      if (swapBtn) swapBtn.classList.toggle('hidden', this.currentType !== 'EXPENSE')
     }
   }
 
@@ -214,6 +217,8 @@ export default class extends Controller {
         if (fundingField) {
           fundingField.classList.toggle('hidden', type !== 'EXPENSE')
         }
+        const swapBtn = document.getElementById('swap-account-funding-btn')
+        if (swapBtn) swapBtn.classList.toggle('hidden', type !== 'EXPENSE')
       }
     })
 
@@ -300,10 +305,13 @@ export default class extends Controller {
     if (fundingField) {
       fundingField.classList.toggle('hidden', this.currentType !== 'EXPENSE')
     }
+    const swapBtn = document.getElementById('swap-account-funding-btn')
+    if (swapBtn) swapBtn.classList.toggle('hidden', this.currentType !== 'EXPENSE')
   }
 
   hideCategoryFields() {
     document.getElementById('category-field-wrapper')?.classList.add('hidden')
+    document.getElementById('swap-account-funding-btn')?.classList.add('hidden')
   }
 
   resetToCategoryMode() {
@@ -326,6 +334,22 @@ export default class extends Controller {
     if (sourceInput) sourceInput.value = targetInput?.value || ''
     targetHidden.value = tmpId
     if (targetInput) targetInput.value = tmpName
+  }
+
+  swapAccountAndFunding() {
+    const accountHidden = document.getElementById('transaction_account_id_income')
+    const accountInput = document.getElementById('account-search-input-income')
+    const fundingHidden = document.getElementById('funding_account_id')
+    const fundingInput = document.getElementById('funding-account-search-input')
+
+    if (!accountHidden || !fundingHidden) return
+
+    const tmpId = accountHidden.value
+    const tmpName = accountInput?.value || ''
+    accountHidden.value = fundingHidden.value
+    if (accountInput) accountInput.value = fundingInput?.value || ''
+    fundingHidden.value = tmpId
+    if (fundingInput) fundingInput.value = tmpName
   }
 
   setFullTransferAmount() {
