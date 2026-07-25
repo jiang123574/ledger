@@ -44,13 +44,21 @@ class SettingsController < ApplicationController
   end
 
   def export_transactions
-    csv_data = ExportService.transactions_to_csv
     file_name = ExportService.export_file_name
 
-    send_data csv_data,
-              filename: file_name,
-              type: "text/csv",
-              disposition: "attachment"
+    response.headers["Content-Type"] = "text/csv"
+    response.headers["Content-Disposition"] = "attachment; filename=\"#{file_name}\""
+    response.headers["Cache-Control"] = "no-cache"
+
+    self.response_body = Enumerator.new do |yielder|
+      yielder << "\uFEFF".encode("UTF-8")
+      yielder << CSV.generate_line(ExportService::CSV_HEADERS, encoding: "UTF-8")
+
+      ExportService.entry_scope.find_each(batch_size: 1000) do |entry|
+        row = ExportService.entry_to_row(entry)
+        yielder << CSV.generate_line(row, encoding: "UTF-8")
+      end
+    end
   end
 
   def import_transactions

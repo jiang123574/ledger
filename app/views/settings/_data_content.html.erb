@@ -25,7 +25,7 @@
         <h3 class="font-medium text-primary dark:text-primary-dark">导出数据</h3>
         <p class="text-sm text-secondary dark:text-secondary-dark">下载所有交易记录为 CSV 文件</p>
       </div>
-      <%= button_to "导出 CSV", export_transactions_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
+      <%= button_to "导出 CSV", export_transactions_path, method: :post, form: { data: { turbo: false } }, class: "px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth btn-modern" %>
     </div>
     
     <div class="py-3 border-b border-border dark:border-border-dark">
