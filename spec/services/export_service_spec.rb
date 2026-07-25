@@ -13,7 +13,8 @@ RSpec.describe ExportService, type: :service do
       expect(csv).to include("类型")
       expect(csv).to include("金额")
       expect(csv).to include("账户")
-      expect(csv).to include("分类")
+      expect(csv).to include("父分类")
+      expect(csv).to include("子分类")
       expect(csv).to include("备注")
     end
 
@@ -72,7 +73,8 @@ RSpec.describe ExportService, type: :service do
       expect(csv).to include("类型")
       expect(csv).to include("金额")
       expect(csv).to include("账户")
-      expect(csv).to include("分类")
+      expect(csv).to include("父分类")
+      expect(csv).to include("子分类")
       expect(csv).to include("备注")
     end
   end

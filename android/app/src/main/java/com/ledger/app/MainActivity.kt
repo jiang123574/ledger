@@ -10,12 +10,14 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.navigation.fragment.NavHostFragment
-import androidx.navigation.ui.setupWithNavController
+import androidx.navigation.fragment.findNavController
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.ledger.app.bridge.BiometricBridge
 import com.ledger.app.bridge.FilePickerBridge
 import com.ledger.app.bridge.NativeBridge
 import com.ledger.app.bridge.ShareBridge
+import com.ledger.app.config.ServerConfig
+import com.ledger.app.config.ServerUrlDialog
 import com.ledger.app.navigation.MainNavHostFragment
 import com.ledger.app.turbo.TurboWebViewFragment
 
@@ -53,7 +55,15 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
         // Splash Screen 保持显示直到内容就绪
         splashScreen.setKeepOnScreenCondition { false }
 
-        setupNavigation()
+        // 首次启动：弹窗配置服务器地址
+        if (!ServerConfig.isConfigured(this)) {
+            ServerUrlDialog.show(this, ServerConfig.getBaseUrl(this)) { _ ->
+                setupNavigation()
+            }
+        } else {
+            setupNavigation()
+        }
+
         handleIncomingIntent(intent)
     }
 
@@ -95,9 +105,36 @@ class MainActivity : AppCompatActivity(), NativeBridge.BridgeCallbacks {
             fragment
         }
 
-        val navController = navHostFragment.navController
+        // Turbo 动态生成导航图，menu ID 和 destination ID 不匹配
+        // 手动处理底部 Tab 切换
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
-        bottomNav.setupWithNavController(navController)
+        bottomNav.setOnItemSelectedListener { item ->
+            val navController = navHostFragment.findNavController()
+            // 通过 deepLink URI 导航到对应的 Tab Fragment
+            val uri = when (item.itemId) {
+                R.id.tab_accounts -> "turbo://fragment/accounts"
+                R.id.tab_budgets -> "turbo://fragment/budgets"
+                R.id.tab_reports -> "turbo://fragment/reports"
+                R.id.tab_settings -> "turbo://fragment/settings"
+                else -> return@setOnItemSelectedListener false
+            }
+            try {
+                navController.navigate(android.net.Uri.parse(uri))
+                true
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
+
+    /**
+     * 显示服务器地址配置弹窗（可在设置中调用）
+     */
+    fun showServerConfigDialog() {
+        ServerUrlDialog.show(this, ServerConfig.getBaseUrl(this) ?: "http://192.168.10.232:3000/") { _ ->
+            // 重启 Activity 以使用新地址
+            recreate()
+        }
     }
 
     /**
