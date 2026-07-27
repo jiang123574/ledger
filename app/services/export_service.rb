@@ -12,12 +12,23 @@ class ExportService
     CSV.generate(encoding: "UTF-8", headers: true) do |csv|
       csv << CSV_HEADERS
 
-      entries = entry_scope.to_a
-      transfers = transfer_scope.to_a
-      Entry.preload_transfer_accounts(transfers)
+      entry_scope.find_each(batch_size: 1000) do |entry|
+        csv << entry_to_row(entry)
+      end
 
-      entries.each { |entry| csv << entry_to_row(entry) }
-      transfers.each { |entry| csv << transfer_to_row(entry) }
+      transfer_batch = []
+      transfer_scope.find_each(batch_size: 1000) do |entry|
+        transfer_batch << entry
+        if transfer_batch.size >= 1000
+          Entry.preload_transfer_accounts(transfer_batch)
+          transfer_batch.each { |e| csv << transfer_to_row(e) }
+          transfer_batch = []
+        end
+      end
+      if transfer_batch.any?
+        Entry.preload_transfer_accounts(transfer_batch)
+        transfer_batch.each { |e| csv << transfer_to_row(e) }
+      end
     end
   end
 
@@ -33,6 +44,7 @@ class ExportService
     Entry.includes(:account, entryable: { category: :parent })
          .where(entryable_type: "Entryable::Transaction")
          .where(transfer_id: nil)
+         .order(date: :desc, id: :asc)
   end
 
   def self.transfer_scope
@@ -40,6 +52,7 @@ class ExportService
          .where(entryable_type: "Entryable::Transaction")
          .where.not(transfer_id: nil)
          .where("entries.amount < 0")
+         .order(date: :desc, id: :asc)
   end
 
   def self.entry_to_row(entry)
