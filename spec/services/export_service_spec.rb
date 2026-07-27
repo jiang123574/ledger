@@ -13,6 +13,8 @@ RSpec.describe ExportService, type: :service do
       expect(csv).to include("类型")
       expect(csv).to include("金额")
       expect(csv).to include("账户")
+      expect(csv).to include("转出账户")
+      expect(csv).to include("转入账户")
       expect(csv).to include("父分类")
       expect(csv).to include("子分类")
       expect(csv).to include("备注")
@@ -73,9 +75,64 @@ RSpec.describe ExportService, type: :service do
       expect(csv).to include("类型")
       expect(csv).to include("金额")
       expect(csv).to include("账户")
+      expect(csv).to include("转出账户")
+      expect(csv).to include("转入账户")
       expect(csv).to include("父分类")
       expect(csv).to include("子分类")
       expect(csv).to include("备注")
+    end
+
+    it "excludes transfer entries from regular transaction rows" do
+      from_account = create(:account, name: "Bank A")
+      to_account = create(:account, name: "Bank B")
+      transfer_id = SecureRandom.uuid
+
+      create(:entry, :expense, account: from_account, amount: -100, date: Date.new(2024, 3, 1),
+             transfer_id: transfer_id)
+      create(:entry, :income, account: to_account, amount: 100, date: Date.new(2024, 3, 1),
+             transfer_id: transfer_id)
+
+      csv = described_class.entries_to_csv
+      expect(csv).not_to include("支出,100.0,Bank A")
+      expect(csv).not_to include("收入,100.0,Bank B")
+    end
+
+    it "exports transfers as single row with transfer type" do
+      from_account = create(:account, name: "Bank A")
+      to_account = create(:account, name: "Bank B")
+      transfer_id = SecureRandom.uuid
+
+      create(:entry, :expense, account: from_account, amount: -200, date: Date.new(2024, 3, 1),
+             transfer_id: transfer_id, notes: "Transfer test")
+      create(:entry, :income, account: to_account, amount: 200, date: Date.new(2024, 3, 1),
+             transfer_id: transfer_id, notes: "Transfer test")
+
+      csv = described_class.entries_to_csv
+      expect(csv).to include("转账")
+      expect(csv).to include("Bank A → Bank B")
+      expect(csv).to include("Bank A")
+      expect(csv).to include("Bank B")
+      expect(csv).to include("200.0")
+      expect(csv).to include("Transfer test")
+    end
+
+    it "exports regular entries and transfers together" do
+      from_account = create(:account, name: "Bank A")
+      to_account = create(:account, name: "Bank B")
+      transfer_id = SecureRandom.uuid
+
+      create(:entry, :expense, account: account, amount: -50, date: Date.new(2024, 2, 1))
+      create(:entry, :expense, account: from_account, amount: -100, date: Date.new(2024, 3, 1),
+             transfer_id: transfer_id)
+      create(:entry, :income, account: to_account, amount: 100, date: Date.new(2024, 3, 1),
+             transfer_id: transfer_id)
+
+      csv = described_class.entries_to_csv
+      lines = csv.split("\n")
+      expect(lines.length).to eq(3)
+
+      expect(csv).to include("支出")
+      expect(csv).to include("转账")
     end
   end
 
