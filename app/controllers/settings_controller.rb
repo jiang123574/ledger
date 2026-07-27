@@ -58,6 +58,20 @@ class SettingsController < ApplicationController
         row = ExportService.entry_to_row(entry)
         yielder << CSV.generate_line(row, encoding: "UTF-8")
       end
+
+      transfer_batch = []
+      ExportService.transfer_scope.find_each(batch_size: 1000) do |entry|
+        transfer_batch << entry
+        if transfer_batch.size >= 1000
+          Entry.preload_transfer_accounts(transfer_batch)
+          transfer_batch.each { |e| yielder << CSV.generate_line(ExportService.transfer_to_row(e), encoding: "UTF-8") }
+          transfer_batch = []
+        end
+      end
+      if transfer_batch.any?
+        Entry.preload_transfer_accounts(transfer_batch)
+        transfer_batch.each { |e| yielder << CSV.generate_line(ExportService.transfer_to_row(e), encoding: "UTF-8") }
+      end
     end
   end
 
