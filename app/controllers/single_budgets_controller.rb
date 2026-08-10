@@ -1,5 +1,5 @@
 class SingleBudgetsController < ApplicationController
-  before_action :set_single_budget, only: %i[show update destroy]
+  before_action :set_single_budget, only: %i[update destroy]
 
   def index
     @status = params[:status]
@@ -7,10 +7,6 @@ class SingleBudgetsController < ApplicationController
 
     @total_budget = @single_budgets.sum(:total_amount)
     @total_spent = @single_budgets.sum(:spent_amount)
-  end
-
-  def show
-    @budget_items = @single_budget.budget_items.order(created_at: :desc)
   end
 
   def new
