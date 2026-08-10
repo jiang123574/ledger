@@ -34,6 +34,9 @@ module Ledger
     # in config/environments, which are processed later.
     #
     config.time_zone = "Beijing"
+
+    # 项目不使用图片变体处理，禁用以避免依赖 libvips / mini_magick
+    config.active_storage.variant_processor = :disabled
     # config.eager_load_paths << Rails.root.join("extras")
 
     # Don't generate system test files.
