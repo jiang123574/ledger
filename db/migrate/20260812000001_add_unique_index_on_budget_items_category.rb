@@ -1,13 +1,21 @@
 class AddUniqueIndexOnBudgetItemsCategory < ActiveRecord::Migration[8.1]
   def up
-    # 清理历史重复：(single_budget_id, category_id) 只保留最小 id 的一条
+    # 清理历史重复：每个 (single_budget_id, category_id) 保留"最完整"的一行
+    # （金额更高 → 有备注 → id 更小），删除其余行，避免误删带数据的条目
     execute <<~SQL.squish
-      DELETE FROM budget_items a
-      USING budget_items b
-      WHERE a.single_budget_id = b.single_budget_id
-        AND a.category_id = b.category_id
-        AND a.category_id IS NOT NULL
-        AND a.id > b.id
+      DELETE FROM budget_items
+      WHERE id IN (
+        SELECT id FROM (
+          SELECT id,
+                 ROW_NUMBER() OVER (
+                   PARTITION BY single_budget_id, category_id
+                   ORDER BY amount DESC, (COALESCE(notes, '') <> '') DESC, id ASC
+                 ) AS rn
+          FROM budget_items
+          WHERE category_id IS NOT NULL
+        ) ranked
+        WHERE rn > 1
+      )
     SQL
 
     # 裸 DELETE 绕过了回调，重算 counter_cache，避免 budget_items_count 残留

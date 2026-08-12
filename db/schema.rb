@@ -16,10 +16,10 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_12_000001) do
   enable_extension "pg_trgm"
 
   create_table "accounts", force: :cascade do |t|
-    t.decimal "actual_available_credit", precision: 10, scale: 2
     t.integer "billing_day"
     t.string "billing_day_mode", default: "current"
     t.decimal "credit_limit", precision: 10, scale: 2
+    t.decimal "actual_available_credit", precision: 10, scale: 2
     t.string "currency", limit: 3, default: "CNY"
     t.integer "due_day"
     t.string "due_day_mode", default: "fixed"

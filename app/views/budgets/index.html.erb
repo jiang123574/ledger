@@ -716,9 +716,9 @@
 
   // 从已渲染的明细表格收集已用分类 id，可排除指定 id（编辑中的条目自身）
   function getUsedCategoryIds(excludeId) {
-    var used = new Set();
+    const used = new Set();
     document.querySelectorAll('#budget-items-table td[data-category-id]').forEach(function(td) {
-      var id = String(td.dataset.categoryId);
+      const id = String(td.dataset.categoryId);
       if (id && id !== String(excludeId)) used.add(id);
     });
     return used;

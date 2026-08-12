@@ -71,6 +71,14 @@ RSpec.describe "BudgetItems", type: :request do
       expect(response).to be_redirect
       expect(flash[:alert]).to include("已在本预算中使用")
     end
+
+    it "allows editing an item while keeping its own category" do
+      patch single_budget_budget_item_path(single_budget, existing),
+        params: { budget_item: { category_id: existing.category_id, amount: 200 } }
+      expect(response).to be_redirect
+      expect(flash[:notice]).to eq("预算项已更新")
+      expect(existing.reload.amount).to eq(200)
+    end
   end
 
   describe "DELETE /single_budgets/:single_budget_id/budget_items/:id" do
