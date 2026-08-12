@@ -16,6 +16,13 @@ RSpec.describe "Budgets", type: :request do
       expect(response).to have_http_status(:success)
     end
 
+    it "includes transaction edit/delete modals for category detail actions" do
+      get budgets_path
+      expect(response.body).to include('id="edit-transaction-modal"')
+      expect(response.body).to include('id="delete-confirm-modal"')
+      expect(response.body).to include('data-controller="transaction-modal"')
+    end
+
     it "displays current month when no month param" do
       get budgets_path
       expect(response.body).to include(current_month)

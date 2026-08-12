@@ -9,6 +9,8 @@ module EntryableActions
     if params[:account_id].present? || params[:period_type].present? || params[:search].present?
       accounts_path(filter_params)
     else
+      return budgets_referer if budgets_referer
+
       referer = request.referer
       return accounts_path if referer.blank?
 
@@ -20,6 +22,17 @@ module EntryableActions
         accounts_path
       end
     end
+  end
+
+  # 从预算页发起的操作（如分类明细弹窗编辑交易），保存后留在预算页并保留上下文
+  def budgets_referer
+    referer = request.referer
+    return nil if referer.blank?
+
+    uri = URI.parse(referer)
+    uri.path == "/budgets" ? referer : nil
+  rescue URI::InvalidURIError
+    nil
   end
 
   # 处理成功保存后的重定向，支持继续录入模式
@@ -125,7 +138,7 @@ module EntryableActions
 
     respond_to do |format|
       format.json { render json: { success: false, error: error_message } }
-      format.html { redirect_to accounts_path(filter_params), alert: error_message }
+      format.html { redirect_to(budgets_referer || accounts_path(filter_params), alert: error_message) }
     end
   end
 
@@ -133,7 +146,7 @@ module EntryableActions
   def handle_save_error_with_message(message)
     respond_to do |format|
       format.json { render json: { success: false, error: message } }
-      format.html { redirect_to accounts_path(filter_params), alert: message }
+      format.html { redirect_to(budgets_referer || accounts_path(filter_params), alert: message) }
     end
   end
 
