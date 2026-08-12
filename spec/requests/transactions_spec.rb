@@ -361,6 +361,20 @@ RSpec.describe "Transactions", type: :request do
       expect(entry.notes).to eq("Updated note")
     end
 
+    it "redirects back to the budgets page when editing from there" do
+      patch "/transactions/#{entry.id}", params: { transaction: { amount: 200 } },
+        headers: { "HTTP_REFERER" => budgets_url(month: "2026-08") }
+
+      expect(response).to redirect_to(budgets_url(month: "2026-08"))
+    end
+
+    it "stays on the budgets page when the edit fails validation" do
+      patch "/transactions/#{entry.id}", params: { transaction: { amount: nil } },
+        headers: { "HTTP_REFERER" => budgets_url(month: "2026-08") }
+
+      expect(response).to redirect_to(budgets_url(month: "2026-08"))
+    end
+
     it "updates entry date" do
       new_date = 5.days.ago.to_date
 
