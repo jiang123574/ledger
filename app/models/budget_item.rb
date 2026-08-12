@@ -5,6 +5,8 @@ class BudgetItem < ApplicationRecord
   validates :name, length: { maximum: 100 }, allow_nil: true
   validates :amount, presence: true, numericality: { greater_than_or_equal_to: 0 }
   validates :spent_amount, numericality: { greater_than_or_equal_to: 0 }
+  # 同一预算内分类不允许重复（无分类的命名条目不受限制）
+  validates :category_id, uniqueness: { scope: :single_budget_id, message: "已在本预算中使用" }, allow_blank: true
 
   before_validation :set_name_from_category
 

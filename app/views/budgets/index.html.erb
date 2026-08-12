@@ -299,12 +299,17 @@
   window.openAddItemModal = function(budgetId) {
     var form = document.getElementById('new-item-form');
     form.action = '/single_budgets/' + budgetId + '/budget_items';
+    // 打开时重置编辑豁免与分类选择，避免残留上次的值
+    editItemCategoryId = null;
+    document.getElementById('new-item-category-id').value = '';
+    document.getElementById('new-item-category-search').value = '';
     document.getElementById('new-item-modal').classList.remove('hidden');
   };
 
   window.openEditItemModal = function(itemId, categoryId, categoryName, amount, notes) {
     var form = document.getElementById('edit-item-form');
     form.action = '/single_budgets/' + window.currentBudgetId + '/budget_items/' + itemId;
+    editItemCategoryId = categoryId ? String(categoryId) : null;
     document.getElementById('edit-item-category-id').value = categoryId || '';
     document.getElementById('edit-item-category-search').value = categoryName || '';
     document.getElementById('edit-item-amount').value = amount;
@@ -704,6 +709,32 @@
 
 <script type="module">
   import { initSelectorWithData } from 'selectors';
+  import { showToast } from "utils/toast_utils";
+
+  // 编辑预算项时豁免当前条目自己的分类（其余已用分类仍禁止选中）
+  let editItemCategoryId = null;
+
+  // 从已渲染的明细表格收集已用分类 id，可排除指定 id（编辑中的条目自身）
+  function getUsedCategoryIds(excludeId) {
+    var used = new Set();
+    document.querySelectorAll('#budget-items-table td[data-category-id]').forEach(function(td) {
+      var id = String(td.dataset.categoryId);
+      if (id && id !== String(excludeId)) used.add(id);
+    });
+    return used;
+  }
+
+  // 生成选择器的 onSelect 拦截：命中已用分类时提示并清空选择
+  function makeCategoryOnSelect(hiddenInputId, searchInputId) {
+    return function(selectedValue) {
+      if (!selectedValue) return;
+      if (getUsedCategoryIds(editItemCategoryId).has(String(selectedValue))) {
+        showToast('该分类已在本预算中使用', 'error');
+        document.getElementById(hiddenInputId).value = '';
+        document.getElementById(searchInputId).value = '';
+      }
+    };
+  }
 
   // 初始化分类选择器（在 DOM 元素之后）
   function initCategorySelectors() {
@@ -726,7 +757,8 @@
       hiddenInputId: 'new-item-category-id',
       dataSource: expenseCategories,
       noMatchText: '无匹配分类',
-      enableLevelIndent: true
+      enableLevelIndent: true,
+      onSelect: makeCategoryOnSelect('new-item-category-id', 'new-item-category-search')
     });
     initSelectorWithData({
       searchInputId: 'edit-item-category-search',
@@ -735,7 +767,8 @@
       hiddenInputId: 'edit-item-category-id',
       dataSource: expenseCategories,
       noMatchText: '无匹配分类',
-      enableLevelIndent: true
+      enableLevelIndent: true,
+      onSelect: makeCategoryOnSelect('edit-item-category-id', 'edit-item-category-search')
     });
   }
 
