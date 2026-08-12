@@ -13,7 +13,7 @@ class BudgetItemsController < ApplicationController
       CacheBuster.bump(:budgets)
       redirect_to @single_budget, notice: "预算项已添加"
     else
-      render :new, alert: @budget_item.errors.full_messages.join(", ")
+      redirect_to @single_budget, alert: @budget_item.errors.full_messages.join(", ")
     end
   end
 
@@ -26,7 +26,7 @@ class BudgetItemsController < ApplicationController
       CacheBuster.bump(:budgets)
       redirect_to @single_budget, notice: "预算项已更新"
     else
-      render :edit, alert: @budget_item.errors.full_messages.join(", ")
+      redirect_to @single_budget, alert: @budget_item.errors.full_messages.join(", ")
     end
   end
 

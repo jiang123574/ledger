@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_06_01_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_12_000001) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -116,6 +116,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_06_01_000001) do
     t.decimal "spent_amount", precision: 10, scale: 2, default: "0.0", null: false
     t.datetime "updated_at", null: false
     t.index ["category"], name: "index_budget_items_on_category"
+    t.index ["single_budget_id", "category_id"], name: "index_budget_items_on_single_budget_id_and_category_id", unique: true
     t.index ["single_budget_id"], name: "index_budget_items_on_single_budget_id"
   end
 
