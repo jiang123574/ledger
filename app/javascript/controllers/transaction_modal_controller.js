@@ -85,7 +85,11 @@ export default class extends Controller {
       this.resetToCategoryMode()
       this.setDefaultAccount()
       const amountInput = document.querySelector('#add-transaction-modal input[name="transaction[amount]"]')
-      if (amountInput) amountInput.value = ''
+      if (amountInput) {
+        amountInput.value = ''
+        amountInput.focus()
+        amountInput.select()
+      }
 
       const swapBtn = document.getElementById('swap-account-funding-btn')
       if (swapBtn) swapBtn.classList.toggle('hidden', this.currentType !== 'EXPENSE')
