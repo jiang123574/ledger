@@ -85,7 +85,11 @@ export default class extends Controller {
       this.resetToCategoryMode()
       this.setDefaultAccount()
       const amountInput = document.querySelector('#add-transaction-modal input[name="transaction[amount]"]')
-      if (amountInput) amountInput.value = ''
+      if (amountInput) {
+        amountInput.value = ''
+        amountInput.focus()
+        amountInput.select()
+      }
 
       const swapBtn = document.getElementById('swap-account-funding-btn')
       if (swapBtn) swapBtn.classList.toggle('hidden', this.currentType !== 'EXPENSE')
@@ -440,7 +444,11 @@ export default class extends Controller {
           showSuccessToast(data.message || '交易已创建，请继续录入')
           const amountInput = form.querySelector('input[name="transaction[amount]"]')
           const noteInput = form.querySelector('input[name="transaction[note]"]')
-          if (amountInput) amountInput.value = ''
+          if (amountInput) {
+            amountInput.value = ''
+            amountInput.focus()
+            amountInput.select()
+          }
           if (noteInput) noteInput.value = ''
 
           const urlParams = new URLSearchParams(window.location.search)
