@@ -15,6 +15,7 @@
 
 # Ignore all environment files except .env.example.
 /.env
+/.env.bak
 /.env.local
 /.env.*.local
 
