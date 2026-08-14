@@ -90,6 +90,7 @@ curl -H "X-API-Key: ***" \
       "currency": "CNY",
       "kind": "expense",
       "entryable_type": "Entryable::Transaction",
+      "transfer_id": null,
       "account_id": 1,
       "account_name": "招商银行储蓄卡",
       "category_id": 3,
@@ -104,6 +105,7 @@ curl -H "X-API-Key: ***" \
 说明：
 - 仅返回可见账户（hidden=false）的交易，按日期倒序
 - 金额为数字类型：支出为负数，收入为正数
+- `transfer_id`：转账条目的成对标识（同一笔转账的两条记录共享同一值）；非转账条目为 `null`。可用于识别内部转账（过滤 `transfer_id: null` 即排除转账）
 - `total` 为符合筛选条件的总条数（不受 limit 影响）
 
 #### 创建交易

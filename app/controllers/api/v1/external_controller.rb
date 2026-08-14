@@ -124,6 +124,7 @@ module Api
         currency: entry.currency,
         kind: entryable.respond_to?(:kind) ? entryable.kind : nil,
         entryable_type: entry.entryable_type,
+        transfer_id: entry.transfer_id,
         account_id: entry.account_id,
         account_name: entry.account&.name,
         category_id: entryable.respond_to?(:category_id) ? entryable.category_id : nil,

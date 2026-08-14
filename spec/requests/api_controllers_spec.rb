@@ -183,10 +183,32 @@ RSpec.describe "API Controllers", type: :request do
         expect(first).to include(
           "id", "date", "name", "amount", "currency", "kind",
           "entryable_type", "account_id", "account_name",
-          "category_id", "category_name", "notes", "created_at"
+          "category_id", "category_name", "notes", "created_at", "transfer_id"
         )
         expect(first["kind"]).to be_in(%w[expense income])
         expect(first["account_name"]).to eq(account.name)
+      end
+
+      it "exposes transfer_id for transfer entries" do
+        transfer_id = SecureRandom.uuid
+        target_account = create(:account, name: "目标账户")
+        create(:entry, :expense, account: account, name: "转账: A → B", amount: -100.0, transfer_id: transfer_id)
+        create(:entry, :income, account: target_account, name: "转账: A → B", amount: 100.0, transfer_id: transfer_id)
+
+        get api_v1_external_transactions_path, headers: headers
+
+        expect(response).to have_http_status(:ok)
+        json = JSON.parse(response.body)
+        transfer_entries = json["transactions"].select { |t| t["name"].include?("转账") }
+        expect(transfer_entries.size).to eq(2)
+        expect(transfer_entries.map { |t| t["transfer_id"] }.uniq).to eq([ transfer_id ])
+      end
+
+      it "returns nil transfer_id for regular entries" do
+        get api_v1_external_transactions_path, headers: headers
+
+        json = JSON.parse(response.body)
+        expect(json["transactions"].all? { |t| t["transfer_id"].nil? }).to be true
       end
 
       it "filters by account_id" do
