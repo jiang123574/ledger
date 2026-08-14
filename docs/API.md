@@ -57,6 +57,55 @@ curl -H "X-API-Key: your_key" http://localhost:3000/api/v1/external/health
 }
 ```
 
+#### 读取流水（Agent/外部系统分析用）
+
+**GET** `/api/v1/external/transactions`
+
+| 参数 | 类型 | 必填 | 说明 |
+|-----|------|-----|------|
+| account_id | integer | 否 | 账户 ID 筛选 |
+| type | string | 否 | expense 或 income |
+| category_id | integer | 否 | 分类 ID 筛选 |
+| start_date | date | 否 | 起始日期 (YYYY-MM-DD) |
+| end_date | date | 否 | 结束日期 (YYYY-MM-DD) |
+| limit | integer | 否 | 返回条数，默认 100，最大 500 |
+
+请求示例：
+```bash
+curl -H "X-API-Key: ***" \
+  "http://localhost:3000/api/v1/external/transactions?account_id=1&type=expense&limit=50"
+```
+
+成功响应 (200)：
+```json
+{
+  "success": true,
+  "total": 150,
+  "transactions": [
+    {
+      "id": 123,
+      "date": "2026-06-13",
+      "name": "午餐",
+      "amount": -45.0,
+      "currency": "CNY",
+      "kind": "expense",
+      "entryable_type": "Entryable::Transaction",
+      "account_id": 1,
+      "account_name": "招商银行储蓄卡",
+      "category_id": 3,
+      "category_name": "餐饮",
+      "notes": null,
+      "created_at": "2026-06-13T12:30:00+08:00"
+    }
+  ]
+}
+```
+
+说明：
+- 仅返回可见账户（hidden=false）的交易，按日期倒序
+- 金额为数字类型：支出为负数，收入为正数
+- `total` 为符合筛选条件的总条数（不受 limit 影响）
+
 #### 创建交易
 
 **POST** `/api/v1/external/transactions`
@@ -302,6 +351,7 @@ if response.status_code == 201:
 |------|------|------|
 | GET | `/api/v1/external/health` | 健康检查 |
 | GET | `/api/v1/external/context` | 获取上下文信息 |
+| GET | `/api/v1/external/transactions` | 读取流水（Agent 分析） |
 | POST | `/api/v1/external/transactions` | 创建交易（外部调用） |
 
 ### 内部 API (`/api`)

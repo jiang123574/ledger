@@ -138,6 +138,7 @@ Rails.application.routes.draw do
     namespace :v1 do
       get "external/health", to: "external#health"
       get "external/context", to: "external#context"
+      get "external/transactions", to: "external#transactions"
       post "external/transactions", to: "external#transactions"
     end
     get "currency/rates", to: "currency#rates"
