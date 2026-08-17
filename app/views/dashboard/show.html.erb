@@ -48,61 +48,73 @@
           </div>
         </div>
       </div>
+      <%= link_to accounts_path(open_modal: true), class: "inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth btn-modern shrink-0" do %>
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+        新建记账
+      <% end %>
     </div>
   </div>
 
   <!-- Stats Cards (Always visible, not draggable) -->
-  <div class="grid grid-cols-2 sm:grid-cols-4 xl:grid-cols-6 gap-3 sm:gap-4">
-    <%= render(Ds::CardComponent.new) do %>
-      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-        <div class="flex-1">
-          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.income") %></p>
-          <p class="text-lg sm:text-2xl font-semibold text-income mt-0.5 sm:mt-1"><%= format_currency(@total_income) %></p>
+  <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+    <% balance_info = format_balance(@total_income - @total_expense) %>
+    <!-- 本月结余 (hero) -->
+    <div class="relative overflow-hidden rounded-xl border border-accent/20 dark:border-accent-dark/20 bg-linear-to-br from-accent-soft to-transparent p-4 sm:p-5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.balance") %></p>
+          <p class="mt-1 text-xl sm:text-2xl font-semibold font-mono tabular-nums text-primary dark:text-primary-dark whitespace-nowrap <%= balance_info[:css_class] %>">
+            <%= balance_info[:amount] %>
+          </p>
+          <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">收入 − 支出</p>
         </div>
-        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
+        <div class="hidden sm:flex w-10 h-10 rounded-lg bg-accent-soft text-accent dark:text-accent-dark items-center justify-center shrink-0">
+          <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :accent)) %>
+        </div>
+      </div>
+    </div>
+
+    <!-- 本月收入 -->
+    <div class="relative overflow-hidden rounded-xl border border-border dark:border-border-dark bg-container dark:bg-container-dark p-4 sm:p-5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
+          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.income") %></p>
+          <p class="mt-1 text-xl sm:text-2xl font-semibold font-mono tabular-nums text-income whitespace-nowrap"><%= format_currency(@total_income) %></p>
+          <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">本月入账</p>
+        </div>
+        <div class="hidden sm:flex w-10 h-10 rounded-lg bg-income-soft text-income items-center justify-center shrink-0">
           <%= render(Ds::IconComponent.new(name: "trending-up", size: :md, color: :income)) %>
         </div>
       </div>
-    <% end %>
+    </div>
 
-    <%= render(Ds::CardComponent.new) do %>
-      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-        <div class="flex-1">
+    <!-- 本月支出 -->
+    <div class="relative overflow-hidden rounded-xl border border-border dark:border-border-dark bg-container dark:bg-container-dark p-4 sm:p-5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
           <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.expense") %></p>
-          <p class="text-lg sm:text-2xl font-semibold text-expense mt-0.5 sm:mt-1"><%= format_currency(@total_expense) %></p>
+          <p class="mt-1 text-xl sm:text-2xl font-semibold font-mono tabular-nums text-expense whitespace-nowrap"><%= format_currency(@total_expense) %></p>
+          <p class="mt-1 text-xs text-secondary dark:text-secondary-dark"><%= @monthly_stats[:count] %> 笔</p>
         </div>
-        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
+        <div class="hidden sm:flex w-10 h-10 rounded-lg bg-expense-soft text-expense items-center justify-center shrink-0">
           <%= render(Ds::IconComponent.new(name: "trending-down", size: :md, color: :expense)) %>
         </div>
       </div>
-    <% end %>
+    </div>
 
-    <%= render(Ds::CardComponent.new) do %>
-      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-        <div class="flex-1">
-          <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.balance") %></p>
-          <% balance_info = format_balance(@total_income - @total_expense) %>
-          <p class="text-lg sm:text-2xl font-semibold mt-0.5 sm:mt-1 <%= balance_info[:css_class] %> whitespace-nowrap">
-            <%= balance_info[:amount] %>
-          </p>
-        </div>
-        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
-          <%= render(Ds::IconComponent.new(name: "chart-bar", size: :md, color: :primary)) %>
-        </div>
-      </div>
-    <% end %>
-
-    <%= render(Ds::CardComponent.new) do %>
-      <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between">
-        <div class="flex-1">
+    <!-- 总资产 -->
+    <div class="relative overflow-hidden rounded-xl border border-border dark:border-border-dark bg-container dark:bg-container-dark p-4 sm:p-5">
+      <div class="flex items-start justify-between gap-3">
+        <div class="flex-1 min-w-0">
           <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark">总资产</p>
-          <p class="text-lg sm:text-2xl font-semibold text-primary dark:text-primary-dark mt-0.5 sm:mt-1"><%= format_currency(@total_assets) %></p>
+          <p class="mt-1 text-xl sm:text-2xl font-semibold font-mono tabular-nums text-primary dark:text-primary-dark whitespace-nowrap"><%= format_currency(@total_assets) %></p>
+          <p class="mt-1 text-xs text-secondary dark:text-secondary-dark">全部账户</p>
         </div>
-        <div class="hidden sm:flex w-10 h-10 bg-surface dark:bg-surface-dark rounded-lg items-center justify-center">
-          <%= render(Ds::IconComponent.new(name: "wallet", size: :md, color: :primary)) %>
+        <div class="hidden sm:flex w-10 h-10 rounded-lg bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark items-center justify-center shrink-0">
+          <%= render(Ds::IconComponent.new(name: "wallet", size: :md, color: :secondary)) %>
         </div>
       </div>
-    <% end %>
+    </div>
   </div>
 
   <!-- Draggable Sections Container -->

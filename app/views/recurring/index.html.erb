@@ -3,7 +3,7 @@
 <div class="space-y-6">
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-bold text-primary dark:text-primary-dark"><%= t("recurring.title") %></h1>
-    <button onclick="document.getElementById('new-recurring-modal').classList.remove('hidden')" class="bg-inverse text-white px-4 py-2 rounded-lg hover:bg-inverse-hover btn-modern">
+    <button onclick="document.getElementById('new-recurring-modal').classList.remove('hidden')" class="bg-accent text-white px-4 py-2 rounded-lg hover:bg-accent-hover btn-modern">
       <%= t("recurring.new_recurring") %>
     </button>
   </div>
@@ -143,7 +143,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('new-recurring-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"><%= t("common.cancel") %></button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth"><%= t("common.create") %></button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth"><%= t("common.create") %></button>
         </div>
       </form>
     </div>
@@ -223,7 +223,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('edit-recurring-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth"><%= t("common.cancel") %></button>
-          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth"><%= t("common.save") %></button>
+          <button type="submit" class="px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth"><%= t("common.save") %></button>
         </div>
       </form>
     </div>

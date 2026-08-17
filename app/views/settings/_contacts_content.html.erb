@@ -4,7 +4,7 @@
       <h2 class="text-lg font-semibold text-primary dark:text-primary-dark">联系人管理</h2>
       <p class="text-sm text-secondary dark:text-secondary-dark mt-1">管理与你有资金往来的人或机构</p>
     </div>
-    <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">+ 新建联系人</button>
+    <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover dark:hover:bg-accent-hover transition-smooth btn-modern">+ 新建联系人</button>
   </div>
   
   <!-- Stats -->
@@ -38,7 +38,7 @@
       </div>
       <p class="text-secondary dark:text-secondary-dark">暂无联系人</p>
       <p class="text-sm text-secondary dark:text-secondary-dark mt-1">添加常往来的人或机构，方便统计和管理</p>
-      <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="inline-block mt-4 px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth btn-modern">添加第一个联系人</button>
+      <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.remove('hidden')" class="inline-block mt-4 px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover dark:hover:bg-accent-hover transition-smooth btn-modern">添加第一个联系人</button>
     </div>
   <% else %>
     <div class="overflow-x-auto">
@@ -132,7 +132,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('edit-counterparty-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <%= f.submit "保存", class: "px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth" %>
+          <%= f.submit "保存", class: "px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover dark:hover:bg-accent-hover transition-smooth" %>
         </div>
       <% end %>
     </div>
@@ -187,7 +187,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('add-counterparty-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <%= f.submit "创建", class: "px-4 py-2 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover dark:hover:bg-inverse-dark-hover transition-smooth" %>
+          <%= f.submit "创建", class: "px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover dark:hover:bg-accent-hover transition-smooth" %>
         </div>
       <% end %>
     </div>

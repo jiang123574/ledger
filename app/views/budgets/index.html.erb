@@ -10,18 +10,18 @@
       <div class="p-3 border-b border-border dark:border-border-dark">
         <div class="flex justify-between items-center mb-3">
           <h2 class="font-semibold text-primary dark:text-primary-dark"><%= t("single_budgets.title") %></h2>
-          <button onclick="document.getElementById('new-budget-modal').classList.remove('hidden')" class="p-2 rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" title="<%= t('single_budgets.new') %>">
+          <button onclick="document.getElementById('new-budget-modal').classList.remove('hidden')" class="p-2 rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth" title="<%= t('single_budgets.new') %>">
             <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
               <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
           </button>
         </div>
         <div class="flex flex-wrap gap-1">
-          <%= link_to budgets_path(month: @month), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status].blank? ? 'bg-inverse text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface dark:hover:bg-surface-dark'} transition-smooth" do %>
+          <%= link_to budgets_path(month: @month), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status].blank? ? 'bg-accent text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface dark:hover:bg-surface-dark'} transition-smooth" do %>
             <%= t("single_budgets.all") %>
           <% end %>
           <% SingleBudget::STATUSES.each do |status| %>
-            <%= link_to budgets_path(month: @month, status: status), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status] == status ? 'bg-inverse text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface dark:hover:bg-surface-dark'} transition-smooth" do %>
+            <%= link_to budgets_path(month: @month, status: status), class: "px-2 py-1 text-xs font-medium rounded-md #{params[:status] == status ? 'bg-accent text-white' : 'bg-surface dark:bg-surface-dark text-secondary dark:text-secondary-dark hover:bg-surface dark:hover:bg-surface-dark'} transition-smooth" do %>
               <%= case status when 'planning' then '规划' when 'active' then '进行' when 'completed' then '完成' when 'cancelled' then '取消' end %>
             <% end %>
           <% end %>
@@ -151,7 +151,7 @@
              data-category-detail-end-date-value="<%= @selected_budget&.end_date || Date.current %>">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-semibold text-primary dark:text-primary-dark">预算明细</h3>
-            <button id="add-item-btn" data-budget-id="" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth flex items-center gap-1">
+            <button id="add-item-btn" data-budget-id="" onclick="if(window.currentBudgetId) openAddItemModal(window.currentBudgetId)" class="hidden px-3 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth flex items-center gap-1">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
               添加明细
             </button>
@@ -530,7 +530,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
           <button type="button" onclick="document.getElementById('new-budget-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">创建预算</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">创建预算</button>
         </div>
       <% end %>
     </div>
@@ -596,7 +596,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
           <button type="button" onclick="document.getElementById('edit-budget-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存修改</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">保存修改</button>
         </div>
       </form>
       <% end %>
@@ -648,7 +648,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('new-item-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">添加</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">添加</button>
         </div>
       </form>
     </div>
@@ -700,7 +700,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6">
           <button type="button" onclick="document.getElementById('edit-item-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存修改</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">保存修改</button>
         </div>
       </form>
     </div>

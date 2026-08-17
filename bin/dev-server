@@ -18,7 +18,13 @@ stop() {
 start() {
   echo "🚀 启动 Rails server on 0.0.0.0:$PORT ..."
   cd "$PROJECT_DIR"
-  export PATH="/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin:$PATH"
+  # 项目使用 rbenv Ruby 3.3.10（vendored bundle 编译版本），
+  # 不要使用 Homebrew ruby@3.3（已升级到 3.3.12，二进制不兼容）
+  if [ -x "$HOME/.rbenv/versions/3.3.10/bin/ruby" ]; then
+    export PATH="$HOME/.rbenv/versions/3.3.10/bin:$PATH"
+  elif [ -x "/opt/homebrew/opt/ruby@3.3/bin/ruby" ]; then
+    export PATH="/opt/homebrew/opt/ruby@3.3/bin:$PATH"
+  fi
   rm -f tmp/pids/server.pid
 
   nohup bin/rails server -b 0.0.0.0 -p $PORT > "$LOG_FILE" 2>&1 &
