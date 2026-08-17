@@ -197,6 +197,32 @@ RSpec.describe "Payables", type: :request do
       expect(response).to redirect_to(payables_path)
       expect(flash[:alert]).to be_present
     end
+
+    it "rejects payment amount exceeding remaining amount" do
+      settle_account = create(:account, name: "付款账户")
+
+      post "/payables/#{payable.id}/settle", params: {
+        amount: 2000, account_id: settle_account.id, settlement_date: Date.current.to_s
+      }
+
+      expect(response).to redirect_to(payables_path)
+      expect(flash[:alert]).to include("不能超过剩余金额")
+      expect(payable.reload.remaining_amount).to eq(1000)
+      expect(payable.settlement_transfer_ids).to be_empty
+    end
+
+    it "assigns the next sort_order for the payment entry" do
+      settle_account = create(:account, name: "付款账户")
+      existing = create(:entry, account: settle_account, date: Date.current, amount: -100, sort_order: 3)
+
+      post "/payables/#{payable.id}/settle", params: {
+        amount: 500, account_id: settle_account.id, settlement_date: Date.current.to_s
+      }
+
+      expect(response).to redirect_to(payables_path)
+      payment = Entry.find(payable.reload.settlement_transfer_ids.first)
+      expect(payment.sort_order).to eq(existing.sort_order + 1)
+    end
   end
 
   describe "POST /payables/:id/revert" do

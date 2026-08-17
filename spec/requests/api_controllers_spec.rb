@@ -211,6 +211,43 @@ RSpec.describe "API Controllers", type: :request do
         expect(json["transactions"].all? { |t| t["transfer_id"].nil? }).to be true
       end
 
+      it "accepts start_date without end_date" do
+        get api_v1_external_transactions_path, params: { start_date: "2026-01-01" }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "accepts end_date without start_date" do
+        get api_v1_external_transactions_path, params: { end_date: "2026-12-31" }, headers: headers
+
+        expect(response).to have_http_status(:ok)
+      end
+
+      it "returns 400 for invalid start_date" do
+        get api_v1_external_transactions_path, params: { start_date: "not-a-date" }, headers: headers
+
+        expect(response).to have_http_status(:bad_request)
+        json = JSON.parse(response.body)
+        expect(json["success"]).to be false
+      end
+
+      it "returns 400 for invalid end_date" do
+        get api_v1_external_transactions_path, params: { end_date: "abc" }, headers: headers
+
+        expect(response).to have_http_status(:bad_request)
+      end
+
+      it "filters by date range" do
+        create(:entry, :expense, account: account, date: Date.new(2025, 12, 31), name: "去年")
+        create(:entry, :expense, account: account, date: Date.new(2026, 1, 15), name: "今年")
+
+        get api_v1_external_transactions_path, params: { start_date: "2026-01-01", end_date: "2026-01-31" }, headers: headers
+
+        json = JSON.parse(response.body)
+        expect(json["total"]).to eq(1)
+        expect(json["transactions"].first["name"]).to eq("今年")
+      end
+
       it "filters by account_id" do
         other_account = create(:account)
         create(:entry, :expense, account: other_account, name: "其他账户")

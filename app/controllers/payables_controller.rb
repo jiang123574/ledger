@@ -60,6 +60,11 @@ class PayablesController < ApplicationController
       return
     end
 
+    if @settle_amount > @payable.remaining_amount.to_d
+      redirect_to payables_path, alert: "付款金额不能超过剩余金额（#{@payable.remaining_amount}）"
+      return
+    end
+
     account = Account.find_by(id: @account_id)
     unless account
       redirect_to payables_path, alert: "账户不存在"
@@ -122,7 +127,7 @@ class PayablesController < ApplicationController
   end
 
   def create_payment_entry
-    expense_sort_order = Entry.where(account_id: @account_id, date: @settlement_date).maximum(:sort_order) || 0 + 1
+    expense_sort_order = (Entry.where(account_id: @account_id, date: @settlement_date).maximum(:sort_order) || 0) + 1
     expense_entryable = Entryable::Transaction.create!(kind: "expense")
     expense_entry = Entry.create!(
       account_id: @account_id,

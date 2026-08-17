@@ -51,8 +51,13 @@ module Api
       end
 
       if params[:start_date].present? || params[:end_date].present?
-        start_date = params[:start_date].presence || Date.new(2000, 1, 1)
-        end_date = params[:end_date].presence || Date.current
+        begin
+          start_date = params[:start_date].present? ? Date.parse(params[:start_date]) : Date.new(2000, 1, 1)
+          end_date = params[:end_date].present? ? Date.parse(params[:end_date]) : Date.current
+        rescue ArgumentError
+          render json: { success: false, error: "Invalid date format" }, status: :bad_request
+          return
+        end
         scope = scope.by_date_range(start_date, end_date)
       end
 

@@ -2,21 +2,21 @@
 
 ## Ruby Environment
 
-This project uses Ruby 3.3.10 installed via Homebrew.
+This project uses Ruby 3.3.10 via rbenv (see `.ruby-version`; Homebrew's `ruby@3.3` has moved to 3.3.12 and is no longer compatible with the vendored bundle).
 
 ### Ruby Path
 ```
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/ruby
+$HOME/.rbenv/versions/3.3.10/bin/ruby
 ```
 
 ### Bundle Path
 ```
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/bundle
+$HOME/.rbenv/versions/3.3.10/bin/bundle
 ```
 
 ### Rails Path
 ```
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails
+$HOME/.rbenv/versions/3.3.10/bin/rails
 ```
 
 ## Development Setup
@@ -25,19 +25,19 @@ To run Rails commands with the correct Ruby version:
 
 ```bash
 # Run migrations
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails db:migrate
+$HOME/.rbenv/versions/3.3.10/bin/rails db:migrate
 
 # Run Rails runner
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails runner "Account.bulk_update_cache"
+$HOME/.rbenv/versions/3.3.10/bin/rails runner "Account.bulk_update_cache"
 
 # Start Rails server
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails server
+$HOME/.rbenv/versions/3.3.10/bin/rails server
 ```
 
 Or add to your shell PATH:
 
 ```bash
-export PATH="/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin:$PATH"
+export PATH="$HOME/.rbenv/versions/3.3.10/bin:$PATH"
 ```
 
 ## Project-specific Commands
@@ -45,29 +45,29 @@ export PATH="/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin:$PATH"
 ### Database Migrations
 After creating new migrations, run:
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails db:migrate
+$HOME/.rbenv/versions/3.3.10/bin/rails db:migrate
 ```
 
 ### Update Account Cache
 To update counter cache for all accounts:
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails runner "Account.bulk_update_cache"
+$HOME/.rbenv/versions/3.3.10/bin/rails runner "Account.bulk_update_cache"
 ```
 
 ### Testing
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/bundle exec rspec
+$HOME/.rbenv/versions/3.3.10/bin/bundle exec rspec
 ```
 
 ### Linting
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/bundle exec rubocop
+$HOME/.rbenv/versions/3.3.10/bin/bundle exec rubocop
 ```
 
 ### Start Rails Server
 Rails 服务需绑定 `0.0.0.0` 以允许局域网设备（手机、Android）访问：
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails server -b 0.0.0.0 -p 3000
+$HOME/.rbenv/versions/3.3.10/bin/rails server -b 0.0.0.0 -p 3000
 ```
 
 ### 一键重启开发服务器

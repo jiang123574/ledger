@@ -80,6 +80,11 @@ class ReceivablesController < ApplicationController
       return
     end
 
+    if @settle_amount > @receivable.remaining_amount.to_d
+      redirect_to @receivable, alert: "结算金额不能超过剩余金额（#{@receivable.remaining_amount}）"
+      return
+    end
+
     account = Account.find_by(id: @account_id)
     unless account
       redirect_to receivables_path, alert: "账户不存在"
