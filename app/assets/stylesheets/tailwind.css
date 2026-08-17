@@ -1123,7 +1123,10 @@ body:has(.modal-overlay:not(.hidden)) {
   }
 }
 
-.modal-overlay .relative {
+/* 只对弹窗卡片本身做 pop 动画（不要匹配 .modal-overlay 下所有 .relative，
+   否则每个输入框 wrapper 都会因 fill-mode 保留 transform 而创建 stacking context，
+   导致下拉菜单 z-50 被困、被后续输入框遮挡） */
+.modal-overlay > .flex > .relative {
   animation: modal-pop 0.18s cubic-bezier(0.4, 0, 0.2, 1) both;
 }
 
