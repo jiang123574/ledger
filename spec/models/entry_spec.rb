@@ -605,6 +605,13 @@ RSpec.describe Entry, type: :model do
           expect { parent_entry.split!(splits) }.to change { parent_entry.child_entries.count }.by(2)
         end
 
+        it 'returns the created child entries array' do
+          result = parent_entry.split!(splits)
+          expect(result).to be_a(Array)
+          expect(result.size).to eq(2)
+          expect(result.map(&:name)).to contain_exactly('Split 1', 'Split 2')
+        end
+
         it 'sets excluded to true on parent' do
           parent_entry.split!(splits)
           expect(parent_entry.excluded?).to be true

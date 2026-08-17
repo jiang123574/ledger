@@ -169,7 +169,7 @@ class ReportsController < ApplicationController
 
       while current <= @end_date
         week_end = [ current.end_of_week, @end_date ].min
-        week_data = stats_by_week[current] || []
+        week_data = stats_by_week[current.beginning_of_week] || []
         income = week_data.find { |s| s[:kind] == "income" }&.dig(:amount) || 0
         expense = week_data.find { |s| s[:kind] == "expense" }&.dig(:amount) || 0
 

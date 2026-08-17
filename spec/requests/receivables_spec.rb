@@ -269,6 +269,24 @@ RSpec.describe "Receivables", type: :request do
 
       expect(response).to redirect_to(receivable)
     end
+
+    it "rejects settlement amount exceeding remaining amount" do
+      settle_account = create(:account, name: "报销账户")
+
+      post "/receivables/#{receivable.id}/settle", params: {
+        amount: 6000,
+        account_id: settle_account.id,
+        settlement_date: Date.current
+      }
+
+      expect(response).to redirect_to(receivable)
+      expect(flash[:alert]).to include("不能超过剩余金额")
+
+      receivable.reload
+      expect(receivable.remaining_amount).to eq(5000)
+      expect(receivable.settled_at).to be_nil
+      expect(receivable.reimbursement_transfer_ids).to be_empty
+    end
   end
 
   describe "POST /receivables/:id/revert" do

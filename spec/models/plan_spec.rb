@@ -135,6 +135,45 @@ RSpec.describe Plan, type: :model do
     end
   end
 
+  describe '#outstanding_liability' do
+    it 'returns 0 for inactive plans' do
+      plan = build(:plan, type: Plan::INSTALLMENT, active: false, include_in_total: 1)
+      expect(plan.outstanding_liability).to eq(0.to_d)
+    end
+
+    it 'returns 0 for plans not included in total' do
+      plan = build(:plan, type: Plan::INSTALLMENT, active: true, include_in_total: 0)
+      expect(plan.outstanding_liability).to eq(0.to_d)
+    end
+
+    it 'sums remaining installments considering BALANCE_LAST remainder' do
+      # 1000 / 3 = 333.33 * 3 = 999.99, 最后一期 333.34；已完成 1 期 → 剩余 = 333.33 + 333.34 = 666.67
+      plan = build(:plan, type: Plan::INSTALLMENT, active: true, include_in_total: 1,
+                   total_amount: 1000, installments_total: 3, installments_completed: 1,
+                   balance_distribution: Plan::BALANCE_LAST)
+      expect(plan.outstanding_liability).to eq(666.67.to_d)
+    end
+
+    it 'sums remaining installments considering BALANCE_FIRST remainder' do
+      # 第 1 期 333.34 已付，剩余 2 期 = 333.33 * 2 = 666.66
+      plan = build(:plan, type: Plan::INSTALLMENT, active: true, include_in_total: 1,
+                   total_amount: 1000, installments_total: 3, installments_completed: 1,
+                   balance_distribution: Plan::BALANCE_FIRST)
+      expect(plan.outstanding_liability).to eq(666.66.to_d)
+    end
+
+    it 'returns 0 when all installments completed' do
+      plan = build(:plan, type: Plan::INSTALLMENT, active: true, include_in_total: 1,
+                   total_amount: 1000, installments_total: 3, installments_completed: 3)
+      expect(plan.outstanding_liability).to eq(0.to_d)
+    end
+
+    it 'returns amount for non-installment plans' do
+      plan = build(:plan, type: Plan::RECURRING, amount: 500, active: true, include_in_total: 1)
+      expect(plan.outstanding_liability).to eq(500.to_d)
+    end
+  end
+
   describe '#next_due_date' do
     it 'calculates next due date correctly' do
       plan = build(:plan, day_of_month: 15, active: true)

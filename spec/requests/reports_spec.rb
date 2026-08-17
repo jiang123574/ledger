@@ -76,6 +76,20 @@ RSpec.describe "Reports", type: :request do
       expect(response.body).to include("工资")
     end
 
+    it "includes the first partial week in weekly trend when the month doesn't start on Monday" do
+      # 2026-08-01 是周六：第一周(8/1~8/2)的支出按 date_trunc('week') 归属到 7/27（周一）键，
+      # 修复前 Ruby 侧从 8/1 开始迭代永远访问不到该键，导致第 1 周数据丢失
+      create(:entry, account: account, amount: -800, date: Date.new(2026, 8, 1),
+             entryable: create(:entryable_transaction, kind: "expense", category: expense_category))
+
+      get report_month_path(year: 2026, month: 8)
+
+      expect(response).to have_http_status(:success)
+      expense_data = JSON.parse(response.body[/data-trend-line-chart-expense-data-value="([^"]+)"/, 1])
+      expect(expense_data.first).to eq(800.0), "第 1 周应包含 8/1 的支出，实际: #{expense_data.inspect}"
+      expect(expense_data.sum).to eq(800.0)
+    end
+
     it "handles invalid month gracefully" do
       get report_month_path(year: current_year, month: 13)
       expect(response).to have_http_status(:success)

@@ -12,22 +12,22 @@ Single-user local network app. Security requirements are low.
 
 ### Development Server
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails server -b 0.0.0.0 -p 3000
+$HOME/.rbenv/versions/3.3.10/bin/rails server -b 0.0.0.0 -p 3000
 ```
 
 ### Database
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/rails db:migrate
+$HOME/.rbenv/versions/3.3.10/bin/rails db:migrate
 ```
 
 ### Testing
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/bundle exec rspec
+$HOME/.rbenv/versions/3.3.10/bin/bundle exec rspec
 ```
 
 ### Linting
 ```bash
-/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/bundle exec rubocop
+$HOME/.rbenv/versions/3.3.10/bin/bundle exec rubocop
 ```
 
 ### CI Failure Handling
@@ -109,7 +109,7 @@ Android app injects `window.LedgerNative`. Check `NativeApp.isNative` before cal
 
 ## Ruby Version
 
-Ruby 3.3.10 via Homebrew. Path: `/opt/homebrew/Cellar/ruby@3.3/3.3.10/bin/ruby`
+Ruby 3.3.10 via rbenv (see `.ruby-version`). Path: `$HOME/.rbenv/versions/3.3.10/bin/ruby`
 
 ## Coding Guidelines
 

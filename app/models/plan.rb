@@ -49,7 +49,8 @@ class Plan < ApplicationRecord
     when INSTALLMENT, MORTGAGE
       remaining = installments_remaining
       return 0.to_d if remaining <= 0
-      remaining * current_installment_amount
+      # 剩余各期实际金额之和（考虑余额分配 FIRST/LAST 的尾差）
+      ((installments_completed + 1)..installments_total).sum { |i| amount_for_installment(i) }
     else
       amount.to_d
     end

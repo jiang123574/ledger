@@ -223,6 +223,20 @@ RSpec.describe "API Controllers", type: :request do
         expect(response).to have_http_status(:ok)
       end
 
+      it "returns 400 for invalid start_date" do
+        get api_v1_external_transactions_path, params: { start_date: "not-a-date" }, headers: headers
+
+        expect(response).to have_http_status(:bad_request)
+        json = JSON.parse(response.body)
+        expect(json["success"]).to be false
+      end
+
+      it "returns 400 for invalid end_date" do
+        get api_v1_external_transactions_path, params: { end_date: "abc" }, headers: headers
+
+        expect(response).to have_http_status(:bad_request)
+      end
+
       it "filters by date range" do
         create(:entry, :expense, account: account, date: Date.new(2025, 12, 31), name: "去年")
         create(:entry, :expense, account: account, date: Date.new(2026, 1, 15), name: "今年")

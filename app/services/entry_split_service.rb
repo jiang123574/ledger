@@ -20,8 +20,9 @@ class EntrySplitService
   def self.split(entry, splits)
     validate_split_amounts(entry, splits)
 
-    child_entries = Entry.transaction do
-      splits.map do |split_attrs|
+    child_entries = nil
+    Entry.transaction do
+      child_entries = splits.map do |split_attrs|
         create_child_entry(entry, split_attrs)
       end
 
