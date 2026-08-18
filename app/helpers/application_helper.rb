@@ -60,7 +60,7 @@ module ApplicationHelper
     ) do
       safe_join([
         content_tag(:div, class: "mb-0.5") do
-          render(Ds::IconComponent.new(name: icon, size: :md, color: is_active ? :primary : :secondary))
+          render(Ds::IconComponent.new(name: icon, size: :md, color: is_active ? :accent : :secondary))
         end,
         content_tag(:span, label, class: "text-xs font-medium")
       ])
@@ -86,34 +86,34 @@ module ApplicationHelper
 
   def nav_item_link_classes(is_active)
     [
-      "flex items-center gap-3 px-3 py-3 rounded-lg transition-colors duration-150",
+      "flex items-center gap-3 px-3 py-2.5 rounded-lg transition-colors duration-150",
       "min-h-[44px]",  # Touch-friendly tap target
-      is_active ? "bg-surface text-primary" : "text-secondary hover:bg-surface-hover hover:text-primary"
+      is_active ? "bg-accent-soft text-accent font-semibold" : "text-secondary hover:bg-surface-hover hover:text-primary"
     ].join(" ")
   end
 
   def icon_container(icon, is_active)
     content_tag(:div, class: icon_container_classes(is_active)) do
-      render(Ds::IconComponent.new(name: icon, size: :md, color: is_active ? :primary : :default))
+      render(Ds::IconComponent.new(name: icon, size: :md, color: is_active ? :accent : :default))
     end
   end
 
   def icon_container_classes(is_active)
     [
       "w-8 h-8 flex items-center justify-center rounded-lg",
-      is_active ? "bg-gray-200 dark:bg-surface-dark-hover text-primary dark:text-primary-dark" : "bg-gray-100 dark:bg-surface-dark-inset"
+      is_active ? "bg-accent-soft text-accent" : "bg-surface-inset dark:bg-surface-dark-inset text-secondary dark:text-secondary-dark"
     ].join(" ")
   end
 
   def nav_item_text_classes(is_active)
     [
-      "text-sm font-medium",
-      is_active ? "text-primary" : "text-secondary"
+      "text-sm",
+      is_active ? "text-accent font-semibold" : "text-secondary dark:text-secondary-dark"
     ].join(" ")
   end
 
   def active_indicator(is_active)
-    content_tag(:div, "", class: "absolute left-0 w-1 h-6 bg-inverse rounded-r #{is_active ? '' : 'hidden'}")
+    content_tag(:div, "", class: "absolute left-0 w-1 h-6 bg-accent rounded-r #{is_active ? '' : 'hidden'}")
   end
 
   def mobile_nav_item_classes(is_active)
@@ -122,7 +122,7 @@ module ApplicationHelper
       "min-w-[44px] min-h-[44px]",  # Touch-friendly tap target
       "px-2 py-1.5 rounded-lg",
       "transition-colors duration-150",
-      is_active ? "text-blue-600 bg-blue-50" : "text-secondary hover:text-primary hover:bg-surface-hover"
+      is_active ? "text-accent bg-accent-soft" : "text-secondary hover:text-primary hover:bg-surface-hover"
     ].join(" ")
   end
 

@@ -16,7 +16,7 @@ module Ds
   class ButtonComponent < BaseComponent
     VARIANTS = {
       primary: {
-        container: "bg-inverse text-white hover:bg-inverse-hover",
+        container: "bg-accent text-white hover:bg-accent-hover",
         icon: "text-white"
       },
       secondary: {
@@ -28,7 +28,7 @@ module Ds
         icon: "text-red-600"
       },
       inverse: {
-        container: "bg-inverse text-white hover:bg-inverse-hover",
+        container: "bg-accent text-white hover:bg-accent-hover",
         icon: "text-white"
       },
       outline: {

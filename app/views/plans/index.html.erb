@@ -3,7 +3,7 @@
 <div class="space-y-4">
   <div class="flex justify-between items-center">
     <h1 class="text-xl font-semibold text-primary dark:text-primary-dark"><%= t('plans.title') %></h1>
-    <button onclick="openNewPlanModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover">
+    <button onclick="openNewPlanModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-accent text-white hover:bg-accent-hover">
       <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
       <%= t('plans.new_plan') %>
     </button>
@@ -63,7 +63,7 @@
                         <span><%= plan.progress_percentage %>%</span>
                       </div>
                       <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2">
-                        <div class="bg-inverse h-2 rounded-full transition-all" style="width: <%= plan.progress_percentage %>%"></div>
+                        <div class="bg-accent h-2 rounded-full transition-all" style="width: <%= plan.progress_percentage %>%"></div>
                       </div>
                       <div class="text-xs text-secondary dark:text-secondary-dark mt-1">
                         <%= t('plans.remaining_periods', default: '剩余') %> <%= plan.installments_remaining %> <%= t('plans.periods', default: '期') %>，<%= t('plans.about', default: '约') %> <%= format_currency(plan.amount * plan.installments_remaining, plan.currency || 'CNY') %>
@@ -142,7 +142,7 @@
                   </div>
                 </div>
                 <div class="flex items-center gap-2">
-                  <%= button_to t('plans.activate', default: '启用'), plan_path(plan, plan: { active: true }), method: :patch, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+                  <%= button_to t('plans.activate', default: '启用'), plan_path(plan, plan: { active: true }), method: :patch, class: "px-3 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth btn-modern" %>
                   <%= button_to t('common.delete'), plan_path(plan), method: :delete,
                     data: {
                       controller: "confirm-form",
@@ -377,7 +377,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-5 pt-4 border-t border-border dark:border-border-dark">
           <button type="button" onclick="document.getElementById('new-plan-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">创建计划</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">创建计划</button>
         </div>
       </form>
     </div>
@@ -575,7 +575,7 @@
         </div>
         <div class="flex justify-end gap-3 mt-6 pt-4 border-t border-border dark:border-border-dark">
           <button type="button" onclick="document.getElementById('edit-plan-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">保存</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">保存</button>
         </div>
       </form>
     </div>

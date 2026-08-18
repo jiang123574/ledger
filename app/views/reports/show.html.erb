@@ -383,7 +383,7 @@
               </div>
               <div class="flex gap-3">
                 <button type="button" data-action="click->category-filter#close" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover transition-smooth">取消</button>
-                <button type="button" id="confirm-category-stats-filter" data-category-filter-target="confirmBtn" data-action="click->category-filter#confirm" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确定</button>
+                <button type="button" id="confirm-category-stats-filter" data-category-filter-target="confirmBtn" data-action="click->category-filter#confirm" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">确定</button>
               </div>
             </div>
           </div>
@@ -548,7 +548,7 @@
                 </span>
               </div>
               <div class="w-full bg-surface dark:bg-surface-dark rounded-full h-2.5">
-                <div class="<%= item[:percentage] > 100 ? 'bg-expense' : (item[:percentage] > 80 ? 'bg-income' : 'bg-inverse') %> h-2.5 rounded-full transition-all" style="width: <%= [item[:percentage], 100].min %>%"></div>
+                <div class="<%= item[:percentage] > 100 ? 'bg-expense' : (item[:percentage] > 80 ? 'bg-income' : 'bg-accent') %> h-2.5 rounded-full transition-all" style="width: <%= [item[:percentage], 100].min %>%"></div>
               </div>
               <p class="text-xs text-secondary dark:text-secondary-dark mt-1"><%= item[:percentage] %>% 已使用</p>
             </div>

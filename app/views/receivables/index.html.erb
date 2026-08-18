@@ -6,7 +6,7 @@
       <h1 class="text-xl sm:text-2xl font-semibold text-primary dark:text-primary-dark">应收款</h1>
       <p class="text-xs sm:text-sm text-secondary dark:text-secondary-dark mt-0.5 sm:mt-1">追踪待报销与已报销款项</p>
     </div>
-    <button type="button" onclick="openNewReceivableModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-inverse text-white hover:bg-inverse-hover">
+    <button type="button" onclick="openNewReceivableModal()" class="inline-flex items-center justify-center gap-2 font-medium transition-smooth btn-modern focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed px-4 py-1.5 text-sm rounded-lg bg-accent text-white hover:bg-accent-hover">
       <%= render(Ds::IconComponent.new(name: "plus", size: :sm)) %>
       新建应收款
     </button>
@@ -94,7 +94,7 @@
                 <span>总额 <%= format_currency(receivable.original_amount) %></span>
               </div>
               <div class="flex items-center gap-2">
-                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth btn-modern min-h-[36px]">报销</button>
+                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="flex-1 px-3 py-1.5 text-xs font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth btn-modern min-h-[36px]">报销</button>
                 <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-3 py-1.5 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth btn-modern min-h-[36px]">编辑</button>
                 <button type="button"
                   data-controller="confirm-form"
@@ -130,7 +130,7 @@
                 <span class="text-expense">待报 <span class="font-medium"><%= format_currency(receivable.remaining_amount) %></span></span>
               </div>
               <div class="flex items-center gap-1 shrink-0">
-                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-2 py-1 text-xs font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">报销</button>
+                <button type="button" onclick="openSettleModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.remaining_amount %>')" class="px-2 py-1 text-xs font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">报销</button>
                 <button type="button" onclick="openEditReceivableModal('<%= receivable.id %>', '<%= j receivable.description %>', '<%= receivable.date %>', '<%= receivable.original_amount %>', '<%= j(receivable.category || '') %>', '<%= receivable.counterparty_id %>', '<%= receivable.account_id %>', '<%= j(receivable.note || '') %>')" class="px-2 py-1 text-xs font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-blue-500 transition-smooth btn-modern">编辑</button>
                 <button type="button"
                   data-controller="confirm-form"
@@ -298,7 +298,7 @@
 
         <div class="flex justify-end gap-3 mt-5">
           <button type="button" onclick="document.getElementById('add-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth">保存</button>
         </div>
       </form>
     </div>
@@ -392,7 +392,7 @@
 
         <div class="flex justify-end gap-3 mt-5">
           <button type="button" onclick="document.getElementById('edit-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth">保存</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth">保存</button>
         </div>
       </form>
     </div>
@@ -456,7 +456,7 @@
 
         <div class="flex justify-end gap-3 mt-5">
           <button type="button" onclick="document.getElementById('settle-receivable-modal').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface dark:hover:bg-surface-dark transition-smooth">取消</button>
-          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white dark:bg-inverse-dark dark:text-inverse hover:bg-inverse-hover transition-smooth">确认报销</button>
+          <button type="submit" class="px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover transition-smooth">确认报销</button>
         </div>
       </form>
     </div>

@@ -2,7 +2,7 @@
   <div class="flex justify-between items-center">
     <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">备份管理</h1>
     <div class="flex gap-2">
-      <%= button_to "创建备份", backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern" %>
+      <%= button_to "创建备份", backups_path, method: :post, class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth btn-modern" %>
     </div>
   </div>
 
@@ -89,7 +89,7 @@
               </div>
             </div>
             <div class="flex gap-2">
-              <%= f.submit "保存修改", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
+              <%= f.submit "保存修改", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth" %>
               <button type="button" onclick="document.getElementById('webdav-edit-form').classList.add('hidden')" class="px-4 py-1.5 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">
                 取消
               </button>
@@ -146,7 +146,7 @@
               <%= f.password_field :password, class: "mt-1 block w-full border border-border dark:border-border-dark rounded-lg px-3 py-2 bg-white dark:bg-surface-dark text-primary dark:text-primary-dark" %>
             </div>
           </div>
-          <%= f.submit "连接", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
+          <%= f.submit "连接", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth" %>
         <% end %>
       </div>
     <% end %>
@@ -187,7 +187,7 @@
                 </label>
                 <%= f.hidden_field :frequency, value: auto_backup_config['frequency'] || 'daily' %>
                 <%= f.hidden_field :retention, value: auto_backup_config['retention_count'] || 10 %>
-                <%= f.submit "更新设置", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth" %>
+                <%= f.submit "更新设置", class: "px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth" %>
               </div>
             <% end %>
           </div>

@@ -40,7 +40,7 @@
         <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-3">
           <p class="text-sm font-medium text-primary dark:text-primary-dark mb-2">🐷 贔貅记账导入</p>
           <p class="text-xs text-secondary dark:text-secondary-dark mb-3">导入贔貅记账的交易流水（支持转账、自动映射账户和分类）</p>
-          <button type="button" onclick="document.getElementById('pixiu-import-modal').classList.remove('hidden')" class="inline-block px-4 py-1.5 text-sm font-medium rounded-lg bg-inverse text-white hover:bg-inverse-hover transition-smooth btn-modern">
+          <button type="button" onclick="document.getElementById('pixiu-import-modal').classList.remove('hidden')" class="inline-block px-4 py-1.5 text-sm font-medium rounded-lg bg-accent text-white hover:bg-accent-hover transition-smooth btn-modern">
             开始导入
           </button>
         </div>
@@ -176,7 +176,7 @@
               支持 CSV 格式，文件大小 &lt; 50MB
             </p>
             <%= f.file_field :file, accept: ".csv", class: "hidden", id: "pixiu-file-input", onchange: "pixiuFileSelected(this)" %>
-            <button type="button" class="px-4 py-2 bg-inverse text-white rounded-lg hover:bg-inverse-hover transition-colors" onclick="document.getElementById('pixiu-file-input').click()">
+            <button type="button" class="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors" onclick="document.getElementById('pixiu-file-input').click()">
               选择文件
             </button>
           </div>
@@ -205,7 +205,7 @@
             <button type="button" onclick="document.getElementById('pixiu-import-modal').classList.add('hidden')" class="flex-1 px-4 py-2 border border-border dark:border-border-dark text-primary dark:text-primary-dark rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-colors font-medium">
               取消
             </button>
-            <%= f.submit "下一步", id: "pixiu-submit-btn", class: "flex-1 px-4 py-2 bg-inverse text-white rounded-lg hover:bg-inverse-hover transition-colors font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed", disabled: true %>
+            <%= f.submit "下一步", id: "pixiu-submit-btn", class: "flex-1 px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover transition-colors font-medium cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed", disabled: true %>
           </div>
         <% end %>
       </div>

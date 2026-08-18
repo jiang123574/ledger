@@ -29,7 +29,7 @@ RSpec.describe Ds::ButtonComponent, type: :component do
 
     it "applies primary variant styles" do
       render_inline(described_class.new(variant: :primary)) { "Primary" }
-      expect(page).to have_css("button.bg-inverse")
+      expect(page).to have_css("button.bg-accent")
     end
 
     it "applies secondary variant styles" do
@@ -149,7 +149,7 @@ RSpec.describe Ds::ButtonComponent, type: :component do
     it "renders large primary button with icon" do
       render_inline(described_class.new(variant: :primary, size: :lg, icon: "check")) { "Confirm" }
       expect(page).to have_text("Confirm")
-      expect(page).to have_css("button.bg-inverse")
+      expect(page).to have_css("button.bg-accent")
       expect(page).to have_css("button.px-5")
       expect(page).to have_css("svg")
     end
