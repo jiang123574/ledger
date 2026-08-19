@@ -233,7 +233,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_000002) do
     t.string "kind"
     t.jsonb "locked_attributes", default: {}
     t.integer "merchant_id"
-    t.uuid "refund_of_entry_id"
+    t.bigint "refund_of_entry_id"
     t.jsonb "tags", default: []
     t.datetime "updated_at", null: false
     t.index ["category_id", "kind"], name: "idx_entryable_transactions_category_kind"

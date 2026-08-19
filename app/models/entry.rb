@@ -140,6 +140,14 @@ class Entry < ApplicationRecord
       .where(entryable_transactions: { refund_of_entry_id: id, is_refund: true })
   end
 
+  # 删除时清理关联退款记录的外键
+  after_destroy :nullify_refund_references
+
+  def nullify_refund_references
+    return unless transaction?
+    Entryable::Transaction.where(refund_of_entry_id: id).update_all(refund_of_entry_id: nil)
+  end
+
   def valuation?
     entryable_type == "Entryable::Valuation"
   end

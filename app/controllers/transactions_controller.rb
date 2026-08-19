@@ -84,12 +84,16 @@ class TransactionsController < ApplicationController
 
     entries = Entry.transactions_only
       .non_transfers
-      .includes(:account)
+      .with_entryable_transaction
+      .includes(:account, entryable: :category)
+      .where(entryable_transactions: { is_refund: false })
       .order(date: :desc)
       .limit(20)
 
     if query.present?
-      entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", "%#{query}%", "%#{query}%")
+      # 转义 LIKE 通配符 % _ \
+      escaped = query.gsub(/[\\%_]/) { |m| "\\#{m}" }
+      entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", "%#{escaped}%", "%#{escaped}%")
     end
 
     if account_id.present?
@@ -123,6 +127,7 @@ class TransactionsController < ApplicationController
     note = attrs[:note]
     category_id = attrs[:category_id]
     is_refund = attrs[:is_refund] == "1" || attrs[:is_refund] == true
+    refund_of_entry_id = attrs[:refund_of_entry_id].presence
 
     # 如果有分类且非转账，从分类推断收支类型（防止前端 type 与分类不匹配）
     if type != "TRANSFER" && category_id.present?
@@ -135,7 +140,7 @@ class TransactionsController < ApplicationController
     elsif create_expense_with_funding_transfer?
       create_with_funding_transfer
     else
-      create_regular_entry(type, account_id, amount, date, currency, note, category_id, is_refund)
+      create_regular_entry(type, account_id, amount, date, currency, note, category_id, is_refund, refund_of_entry_id)
     end
   end
 
