@@ -15,9 +15,8 @@ class Entryable::Transaction < ApplicationRecord
   scope :refunds, -> { where(is_refund: true) }
   scope :non_refunds, -> { where(is_refund: false) }
 
-  # 退款关联（可选，Phase 2）
+  # 退款关联（可选）
   belongs_to :refund_of_entry, class_name: "Entry", optional: true
-  has_many :refund_entries, class_name: "Entryable::Transaction", foreign_key: "refund_of_entry_id", dependent: :nullify
 
   store_accessor :extra, :provider_data, :sync_status, :enrichment_data
 

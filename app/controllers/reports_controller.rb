@@ -248,7 +248,6 @@ class ReportsController < ApplicationController
       avg_amount: count > 0 ? total_amount / count : 0,
       by_category: by_category.first(10),
       monthly_trend: monthly,
-      # 退款率 = 退款额 / 总支出（支出类退款）或 总收入（收入类退款）
       expense_refund_rate: begin
         expense_total = Entry.with_entryable_transaction
           .transactions_only
@@ -256,7 +255,6 @@ class ReportsController < ApplicationController
           .where(entryable_transactions: { kind: "expense", is_refund: false })
           .where(date: @start_date..@end_date)
           .sum("entries.amount * -1")
-        buyer_refund = by_category.sum { |(_, _), _| 0 } # placeholder, computed below
         buyer_refund_amount = Entry.with_entryable_transaction
           .transactions_only
           .non_transfers

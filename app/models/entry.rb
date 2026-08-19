@@ -132,6 +132,14 @@ class Entry < ApplicationRecord
     transaction? && entryable.respond_to?(:is_refund?) && entryable.is_refund?
   end
 
+  # 这笔交易的所有退款记录
+  def refund_entries
+    return Entry.none unless transaction?
+    Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
+      .where(entryable_type: "Entryable::Transaction")
+      .where(entryable_transactions: { refund_of_entry_id: id, is_refund: true })
+  end
+
   def valuation?
     entryable_type == "Entryable::Valuation"
   end

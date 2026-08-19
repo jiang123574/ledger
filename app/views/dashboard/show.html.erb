@@ -94,7 +94,7 @@
         <div class="flex-1 min-w-0">
           <p class="text-xs sm:text-sm font-medium text-secondary dark:text-secondary-dark"><%= t("dashboard.expense") %></p>
           <p class="mt-1 text-xl sm:text-2xl font-semibold font-mono tabular-nums text-expense whitespace-nowrap"><%= format_currency(@total_expense) %></p>
-          <p class="mt-1 text-xs text-secondary dark:text-secondary-dark"><%= @monthly_stats[:count] %> 笔</p>
+          <p class="mt-1 text-xs text-secondary dark:text-secondary-dark"><%= @monthly_stats[:count] %> 笔<% if @refund_count && @refund_count > 0 %> · 退款 <%= format_currency(@refund_amount) %><% end %></p>
         </div>
         <div class="hidden sm:flex w-10 h-10 rounded-lg bg-expense-soft text-expense items-center justify-center shrink-0">
           <%= render(Ds::IconComponent.new(name: "trending-down", size: :md, color: :expense)) %>

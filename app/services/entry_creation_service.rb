@@ -33,10 +33,10 @@ class EntryCreationService
       # - 正常收入 (kind=income, is_refund=false): +amount
       # - 卖家退款 (kind=income, is_refund=true): -amount (余额减少)
       stored_amount = if kind == "income"
-                        is_refund ? -amount.to_d : amount.to_d
-                      else
-                        is_refund ? amount.to_d : -amount.to_d
-                      end
+        is_refund ? -amount.to_d : amount.to_d
+      else
+        is_refund ? amount.to_d : -amount.to_d
+      end
 
       entry = Entry.create!(
         account_id: account_id,

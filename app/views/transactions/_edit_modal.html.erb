@@ -464,7 +464,7 @@
 
       clearTimeout(refundSearchTimeout);
       refundSearchTimeout = setTimeout(function() {
-        fetch('/accounts?search=' + encodeURIComponent(query) + '&view_mode=minimal', {
+        fetch('/transactions/search?q=' + encodeURIComponent(query), {
           headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(function(res) { return res.json(); })
@@ -476,7 +476,7 @@
             refundOptions.innerHTML = entries.slice(0, 10).map(function(e) {
               return '<div class="px-3 py-1.5 text-xs cursor-pointer hover:bg-surface dark:hover:bg-surface-dark text-primary dark:text-primary-dark refund-search-opt" data-id="' + e.id + '">' +
                 '<span class="font-medium">' + e.name + '</span>' +
-                ' <span class="text-secondary dark:text-secondary-dark">¥' + Math.abs(e.amount) + '</span>' +
+                ' <span class="text-secondary dark:text-secondary-dark">¥' + e.display_amount + '</span>' +
                 ' <span class="text-secondary dark:text-secondary-dark">(' + e.date + ')</span>' +
                 '</div>';
             }).join('');

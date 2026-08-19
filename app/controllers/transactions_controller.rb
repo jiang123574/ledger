@@ -21,9 +21,33 @@ class TransactionsController < ApplicationController
   # 一键退款 - 根据原交易创建退款记录
   def refund
     @entry = Entry.find(params[:id])
-    raise ActiveRecord::RecordNotFound unless @entry.transaction?
+
+    # 守卫：只能对普通收支交易退款
+    unless @entry.transaction? && @entry.transfer_id.blank?
+      return respond_to do |format|
+        format.json { render json: { success: false, error: "只能对普通收支交易创建退款" }, status: :unprocessable_entity }
+        format.html { redirect_back fallback_location: accounts_path, alert: "只能对普通收支交易创建退款" }
+      end
+    end
+
+    # 守卫：不能对退款再退款
+    if @entry.refund?
+      return respond_to do |format|
+        format.json { render json: { success: false, error: "不能对退款记录再创建退款" }, status: :unprocessable_entity }
+        format.html { redirect_back fallback_location: accounts_path, alert: "不能对退款记录再创建退款" }
+      end
+    end
 
     amount = params[:amount]&.to_d || @entry.display_amount
+
+    # 守卫：退款金额不能超过原交易金额
+    if amount > @entry.display_amount
+      return respond_to do |format|
+        format.json { render json: { success: false, error: "退款金额不能超过原交易金额" }, status: :unprocessable_entity }
+        format.html { redirect_back fallback_location: accounts_path, alert: "退款金额不能超过原交易金额" }
+      end
+    end
+
     date = params[:date] || Date.current
     note = params[:note].presence || "退款: #{@entry.name}"
     category_id = @entry.display_category_id
@@ -51,6 +75,41 @@ class TransactionsController < ApplicationController
       format.json { render json: { success: false, error: e.message }, status: :unprocessable_entity }
       format.html { redirect_back fallback_location: accounts_path, alert: "创建退款失败: #{e.message}" }
     end
+  end
+
+  # 搜索交易（用于退款关联原交易）
+  def search
+    query = params[:q].to_s.strip
+    account_id = params[:account_id]
+
+    entries = Entry.transactions_only
+      .non_transfers
+      .includes(:account)
+      .order(date: :desc)
+      .limit(20)
+
+    if query.present?
+      entries = entries.where("entries.name LIKE ? OR entries.notes LIKE ?", "%#{query}%", "%#{query}%")
+    end
+
+    if account_id.present?
+      entries = entries.where(account_id: account_id)
+    end
+
+    result = entries.map do |e|
+      {
+        id: e.id,
+        name: e.name,
+        amount: e.amount.to_f,
+        display_amount: e.display_amount.to_f,
+        date: e.date.to_s,
+        category_name: e.display_category&.name,
+        account_name: e.account_name,
+        kind: e.entryable&.kind
+      }
+    end
+
+    render json: { entries: result }
   end
 
   def create
@@ -110,11 +169,11 @@ class TransactionsController < ApplicationController
 
   private
 
-  def create_regular_entry(type, account_id, amount, date, currency, note, category_id, is_refund = false)
+  def create_regular_entry(type, account_id, amount, date, currency, note, category_id, is_refund = false, refund_of_entry_id = nil)
     entry = EntryCreationService.create_regular(
       type: type, account_id: account_id, amount: amount,
       date: date, currency: currency, note: note, category_id: category_id,
-      is_refund: is_refund
+      is_refund: is_refund, refund_of_entry_id: refund_of_entry_id
     )
     expire_entries_cache
     handle_successful_save("交易已创建", entry)
