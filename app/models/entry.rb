@@ -94,6 +94,16 @@ class Entry < ApplicationRecord
       .where(entryable_transactions: { kind: "income" })
   }
 
+  scope :refunds, -> {
+    transactions_only.non_transfers.with_entryable_transaction
+      .where(entryable_transactions: { is_refund: true })
+  }
+
+  scope :non_refunds, -> {
+    transactions_only.non_transfers.with_entryable_transaction
+      .where(entryable_transactions: { is_refund: false })
+  }
+
   # 月度统计 scope - 用于报表和仪表盘
   scope :group_by_month, -> {
     group(Arel.sql("date_trunc('month', entries.date)"))
@@ -116,6 +126,26 @@ class Entry < ApplicationRecord
 
   def transaction?
     entryable_type == "Entryable::Transaction"
+  end
+
+  def refund?
+    transaction? && entryable.respond_to?(:is_refund?) && entryable.is_refund?
+  end
+
+  # 这笔交易的所有退款记录
+  def refund_entries
+    return Entry.none unless transaction?
+    Entry.joins("INNER JOIN entryable_transactions ON entries.entryable_id = entryable_transactions.id")
+      .where(entryable_type: "Entryable::Transaction")
+      .where(entryable_transactions: { refund_of_entry_id: id, is_refund: true })
+  end
+
+  # 删除时清理关联退款记录的外键
+  after_destroy :nullify_refund_references
+
+  def nullify_refund_references
+    return unless transaction?
+    Entryable::Transaction.where(refund_of_entry_id: id).update_all(refund_of_entry_id: nil)
   end
 
   def valuation?

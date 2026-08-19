@@ -408,6 +408,7 @@
               else
                 e.target_account_for_display&.name
               end
+              is_refund = !is_transfer && e.respond_to?(:refund?) && e.refund?
             %>
             <!-- 统一响应式交易卡片 -->
             <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="<%= e.id %>" data-date="<%= e.date %>" draggable="true">
@@ -419,17 +420,23 @@
               <!-- 类型 / 分类 -->
               <div class="truncate flex flex-col gap-0.5">
                 <div class="flex items-center gap-2">
-                  <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
-                    case display_type
-                    when '收入' then 'bg-income-light text-income'
-                    when '支出' then 'bg-expense-light text-expense'
-                    when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                    when '转入' then 'bg-income-light text-income'
-                    when '转出' then 'bg-expense-light text-expense'
-                    else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                    end %>">
-                    <%= display_type %>
-                  </span>
+                  <% if is_refund %>
+                    <span class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" title="退款">
+                      ↩️ 退款
+                    </span>
+                  <% else %>
+                    <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium <%=
+                      case display_type
+                      when '收入' then 'bg-income-light text-income'
+                      when '支出' then 'bg-expense-light text-expense'
+                      when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      when '转入' then 'bg-income-light text-income'
+                      when '转出' then 'bg-expense-light text-expense'
+                      else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                      end %>">
+                      <%= display_type %>
+                    </span>
+                  <% end %>
                   <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">
                     <% if is_transfer %>
                       <% if current_account_filter.present? %>
@@ -489,6 +496,11 @@
               
               <!-- 操作按钮 -->
               <div class="flex items-center gap-1 shrink-0 justify-center">
+                <% if !is_transfer && !is_refund %>
+                  <button data-action="click->transaction-modal#quickRefund" data-transaction-modal-id-param="<%= e.id %>" class="p-1.5 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-secondary dark:text-secondary-dark hover:text-purple-600 dark:hover:text-purple-300 transition-smooth" title="一键退款">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+                  </button>
+                <% end %>
                 <button data-action="click->transaction-modal#openEditTransactionModal" data-transaction-modal-id-param="<%= e.id %>" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
                 </button>
@@ -508,17 +520,23 @@
               <!-- 类型 + 分类 -->
               <div class="flex-1 min-w-0 flex flex-col gap-0.5">
                 <div class="flex items-center gap-1.5">
-                  <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium <%=
-                    case display_type
-                    when '收入' then 'bg-income-light text-income'
-                    when '支出' then 'bg-expense-light text-expense'
-                    when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                    when '转入' then 'bg-income-light text-income'
-                    when '转出' then 'bg-expense-light text-expense'
-                    else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
-                    end %>">
-                    <%= display_type %>
-                  </span>
+                  <% if is_refund %>
+                    <span class="shrink-0 inline-flex items-center gap-0.5 px-1.5 py-0.5 rounded text-[10px] font-medium bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300" title="退款">
+                      ↩️ 退款
+                    </span>
+                  <% else %>
+                    <span class="shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium <%=
+                      case display_type
+                      when '收入' then 'bg-income-light text-income'
+                      when '支出' then 'bg-expense-light text-expense'
+                      when '转账' then 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                      when '转入' then 'bg-income-light text-income'
+                      when '转出' then 'bg-expense-light text-expense'
+                      else 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'
+                      end %>">
+                      <%= display_type %>
+                    </span>
+                  <% end %>
                   <span class="text-sm font-medium text-primary dark:text-primary-dark truncate">
                     <% if is_transfer %>
                       <% if current_account_filter.present? %>
@@ -841,6 +859,14 @@
           <div>
             <label class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1.5">备注</label>
             <%= f.text_field :note, placeholder: "添加备注", class: "w-full px-3 py-1.5 text-sm rounded-lg border border-border dark:border-border-dark bg-white dark:bg-surface-dark text-primary dark:text-primary-dark focus:ring-2 focus:ring-blue-500" %>
+          </div>
+          <!-- 退款标记（收支模式下显示） -->
+          <div id="refund-field-wrapper" data-transaction-modal-target="refundFieldWrapper">
+            <label class="flex items-center gap-2 cursor-pointer select-none">
+              <input type="checkbox" name="transaction[is_refund]" id="new_is_refund" value="1" class="w-4 h-4 rounded border-border dark:border-border-dark text-accent focus:ring-accent">
+              <span class="text-sm text-primary dark:text-primary-dark">这是退款</span>
+              <span class="text-xs text-secondary dark:text-secondary-dark">（反向影响余额）</span>
+            </label>
           </div>
         </div>
         <div class="flex justify-end gap-3 mt-6">

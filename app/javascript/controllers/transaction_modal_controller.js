@@ -91,6 +91,10 @@ export default class extends Controller {
         amountInput.select()
       }
 
+      // 重置退款复选框
+      const refundCheckbox = document.getElementById('new_is_refund')
+      if (refundCheckbox) refundCheckbox.checked = false
+
       const swapBtn = document.getElementById('swap-account-funding-btn')
       if (swapBtn) swapBtn.classList.toggle('hidden', this.currentType !== 'EXPENSE')
     }
@@ -289,6 +293,7 @@ export default class extends Controller {
     document.getElementById('target-account-field')?.classList.remove('hidden')
     document.getElementById('account-field-wrapper')?.classList.add('hidden')
     document.getElementById('funding-account-field')?.classList.add('hidden')
+    document.getElementById('refund-field-wrapper')?.classList.add('hidden')
     const btn = document.getElementById('full-transfer-btn')
     if (btn) btn.style.display = ''
   }
@@ -302,6 +307,7 @@ export default class extends Controller {
   showCategoryFields() {
     document.getElementById('category-field-wrapper')?.classList.remove('hidden')
     document.getElementById('account-field-wrapper')?.classList.remove('hidden')
+    document.getElementById('refund-field-wrapper')?.classList.remove('hidden')
     const btn = document.getElementById('full-transfer-btn')
     if (btn) btn.style.display = 'none'
 
@@ -533,6 +539,40 @@ export default class extends Controller {
           showSuccessToast(data.message || '交易已删除')
         } else {
           showErrorToast(data.error || '删除失败')
+        }
+      })
+      .catch(() => {
+        showErrorToast('网络错误，请重试')
+      })
+  }
+
+  // 一键退款
+  quickRefund(event) {
+    const id = event.params?.id || event.currentTarget.dataset.id
+    if (!id) return
+
+    if (!confirm('确定要对这笔交易创建退款吗？金额默认为全额退款。')) return
+
+    fetch(`/transactions/${id}/refund`, {
+      method: 'POST',
+      headers: {
+        'X-CSRF-Token': document.querySelector('meta[name="csrf-token"]')?.content,
+        'Accept': 'application/json',
+        'X-Requested-With': 'XMLHttpRequest'
+      }
+    })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          showSuccessToast(data.message || '退款已创建')
+          // 刷新列表
+          if (window.Turbo) {
+            Turbo.visit(window.location.href, { action: 'replace' })
+          } else {
+            window.location.reload()
+          }
+        } else {
+          showErrorToast(data.error || '创建退款失败')
         }
       })
       .catch(() => {

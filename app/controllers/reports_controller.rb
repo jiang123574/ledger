@@ -67,6 +67,7 @@ class ReportsController < ApplicationController
     data[:monthly_trend] = compute_monthly_trend
     data[:expense_by_category] = compute_category_stats("expense")
     data[:income_by_category] = compute_category_stats("income")
+    data[:refund_stats] = compute_refund_stats
 
     if @report_type == :yearly
       balance_data = compute_account_balance_data
@@ -112,6 +113,7 @@ class ReportsController < ApplicationController
     end
 
     @filter_categories = data[:filter_categories]
+    @refund_stats = data[:refund_stats]
     load_chart_data
   end
 
@@ -198,6 +200,70 @@ class ReportsController < ApplicationController
       .group("categories.id", "categories.name")
       .order(Arel.sql("SUM(#{amount_expr}) DESC"))
       .sum(amount_expr)
+  end
+
+  def compute_refund_stats
+    refund_entries = Entry.with_entryable_transaction
+      .transactions_only
+      .non_transfers
+      .where(entryable_transactions: { is_refund: true })
+      .where(date: @start_date..@end_date)
+
+    total_amount = refund_entries.sum("ABS(entries.amount)")
+    count = refund_entries.count
+
+    # 按分类统计退款（买家退款 + 卖家退款都算）
+    by_category = Entry.with_category
+      .transactions_only
+      .non_transfers
+      .where(entryable_transactions: { is_refund: true })
+      .where(date: @start_date..@end_date)
+      .group("categories.id", "categories.name")
+      .order(Arel.sql("SUM(ABS(entries.amount)) DESC"))
+      .sum("ABS(entries.amount)")
+
+    # 月度退款趋势
+    if @report_type == :yearly
+      monthly_trend = Entry.with_entryable_transaction
+        .transactions_only
+        .non_transfers
+        .where(entryable_transactions: { is_refund: true })
+        .where(date: @start_date..@end_date)
+        .group("date_trunc('month', entries.date)")
+        .select("date_trunc('month', entries.date) as month_date, SUM(ABS(entries.amount)) as total, COUNT(*) as count")
+        .index_by { |r| r.month_date.month }
+
+      monthly = (1..12).map do |m|
+        d = monthly_trend[m]
+        { month: m, label: "#{m}月", amount: d&.total.to_f, count: d&.count || 0 }
+      end
+    else
+      # 月度报表 - 按日统计
+      monthly = nil
+    end
+
+    {
+      total_amount: total_amount,
+      count: count,
+      avg_amount: count > 0 ? total_amount / count : 0,
+      by_category: by_category.first(10),
+      monthly_trend: monthly,
+      expense_refund_rate: begin
+        expense_total = Entry.with_entryable_transaction
+          .transactions_only
+          .non_transfers
+          .where(entryable_transactions: { kind: "expense", is_refund: false })
+          .where(date: @start_date..@end_date)
+          .sum("entries.amount * -1")
+        buyer_refund_amount = Entry.with_entryable_transaction
+          .transactions_only
+          .non_transfers
+          .where(entryable_transactions: { kind: "expense", is_refund: true })
+          .where(date: @start_date..@end_date)
+          .sum("entries.amount")
+        expense_total > 0 ? (buyer_refund_amount / expense_total * 100).round(1) : 0
+      end
+    }
   end
 
   def compute_budget_data

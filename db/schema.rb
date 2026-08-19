@@ -10,16 +10,16 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_12_000001) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_19_000002) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
 
   create_table "accounts", force: :cascade do |t|
+    t.decimal "actual_available_credit", precision: 10, scale: 2
     t.integer "billing_day"
     t.string "billing_day_mode", default: "current"
     t.decimal "credit_limit", precision: 10, scale: 2
-    t.decimal "actual_available_credit", precision: 10, scale: 2
     t.string "currency", limit: 3, default: "CNY"
     t.integer "due_day"
     t.string "due_day_mode", default: "fixed"
@@ -229,14 +229,18 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_12_000001) do
     t.integer "category_id"
     t.datetime "created_at", null: false
     t.jsonb "extra", default: {}
+    t.boolean "is_refund", default: false, null: false
     t.string "kind"
     t.jsonb "locked_attributes", default: {}
     t.integer "merchant_id"
+    t.bigint "refund_of_entry_id"
     t.jsonb "tags", default: []
     t.datetime "updated_at", null: false
     t.index ["category_id", "kind"], name: "idx_entryable_transactions_category_kind"
     t.index ["category_id"], name: "idx_trans_category"
+    t.index ["is_refund"], name: "index_entryable_transactions_on_is_refund"
     t.index ["merchant_id"], name: "idx_trans_merchant"
+    t.index ["refund_of_entry_id"], name: "index_entryable_transactions_on_refund_of_entry_id"
     t.index ["tags"], name: "idx_trans_tags_gin", using: :gin
   end
 

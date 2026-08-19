@@ -29,8 +29,8 @@ RSpec.describe EntryCreationService, type: :service do
           amount: '123.45', date: Date.current, note: '测试'
         )
 
-        # 金额被解析为 BigDecimal
-        expect(entry.amount).to eq(BigDecimal('123.45'))
+        # 字符串金额被解析为 BigDecimal，支出存为负数
+        expect(entry.amount).to eq(-BigDecimal('123.45'))
       end
 
       it 'handles float amount' do
@@ -123,6 +123,52 @@ RSpec.describe EntryCreationService, type: :service do
         )
 
         expect(entry.currency).to eq('USD')
+      end
+    end
+
+    context 'with is_refund' do
+      it 'creates buyer refund (expense + refund) with positive amount' do
+        entry = described_class.create_regular(
+          type: 'EXPENSE', account_id: account.id,
+          amount: 200, date: Date.current, note: '退货退款',
+          category_id: category.id, is_refund: true
+        )
+
+        expect(entry).to be_persisted
+        expect(entry.amount).to eq(200)  # 退款 = 余额增加 = 正数
+        expect(entry.entryable.kind).to eq('expense')
+        expect(entry.entryable.is_refund).to be true
+      end
+
+      it 'creates seller refund (income + refund) with negative amount' do
+        entry = described_class.create_regular(
+          type: 'INCOME', account_id: account.id,
+          amount: 100, date: Date.current, note: '退款给买家',
+          is_refund: true
+        )
+
+        expect(entry).to be_persisted
+        expect(entry.amount).to eq(-100)  # 收入退款 = 余额减少 = 负数
+        expect(entry.entryable.kind).to eq('income')
+        expect(entry.entryable.is_refund).to be true
+      end
+
+      it 'normal expense has is_refund=false' do
+        entry = described_class.create_regular(
+          type: 'EXPENSE', account_id: account.id,
+          amount: 100, date: Date.current, category_id: category.id
+        )
+
+        expect(entry.entryable.is_refund).to be false
+      end
+
+      it 'normal income has is_refund=false' do
+        entry = described_class.create_regular(
+          type: 'INCOME', account_id: account.id,
+          amount: 5000, date: Date.current
+        )
+
+        expect(entry.entryable.is_refund).to be false
       end
     end
   end

@@ -51,6 +51,15 @@
         </a>
         <% end %>
 
+        <% if @refund_stats && @refund_stats[:count] > 0 %>
+        <a href="#refund" data-report-tabs-target="navItem" data-panel-id="refund"
+           data-action="report-tabs#switchPanel"
+           class="settings-nav-item <%= @active_panel == 'refund' ? 'active' : '' %> shrink-0">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+          <span class="hidden lg:inline">退款分析</span>
+        </a>
+        <% end %>
+
         <% if @report_type == :yearly && @asset_trend&.any? %>
         <a href="#assets" data-report-tabs-target="navItem" data-panel-id="assets"
            data-action="report-tabs#switchPanel"
@@ -552,6 +561,90 @@
               </div>
               <p class="text-xs text-secondary dark:text-secondary-dark mt-1"><%= item[:percentage] %>% 已使用</p>
             </div>
+          <% end %>
+        </div>
+      </section>
+    </div>
+    <% end %>
+
+    <!-- ====== 面板: 退款分析 ====== -->
+    <% if @refund_stats && @refund_stats[:count] > 0 %>
+    <div data-report-tabs-target="panel" data-panel-name="refund" class="<%= @active_panel == 'refund' ? '' : 'hidden' %>" role="tabpanel" aria-label="退款分析">
+      <section class="bg-container dark:bg-container-dark rounded-xl shadow-border-xs dark:shadow-dark-border-xs">
+        <div class="px-4 py-3 border-b border-border dark:border-border-dark">
+          <h2 class="text-base font-semibold text-primary dark:text-primary-dark">退款分析</h2>
+        </div>
+        <div class="p-4 space-y-6">
+          <!-- 概览卡片 -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-surface dark:bg-surface-dark rounded-lg p-3">
+              <p class="text-xs text-secondary dark:text-secondary-dark mb-1">总退款额</p>
+              <p class="text-lg font-semibold text-purple-600 dark:text-purple-400"><%= format_currency(@refund_stats[:total_amount]) %></p>
+            </div>
+            <div class="bg-surface dark:bg-surface-dark rounded-lg p-3">
+              <p class="text-xs text-secondary dark:text-secondary-dark mb-1">退款笔数</p>
+              <p class="text-lg font-semibold text-primary dark:text-primary-dark"><%= @refund_stats[:count] %> 笔</p>
+            </div>
+            <div class="bg-surface dark:bg-surface-dark rounded-lg p-3">
+              <p class="text-xs text-secondary dark:text-secondary-dark mb-1">平均退款</p>
+              <p class="text-lg font-semibold text-primary dark:text-primary-dark"><%= format_currency(@refund_stats[:avg_amount]) %></p>
+            </div>
+            <div class="bg-surface dark:bg-surface-dark rounded-lg p-3">
+              <p class="text-xs text-secondary dark:text-secondary-dark mb-1">支出退款率</p>
+              <p class="text-lg font-semibold text-primary dark:text-primary-dark"><%= @refund_stats[:expense_refund_rate] %>%</p>
+            </div>
+          </div>
+
+          <!-- 退款分类排行 -->
+          <div>
+            <h3 class="text-sm font-medium text-primary dark:text-primary-dark mb-3">退款分类排行</h3>
+            <% if @refund_stats[:by_category].any? %>
+              <div class="space-y-2">
+                <% @refund_stats[:by_category].each_with_index do |(cat_info, amount), idx| %>
+                  <% cat_id, cat_name = cat_info %>
+                  <% max_amount = @refund_stats[:by_category].first&.last || 1 %>
+                  <% percentage = (amount / max_amount * 100).round %>
+                  <div class="flex items-center gap-3">
+                    <span class="text-xs text-secondary dark:text-secondary-dark w-5 text-center"><%= idx + 1 %></span>
+                    <div class="flex-1 min-w-0">
+                      <div class="flex justify-between text-sm mb-0.5">
+                        <span class="text-primary dark:text-primary-dark truncate"><%= cat_name || "未分类" %></span>
+                        <span class="text-purple-600 dark:text-purple-400 shrink-0 font-medium"><%= format_currency(amount) %></span>
+                      </div>
+                      <div class="w-full bg-surface-inset dark:bg-surface-dark-inset rounded-full h-1.5">
+                        <div class="bg-purple-500 dark:bg-purple-400 h-1.5 rounded-full" style="width: <%= percentage %>%"></div>
+                      </div>
+                    </div>
+                  </div>
+                <% end %>
+              </div>
+            <% else %>
+              <div class="h-32 flex items-center justify-center text-secondary dark:text-secondary-dark text-sm">暂无退款数据</div>
+            <% end %>
+          </div>
+
+          <!-- 月度退款趋势（仅年度报表） -->
+          <% if @refund_stats[:monthly_trend]&.any? %>
+          <div>
+            <h3 class="text-sm font-medium text-primary dark:text-primary-dark mb-3">月度退款趋势</h3>
+            <div class="space-y-1.5">
+              <% max_amount = @refund_stats[:monthly_trend].map { |m| m[:amount] }.max || 1 %>
+              <% @refund_stats[:monthly_trend].each do |m| %>
+                <% percentage = max_amount > 0 ? (m[:amount] / max_amount * 100).round : 0 %>
+                <div class="flex items-center gap-3">
+                  <span class="text-xs text-secondary dark:text-secondary-dark w-10 shrink-0"><%= m[:label] %></span>
+                  <div class="flex-1 bg-surface-inset dark:bg-surface-dark-inset rounded-full h-4 relative overflow-hidden">
+                    <div class="bg-purple-400 dark:bg-purple-500 h-full rounded-full" style="width: <%= percentage %>%"></div>
+                    <span class="absolute inset-0 flex items-center justify-end pr-2 text-[10px] text-white font-medium" style="text-shadow: 0 1px 2px rgba(0,0,0,0.3)">
+                      <% if m[:count] > 0 %>
+                        <%= format_currency(m[:amount]) %> · <%= m[:count] %>笔
+                      <% end %>
+                    </span>
+                  </div>
+                </div>
+              <% end %>
+            </div>
+          </div>
           <% end %>
         </div>
       </section>
