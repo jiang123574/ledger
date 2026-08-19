@@ -66,6 +66,7 @@
 /script/
 /lib/tasks/*.rake
 !/lib/tasks/import_pixiu.rake
+!/lib/tasks/backfill_is_refund.rake
 
 # Ignore IDE and editor files
 /.vscode/
