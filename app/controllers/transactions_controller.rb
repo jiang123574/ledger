@@ -40,6 +40,14 @@ class TransactionsController < ApplicationController
 
     amount = params[:amount]&.to_d || @entry.display_amount
 
+    # 守卫：退款金额必须 > 0
+    if amount <= 0
+      return respond_to do |format|
+        format.json { render json: { success: false, error: "退款金额必须大于 0" }, status: :unprocessable_entity }
+        format.html { redirect_back fallback_location: accounts_path, alert: "退款金额必须大于 0" }
+      end
+    end
+
     # 守卫：退款金额不能超过原交易金额
     if amount > @entry.display_amount
       return respond_to do |format|
