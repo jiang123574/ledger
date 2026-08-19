@@ -29,8 +29,8 @@ RSpec.describe EntryCreationService, type: :service do
           amount: '123.45', date: Date.current, note: '测试'
         )
 
-        # 金额被解析为 BigDecimal
-        expect(entry.amount).to eq(BigDecimal('123.45'))
+        # 字符串金额被解析为 BigDecimal，支出存为负数
+        expect(entry.amount).to eq(-BigDecimal('123.45'))
       end
 
       it 'handles float amount' do
