@@ -46,12 +46,16 @@ class DashboardController < ApplicationController
       {
         income: entries.where(entryable_transactions: { kind: "income" }).sum(:amount),
         expense: entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1"),
-        count: entries.count
+        count: entries.count,
+        refund_amount: entries.where(entryable_transactions: { is_refund: true }).sum("ABS(entries.amount)"),
+        refund_count: entries.where(entryable_transactions: { is_refund: true }).count
       }
     end
     @total_income = @monthly_stats[:income]
     @total_expense = @monthly_stats[:expense]
     @monthly_stats[:balance] = @total_income - @total_expense
+    @refund_amount = @monthly_stats[:refund_amount] || 0
+    @refund_count = @monthly_stats[:refund_count] || 0
 
     # Cache expenses by category
     expenses_data = Rails.cache.fetch("dashboard/expenses/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do

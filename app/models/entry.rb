@@ -94,6 +94,16 @@ class Entry < ApplicationRecord
       .where(entryable_transactions: { kind: "income" })
   }
 
+  scope :refunds, -> {
+    transactions_only.non_transfers.with_entryable_transaction
+      .where(entryable_transactions: { is_refund: true })
+  }
+
+  scope :non_refunds, -> {
+    transactions_only.non_transfers.with_entryable_transaction
+      .where(entryable_transactions: { is_refund: false })
+  }
+
   # 月度统计 scope - 用于报表和仪表盘
   scope :group_by_month, -> {
     group(Arel.sql("date_trunc('month', entries.date)"))
@@ -116,6 +126,10 @@ class Entry < ApplicationRecord
 
   def transaction?
     entryable_type == "Entryable::Transaction"
+  end
+
+  def refund?
+    transaction? && entryable.respond_to?(:is_refund?) && entryable.is_refund?
   end
 
   def valuation?

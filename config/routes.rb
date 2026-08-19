@@ -13,6 +13,9 @@ Rails.application.routes.draw do
   root "accounts#index"
 
   resources :transactions, only: [ :index, :create, :edit, :update, :destroy ] do
+    member do
+      post :refund
+    end
     collection do
       post :bulk_destroy
     end

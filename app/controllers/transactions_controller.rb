@@ -18,6 +18,41 @@ class TransactionsController < ApplicationController
     render :edit_modal, layout: false if request.xhr?
   end
 
+  # 一键退款 - 根据原交易创建退款记录
+  def refund
+    @entry = Entry.find(params[:id])
+    raise ActiveRecord::RecordNotFound unless @entry.transaction?
+
+    amount = params[:amount]&.to_d || @entry.display_amount
+    date = params[:date] || Date.current
+    note = params[:note].presence || "退款: #{@entry.name}"
+    category_id = @entry.display_category_id
+    is_refund = true
+
+    entry = EntryCreationService.create_regular(
+      type: @entry.display_entry_type,
+      account_id: @entry.account_id,
+      amount: amount,
+      date: date,
+      currency: @entry.currency,
+      note: note,
+      category_id: category_id,
+      is_refund: is_refund,
+      refund_of_entry_id: @entry.id
+    )
+
+    expire_entries_cache
+    respond_to do |format|
+      format.json { render json: { success: true, message: "退款已创建", entry: entry.as_json(include: :entryable) } }
+      format.html { redirect_to accounts_path(filter_params), notice: "退款已创建" }
+    end
+  rescue ActiveRecord::RecordInvalid => e
+    respond_to do |format|
+      format.json { render json: { success: false, error: e.message }, status: :unprocessable_entity }
+      format.html { redirect_back fallback_location: accounts_path, alert: "创建退款失败: #{e.message}" }
+    end
+  end
+
   def create
     attrs = transaction_params
     type = attrs[:type]
@@ -28,6 +63,7 @@ class TransactionsController < ApplicationController
     currency = attrs[:currency] || "CNY"
     note = attrs[:note]
     category_id = attrs[:category_id]
+    is_refund = attrs[:is_refund] == "1" || attrs[:is_refund] == true
 
     # 如果有分类且非转账，从分类推断收支类型（防止前端 type 与分类不匹配）
     if type != "TRANSFER" && category_id.present?
@@ -40,7 +76,7 @@ class TransactionsController < ApplicationController
     elsif create_expense_with_funding_transfer?
       create_with_funding_transfer
     else
-      create_regular_entry(type, account_id, amount, date, currency, note, category_id)
+      create_regular_entry(type, account_id, amount, date, currency, note, category_id, is_refund)
     end
   end
 
@@ -74,10 +110,11 @@ class TransactionsController < ApplicationController
 
   private
 
-  def create_regular_entry(type, account_id, amount, date, currency, note, category_id)
+  def create_regular_entry(type, account_id, amount, date, currency, note, category_id, is_refund = false)
     entry = EntryCreationService.create_regular(
       type: type, account_id: account_id, amount: amount,
-      date: date, currency: currency, note: note, category_id: category_id
+      date: date, currency: currency, note: note, category_id: category_id,
+      is_refund: is_refund
     )
     expire_entries_cache
     handle_successful_save("交易已创建", entry)
@@ -161,19 +198,25 @@ class TransactionsController < ApplicationController
     if attrs[:type].present?
       kind = attrs[:type].downcase
       amount = attrs[:amount].to_d
+      is_refund = attrs[:is_refund] == "1" || attrs[:is_refund] == true
 
       if kind == "transfer"
         @entry.amount = @entry.amount < 0 ? -amount.abs : amount.abs
       elsif kind == "income"
-        @entry.amount = amount
+        @entry.amount = is_refund ? -amount : amount
       else
-        @entry.amount = -amount
+        @entry.amount = is_refund ? amount : -amount
       end
     end
 
     if @entry.entryable.is_a?(Entryable::Transaction)
       @entry.entryable.kind = attrs[:type].downcase if attrs[:type].present?
       @entry.entryable.category_id = attrs[:category_id] if attrs[:category_id].present?
+      if attrs.key?(:is_refund)
+        is_refund = attrs[:is_refund] == "1" || attrs[:is_refund] == true
+        @entry.entryable.is_refund = is_refund
+      end
+      @entry.entryable.refund_of_entry_id = attrs[:refund_of_entry_id] if attrs.key?(:refund_of_entry_id)
       @entry.entryable.save!
     end
 
@@ -283,7 +326,7 @@ class TransactionsController < ApplicationController
     params.require(:transaction).permit(
       :date, :type, :amount, :currency, :original_amount,
       :category_id, :account_id, :target_account_id,
-      :note, :link_id,
+      :note, :link_id, :is_refund, :refund_of_entry_id,
       tag_ids: [],
       files: []
     )

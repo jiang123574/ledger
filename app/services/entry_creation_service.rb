@@ -12,7 +12,8 @@ class EntryCreationService
   end
 
   # 创建普通收支 Entry
-  def self.create_regular(type:, account_id:, amount:, date:, currency: "CNY", note: nil, category_id: nil)
+  def self.create_regular(type:, account_id:, amount:, date:, currency: "CNY", note: nil, category_id: nil,
+                          is_refund: false, refund_of_entry_id: nil)
     kind = type.downcase
 
     entry = nil
@@ -21,14 +22,27 @@ class EntryCreationService
 
       entryable = Entryable::Transaction.create!(
         kind: kind,
-        category_id: category_id
+        category_id: category_id,
+        is_refund: is_refund,
+        refund_of_entry_id: refund_of_entry_id
       )
+
+      # 金额存储规则：
+      # - 正常支出 (kind=expense, is_refund=false): -amount
+      # - 买家退款 (kind=expense, is_refund=true): +amount (余额增加)
+      # - 正常收入 (kind=income, is_refund=false): +amount
+      # - 卖家退款 (kind=income, is_refund=true): -amount (余额减少)
+      stored_amount = if kind == "income"
+                        is_refund ? -amount.to_d : amount.to_d
+                      else
+                        is_refund ? amount.to_d : -amount.to_d
+                      end
 
       entry = Entry.create!(
         account_id: account_id,
         date: date,
         name: note.presence || "#{type == 'INCOME' ? '收入' : '支出'} #{amount}",
-        amount: kind == "income" ? amount : -amount,
+        amount: stored_amount,
         currency: currency,
         notes: note,
         entryable: entryable,

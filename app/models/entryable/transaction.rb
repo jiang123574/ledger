@@ -11,6 +11,14 @@ class Entryable::Transaction < ApplicationRecord
   has_many :taggings, as: :taggable, class_name: "::Tagging", dependent: :destroy
   has_many :tags, through: :taggings
 
+  # 退款相关
+  scope :refunds, -> { where(is_refund: true) }
+  scope :non_refunds, -> { where(is_refund: false) }
+
+  # 退款关联（可选，Phase 2）
+  belongs_to :refund_of_entry, class_name: "Entry", optional: true
+  has_many :refund_entries, class_name: "Entryable::Transaction", foreign_key: "refund_of_entry_id", dependent: :nullify
+
   store_accessor :extra, :provider_data, :sync_status, :enrichment_data
 
   after_initialize :set_defaults, if: :new_record?
@@ -30,6 +38,18 @@ class Entryable::Transaction < ApplicationRecord
 
   def expense?
     kind == "expense"
+  end
+
+  def refund?
+    is_refund?
+  end
+
+  def buyer_refund?
+    kind == "expense" && is_refund?
+  end
+
+  def seller_refund?
+    kind == "income" && is_refund?
   end
 
   def tag_list=(tag_names)
