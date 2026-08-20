@@ -48,12 +48,15 @@ class VersionsController < ApplicationController
       @operation_logs = @operation_logs.where(ip_address: params[:ip_address])
     end
 
-    # 时间范围过滤
-    if params[:date_from].present?
-      @operation_logs = @operation_logs.where("created_at >= ?", Date.parse(params[:date_from]).beginning_of_day)
+    # 时间范围过滤（容错：非法日期参数忽略，不抛 500）
+    date_from = safe_parse_date(params[:date_from])
+    if date_from
+      @operation_logs = @operation_logs.where("created_at >= ?", date_from.beginning_of_day)
     end
-    if params[:date_to].present?
-      @operation_logs = @operation_logs.where("created_at <= ?", Date.parse(params[:date_to]).end_of_day)
+
+    date_to = safe_parse_date(params[:date_to])
+    if date_to
+      @operation_logs = @operation_logs.where("created_at <= ?", date_to.end_of_day)
     end
 
     # 搜索（转义 LIKE 通配符防止注入）
@@ -62,10 +65,10 @@ class VersionsController < ApplicationController
       @operation_logs = @operation_logs.where("description LIKE ?", "%#{search_term}%")
     end
 
-    # 统计数据
+    # 统计数据（一次 group 查询，减少数据库压力）
     @stats = build_stats
 
-    # 导出
+    # 导出（全量，不分页）
     if params[:format] == "csv"
       send_data generate_csv(@operation_logs), filename: "operation_logs_#{Date.today}.csv", type: "text/csv"
       return
@@ -78,7 +81,7 @@ class VersionsController < ApplicationController
     @operation_logs = @operation_logs.page(params[:page]).per(50)
 
     # 标记当前筛选条件
-    @active_filters = build_active_filters
+    @active_filters = build_active_filters(date_from, date_to)
 
     # 快捷预设
     @quick_presets = build_quick_presets
@@ -93,23 +96,33 @@ class VersionsController < ApplicationController
     @operation_log = OperationLog.find(params[:id])
   end
 
+  # 安全解析日期，非法值返回 nil 而非抛异常
+  def safe_parse_date(value)
+    return nil if value.blank?
+    Date.parse(value.to_s)
+  rescue Date::Error, ArgumentError
+    nil
+  end
+
+  # 一次 group 查询，比多次 count 高效
   def build_stats
-    base = OperationLog.where("created_at >= ?", Time.current.beginning_of_day)
+    today_logs = OperationLog.where("created_at >= ?", Time.current.beginning_of_day)
+    counts = today_logs.group(:action).count
     {
-      today: base.count,
-      create: base.where(action: "create").count,
-      update: base.where(action: "update").count,
-      destroy: base.where(action: "destroy").count
+      today: counts.values.sum,
+      create: counts["create"] || 0,
+      update: counts["update"] || 0,
+      destroy: counts["destroy"] || 0
     }
   end
 
-  def build_active_filters
+  def build_active_filters(date_from, date_to)
     filters = []
     if params[:item_type].present?
-      filters << { key: "item_type", label: "模型: #{ITEM_TYPE_LABELS[params[:item_type]] || params[:item_type]}", value: params[:item_type] }
+      filters << { key: "item_type", label: "模型: #{item_type_label(params[:item_type])}", value: params[:item_type] }
     end
     if params[:action_type].present?
-      filters << { key: "action_type", label: "操作: #{ACTION_LABELS[params[:action_type]] || params[:action_type]}", value: params[:action_type] }
+      filters << { key: "action_type", label: "操作: #{action_label(params[:action_type])}", value: params[:action_type] }
     end
     if params[:search].present?
       filters << { key: "search", label: "搜索: #{params[:search]}", value: params[:search] }
@@ -117,11 +130,11 @@ class VersionsController < ApplicationController
     if params[:ip_address].present?
       filters << { key: "ip_address", label: "IP: #{params[:ip_address]}", value: params[:ip_address] }
     end
-    if params[:date_from].present? || params[:date_to].present?
+    if date_from || date_to
       label = "时间: "
-      label += params[:date_from] if params[:date_from].present?
+      label += date_from.to_s if date_from
       label += " ~ "
-      label += params[:date_to] if params[:date_to].present?
+      label += date_to.to_s if date_to
       filters << { key: "date_range", label: label, value: "#{params[:date_from]}|#{params[:date_to]}" }
     end
     filters
@@ -146,8 +159,8 @@ class VersionsController < ApplicationController
       logs.find_each do |log|
         csv << [
           log.created_at.strftime("%Y-%m-%d %H:%M:%S"),
-          ACTION_LABELS[log.action] || log.action,
-          ITEM_TYPE_LABELS[log.item_type] || log.item_type,
+          action_label(log.action),
+          item_type_label(log.item_type),
           log.item_id,
           log.description,
           log.changes_summary,
@@ -159,14 +172,14 @@ class VersionsController < ApplicationController
   end
 
   def generate_json(logs)
-    logs.limit(1000).map do |log|
+    logs.find_each.map do |log|
       {
         id: log.id,
         created_at: log.created_at.iso8601,
         action: log.action,
-        action_label: ACTION_LABELS[log.action] || log.action,
+        action_label: action_label(log.action),
         item_type: log.item_type,
-        item_type_label: ITEM_TYPE_LABELS[log.item_type] || log.item_type,
+        item_type_label: item_type_label(log.item_type),
         item_id: log.item_id,
         description: log.description,
         changes_summary: log.changes_summary,
@@ -176,6 +189,8 @@ class VersionsController < ApplicationController
       }
     end
   end
+
+  # ---- Helper 方法（通过 helper_method 暴露给视图，避免视图直接引用 Controller 常量） ----
 
   def item_type_label(type)
     ITEM_TYPE_LABELS[type] || type

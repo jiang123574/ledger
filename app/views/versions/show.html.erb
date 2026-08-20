@@ -81,7 +81,13 @@
             </div>
             <div>
               <dt class="text-sm font-medium text-secondary dark:text-secondary-dark">IP 地址</dt>
-              <dd class="mt-1 text-sm text-primary dark:text-primary-dark"><%= @operation_log.ip_address %></dd>
+              <dd class="mt-1 text-sm text-primary dark:text-primary-dark">
+                <% if @operation_log.ip_address.present? %>
+                  <%= link_to @operation_log.ip_address, versions_path(ip_address: @operation_log.ip_address), class: 'text-accent hover:underline' %>
+                <% else %>
+                  <span class="text-tertiary dark:text-tertiary-dark">-</span>
+                <% end %>
+              </dd>
             </div>
             <% if @operation_log.user_agent %>
               <div class="col-span-2">
@@ -93,28 +99,35 @@
         </div>
       <% end %>
 
-      <!-- 变更内容 (Diff 样式) -->
+      <!-- 变更内容 -->
       <% if @operation_log.changeset.present? %>
         <%
           parsed = @operation_log.changeset.is_a?(String) ? (JSON.parse(@operation_log.changeset) rescue {}) : @operation_log.changeset
-          is_update = @operation_log.action == 'update' && parsed.is_a?(Hash) && parsed.values.any? { |v| v.is_a?(Array) && v.length == 2 }
+          is_update_diff = @operation_log.action == 'update' && parsed.is_a?(Hash) && parsed.values.any? { |v| v.is_a?(Array) && v.length == 2 }
         %>
         <div>
           <div class="flex items-center justify-between mb-3">
             <h3 class="text-sm font-medium text-secondary dark:text-secondary-dark uppercase tracking-wider">
               变更内容
-              <% if is_update %>
+              <% if is_update_diff %>
                 <span class="ml-2 text-xs text-tertiary dark:text-tertiary-dark font-normal">(Diff 视图)</span>
               <% end %>
             </h3>
-            <button onclick="toggleDiffView()" class="text-xs text-accent hover:underline">
-              <span id="diffToggleLabel">查看原始 JSON</span>
-            </button>
+            <% if is_update_diff %>
+              <button onclick="toggleDiffView()" class="text-xs text-accent hover:underline">
+                <span id="diffToggleLabel">查看原始 JSON</span>
+              </button>
+            <% end %>
           </div>
 
-          <!-- Diff 视图 -->
-          <% if is_update %>
+          <!-- Diff 视图 (仅 update 操作展示) -->
+          <% if is_update_diff %>
             <div id="diffView" class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg overflow-hidden">
+              <div class="flex text-xs font-medium text-secondary dark:text-secondary-dark border-b border-border dark:border-border-dark">
+                <div class="w-1/3 px-4 py-2 border-r border-border dark:border-border-dark">字段</div>
+                <div class="w-1/3 px-4 py-2 border-r border-border dark:border-border-dark bg-red-50/50 dark:bg-red-950/20">旧值</div>
+                <div class="w-1/3 px-4 py-2 bg-green-50/50 dark:bg-green-950/20">新值</div>
+              </div>
               <% parsed.each do |field, values| %>
                 <% next if field.in?(%w[updated_at created_at id]) %>
                 <div class="flex border-b border-border dark:border-border-dark last:border-b-0">
@@ -123,29 +136,30 @@
                   </div>
                   <div class="w-1/3 px-4 py-2.5 border-r border-border dark:border-border-dark bg-red-50/50 dark:bg-red-950/20">
                     <% if values.is_a?(Array) && values.length == 2 %>
-                      <span class="text-sm text-red-600 dark:text-red-400 line-through"><%= values[0].presence || '(空)' %></span>
+                      <span class="text-sm text-red-600 dark:text-red-400 line-through"><%= values[0].nil? ? '(空)' : values[0] %></span>
                     <% end %>
                   </div>
                   <div class="w-1/3 px-4 py-2.5 bg-green-50/50 dark:bg-green-950/20">
                     <% if values.is_a?(Array) && values.length == 2 %>
-                      <span class="text-sm text-green-600 dark:text-green-400"><%= values[1].presence || '(空)' %></span>
+                      <span class="text-sm text-green-600 dark:text-green-400"><%= values[1].nil? ? '(空)' : values[1] %></span>
                     <% else %>
-                      <span class="text-sm text-primary dark:text-primary-dark"><%= values %></span>
+                      <span class="text-sm text-primary dark:text-primary-dark"><%= values.nil? ? '(空)' : values %></span>
                     <% end %>
                   </div>
                 </div>
               <% end %>
             </div>
+
+            <!-- JSON 视图 (默认隐藏，仅 update 有 diff 时才切换) -->
+            <div id="jsonView" class="hidden bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto text-primary dark:text-primary-dark"><%= JSON.pretty_generate(parsed) rescue @operation_log.changeset %></pre>
+            </div>
           <% else %>
-            <div id="diffView" class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4">
-              <pre class="text-xs text-primary dark:text-primary-dark overflow-x-auto"><%= JSON.pretty_generate(parsed) rescue @operation_log.changeset %></pre>
+            <!-- 非 update 操作：直接展示 JSON -->
+            <div class="bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4">
+              <pre class="text-xs overflow-x-auto text-primary dark:text-primary-dark"><%= JSON.pretty_generate(parsed) rescue @operation_log.changeset %></pre>
             </div>
           <% end %>
-
-          <!-- JSON 视图 (默认隐藏) -->
-          <div id="jsonView" class="hidden bg-surface-inset dark:bg-surface-dark-inset rounded-lg p-4">
-            <pre class="text-xs overflow-x-auto text-primary dark:text-primary-dark"><%= JSON.pretty_generate(parsed) rescue @operation_log.changeset %></pre>
-          </div>
         </div>
       <% end %>
 
@@ -162,23 +176,26 @@
   </div>
 </div>
 
-<script>
-(function() {
-  let showingJson = false;
-  window.toggleDiffView = function() {
-    const diffView = document.getElementById('diffView');
-    const jsonView = document.getElementById('jsonView');
-    const label = document.getElementById('diffToggleLabel');
-    if (showingJson) {
-      diffView.classList.remove('hidden');
-      jsonView.classList.add('hidden');
-      label.textContent = '查看原始 JSON';
-    } else {
-      diffView.classList.add('hidden');
-      jsonView.classList.remove('hidden');
-      label.textContent = '查看 Diff 视图';
-    }
-    showingJson = !showingJson;
-  };
-})();
-</script>
+<% if @operation_log.action == 'update' %>
+  <script>
+  (function() {
+    let showingJson = false;
+    window.toggleDiffView = function() {
+      const diffView = document.getElementById('diffView');
+      const jsonView = document.getElementById('jsonView');
+      const label = document.getElementById('diffToggleLabel');
+      if (!diffView || !jsonView) return;
+      if (showingJson) {
+        diffView.classList.remove('hidden');
+        jsonView.classList.add('hidden');
+        label.textContent = '查看原始 JSON';
+      } else {
+        diffView.classList.add('hidden');
+        jsonView.classList.remove('hidden');
+        label.textContent = '查看 Diff 视图';
+      }
+      showingJson = !showingJson;
+    };
+  })();
+  </script>
+<% end %>
