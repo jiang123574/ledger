@@ -1,4 +1,4 @@
-<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="versionsPage">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
   <div class="mb-6 flex items-center justify-between">
     <div>
       <h1 class="text-2xl font-bold text-primary dark:text-primary-dark">操作日志</h1>
@@ -81,8 +81,7 @@
         <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1">模型类型</label>
         <select name="item_type" class="rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark px-3 py-2 text-sm">
           <option value="">全部</option>
-          <% item_type_labels = controller.class::ITEM_TYPE_LABELS rescue {} %>
-          <% item_type_labels.each do |key, label| %>
+          <% item_type_options.each do |key, label| %>
             <option value="<%= key %>" <%= 'selected' if params[:item_type] == key %>><%= label %></option>
           <% end %>
         </select>
@@ -92,8 +91,7 @@
         <label class="block text-sm font-medium text-primary dark:text-primary-dark mb-1">操作类型</label>
         <select name="action_type" class="rounded-lg border border-border dark:border-border-dark bg-white dark:bg-container-dark px-3 py-2 text-sm">
           <option value="">全部</option>
-          <% action_labels = controller.class::ACTION_LABELS rescue {} %>
-          <% action_labels.each do |key, label| %>
+          <% action_type_options.each do |key, label| %>
             <option value="<%= key %>" <%= 'selected' if params[:action_type] == key %>><%= label %></option>
           <% end %>
         </select>
@@ -332,21 +330,21 @@
     });
   };
 
-  // 滚动监听 — 使用命名函数确保每次只绑定一次，避免 Turbo 导航累积
-  const versionsPageEl = document.getElementById('versionsPage');
-  if (versionsPageEl && !versionsPageEl.dataset.scrollBound) {
-    versionsPageEl.dataset.scrollBound = 'true';
-    const onScroll = function() {
-      const container = document.getElementById('loadMoreContainer');
-      if (!container || loading || currentPage >= totalPages) return;
-      const rect = container.getBoundingClientRect();
-      if (rect.top < window.innerHeight + 200) {
-        loadMore();
-      }
-    };
-    // 绑定到 window，但通过页面元素的 dataset 标记去重
-    window._versionsScrollHandler = onScroll;
-    window.addEventListener('scroll', onScroll, { passive: true });
+  // 滚动监听 — Turbo 跨导航会累积监听，每次绑定前先移除旧的
+  const onScroll = function() {
+    const container = document.getElementById('loadMoreContainer');
+    if (!container || loading || currentPage >= totalPages) return;
+    const rect = container.getBoundingClientRect();
+    if (rect.top < window.innerHeight + 200) {
+      loadMore();
+    }
+  };
+
+  // 移除旧 handler（上一次页面渲染留下的），再绑定新的
+  if (window._versionsScrollHandler) {
+    window.removeEventListener('scroll', window._versionsScrollHandler);
   }
+  window._versionsScrollHandler = onScroll;
+  window.addEventListener('scroll', onScroll, { passive: true });
 })();
 </script>

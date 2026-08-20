@@ -201,4 +201,14 @@ class VersionsController < ApplicationController
     ACTION_LABELS[action] || action
   end
   helper_method :action_label
+
+  def item_type_options
+    ITEM_TYPE_LABELS.to_a
+  end
+  helper_method :item_type_options
+
+  def action_type_options
+    ACTION_LABELS.to_a
+  end
+  helper_method :action_type_options
 end

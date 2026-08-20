@@ -259,7 +259,7 @@ RSpec.describe "Versions", type: :request do
           item_id: 1,
           action: "update",
           description: "更新交易",
-          changeset: { "amount" => [100, 200], "name" => ["旧名", "新名"] }.to_json
+          changeset: { "amount" => [ 100, 200 ], "name" => [ "旧名", "新名" ] }.to_json
         )
 
         get version_path(log)
@@ -275,7 +275,7 @@ RSpec.describe "Versions", type: :request do
           item_id: 1,
           action: "update",
           description: "布尔和零值测试",
-          changeset: { "is_refund" => [false, true], "count" => [0, 5] }.to_json
+          changeset: { "is_refund" => [ false, true ], "count" => [ 0, 5 ] }.to_json
         )
 
         get version_path(log)
