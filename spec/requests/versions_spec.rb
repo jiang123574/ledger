@@ -187,6 +187,20 @@ RSpec.describe "Versions", type: :request do
         # only header, no data rows (all are create)
         expect(csv.length).to eq(1)
       end
+
+      it "exports in same order as page (created_at desc)" do
+        # 用独有的关键词避免与其他日志混淆
+        create_log(item_type: "Budget", item_id: 10, action: "create", description: "排序测试_最早", created_at: 3.days.ago)
+        create_log(item_type: "Budget", item_id: 11, action: "create", description: "排序测试_中间", created_at: 2.days.ago)
+        create_log(item_type: "Budget", item_id: 12, action: "create", description: "排序测试_最晚", created_at: 1.day.ago)
+
+        get versions_path, params: { format: "csv", item_type: "Budget" }
+        csv = CSV.parse(response.body)
+        # 跳过 header，顺序应该是：最晚 → 中间 → 最早（desc）
+        expect(csv[1]).to include("排序测试_最晚")
+        expect(csv[2]).to include("排序测试_中间")
+        expect(csv[3]).to include("排序测试_最早")
+      end
     end
 
     context "JSON export" do

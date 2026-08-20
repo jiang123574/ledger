@@ -68,12 +68,12 @@ class VersionsController < ApplicationController
     # 统计数据（一次 group 查询，减少数据库压力）
     @stats = build_stats
 
-    # 导出（全量，不分页）
+    # 导出（全量，顺序与页面一致：created_at desc）
     if params[:format] == "csv"
-      send_data generate_csv(@operation_logs), filename: "operation_logs_#{Date.today}.csv", type: "text/csv"
+      send_data generate_csv(@operation_logs.reorder(created_at: :desc)), filename: "operation_logs_#{Date.today}.csv", type: "text/csv"
       return
     elsif params[:format] == "json"
-      render json: generate_json(@operation_logs)
+      render json: generate_json(@operation_logs.reorder(created_at: :desc))
       return
     end
 
@@ -156,7 +156,7 @@ class VersionsController < ApplicationController
     require "csv"
     CSV.generate(headers: true) do |csv|
       csv << [ "时间", "操作", "模型类型", "记录ID", "描述", "变更摘要", "请求路径", "IP地址" ]
-      logs.find_each do |log|
+      logs.each do |log|
         csv << [
           log.created_at.strftime("%Y-%m-%d %H:%M:%S"),
           action_label(log.action),
@@ -172,7 +172,7 @@ class VersionsController < ApplicationController
   end
 
   def generate_json(logs)
-    logs.find_each.map do |log|
+    logs.map do |log|
       {
         id: log.id,
         created_at: log.created_at.iso8601,
