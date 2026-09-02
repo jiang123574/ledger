@@ -11,7 +11,7 @@
       <div class="text-secondary dark:text-secondary-dark text-lg">🏷️</div>
       <div>
         <h3 class="font-medium text-primary dark:text-primary-dark text-sm">提示</h3>
-        <p class="text-xs text-secondary dark:text-secondary-dark">一级分类作为分组，二级分类用于记账时精细化统计。悬停行可快速删除。</p>
+        <p class="text-xs text-secondary dark:text-secondary-dark">一级分类作为分组，二级分类用于记账时精细化统计。点击编辑按钮修改名称，悬停可快速删除。</p>
       </div>
     </div>
   </div>
@@ -44,18 +44,23 @@
                 </td>
                 <td class="px-4 py-2 text-xs text-secondary dark:text-secondary-dark">一级</td>
                 <td class="px-4 py-2 text-right">
-                  <%= button_to(category_path(root), method: :delete,
-                      data: {
-                        controller: "confirm-form",
-                        action: "click->confirm-form#confirm",
-                        confirm_form_title_value: "确认删除",
-                        confirm_form_content_value: "确定删除该分类吗？",
-                        confirm_form_confirm_text_value: "删除",
-                        confirm_form_danger_value: true
-                      },
-                      class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  <% end %>
+                  <div class="inline-flex gap-1">
+                    <button type="button" onclick="openEditCategory(<%= root.id %>, '<%= j root.name %>', '<%= root.category_type %>', <%= root.parent_id || 'null' %>, 'expense')" class="inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-accent transition-smooth" title="编辑">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+                    <%= button_to(category_path(root), method: :delete,
+                        data: {
+                          controller: "confirm-form",
+                          action: "click->confirm-form#confirm",
+                          confirm_form_title_value: "确认删除",
+                          confirm_form_content_value: "确定删除该分类吗？",
+                          confirm_form_confirm_text_value: "删除",
+                          confirm_form_danger_value: true
+                        },
+                        class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <% end %>
+                  </div>
                 </td>
               </tr>
               <% root.children.each do |child| %>
@@ -70,18 +75,23 @@
                   </td>
                   <td class="px-4 py-2 text-xs text-secondary dark:text-secondary-dark">二级</td>
                   <td class="px-4 py-2 text-right">
-                    <%= button_to(category_path(child), method: :delete,
-                        data: {
-                          controller: "confirm-form",
-                          action: "click->confirm-form#confirm",
-                          confirm_form_title_value: "确认删除",
-                          confirm_form_content_value: "确定删除该分类吗？",
-                          confirm_form_confirm_text_value: "删除",
-                          confirm_form_danger_value: true
-                        },
-                        class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <% end %>
+                    <div class="inline-flex gap-1">
+                      <button type="button" onclick="openEditCategory(<%= child.id %>, '<%= j child.name %>', '<%= child.category_type %>', <%= child.parent_id || 'null' %>, 'expense')" class="inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-accent transition-smooth" title="编辑">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                      </button>
+                      <%= button_to(category_path(child), method: :delete,
+                          data: {
+                            controller: "confirm-form",
+                            action: "click->confirm-form#confirm",
+                            confirm_form_title_value: "确认删除",
+                            confirm_form_content_value: "确定删除该分类吗？",
+                            confirm_form_confirm_text_value: "删除",
+                            confirm_form_danger_value: true
+                          },
+                          class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-expense-light hover:text-expense transition-smooth") do %>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      <% end %>
+                    </div>
                   </td>
                 </tr>
               <% end %>
@@ -116,18 +126,23 @@
                 </td>
                 <td class="px-4 py-2 text-xs text-secondary dark:text-secondary-dark">一级</td>
                 <td class="px-4 py-2 text-right">
-                  <%= button_to(category_path(root), method: :delete,
-                      data: {
-                        controller: "confirm-form",
-                        action: "click->confirm-form#confirm",
-                        confirm_form_title_value: "确认删除",
-                        confirm_form_content_value: "确定删除该分类吗？",
-                        confirm_form_confirm_text_value: "删除",
-                        confirm_form_danger_value: true
-                      },
-                      class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-income-light hover:text-income transition-smooth") do %>
-                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                  <% end %>
+                  <div class="inline-flex gap-1">
+                    <button type="button" onclick="openEditCategory(<%= root.id %>, '<%= j root.name %>', '<%= root.category_type %>', <%= root.parent_id || 'null' %>, 'income')" class="inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-accent transition-smooth" title="编辑">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                    </button>
+                    <%= button_to(category_path(root), method: :delete,
+                        data: {
+                          controller: "confirm-form",
+                          action: "click->confirm-form#confirm",
+                          confirm_form_title_value: "确认删除",
+                          confirm_form_content_value: "确定删除该分类吗？",
+                          confirm_form_confirm_text_value: "删除",
+                          confirm_form_danger_value: true
+                        },
+                        class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-income-light hover:text-income transition-smooth") do %>
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    <% end %>
+                  </div>
                 </td>
               </tr>
               <% root.children.each do |child| %>
@@ -142,18 +157,23 @@
                   </td>
                   <td class="px-4 py-2 text-xs text-secondary dark:text-secondary-dark">二级</td>
                   <td class="px-4 py-2 text-right">
-                    <%= button_to(category_path(child), method: :delete,
-                        data: {
-                          controller: "confirm-form",
-                          action: "click->confirm-form#confirm",
-                          confirm_form_title_value: "确认删除",
-                          confirm_form_content_value: "确定删除该分类吗？",
-                          confirm_form_confirm_text_value: "删除",
-                          confirm_form_danger_value: true
-                        },
-                        class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-income-light hover:text-income transition-smooth") do %>
-                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                    <% end %>
+                    <div class="inline-flex gap-1">
+                      <button type="button" onclick="openEditCategory(<%= child.id %>, '<%= j child.name %>', '<%= child.category_type %>', <%= child.parent_id || 'null' %>, 'income')" class="inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover hover:text-accent transition-smooth" title="编辑">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                      </button>
+                      <%= button_to(category_path(child), method: :delete,
+                          data: {
+                            controller: "confirm-form",
+                            action: "click->confirm-form#confirm",
+                            confirm_form_title_value: "确认删除",
+                            confirm_form_content_value: "确定删除该分类吗？",
+                            confirm_form_confirm_text_value: "删除",
+                            confirm_form_danger_value: true
+                          },
+                          class: "inline-flex p-1 rounded text-secondary dark:text-secondary-dark hover:bg-income-light hover:text-income transition-smooth") do %>
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                      <% end %>
+                    </div>
                   </td>
                 </tr>
               <% end %>
@@ -209,25 +229,94 @@
   </div>
 </div>
 
+<!-- Edit Category Modal -->
+<div id="edit-category-modal" class="hidden fixed inset-0 z-50 overflow-y-auto modal-overlay">
+  <div class="flex min-h-screen items-center justify-center p-4">
+    <div class="fixed inset-0 bg-black/50" onclick="document.getElementById('edit-category-modal').classList.add('hidden')"></div>
+    <div class="relative bg-container dark:bg-container-dark rounded-lg shadow-xl w-full max-w-md p-6">
+      <h3 class="text-lg font-semibold text-primary dark:text-primary-dark mb-4">编辑分类</h3>
+      <%= form_with model: Category.new, url: categories_path, method: :patch, id: "edit-category-form", local: true, html: { "data-action" => "edit-category-form" } do |f| %>
+        <div class="space-y-4">
+          <div>
+            <label for="edit_category_name" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">分类名称</label>
+            <%= render Ds::InputComponent.new(form: f, field: :name, placeholder: "例如：餐饮", required: true, id: "edit_category_name") %>
+          </div>
+          <div>
+            <label for="edit_category_category_type" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">类型</label>
+            <%= render Ds::InputComponent.new(form: f, field: :category_type, type: :select,
+                  choices: [["支出", "EXPENSE"], ["收入", "INCOME"]],
+                  include_blank: false,
+                  id: "edit_category_category_type",
+                  html_class: "edit-category-type-select") %>
+          </div>
+          <div>
+            <label for="edit_category_parent_id" class="block text-sm font-medium text-secondary dark:text-secondary-dark mb-1">父分类（可选）</label>
+            <%= render Ds::InputComponent.new(form: f, field: :parent_id, type: :select,
+                  choices: [["无", ""]] + @expense_parent_options,
+                  include_blank: false,
+                  id: "edit_category_parent_id",
+                  html_class: "edit-parent-category-select") %>
+          </div>
+        </div>
+        <div class="flex justify-end gap-3 mt-6">
+          <button type="button" onclick="document.getElementById('edit-category-modal').classList.add('hidden')" class="px-4 py-2 text-sm font-medium rounded-lg border border-border dark:border-border-dark text-primary dark:text-primary-dark hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth">取消</button>
+          <%= f.submit "保存", class: "px-4 py-2 text-sm font-medium rounded-lg bg-accent text-white dark:bg-accent dark:text-inverse hover:bg-accent-hover dark:hover:bg-accent-hover transition-smooth" %>
+        </div>
+      <% end %>
+    </div>
+  </div>
+</div>
+
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-  const typeSelect = document.querySelector('.category-type-select select');
-  const parentSelect = document.querySelector('.parent-category-select select');
-  
+(function() {
   const expenseParents = <%= raw @expense_parent_options.to_json %>;
   const incomeParents = <%= raw @income_parent_options.to_json %>;
-  
-  function updateParentOptions() {
-    const selectedType = typeSelect.value;
-    const parents = selectedType === 'INCOME' ? incomeParents : expenseParents;
-    const options = [['无', ''], ...parents];
-    
-    parentSelect.innerHTML = options.map(o => `<option value="${o[1]}">${o[0]}</option>`).join('');
+
+  function buildParentOptions(parents) {
+    return [['无', ''], ...parents];
   }
-  
-  if (typeSelect && parentSelect) {
-    typeSelect.addEventListener('change', updateParentOptions);
-    updateParentOptions();
+
+  function renderParentSelect(select, parents) {
+    const options = buildParentOptions(parents);
+    select.innerHTML = options.map(o => `<option value="${o[1]}">${o[0]}</option>`).join('');
   }
-});
+
+  // 添加弹窗：类型切换时更新父分类选项
+  const addTypeSelect = document.querySelector('.category-type-select select');
+  const addParentSelect = document.querySelector('.parent-category-select select');
+
+  if (addTypeSelect && addParentSelect) {
+    addTypeSelect.addEventListener('change', function() {
+      const parents = addTypeSelect.value === 'INCOME' ? incomeParents : expenseParents;
+      renderParentSelect(addParentSelect, parents);
+    });
+    renderParentSelect(addParentSelect, expenseParents);
+  }
+
+  // 编辑弹窗：类型切换时更新父分类选项
+  const editTypeSelect = document.getElementById('edit_category_category_type');
+  const editParentSelect = document.getElementById('edit_category_parent_id');
+
+  if (editTypeSelect && editParentSelect) {
+    editTypeSelect.addEventListener('change', function() {
+      const parents = editTypeSelect.value === 'INCOME' ? incomeParents : expenseParents;
+      renderParentSelect(editParentSelect, parents);
+    });
+  }
+
+  window.openEditCategory = function(id, name, categoryType, parentId, categoryKind) {
+    const form = document.getElementById('edit-category-form');
+    form.action = `/categories/${id}`;
+
+    document.getElementById('edit_category_name').value = name;
+    document.getElementById('edit_category_category_type').value = categoryType;
+
+    // 根据类型动态渲染父分类选项并设置值
+    const parents = categoryType === 'INCOME' ? incomeParents : expenseParents;
+    renderParentSelect(editParentSelect, parents);
+    editParentSelect.value = parentId || '';
+
+    document.getElementById('edit-category-modal').classList.remove('hidden');
+  };
+})();
 </script>
