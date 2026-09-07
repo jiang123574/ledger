@@ -60,6 +60,52 @@ RSpec.describe "Receivables", type: :request do
       expect(receivable.transfer_id).to be_nil
     end
 
+    it "creates funding + expense transfers when a separate funding account is selected" do
+      receivable_system_account
+      funding_account = create(:account, name: "资金来源账户")
+
+      post "/receivables", params: {
+        receivable: {
+          description: "咨询费",
+          original_amount: 5000,
+          date: Date.current,
+          account_id: account.id,
+          counterparty_id: counterparty.id
+        },
+        funding_account_id: funding_account.id
+      }
+
+      expect(response).to redirect_to(receivables_path)
+
+      receivable = Receivable.last
+      expect(receivable.account_id).to eq(account.id)
+
+      # 应有两笔独立转账：来源→支出(funding_transfer_id)、支出→应收款(transfer_id)
+      expect(receivable.transfer_id).to be_present
+      expect(receivable.funding_transfer_id).to be_present
+      expect(receivable.transfer_id).not_to eq(receivable.funding_transfer_id)
+
+      # 垫付转账：支出账户 -5000，应收款账户 +5000
+      expense_out = Entry.where(transfer_id: receivable.transfer_id, account_id: account.id).first
+      expect(expense_out).to be_present
+      expect(expense_out.amount).to eq(-5000)
+      expect(expense_out.name).to include("创建应收款")
+
+      # 资金来源转账：来源账户 -5000，支出账户 +5000
+      funding_out = Entry.where(transfer_id: receivable.funding_transfer_id, account_id: funding_account.id).first
+      expect(funding_out).to be_present
+      expect(funding_out.amount).to eq(-5000)
+      expect(funding_out.name).to include("自动补记资金来源")
+
+      funding_in = Entry.where(transfer_id: receivable.funding_transfer_id, account_id: account.id).first
+      expect(funding_in).to be_present
+      expect(funding_in.amount).to eq(5000)
+
+      # 支出账户同时出现转入(+5000)和转出(-5000)
+      expense_account_entries = Entry.where(account_id: account.id, transfer_id: [ receivable.funding_transfer_id, receivable.transfer_id ])
+      expect(expense_account_entries.map(&:amount).sort).to eq([ -5000, 5000 ].sort)
+    end
+
     it "updates transfer amount when receivable is updated" do
       receivable_system_account
 

@@ -19,6 +19,7 @@ class Receivable < ApplicationRecord
 
   # transfer_id 格式验证（可选字段，UUID 格式）
   validates :transfer_id, format: { with: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i }, allow_nil: true
+  validates :funding_transfer_id, format: { with: /\A[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\z/i }, allow_nil: true
 
   scope :unsettled, -> { where(settled_at: nil).where("remaining_amount > 0") }
   scope :settled, -> { where.not(settled_at: nil) }

@@ -153,16 +153,26 @@ class ReceivablesController < ApplicationController
       raise ReceivableCreationError, "系统账户'应收款'不存在，请先创建该账户"
     end
 
-    from_account_id = if funding_account_id.present? && funding_account_id != @receivable.account_id.to_s
-                        funding_account_id
-    else
-                        @receivable.account_id
+    expense_account_id = @receivable.account_id
+    return if expense_account_id == receivable_account.id
+
+    # 填了实际资金来源且不同于支出账户 → 先补一笔 来源账户 → 支出账户 的转账
+    if funding_account_id.present? && funding_account_id.to_s != expense_account_id.to_s
+      funding_transfer_id = EntryCreationService.create_transfer(
+        from_account_id: funding_account_id,
+        to_account_id: expense_account_id,
+        amount: @receivable.original_amount.to_d,
+        date: @receivable.date,
+        currency: "CNY",
+        note: "自动补记资金来源 #{@receivable.description}"
+      )
+      # 记录来源转账，删除应收款时一并清理
+      @receivable.update!(funding_transfer_id: funding_transfer_id) if funding_transfer_id
     end
 
-    return if from_account_id == receivable_account.id
-
+    # 支出账户 → 应收款（记录垫付，支出账户产生可见交易记录）
     transfer = EntryCreationService.create_transfer(
-      from_account_id: from_account_id,
+      from_account_id: expense_account_id,
       to_account_id: receivable_account.id,
       amount: @receivable.original_amount.to_d,
       date: @receivable.date,
@@ -198,9 +208,14 @@ class ReceivablesController < ApplicationController
   end
 
   def cleanup_transfer_entries
-    # 删除创建应收款时的转账
+    # 删除创建应收款时的垫付转账
     if @receivable.transfer_id.present?
       Entry.where(transfer_id: @receivable.transfer_id).destroy_all
+    end
+
+    # 删除资金来源转账（避免孤儿转账残留账上）
+    if @receivable.funding_transfer_id.present?
+      Entry.where(transfer_id: @receivable.funding_transfer_id).destroy_all
     end
 
     # 删除所有报销转账
