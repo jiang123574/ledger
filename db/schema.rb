@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_19_000002) do
+ActiveRecord::Schema[8.1].define(version: 2026_09_07_050000) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
   enable_extension "pg_trgm"
@@ -363,6 +363,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_000002) do
     t.string "currency", limit: 3, default: "CNY"
     t.date "date", default: -> { "CURRENT_DATE" }
     t.string "description"
+    t.string "funding_transfer_id"
     t.string "note"
     t.decimal "original_amount", precision: 10, scale: 2
     t.text "reimbursement_transfer_ids"
@@ -373,6 +374,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_19_000002) do
     t.datetime "updated_at", null: false
     t.index ["account_id"], name: "index_receivables_on_account_id"
     t.index ["counterparty_id"], name: "index_receivables_on_counterparty_id"
+    t.index ["funding_transfer_id"], name: "index_receivables_on_funding_transfer_id"
     t.index ["reimbursement_transfer_ids"], name: "index_receivables_on_reimbursement_transfer_ids"
     t.index ["settled_at", "date"], name: "idx_receivables_settled_date"
     t.index ["source_entry_id"], name: "index_receivables_on_source_entry_id"

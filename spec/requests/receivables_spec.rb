@@ -80,21 +80,30 @@ RSpec.describe "Receivables", type: :request do
       receivable = Receivable.last
       expect(receivable.account_id).to eq(account.id)
 
-      # 应有两笔独立转账：来源→支出，支出→应收款
+      # 应有两笔独立转账：来源→支出(funding_transfer_id)、支出→应收款(transfer_id)
       expect(receivable.transfer_id).to be_present
+      expect(receivable.funding_transfer_id).to be_present
+      expect(receivable.transfer_id).not_to eq(receivable.funding_transfer_id)
 
-      # 支出账户应出现：转入(+5000，资金来源) + 转出(-5000，垫付应收款)
-      pair_transfers = Entry.where(account_id: account.id).where(date: Date.current).order(:sort_order)
-      expense_account_transfers = pair_transfers.select { |e| e.transfer_id.present? }
-      expect(expense_account_transfers.size).to eq(2)
-      expect(expense_account_transfers.map(&:amount).sort).to eq([ -5000, 5000 ].sort)
-      expect(expense_account_transfers.map(&:name).join(" ")).to include("自动补记资金来源")
-      expect(expense_account_transfers.map(&:name).join(" ")).to include("创建应收款")
+      # 垫付转账：支出账户 -5000，应收款账户 +5000
+      expense_out = Entry.where(transfer_id: receivable.transfer_id, account_id: account.id).first
+      expect(expense_out).to be_present
+      expect(expense_out.amount).to eq(-5000)
+      expect(expense_out.name).to include("创建应收款")
 
-      # 来源账户应有一笔转出（资金来源转账，独立 transfer_id）
-      funding_out = Entry.where(account_id: funding_account.id).where("name LIKE ?", "自动补记资金来源%").first
+      # 资金来源转账：来源账户 -5000，支出账户 +5000
+      funding_out = Entry.where(transfer_id: receivable.funding_transfer_id, account_id: funding_account.id).first
       expect(funding_out).to be_present
       expect(funding_out.amount).to eq(-5000)
+      expect(funding_out.name).to include("自动补记资金来源")
+
+      funding_in = Entry.where(transfer_id: receivable.funding_transfer_id, account_id: account.id).first
+      expect(funding_in).to be_present
+      expect(funding_in.amount).to eq(5000)
+
+      # 支出账户同时出现转入(+5000)和转出(-5000)
+      expense_account_entries = Entry.where(account_id: account.id, transfer_id: [ receivable.funding_transfer_id, receivable.transfer_id ])
+      expect(expense_account_entries.map(&:amount).sort).to eq([ -5000, 5000 ].sort)
     end
 
     it "updates transfer amount when receivable is updated" do
