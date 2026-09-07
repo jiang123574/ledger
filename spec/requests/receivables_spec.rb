@@ -60,6 +60,43 @@ RSpec.describe "Receivables", type: :request do
       expect(receivable.transfer_id).to be_nil
     end
 
+    it "creates funding + expense transfers when a separate funding account is selected" do
+      receivable_system_account
+      funding_account = create(:account, name: "资金来源账户")
+
+      post "/receivables", params: {
+        receivable: {
+          description: "咨询费",
+          original_amount: 5000,
+          date: Date.current,
+          account_id: account.id,
+          counterparty_id: counterparty.id
+        },
+        funding_account_id: funding_account.id
+      }
+
+      expect(response).to redirect_to(receivables_path)
+
+      receivable = Receivable.last
+      expect(receivable.account_id).to eq(account.id)
+
+      # 应有两笔独立转账：来源→支出，支出→应收款
+      expect(receivable.transfer_id).to be_present
+
+      # 支出账户应出现：转入(+5000，资金来源) + 转出(-5000，垫付应收款)
+      pair_transfers = Entry.where(account_id: account.id).where(date: Date.current).order(:sort_order)
+      expense_account_transfers = pair_transfers.select { |e| e.transfer_id.present? }
+      expect(expense_account_transfers.size).to eq(2)
+      expect(expense_account_transfers.map(&:amount).sort).to eq([ -5000, 5000 ].sort)
+      expect(expense_account_transfers.map(&:name).join(" ")).to include("自动补记资金来源")
+      expect(expense_account_transfers.map(&:name).join(" ")).to include("创建应收款")
+
+      # 来源账户应有一笔转出（资金来源转账，独立 transfer_id）
+      funding_out = Entry.where(account_id: funding_account.id).where("name LIKE ?", "自动补记资金来源%").first
+      expect(funding_out).to be_present
+      expect(funding_out.amount).to eq(-5000)
+    end
+
     it "updates transfer amount when receivable is updated" do
       receivable_system_account
 
