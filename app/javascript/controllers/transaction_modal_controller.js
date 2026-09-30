@@ -85,11 +85,11 @@ export default class extends Controller {
       this.resetToCategoryMode()
       this.setDefaultAccount()
       const amountInput = document.querySelector('#add-transaction-modal input[name="transaction[amount]"]')
-      if (amountInput) {
-        amountInput.value = ''
-        amountInput.focus()
-        amountInput.select()
-      }
+      if (amountInput) amountInput.value = ''
+
+      // 默认聚焦分类选择框（保存并继续后才聚焦金额）
+      const categorySearchInput = document.getElementById('category-search-input')
+      if (categorySearchInput) categorySearchInput.focus()
 
       // 重置退款复选框
       const refundCheckbox = document.getElementById('new_is_refund')
