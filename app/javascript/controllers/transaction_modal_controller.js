@@ -262,6 +262,10 @@ export default class extends Controller {
 
       const typeInput = document.getElementById('transaction-type-input')
       if (typeInput) typeInput.value = 'TRANSFER'
+
+      // 聚焦转出账户选择框（与打开弹窗时聚焦分类框对称，focus 时自动展开下拉）
+      const transferSourceSearch = document.getElementById('account-search-input')
+      if (transferSourceSearch) transferSourceSearch.focus()
     } else {
       this.transactionMode = 'category'
       window.transactionMode = 'category'
