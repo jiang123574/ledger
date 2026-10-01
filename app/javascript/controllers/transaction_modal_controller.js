@@ -85,11 +85,11 @@ export default class extends Controller {
       this.resetToCategoryMode()
       this.setDefaultAccount()
       const amountInput = document.querySelector('#add-transaction-modal input[name="transaction[amount]"]')
-      if (amountInput) {
-        amountInput.value = ''
-        amountInput.focus()
-        amountInput.select()
-      }
+      if (amountInput) amountInput.value = ''
+
+      // 默认聚焦分类选择框（保存并继续后才聚焦金额）
+      const categorySearchInput = document.getElementById('category-search-input')
+      if (categorySearchInput) categorySearchInput.focus()
 
       // 重置退款复选框
       const refundCheckbox = document.getElementById('new_is_refund')
@@ -262,6 +262,10 @@ export default class extends Controller {
 
       const typeInput = document.getElementById('transaction-type-input')
       if (typeInput) typeInput.value = 'TRANSFER'
+
+      // 聚焦转出账户选择框（与打开弹窗时聚焦分类框对称，focus 时自动展开下拉）
+      const transferSourceSearch = document.getElementById('account-search-input')
+      if (transferSourceSearch) transferSourceSearch.focus()
     } else {
       this.transactionMode = 'category'
       window.transactionMode = 'category'
