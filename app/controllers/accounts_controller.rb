@@ -401,6 +401,7 @@ class AccountsController < ApplicationController
     else
       @account.update_column(:actual_available_credit, value.to_d)
     end
+    expire_accounts_cache
     render json: { ok: true, actual_available_credit: @account.actual_available_credit }
   end
 
