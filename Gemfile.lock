@@ -414,7 +414,7 @@ GEM
       activesupport (>= 7.2)
     simplecov (1.1.1)
     simpleidn (0.2.3)
-    solid_cable (4.0.2)
+    solid_cable (4.1.0)
       actioncable (>= 7.2)
       activejob (>= 7.2)
       activerecord (>= 7.2)
