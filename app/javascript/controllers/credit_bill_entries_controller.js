@@ -47,6 +47,10 @@ export default class extends Controller {
         const controller = this.getTransactionModalController()
         if (controller) controller.confirmDeleteTransaction({ params: { id, name } })
       },
+      onQuickRefund: (id) => {
+        const controller = this.getTransactionModalController()
+        if (controller) controller.quickRefund({ params: { id } })
+      },
       emptyMessage: "该期暂无交易记录",
       dragEnabled: this.dragEnabledValue && this.accountIdValue
     })

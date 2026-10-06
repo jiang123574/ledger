@@ -15,6 +15,9 @@ const ENTRY_CARD_TEMPLATE_DESKTOP = `
   <div class="text-right text-xs text-secondary dark:text-secondary-dark truncate" data-field="balance"></div>
   <div class="text-xs text-secondary dark:text-secondary-dark truncate" data-field="account"></div>
   <div class="flex items-center gap-1 shrink-0 justify-center">
+    <button type="button" data-role="refund" class="p-1.5 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 text-secondary dark:text-secondary-dark hover:text-purple-600 dark:hover:text-purple-300 transition-smooth" title="一键退款">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path></svg>
+    </button>
     <button type="button" data-role="edit" class="p-1.5 rounded-lg hover:bg-surface-hover dark:hover:bg-surface-dark-hover text-secondary dark:text-secondary-dark hover:text-primary transition-smooth">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
     </button>
@@ -55,6 +58,8 @@ function typeBadgeClass(displayType) {
   return classes[displayType] || "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300"
 }
 
+const REFUND_BADGE_CLS = "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+
 function amountClass(displayAmountType) {
   return displayAmountType === "INCOME" ? "text-income" : "text-expense"
 }
@@ -66,6 +71,7 @@ function createEntryCard(entry, options = {}) {
   const amountCls = amountClass(entry.display_amount_type)
   const amountText = formatMoney(Math.abs(entry.display_amount || 0))
   const isTransfer = entry.display_type === "转账" || entry.display_type === "转入" || entry.display_type === "转出"
+  const isRefund = entry.is_refund === true
   const isIncome = entry.display_amount_type === "INCOME"
   const dragEnabled = options.dragEnabled !== false
 
@@ -79,8 +85,9 @@ function createEntryCard(entry, options = {}) {
   desktopRow.querySelector('[data-field="date"]').textContent = entry.date || ""
   
   const typeEl = desktopRow.querySelector('[data-field="type"]')
-  typeEl.textContent = entry.display_type || ""
-  typeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${typeBadgeCls}`
+  typeEl.textContent = isRefund ? "↩️ 退款" : (entry.display_type || "")
+  typeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-xs font-medium ${isRefund ? REFUND_BADGE_CLS : typeBadgeCls}`
+  if (isRefund) typeEl.title = "退款"
   
   const nameEl = desktopRow.querySelector('[data-field="name"]')
   nameEl.textContent = entry.display_name || "-"
@@ -119,6 +126,15 @@ function createEntryCard(entry, options = {}) {
     deleteBtn.addEventListener("click", () => options.onDelete(entry.id, entry.display_name || ""))
   }
 
+  const refundBtn = desktopRow.querySelector('[data-role="refund"]')
+  if (refundBtn) {
+    if (!isTransfer && !isRefund && options.onQuickRefund) {
+      refundBtn.addEventListener("click", () => options.onQuickRefund(entry.id))
+    } else {
+      refundBtn.remove()
+    }
+  }
+
   // 移动端卡片
   const mobileTemplate = document.createElement("template")
   mobileTemplate.innerHTML = ENTRY_CARD_TEMPLATE_MOBILE.trim()
@@ -131,8 +147,9 @@ function createEntryCard(entry, options = {}) {
   mobileRow.querySelector('[data-field="date"]').textContent = dateStr.length > 5 ? dateStr.slice(5) : dateStr
   
   const mobileTypeEl = mobileRow.querySelector('[data-field="type"]')
-  mobileTypeEl.textContent = entry.display_type || ""
-  mobileTypeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${typeBadgeCls}`
+  mobileTypeEl.textContent = isRefund ? "↩️ 退款" : (entry.display_type || "")
+  mobileTypeEl.className = `shrink-0 inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-medium ${isRefund ? REFUND_BADGE_CLS : typeBadgeCls}`
+  if (isRefund) mobileTypeEl.title = "退款"
   
   const mobileNameEl = mobileRow.querySelector('[data-field="name"]')
   mobileNameEl.textContent = entry.display_name || "-"

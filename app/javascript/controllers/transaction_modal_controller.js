@@ -523,7 +523,8 @@ export default class extends Controller {
         }).then(confirmed => {
           if (confirmed) this.executeDeleteRequest(id)
         })
-      }
+      },
+      onQuickRefund: (id) => this.quickRefund({ params: { id } })
     }
   }
 

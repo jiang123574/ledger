@@ -11,6 +11,7 @@ class EntrySerializer
     display_amount_type
     display_amount
     display_name
+    is_refund
     note
     balance_after
     show_both_amounts
@@ -45,6 +46,7 @@ class EntrySerializer
         display_type: display_type,
         display_amount_type: display_amount_type,
         display_name: display_name,
+        is_refund: !is_transfer && entry.refund?,
         note: entry.display_note,
         balance_after: balance || 0,
         show_both_amounts: is_transfer && account_filter.blank?,
