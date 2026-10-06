@@ -1,7 +1,7 @@
 import { formatMoney, formatCurrencyRaw } from "bill_formatters"
 
 const ENTRY_CARD_TEMPLATE_DESKTOP = `
-<div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="" data-date="" draggable="false">
+<div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_6rem] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="" data-date="" draggable="false">
   <div class="text-xs text-secondary dark:text-secondary-dark truncate" data-field="date"></div>
   <div class="truncate flex flex-col gap-0.5">
     <div class="flex items-center gap-2">
