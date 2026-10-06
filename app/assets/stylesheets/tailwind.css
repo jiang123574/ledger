@@ -8,7 +8,7 @@
 
 /* Safelist classes used in dynamic templates */
 @safelist [
-  'grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr]',
+  'grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_6rem]',
   'hover:bg-surface-hover',
   'hover:bg-surface-dark-hover',
   'dark:hover:bg-surface-dark-hover',

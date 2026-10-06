@@ -367,7 +367,7 @@
          data-entry-list-category-ids-value="<%= Array(params[:category_ids]).reject(&:blank?).join(',') %>"
          data-entry-list-drag-enabled-value="<%= params[:account_id].present? %>">
       <!-- 桌面端表头 -->
-      <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
+      <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_6rem] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
         <div>日期</div>
         <div class="text-left">类型 / 分类</div>
         <div class="text-right">流入</div>
@@ -411,7 +411,7 @@
               is_refund = !is_transfer && e.respond_to?(:refund?) && e.refund?
             %>
             <!-- 统一响应式交易卡片 -->
-            <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="<%= e.id %>" data-date="<%= e.date %>" draggable="true">
+            <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_6rem] gap-2 items-center py-1.5 px-3 hover:bg-surface-hover dark:hover:bg-surface-dark-hover transition-smooth cursor-move" data-entry-id="<%= e.id %>" data-date="<%= e.date %>" draggable="true">
               <!-- 日期 -->
               <div class="text-xs text-secondary dark:text-secondary-dark truncate">
                 <%= e.date&.strftime("%Y-%m-%d") %>
@@ -628,7 +628,7 @@
       <button data-action="click->credit-bill-entries#filterBillEntries" data-credit-bill-entries-filter-param="spend" class="bill-filter-btn px-2 py-0.5 rounded hover:bg-surface-hover" data-filter="spend">消费</button>
     </div>
     <!-- 桌面端表头（和按日期视图一致） -->
-    <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_1fr] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
+    <div class="hidden lg:grid grid-cols-[2fr_3fr_2fr_2fr_2fr_2fr_6rem] gap-2 px-3 py-2 bg-surface-inset dark:bg-surface-dark-inset border-b border-border dark:border-border-dark text-xs font-medium text-secondary dark:text-secondary-dark sticky top-0 z-10">
       <div>日期</div>
       <div class="text-left">类型 / 分类</div>
       <div class="text-right">流入</div>
