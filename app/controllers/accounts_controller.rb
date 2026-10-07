@@ -241,6 +241,7 @@ class AccountsController < ApplicationController
         category_name: e.display_category&.name,
         is_repayment: e.amount.positive?,
         is_spend: e.amount.negative?,
+        is_refund: !is_transfer && e.refund?,
         balance_after: nil,
         account_name: e.account&.name || "未知账户"
       }

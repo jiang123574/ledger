@@ -126,6 +126,7 @@ module EntryableActions
       account_name: account_name,
       transfer_from: transfer_from,
       transfer_to: transfer_to,
+      is_refund: !is_transfer && entry.refund?,
       show_both_amounts: false,
       balance_after: nil  # 余额需要刷新页面才能正确显示
     }
