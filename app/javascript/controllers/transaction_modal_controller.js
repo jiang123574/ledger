@@ -58,6 +58,21 @@ export default class extends Controller {
         }
       }
     })
+
+    // 回车默认触发「保存并继续」而非「保存」
+    // （页面有多个 transaction-modal 实例，用 dataset 标记防止重复绑定）
+    if (form.dataset.enterContinueBound !== '1') {
+      form.dataset.enterContinueBound = '1'
+      form.addEventListener('keydown', (e) => {
+        if (e.key !== 'Enter' || e.defaultPrevented) return
+        // 中文输入法选词确认的回车不提交
+        if (e.isComposing || e.keyCode === 229) return
+        const target = e.target
+        if (target.tagName === 'TEXTAREA' || target.tagName === 'BUTTON' || target.isContentEditable) return
+        e.preventDefault()
+        this.submitAndContinue()
+      })
+    }
   }
 
   disconnect() {
@@ -400,10 +415,13 @@ export default class extends Controller {
   }
 
   submitAndContinue(event) {
-    event.preventDefault()
+    if (event) event.preventDefault()
 
     const form = document.querySelector('#add-transaction-modal form')
     if (!form) return
+
+    const continueBtn = document.querySelector('#add-transaction-modal button[data-action="click->transaction-modal#submitAndContinue"]')
+    if (!continueBtn || continueBtn.disabled) return
 
     const amountInput = form.querySelector('input[name="transaction[amount]"]')
     const amount = parseFloat(amountInput.value)
@@ -426,7 +444,6 @@ export default class extends Controller {
     const formData = new FormData(form)
     formData.append('continue_entry', '1')
 
-    const continueBtn = event.target
     const originalText = continueBtn.textContent
     continueBtn.textContent = '保存中...'
     continueBtn.disabled = true
