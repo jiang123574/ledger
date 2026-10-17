@@ -1,24 +1,14 @@
 # frozen_string_literal: true
 
+# PWA manifest。
+# 内容唯一来源是 public/manifest.json：/manifest.json 由静态文件直接提供（ActionDispatch::Static
+# 优先于路由），这里只服务不带扩展名的 /manifest，避免在控制器里再维护一份内容导致两边漂移。
 class PwaController < ApplicationController
   skip_before_action :verify_authenticity_token
 
+  MANIFEST_PATH = Rails.root.join("public/manifest.json")
+
   def manifest
-    render json: {
-      name: "我的账本",
-      short_name: "账本",
-      icons: [
-        { src: "/icon.png", type: "image/png", sizes: "512x512" },
-        { src: "/icon.svg", type: "image/svg+xml", sizes: "any" }
-      ],
-      start_url: "/",
-      display: "standalone",
-      orientation: "portrait-primary",
-      scope: "/",
-      description: "个人记账应用 - 管理您的财务",
-      theme_color: "#1a1a1a",
-      background_color: "#f8f9fa",
-      categories: [ "finance", "productivity" ]
-    }
+    send_file MANIFEST_PATH, type: "application/manifest+json", disposition: "inline"
   end
 end
