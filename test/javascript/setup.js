@@ -38,7 +38,6 @@ afterEach(() => {
   document.documentElement.removeAttribute('data-theme')
   localStorage.clear()
   delete localStorage.theme
-  delete window.LedgerNative
   vi.restoreAllMocks()
 
   window.matchMedia = createMatchMedia()
