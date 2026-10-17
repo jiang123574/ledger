@@ -3,24 +3,13 @@
 require "rails_helper"
 
 RSpec.describe "PWA", type: :request do
-  # public/manifest.json 是 manifest 的唯一来源：
-  # - /manifest.json 由静态文件直接提供（ActionDispatch::Static 优先于路由）
-  # - /manifest（无扩展名）由 PwaController 返回同一份内容
+  # public/manifest.json 是 manifest 的唯一来源，/manifest.json 由静态文件直接提供
+  # （ActionDispatch::Static 优先于路由）；原来的 /manifest（无扩展名）路由已删除
   let(:manifest_source) { Rails.root.join("public/manifest.json") }
   let(:manifest) { JSON.parse(manifest_source.read) }
 
-  describe "GET /manifest" do
-    it "返回 public/manifest.json 的内容" do
-      get pwa_manifest_path
-
-      expect(response).to have_http_status(:ok)
-      expect(response.media_type).to eq("application/manifest+json")
-      expect(response.body.b).to eq(manifest_source.binread)
-    end
-  end
-
   describe "GET /manifest.json" do
-    it "返回与 /manifest 完全相同的内容" do
+    it "返回 public/manifest.json 的内容" do
       get "/manifest.json"
 
       expect(response).to have_http_status(:ok)
@@ -50,8 +39,8 @@ RSpec.describe "PWA", type: :request do
 
       urls.each do |url|
         path = url.split("?").first
-        expect { Rails.application.routes.recognize_path(path, method: :get) }
-          .not_to raise_error("#{url} 没有对应路由")
+        # 失败时 RoutingError 会带出具体路径（No route matches [/xxx]）
+        expect { Rails.application.routes.recognize_path(path, method: :get) }.not_to raise_error
       end
     end
   end
