@@ -4,9 +4,7 @@ Rails.application.routes.draw do
   post "login", to: "sessions#create"
   delete "logout", to: "sessions#destroy", as: :logout
 
-  # PWA manifest
-  get "manifest" => "pwa#manifest", as: :pwa_manifest
-  get "manifest.json" => "pwa#manifest"
+  # PWA manifest 由 public/manifest.json 静态提供（/manifest.json），无需路由
 
   get "up" => "rails/health#show", as: :rails_health_check
 
