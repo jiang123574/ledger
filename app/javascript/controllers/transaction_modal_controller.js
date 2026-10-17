@@ -40,6 +40,19 @@ export default class extends Controller {
     this.initNewModalSelectors()
     createFundingAccountSelector({ dataSource: this.allAccounts })
     this.setupFormSubmitSync()
+    this.openFromUrlParams()
+  }
+
+  // 支持 /accounts?open_new_transaction=1（HTML 保存后的重定向、键盘快捷键兜底）
+  // 与 /accounts?open_modal=true（顶栏「+」、仪表盘「新建记账」）直接打开新建交易弹窗
+  openFromUrlParams() {
+    const urlParams = new URLSearchParams(window.location.search)
+    const shouldOpen = urlParams.get('open_new_transaction') === '1' || urlParams.get('open_modal') === 'true'
+    if (!shouldOpen || !document.getElementById('add-transaction-modal')) return
+
+    this.openNewTransactionModal()
+
+    if (urlParams.get('transfer') === '1') this.toggleTransferMode()
   }
 
   setupFormSubmitSync() {

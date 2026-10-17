@@ -43,4 +43,20 @@ RSpec.describe "PWA", type: :request do
       expect(json["name"]).to eq("我的账本")
     end
   end
+
+  # public/manifest.json 是浏览器实际拿到的 manifest（/manifest.json 由静态文件提供）
+  describe "public/manifest.json" do
+    let(:manifest) { JSON.parse(Rails.root.join("public/manifest.json").read) }
+
+    it "快捷方式 URL 都能路由到已存在的页面" do
+      urls = manifest["shortcuts"].map { |shortcut| shortcut["url"] }
+      expect(urls).to all(be_present)
+
+      urls.each do |url|
+        path = url.split("?").first
+        expect { Rails.application.routes.recognize_path(path, method: :get) }
+          .not_to raise_error("#{url} 没有对应路由")
+      end
+    end
+  end
 end
