@@ -25,7 +25,7 @@
       "name": "记一笔",
       "short_name": "记账",
       "description": "快速添加新交易",
-      "url": "/transactions/new",
+      "url": "/accounts?open_new_transaction=1",
       "icons": [{ "src": "/icon.png", "sizes": "96x96" }]
     },
     {
