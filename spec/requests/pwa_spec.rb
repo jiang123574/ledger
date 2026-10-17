@@ -3,50 +3,46 @@
 require "rails_helper"
 
 RSpec.describe "PWA", type: :request do
+  # public/manifest.json 是 manifest 的唯一来源：
+  # - /manifest.json 由静态文件直接提供（ActionDispatch::Static 优先于路由）
+  # - /manifest（无扩展名）由 PwaController 返回同一份内容
+  let(:manifest_source) { Rails.root.join("public/manifest.json") }
+  let(:manifest) { JSON.parse(manifest_source.read) }
+
   describe "GET /manifest" do
-    it "returns PWA manifest as JSON" do
+    it "返回 public/manifest.json 的内容" do
       get pwa_manifest_path
+
       expect(response).to have_http_status(:ok)
-      json = JSON.parse(response.body)
-      expect(json["name"]).to eq("我的账本")
-      expect(json["short_name"]).to eq("账本")
-      expect(json["start_url"]).to eq("/")
-      expect(json["display"]).to eq("standalone")
-    end
-
-    it "includes icons" do
-      get pwa_manifest_path
-      json = JSON.parse(response.body)
-      expect(json["icons"]).to be_an(Array)
-      expect(json["icons"].length).to eq(2)
-    end
-
-    it "includes theme and background colors" do
-      get pwa_manifest_path
-      json = JSON.parse(response.body)
-      expect(json["theme_color"]).to eq("#1a1a1a")
-      expect(json["background_color"]).to eq("#f8f9fa")
-    end
-
-    it "includes categories" do
-      get pwa_manifest_path
-      json = JSON.parse(response.body)
-      expect(json["categories"]).to include("finance")
+      expect(response.media_type).to eq("application/manifest+json")
+      expect(response.body.b).to eq(manifest_source.binread)
     end
   end
 
   describe "GET /manifest.json" do
-    it "returns manifest via .json path" do
+    it "返回与 /manifest 完全相同的内容" do
       get "/manifest.json"
+
       expect(response).to have_http_status(:ok)
-      json = JSON.parse(response.body)
-      expect(json["name"]).to eq("我的账本")
+      expect(response.body.b).to eq(manifest_source.binread)
     end
   end
 
-  # public/manifest.json 是浏览器实际拿到的 manifest（/manifest.json 由静态文件提供）
-  describe "public/manifest.json" do
-    let(:manifest) { JSON.parse(Rails.root.join("public/manifest.json").read) }
+  describe "public/manifest.json 内容" do
+    it "是合法的 PWA manifest" do
+      expect(manifest["name"]).to eq("我的账本")
+      expect(manifest["short_name"]).to eq("账本")
+      expect(manifest["start_url"]).to eq("/dashboard")
+      expect(manifest["display"]).to eq("standalone")
+      expect(manifest["theme_color"]).to eq("#1a1a1a")
+      expect(manifest["background_color"]).to eq("#1a1a1a")
+    end
+
+    it "包含图标" do
+      expect(manifest["icons"]).to be_an(Array)
+      expect(manifest["icons"].length).to eq(2)
+      expect(manifest["icons"].map { |icon| icon["src"] }).to include("/icon.png", "/icon.svg")
+    end
 
     it "快捷方式 URL 都能路由到已存在的页面" do
       urls = manifest["shortcuts"].map { |shortcut| shortcut["url"] }
