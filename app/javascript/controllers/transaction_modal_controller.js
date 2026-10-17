@@ -1,5 +1,6 @@
 import { Controller } from "@hotwired/stimulus"
 import { showSuccessToast, showErrorToast, showInfoToast } from "utils/toast_utils"
+import { applyAmountExpressions, INVALID_AMOUNT_MESSAGE } from "amount_expression"
 import { insertEntryToList, insertEntriesToList, insertEntryToBillContainer, removeEntryFromList, getBillStatementController } from "utils/entry_list_utils"
 import { createCategorySelector, createIncomeAccountSelector, createTransferSelectors, createFundingAccountSelector, forceInitTransferSelectors } from "utils/selector_factory"
 
@@ -424,6 +425,16 @@ export default class extends Controller {
     if (!continueBtn || continueBtn.disabled) return
 
     const amountInput = form.querySelector('input[name="transaction[amount]"]')
+
+    // 「保存并继续」是直接构造 FormData 提交的，不走 submit 事件，这里先算好算式
+    const invalidAmountInput = applyAmountExpressions(form)
+    if (invalidAmountInput) {
+      showErrorToast(INVALID_AMOUNT_MESSAGE)
+      invalidAmountInput.focus()
+      invalidAmountInput.select()
+      return
+    }
+
     const amount = parseFloat(amountInput.value)
     if (!amountInput?.value || isNaN(amount)) {
       showErrorToast('请输入有效金额')

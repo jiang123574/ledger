@@ -5,6 +5,13 @@ import "controllers"
 import "bill_formatters"
 import "web_vitals"
 import "selectors"
+import { installAmountExpressionSupport, INVALID_AMOUNT_MESSAGE } from "amount_expression"
+import { showErrorToast } from "utils/toast_utils"
+
+// 金额输入框支持 12.5+3 这类简单加减法
+installAmountExpressionSupport({
+  onInvalid: () => showErrorToast(INVALID_AMOUNT_MESSAGE)
+})
 
 // Register PWA service worker
 if ('serviceWorker' in navigator) {
