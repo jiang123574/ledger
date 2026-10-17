@@ -36,7 +36,6 @@ pin "controllers/list_filter_controller", to: "controllers/list_filter_controlle
 pin "controllers/loading_button_controller", to: "controllers/loading_button_controller.js"
 pin "controllers/menu_controller", to: "controllers/menu_controller.js"
 pin "controllers/mobile_layout_controller", to: "controllers/mobile_layout_controller.js"
-pin "controllers/native_bridge_controller", to: "controllers/native_bridge_controller.js"
 pin "controllers/sankey_chart_controller", to: "controllers/sankey_chart_controller.js"
 pin "controllers/select_controller", to: "controllers/select_controller.js"
 pin "controllers/sparkline_chart_controller", to: "controllers/sparkline_chart_controller.js"
@@ -88,8 +87,6 @@ pin "@hotwired/turbo-rails", to: "@hotwired--turbo-rails.js" # @8.0.23
 # Stimulus loading helper - inline helper
 pin "@hotwired/stimulus-loading", to: "stimulus-loading.js"
 
-# Native title sync — standalone script for Android title bar sync
-pin "native_title_sync", to: "native_title_sync.js"
 
 # Floating UI for positioning - vendored for production reliability
 pin "@floating-ui/utils", to: "@floating-ui--utils.js" # @0.2.11

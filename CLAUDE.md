@@ -91,10 +91,6 @@ Batch-load transfer pairing accounts to avoid N+1 queries.
 
 Uses `ruby-pinyin` gem. See `docs/PINYIN_SELECTOR_GUIDE.md`.
 
-### Native App Integration
-
-Android app injects `window.LedgerNative`. Check `NativeApp.isNative` before calling native methods.
-
 ## Services
 
 - `EntryCreationService` - Transaction creation

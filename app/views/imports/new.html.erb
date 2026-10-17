@@ -105,34 +105,9 @@
 
   if (!dropZone) return;
 
-  // Click to select file — 原生 App 优先
-  dropZone.addEventListener('click', function(e) {
-    if (window.NativeApp && window.NativeApp.isNative) {
-      e.preventDefault();
-      window.NativeApp.pickFile('.csv,.xlsx,.xls,.ofx,.qif');
-    } else {
-      fileInput.click();
-    }
-  });
-
-  // 监听原生文件选择结果
-  window.addEventListener('native:file-selected', function(e) {
-    var detail = e.detail;
-    if (!detail || !detail.data) return;
-
-    var byteChars = atob(detail.data);
-    var byteNumbers = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) {
-      byteNumbers[i] = byteChars.charCodeAt(i);
-    }
-    var byteArray = new Uint8Array(byteNumbers);
-    var blob = new Blob([byteArray], { type: detail.type || 'application/octet-stream' });
-    var file = new File([blob], detail.name || 'import.csv', { type: detail.type || 'application/octet-stream' });
-
-    var dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    fileInput.files = dataTransfer.files;
-    showFileInfo(file);
+  // Click to select file
+  dropZone.addEventListener('click', function() {
+    fileInput.click();
   });
 
   // Drag and drop

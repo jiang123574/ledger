@@ -274,37 +274,6 @@
 
   if (!dropZone) return;
 
-  // 原生 App 文件选择支持
-  dropZone.addEventListener('click', function(e) {
-    if (window.NativeApp && window.NativeApp.isNative) {
-      e.preventDefault();
-      window.NativeApp.pickFile('.csv');
-    }
-    // 非原生环境：默认 input[type=file] 行为
-  });
-
-  // 监听原生文件选择结果
-  window.addEventListener('native:file-selected', function(e) {
-    var detail = e.detail;
-    if (!detail || !detail.data) return;
-
-    // Base64 → Blob → File
-    var byteChars = atob(detail.data);
-    var byteNumbers = new Array(byteChars.length);
-    for (var i = 0; i < byteChars.length; i++) {
-      byteNumbers[i] = byteChars.charCodeAt(i);
-    }
-    var byteArray = new Uint8Array(byteNumbers);
-    var blob = new Blob([byteArray], { type: detail.type || 'text/csv' });
-    var file = new File([blob], detail.name || 'import.csv', { type: detail.type || 'text/csv' });
-
-    // 注入到 file input
-    var dataTransfer = new DataTransfer();
-    dataTransfer.items.add(file);
-    fileInput.files = dataTransfer.files;
-    updateFileInfo();
-  });
-
   dropZone.addEventListener('dragover', function(e) {
     e.preventDefault();
     dropZone.classList.add('border-inverse', 'bg-surface-inset');
