@@ -678,6 +678,14 @@ RSpec.describe "Transactions", type: :request do
         .or have_http_status(:redirect)
         .or have_http_status(:not_acceptable)
     end
+
+    it "renders the amount input with expression support" do
+      get "/transactions/#{entry.id}/edit", headers: { "X-Requested-With" => "XMLHttpRequest" }
+
+      expect(response).to have_http_status(:ok)
+      expect(response.body).to include('name="entry[amount]"')
+      expect(response.body).to include('data-amount-expression="true"')
+    end
   end
 
   # ==================== Edge Cases ====================

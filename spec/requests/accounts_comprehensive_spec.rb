@@ -30,6 +30,13 @@ RSpec.describe "Accounts Comprehensive", type: :request do
       get "/accounts"
       expect(response).to have_http_status(:ok)
     end
+
+    it "renders the new transaction amount input with expression support" do
+      get "/accounts"
+
+      expect(response.body).to include('name="transaction[amount]"')
+      expect(response.body).to include('data-amount-expression="true"')
+    end
   end
 
   describe "POST /accounts" do

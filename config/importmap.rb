@@ -11,6 +11,9 @@ pin "utils/toast_utils", to: "utils/toast_utils.js"
 pin "utils/entry_list_utils", to: "utils/entry_list_utils.js"
 pin "utils/selector_factory", to: "utils/selector_factory.js"
 
+# 金额输入框的简单加减法
+pin "amount_expression", to: "amount_expression.js"
+
 # Pin controllers manually (Propshaft compatibility)
 pin "controllers", to: "controllers/index.js"
 pin "controllers/application", to: "controllers/application.js"
