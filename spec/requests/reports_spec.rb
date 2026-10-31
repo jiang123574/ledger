@@ -36,6 +36,20 @@ RSpec.describe "Reports", type: :request do
       expect(response).to have_http_status(:success)
     end
 
+    it "keeps expense and refund totals when aggregating yearly stats" do
+      create(:entry, account: account, amount: -400, date: Date.current,
+             entryable: create(:entryable_transaction, kind: "expense", category: expense_category))
+      create(:entry, account: account, amount: 100, date: Date.current,
+             entryable: create(:entryable_transaction, kind: "expense", is_refund: true, category: expense_category))
+
+      get report_year_path(year: current_year)
+
+      expect(response).to have_http_status(:success)
+      expect(response.body).to include("¥300.00")
+      expect(response.body).to include("¥100.00")
+      expect(response.body).to include("25.0%")
+    end
+
     it "excludes transfer entries from totals" do
       transfer_id = SecureRandom.uuid
       create(:entry, account: account, amount: -500, date: Date.current, transfer_id: transfer_id,

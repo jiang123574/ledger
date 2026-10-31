@@ -19,6 +19,22 @@ RSpec.describe "Dashboard", type: :request do
       expect(response.body).to include("总资产")
     end
 
+    it "does not load unused recent-entry and budget collections" do
+      create(:budget, category: category, month: Date.current.strftime("%Y-%m"), amount: 5000)
+      queries = []
+      callback = lambda do |_name, _start, _finish, _id, payload|
+        queries << payload[:sql] unless payload[:name] == "SCHEMA"
+      end
+
+      ActiveSupport::Notifications.subscribed(callback, "sql.active_record") do
+        get "/dashboard"
+      end
+
+      expect(response).to have_http_status(:success)
+      expect(queries.grep(/SELECT "entries"\.\* FROM "entries"/)).to be_empty
+      expect(queries.grep(/SELECT "budgets"\.\* FROM "budgets"/)).to be_empty
+    end
+
     context "with month parameter" do
       it "accepts a valid month filter" do
         get "/dashboard", params: { month: "2024-01" }
@@ -65,6 +81,18 @@ RSpec.describe "Dashboard", type: :request do
         get "/dashboard"
         expect(response).to have_http_status(:success)
         expect(response.body).to include("餐饮")
+      end
+
+      it "keeps refund totals when aggregating monthly stats" do
+        create(:entry, account: account, amount: 500, date: Date.current,
+               entryable: create(:entryable_transaction, kind: "expense", is_refund: true, category: category))
+
+        get "/dashboard"
+
+        expect(response).to have_http_status(:success)
+        expect(response.body).to include("3 笔")
+        expect(response.body).to include("¥1,500.00")
+        expect(response.body).to include("¥500.00")
       end
     end
 

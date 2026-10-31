@@ -14,41 +14,25 @@ class DashboardController < ApplicationController
     ev = CacheBuster.version(:entries)
     av = CacheBuster.version(:accounts)
 
-    # Cache accounts lookup
-    @accounts = Rails.cache.fetch("dashboard/accounts/#{av}", expires_in: CacheConfig::MODERATE) do
-      Account.visible.to_a
-    end
-
-    # Cache recent entries
-    @entries = Rails.cache.fetch("dashboard/entries/#{@month}/#{ev}", expires_in: CacheConfig::MEDIUM) do
-      Entry.includes(:account)
-        .where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
-        .where("transfer_id IS NULL")
-        .reverse_chronological
-        .limit(50)
-        .to_a
-    end
-
-    # 预加载 entryable 及其 category（每次请求都做，因为缓存序列化会丢失预加载状态）
-    ActiveRecord::Associations::Preloader.new(records: @entries, associations: [ :entryable ]).call
-    if @entries.any?
-      category_ids = @entries.map { |e| e.entryable.respond_to?(:category_id) ? e.entryable.category_id : nil }.compact.uniq
-      if category_ids.any?
-        @category_map = Category.where(id: category_ids).index_by(&:id)
-      end
-    end
-
     # Cache monthly stats
     @monthly_stats = Rails.cache.fetch("dashboard/stats/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
       entries = Entry.with_entryable_transaction
         .where(date: start_date..end_date, entryable_type: "Entryable::Transaction")
         .where("transfer_id IS NULL")
+      # 单次条件聚合，避免对同一期间数据重复扫描 5 次
+      stats = entries.pick(
+        Arel.sql("COALESCE(SUM(CASE WHEN entryable_transactions.kind = 'income' THEN entries.amount ELSE 0 END), 0)"),
+        Arel.sql("COALESCE(SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE 0 END), 0)"),
+        Arel.sql("COUNT(*)"),
+        Arel.sql("COALESCE(SUM(CASE WHEN entryable_transactions.is_refund THEN ABS(entries.amount) ELSE 0 END), 0)"),
+        Arel.sql("COUNT(*) FILTER (WHERE entryable_transactions.is_refund)")
+      )
       {
-        income: entries.where(entryable_transactions: { kind: "income" }).sum(:amount),
-        expense: entries.where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1"),
-        count: entries.count,
-        refund_amount: entries.where(entryable_transactions: { is_refund: true }).sum("ABS(entries.amount)"),
-        refund_count: entries.where(entryable_transactions: { is_refund: true }).count
+        income: stats[0],
+        expense: stats[1],
+        count: stats[2],
+        refund_amount: stats[3],
+        refund_count: stats[4]
       }
     end
     @total_income = @monthly_stats[:income]
@@ -71,21 +55,6 @@ class DashboardController < ApplicationController
     end
 
     @expenses_by_category = expenses_data.map { |e| [ e.category_id, e.category_name, e.total_amount ] }
-
-    @budgets = Budget.for_month(@month).to_a
-    @total_budget = @budgets.sum(&:amount)
-    # 预加载 spent_amount，消除 N+1
-    Budget.preload_spent_amounts(@budgets)
-
-    # total_spent 也纳入缓存
-    @total_spent = Rails.cache.fetch("dashboard/total_spent/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do
-      Entry.with_entryable_transaction
-        .transactions_only
-        .non_transfers
-        .where(entryable_transactions: { kind: "expense", category_id: @budgets.pluck(:category_id) })
-        .where(date: start_date..end_date)
-        .sum("entries.amount * -1")
-    end
 
     # Trend chart data for current month (weekly)
     @trend_chart_data = Rails.cache.fetch("dashboard/trend/#{@month}/#{ev}", expires_in: CacheConfig::MODERATE) do

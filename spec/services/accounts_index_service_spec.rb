@@ -3,6 +3,20 @@ require 'rails_helper'
 RSpec.describe AccountsIndexService do
   let(:account) { create(:account, initial_balance: 5000, include_in_total: true) }
 
+  describe '#load_entries_with_balance' do
+    it 'preloads entry accounts and transaction associations for rendering' do
+      entry = create(:entry, account: account, date: Date.current)
+      service = AccountsIndexService.new({}, { accounts: CacheBuster.version(:accounts), entries: CacheBuster.version(:entries) })
+
+      result = service.load_entries_with_balance(Entry.where(id: entry.id).reverse_chronological, 1, 15)
+      loaded_entry = result.first.first
+
+      expect(loaded_entry.association(:account)).to be_loaded
+      expect(loaded_entry.association(:entryable)).to be_loaded
+      expect(loaded_entry.entryable.association(:category)).to be_loaded
+    end
+  end
+
   describe '#load_total_assets' do
     it 'uses cache key containing both accounts and entries versions' do
       av = CacheBuster.version(:accounts)

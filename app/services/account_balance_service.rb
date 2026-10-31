@@ -130,21 +130,13 @@ class AccountBalanceService
 
   private
 
-  # 加载所有账户的当前余额
+  # 加载所有账户的当前余额（LEFT JOIN 已包含无交易账户）
   def load_current_balances
-    # 有交易记录的账户
-    with_entries = Account.visible.included_in_total
+    Account.visible.included_in_total
       .joins("LEFT JOIN entries ON entries.account_id = accounts.id AND entries.entryable_type = 'Entryable::Transaction'")
       .group("accounts.id")
       .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
       .to_h { |id, type, bal| [ id, { type: type, balance: bal.to_d } ] }
-
-    # 无交易记录的账户（补充初始余额）
-    Account.visible.included_in_total.where.not(id: with_entries.keys)
-      .pluck(:id, :type, :initial_balance)
-      .each { |id, type, bal| with_entries[id] = { type: type, balance: bal.to_d } }
-
-    with_entries
   end
 
   # 加载日期范围内的月度账户变动
