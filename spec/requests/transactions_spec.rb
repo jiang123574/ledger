@@ -183,6 +183,26 @@ RSpec.describe "Transactions", type: :request do
         expect(response).to have_http_status(:redirect)
         expect(flash[:alert]).to be_present
       end
+
+      it "keeps the transaction as a refund when funding account is selected" do
+        post "/transactions", params: {
+          transaction: {
+            type: "EXPENSE",
+            amount: 500,
+            date: Date.current,
+            account_id: account.id,
+            category_id: category.id,
+            note: "退货退款",
+            is_refund: "1"
+          },
+          funding_account_id: funding_account.id
+        }
+
+        refund_entry = Entry.find_by(account: account, transfer_id: nil)
+        expect(refund_entry.amount).to eq(500)
+        expect(refund_entry.entryable.kind).to eq("expense")
+        expect(refund_entry.entryable.is_refund).to be true
+      end
     end
 
     context "with validation errors" do
