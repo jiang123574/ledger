@@ -32,7 +32,8 @@ class AccountStatsService
   # 计算带余额的分页 Entry 列表
   # 返回 [[Entry, balance], ...]
   def self.entries_with_balance(entries_scope, page:, per_page:, account_id: nil)
-    paginated_entries = entries_scope.includes(:entryable, entryable: :category)
+    # 调用方会在读取缓存后统一重查并预加载关联；首轮只负责分页和余额计算
+    paginated_entries = entries_scope
       .limit(per_page).offset((page - 1) * per_page).to_a
 
     if paginated_entries.empty?

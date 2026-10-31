@@ -79,7 +79,7 @@ class AccountsIndexService
     return [] if entry_ids.empty?
 
     entries = Entry.where(id: entry_ids)
-      .includes(:entryable, entryable: :category)
+      .includes(:account, :entryable, entryable: :category)
       .to_a
 
     entry_id_to_index = entry_ids.each_with_index.to_h

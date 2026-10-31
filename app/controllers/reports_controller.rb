@@ -58,10 +58,11 @@ class ReportsController < ApplicationController
     entries = Entry.where(date: @start_date..@end_date, entryable_type: "Entryable::Transaction")
       .where("transfer_id IS NULL")
 
-    data[:total_income] = entries.with_entryable_transaction
-      .where(entryable_transactions: { kind: "income" }).sum(:amount)
-    data[:total_expense] = entries.with_entryable_transaction
-      .where(entryable_transactions: { kind: "expense" }).sum("entries.amount * -1")
+    # 单次条件聚合，避免对同一报表周期重复扫描
+    data[:total_income], data[:total_expense] = entries.with_entryable_transaction.pick(
+      Arel.sql("COALESCE(SUM(CASE WHEN entryable_transactions.kind = 'income' THEN entries.amount ELSE 0 END), 0)"),
+      Arel.sql("COALESCE(SUM(CASE WHEN entryable_transactions.kind = 'expense' THEN entries.amount * -1 ELSE 0 END), 0)")
+    )
     data[:net_balance] = data[:total_income] - data[:total_expense]
 
     data[:monthly_trend] = compute_monthly_trend
@@ -209,8 +210,10 @@ class ReportsController < ApplicationController
       .where(entryable_transactions: { is_refund: true })
       .where(date: @start_date..@end_date)
 
-    total_amount = refund_entries.sum("ABS(entries.amount)")
-    count = refund_entries.count
+    total_amount, count = refund_entries.pick(
+      Arel.sql("COALESCE(SUM(ABS(entries.amount)), 0)"),
+      Arel.sql("COUNT(*)")
+    )
 
     # 按分类统计退款（买家退款 + 卖家退款都算）
     by_category = Entry.with_category
@@ -249,18 +252,15 @@ class ReportsController < ApplicationController
       by_category: by_category.first(10),
       monthly_trend: monthly,
       expense_refund_rate: begin
-        expense_total = Entry.with_entryable_transaction
+        expense_total, buyer_refund_amount = Entry.with_entryable_transaction
           .transactions_only
           .non_transfers
-          .where(entryable_transactions: { kind: "expense", is_refund: false })
+          .where(entryable_transactions: { kind: "expense" })
           .where(date: @start_date..@end_date)
-          .sum("entries.amount * -1")
-        buyer_refund_amount = Entry.with_entryable_transaction
-          .transactions_only
-          .non_transfers
-          .where(entryable_transactions: { kind: "expense", is_refund: true })
-          .where(date: @start_date..@end_date)
-          .sum("entries.amount")
+          .pick(
+            Arel.sql("COALESCE(SUM(CASE WHEN NOT entryable_transactions.is_refund THEN entries.amount * -1 ELSE 0 END), 0)"),
+            Arel.sql("COALESCE(SUM(CASE WHEN entryable_transactions.is_refund THEN entries.amount ELSE 0 END), 0)")
+          )
         expense_total > 0 ? (buyer_refund_amount / expense_total * 100).round(1) : 0
       end
     }
@@ -299,10 +299,6 @@ class ReportsController < ApplicationController
       .group("accounts.id")
       .pluck(Arel.sql("accounts.id, accounts.type, accounts.initial_balance + COALESCE(SUM(entries.amount), 0)"))
       .to_h { |id, type, bal| [ id, { type: type, balance: bal.to_d } ] }
-
-    Account.visible.included_in_total.where.not(id: current_balances.keys)
-      .pluck(:id, :type, :initial_balance)
-      .each { |id, type, bal| current_balances[id] = { type: type, balance: bal.to_d } }
 
     asset_account_ids = current_balances.select { |_, v| asset_types.include?(v[:type]) }.keys
     liability_account_ids = current_balances.select { |_, v| liability_types.include?(v[:type]) }.keys
