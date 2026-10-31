@@ -295,6 +295,21 @@ RSpec.describe EntryCreationService, type: :service do
       expense_entry = Entry.where(account: destination_account, amount: ...0).last
       expect(expense_entry.entryable.category).to eq(category)
     end
+
+    it 'preserves the refund flag and reverses the expense amount' do
+      original_entry = create(:entry, account: destination_account)
+
+      _, refund_entry = described_class.create_with_funding_transfer(
+        funding_account_id: funding_account.id,
+        destination_account_id: destination_account.id,
+        amount: 100, date: Date.current, category_id: category.id,
+        is_refund: true, refund_of_entry_id: original_entry.id
+      )
+
+      expect(refund_entry.amount).to eq(100)
+      expect(refund_entry.entryable.is_refund).to be true
+      expect(refund_entry.entryable.refund_of_entry_id).to eq(original_entry.id)
+    end
   end
 
   # ==================== .next_sort_order ====================
