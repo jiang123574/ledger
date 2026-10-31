@@ -218,7 +218,9 @@ class TransactionsController < ApplicationController
       date: attrs[:date],
       currency: attrs[:currency] || "CNY",
       note: attrs[:note],
-      category_id: attrs[:category_id]
+      category_id: attrs[:category_id],
+      is_refund: attrs[:is_refund] == "1" || attrs[:is_refund] == true,
+      refund_of_entry_id: attrs[:refund_of_entry_id].presence
     )
 
     expire_entries_cache
