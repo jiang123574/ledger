@@ -93,9 +93,10 @@ class EntryCreationService
     transfer_id
   end
 
-  # 创建带资金来源转账的支出（先从资金来源账户转账到消费账户，再创建支出）
+  # 创建带资金来源转账的支出/退款（先从资金来源账户转账到消费账户，再创建交易）
   def self.create_with_funding_transfer(funding_account_id:, destination_account_id:,
-                                         amount:, date:, currency: "CNY", note: nil, category_id: nil)
+                                         amount:, date:, currency: "CNY", note: nil, category_id: nil,
+                                         is_refund: false, refund_of_entry_id: nil)
     source_account = Account.find(funding_account_id)
     destination_account = Account.find(destination_account_id)
 
@@ -143,18 +144,20 @@ class EntryCreationService
         sort_order: sort_order_in
       )
 
-      # 实际支出（parent_entry_id 指向资金来源转出，用于全局视图排序聚合）
+      # 实际支出/退款（parent_entry_id 指向资金来源转出，用于全局视图排序聚合）
       sort_order_expense = next_sort_order(destination_account.id, date)
       expense_entryable = Entryable::Transaction.create!(
         kind: "expense",
-        category_id: category_id
+        category_id: category_id,
+        is_refund: is_refund,
+        refund_of_entry_id: refund_of_entry_id
       )
 
       expense_entry = Entry.create!(
         account_id: destination_account.id,
         date: date,
         name: note.presence || "支出 #{amount}",
-        amount: -amount,
+        amount: is_refund ? amount.to_d : -amount.to_d,
         currency: currency,
         notes: note,
         entryable: expense_entryable,
