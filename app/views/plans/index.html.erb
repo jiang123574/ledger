@@ -771,10 +771,11 @@
           dropdown.style.left = rect.left + 'px'
           dropdown.style.maxHeight = Math.min(dropdownHeight, spaceBelow - 4) + 'px'
         } else {
-          // 向上展开
-          dropdown.style.top = (rect.top - dropdownHeight - 4) + 'px'
+          // 向上展开，按限制后的实际高度计算位置
+          const visibleHeight = Math.min(dropdownHeight, spaceAbove - 4)
+          dropdown.style.top = (rect.top - visibleHeight - 4) + 'px'
           dropdown.style.left = rect.left + 'px'
-          dropdown.style.maxHeight = Math.min(dropdownHeight, spaceAbove - 4) + 'px'
+          dropdown.style.maxHeight = visibleHeight + 'px'
         }
 
         dropdown.style.opacity = '1'
