@@ -752,8 +752,11 @@
     document.querySelectorAll('[id$="-day-dropdown"]').forEach(el => el.classList.add('hidden'))
 
     if (isHidden) {
+      // 移出带动画 transform 的弹窗，避免 fixed 定位偏移并被滚动区域裁剪
+      document.body.appendChild(dropdown)
       dropdown.classList.remove('hidden')
       dropdown.style.position = 'fixed'
+      dropdown.style.zIndex = '60'
       dropdown.style.width = display.offsetWidth + 'px'
 
       // 先设为不可见，计算位置后再显示
